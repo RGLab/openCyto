@@ -60,36 +60,63 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 			x<-as(x,"graphNEL")
 #			browser()
 			
-			nAttrs<-list(label=unlist(nodeData(x,attr="label")))
+			
 			#get gating method name attr from edges
-			gm<-unlist(lapply(edgeData(x,attr="gatingMethod"),names))
-			eCols<-gm
+			gm.names<-unlist(lapply(edgeData(x,attr="gatingMethod"),names))
+			gm.types<-unique(gm.names)
 			#fix the name attr 
-			e.colnames<-gsub("\\|","~",names(eCols))
-			#get the categorical method names
-			gm.txt<-unique(eCols)
-			nMethods<-length(gm.txt)
+			e.colnames<-gsub("\\|","~",names(gm.names))
+	
 			#encode the method name with color
+			nMethods<-length(gm.types)
 			gm.col<-RColorBrewer::brewer.pal(nMethods,name="Dark2")
-			names(gm.col)<-gm.txt
-			eCols<-gm.col[eCols]
+			names(gm.col)<-gm.types
+			eCols<-gm.col[gm.names]
 			names(eCols)<-e.colnames#restore names 
-			eAttrs<-list(color=eCols)
+			
+			#encode edge style
+			gm.isPoly<-unlist(lapply(gm.names,function(y)ifelse(y=="polyfunctions","poly","regular")))
+			edge.styles<-c("solid","dashed")
+			names(edge.styles)<-unique(gm.isPoly)
+			eStyles<-edge.styles[gm.isPoly]
+			names(eStyles)<-e.colnames
+			eAttrs<-list(color=eCols
+						,lty=eStyles
+						)
+#			browser()
+			
+			#encode the node shape and color with isSubsets
+			nodeTypes<-unlist(lapply(nodeData(x,attr="isSubsets"),function(y){ifelse(y,"subset","pop")}))
+			n.colnames<-names(nodeTypes)
+			nodeType<-unique(nodeTypes)
+			
+			#color
+			subset.col<-RColorBrewer::brewer.pal(9,name="Set3")[c(9,7)]
+			names(subset.col)<-nodeType
+			nFillCol<-subset.col[nodeTypes]
+			names(nFillCol)<-n.colnames
+			
+			#line type(somehow it doesn't work here)
+			LineType<-c("solid","dotted")
+			names(LineType)<-nodeType
+			nLtys<-LineType[nodeTypes]
+			names(nLtys)<-n.colnames
+			
+			nLabels<-unlist(nodeData(x,attr="label"))
+			
+			nAttrs<-list(label=nLabels
+						,fillcolor=nFillCol
+						,lty=nLtys)
 #			browser()
 			plot(x
 					,nodeAttrs=nAttrs
 					,edgeAttrs=eAttrs
 					,attrs=list(graph=list(rankdir="LR",page=c(8.5,11))
 											,node=list(fixedsize=FALSE
-														,fillcolor="gray"
-#														,color="white"
 														,shape="ellipse"
 														)
-							
-#								,edge=list(labelfontsize="27")
-							
 								)
-			)
+				)
 			
 #			browser()
 			plot.space = par()[["usr"]]
@@ -98,14 +125,13 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 			y1 = plot.space[3]
 			y2 = plot.space[4]
 			
-			
-#			plot(lay)
+			legend.lty<-ifelse(gm.types=="polyfunctions","poly","regular")
 			legend(x1+100,y2-100
-					,legend=gm.txt
+					,legend=gm.types
 					,title="Gating Methods"
 					,col=gm.col
 #					,pch="l"
-					,lty=1
+					,lty=edge.styles[legend.lty]
 					,cex=0.8
 					)
 		})

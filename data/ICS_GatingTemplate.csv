@@ -13,4 +13,4 @@
 "IFNg","IFNg+","cd8","PE Cy7-A","flowClust.1d","cutpoint_method = ""quantile"",percentile=0.995"
 "IL2","IL2+","cd8","PE Green laser-A","flowClust.1d","cutpoint_method = ""quantile"",percentile=0.995"
 "IL2|IFNg","cd8:IL2|IFNg","cd8/IL2|cd8/IFNg",,"boolGate",
-"polyfuntionality","[:poly:]","cd8/IFNg:cd8/IL2:cd8/TNFa",,"boolGate",
+"cd8 subsets","cd8 subsets","cd8/IFNg:cd8/IL2:cd8/TNFa",,"polyfunctions",

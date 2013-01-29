@@ -40,9 +40,10 @@ setClass("gatingMethod"
 						,args="character"
 						)	
 )
-isPolyfunctional<-function(popName){
+isPolyfunctional<-function(gm){
 #	browser()
-	grepl("^\\[\\:.+\\:\\]$",popName)
+#	grepl("^\\[\\:.+\\:\\]$",x)
+	names(gm)=="polyfunctions"
 }
 #constructor from csv 
 gatingTemplate<-function(file,name){
@@ -52,6 +53,7 @@ gatingTemplate<-function(file,name){
 	g<-graphNEL(nodes="0",edgemode="directed")
 	nodeDataDefaults(g,"label")<-"root"
 	nodeDataDefaults(g,"name")<-"root"
+	nodeDataDefaults(g,"isSubsets")<-FALSE
 	edgeDataDefaults(g,"gatingMethod")<-""
 	#parse each row
 	nEdges<-nrow(df)
@@ -75,6 +77,8 @@ gatingTemplate<-function(file,name){
 			g<-graph::addNode(curNodeID,g)
 			nodeData(g,curNodeID,"label")<-curPop
 			nodeData(g,curNodeID,"name")<-curPopName
+			nodeData(g,curNodeID,"isSubsets")<-FALSE
+			
 			g<-addEdge(src,curNodeID,g)
 #			browser()
 			edgeData(g,src,curNodeID,"gatingMethod")<-gm
@@ -86,10 +90,14 @@ gatingTemplate<-function(file,name){
 			nodeData(g,curNodeID,"label")<-curPop
 			nodeData(g,curNodeID,"name")<-curPopName
 			#TODO:deal with not symbol!
-			if(isPolyfunctional(curPopName))
+			isPoly<-isPolyfunctional(gm)
+			if(isPoly)
 				refNodes<-strsplit(parent,"\\:")[[1]] #split by colon when polyfunctional boolean gates
 			else
 				refNodes<-strsplit(parent,"&|\\|")[[1]]#split by logical operator when regular boolean gates
+			
+			nodeData(g,curNodeID,"isSubsets")<-isPoly
+			
 			for(refNode in refNodes)
 			{
 						#split by "/" for each reference node
