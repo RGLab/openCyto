@@ -101,28 +101,52 @@ gating.boundary<-function(x,wf,pViewName,step=100,...){
 #################################
 gating.viable <- function(x, wf, pViewName, plot = FALSE, batch = FALSE,
                           xbin = 128, step = 100, cond = "name", nslaves = 0,
-                          ...) {
+                          xChannel = vMarkers(x), yChannel = NULL, gate1D = TRUE,
+                          filterId = "viable", isflowClust = TRUE,
+                          usePrior = "yes", prior = NULL, ...) {
   
   tView <- "viable"
   nodeNames <- getNodes(wf[[1]])
 
   if (step >= 2 && !tView %in% nodeNames) {
-	 curData <- getData(wf, pViewName)
+    curData <- getData(wf, pViewName)
     message("viable gating...")
-    fid <- "viable"
 
-    yChannel <- vMarkers(x)
+    if (class(x) == "HVTN080") {
+      xChannel_gates <- Gating1D(curData, y = xChannel, filterId = filterId,
+                                 positive = FALSE, nslaves = nslaves,
+                                 method = "flowClust", usePrior = usePrior,
+                                 prior = prior$xChannel, neg_cluster = 2, ...)
 
-    viable.filterList <- Gating1D(curData, y = yChannel, filterId = fid,
-                                  nslaves = nslaves, method="flowClust",
-                                  positive = FALSE)
+      yChannel_gates <- Gating1D(curData, y = yChannel, filterId = filterId,
+                                 positive = TRUE, nslaves = nslaves,
+                                 method = "flowClust", usePrior = usePrior,
+                                 prior = prior$yChannel, neg_cluster = 1, ...)
+
+      # We merge the x- and y-channel gates into a single gate by creating a
+      # polygon that beyond the measured cells.
+      xChannel <- markers2channels(curData[[1]], xChannel)
+      yChannel <- markers2channels(curData[[1]], yChannel)
+
+      viable.filterList <- mapply(function(xChannel_gate, yChannel_gate) {
+          gates <- list(c(-Inf, xChannel_gate@max), c(yChannel_gate@min, Inf))
+          names(gates) <- as.character(c(xChannel, yChannel))
+          rectangleGate(gates, filterId = filterId)
+      }, xChannel_gates, yChannel_gates)
+      viable.filterList <- filterList(viable.filterList)
+    } else {
+      viable.filterList <- Gating1D(curData, x = xChannel, y = yChannel,
+                                    filterId = filterId, positive = FALSE,
+                                    nslaves = nslaves, method = "flowClust",
+                                    usePrior = usePrior, ...)
+    }
 
     nodeID <- add(wf, viable.filterList, parent = pViewName)
     recompute(wf, nodeID)
     
     message("done.")
     if (plot) {
-      print(plotGate(wf,nodeID, main = tView, xbin = xbin))
+      print(plotGate(wf, nodeID, main = tView, xbin = xbin))
       
       if (!batch) {
         retval <- readline("Enter to resume, c to exit:")
@@ -177,7 +201,7 @@ gating.singlet.h <- function(x, wf, pViewName, plot = FALSE, batch = FALSE,
                              xbin = 128, step = 100, cond = "name",
                              xChannel = "FSC-A", yChannel = "FSC-H",
                              sidescatter = "SSC-A", prediction_level = 0.99,
-                             nslaves = 0, type = "multicore", name="singlet",...) {
+                             nslaves = 0, type = "multicore", ...) {
 
   chunksize <- 10
   lwf <- length(wf)
@@ -186,7 +210,7 @@ gating.singlet.h <- function(x, wf, pViewName, plot = FALSE, batch = FALSE,
     nchunks <- nchunks + 1
   }
   splitvar <- gl(nchunks, chunksize)
-  chunks <- split(seq_len(lwf), splitvar)
+  chunks <- split(seq_len(lwf), splitvar[seq_len(lwf)])
   tView <- "singlet"
   nodeNames <- getNodes(wf[[1]])
   
@@ -194,9 +218,10 @@ gating.singlet.h <- function(x, wf, pViewName, plot = FALSE, batch = FALSE,
     singlet_filter_list_chunks<-vector('list',nchunks)
     for(j in seq_along(chunks)) {
       
-      curData <- getData(wf[chunks[[j]]],pViewName)
+      curData <- getData(wf[chunks[[j]]], pViewName)
+
       message("singlet gating...")
-      fid <- name
+      fid <- "singlet"
     
       # Splits the flow set into a list, where each element in the list is a
       # flowSet containg one flow frame.
@@ -227,10 +252,11 @@ gating.singlet.h <- function(x, wf, pViewName, plot = FALSE, batch = FALSE,
         }
       } else {
         singlet.filterList <- lapply(flowset_list, function(current_frame) {
-					flowStats:::singletGate(current_frame[[1]], area = xChannel, height = yChannel,
+          flowStats:::singletGate(current_frame[[1]], area = xChannel, height = yChannel,
                                   prediction_level = prediction_level, filter_id = fid)$gate
-        })	
+        })
       }
+
       singlet_filter_list_chunks[[j]] <- singlet.filterList
     }
 
@@ -260,11 +286,11 @@ gating.singlet.h <- function(x, wf, pViewName, plot = FALSE, batch = FALSE,
 #################################
 ## lymph +
 #################################
-
 gating.lymph <- function(x, wf, pViewName, plot = FALSE, batch = FALSE,
                          xbin = 128, step = 100, nslaves = 0, cond = "name",
-                         filterId = "Lymph", isflowClust = TRUE, gate_1D = FALSE,
-                         usePrior = "yes", which_gate = c("right", "left", "top", "bottom"), ...) {
+                         xChannel = "SSC-A", yChannel = NULL, filterId = "Lymph",
+                         isflowClust = TRUE, usePrior = "yes",
+                         which_gate = c("right", "left", "top", "bottom"), ...) {
 
   nodeNames <- getNodes(wf[[1]])
   tView <- "Lymph"
@@ -274,31 +300,21 @@ gating.lymph <- function(x, wf, pViewName, plot = FALSE, batch = FALSE,
   if (step >= 3 && !any(grepl(tView , nodeNames))) {
     message("lymph gating...")
     curData <- getData(wf, pViewName)
-    if (gate_1D) {
-      yChannel <- "SSC-A"
+
+    # If 'yChannel' is NULL, then a 1D gate is constructed. Otherwise, we
+    # construct a 2D gate.
+    if (is.null(yChannel)) {
       positive <- which_gate == "right"
 
-      if (class(x) == "BCell") {
-        prior_mean <- c(55328.58, 200000)
-        prior_omega <- c(6267.43, 41956.38)^2
-      } else {
-        prior_mean <- NULL
-        prior_omega <- NULL
-      }
-                      
-      lymph.filterList <- Gating1D(curData, y = yChannel, filterId = filterId,
+      lymph.filterList <- Gating1D(curData, y = xChannel, filterId = filterId,
                                    positive = positive, nslaves = nslaves,
-								   method="flowClust",
-                                   usePrior = usePrior, prior_mean = prior_mean,
-                                   prior_omega = prior_omega, ...)
+                                   method = "flowClust", usePrior = usePrior,
+                                   ...)
     } else {
-      xChannel <- "FSC-A"
-      yChannel <- "SSC-A"
-
       lymph.filterList <- Gating2D(curData, x = xChannel, y = yChannel,
                                    filterId = filterId, nslaves = nslaves,
                                    isflowClust = isflowClust, usePrior = usePrior,
-                                   trans = 0, ...)
+                                   trans = 0, which_gate = which_gate, ...)
     }
     nodeID <- add(wf, lymph.filterList, parent = pViewName)
     recompute(wf, tView)
@@ -420,13 +436,15 @@ gating.cd3 <- function(x, wf, pViewName, plot = FALSE, batch = FALSE, xbin = 128
   # Check if tcell is already gated
   nodeNames <-  getNodes(wf[[1]])
   
-  marker <- x@tMarkers
+  marker <- tMarkers(x)
 
   if (class(x) == "BCell") {
     positive <- FALSE
   } else if (class(x) == "TCell") {
     positive <- TRUE
   } else if (class(x) == "ICS") {
+    positive <- TRUE
+  } else if (class(x) == "HVTN080") {
     positive <- TRUE
   } else {
     stop("unknown gating template type!")
@@ -451,7 +469,6 @@ gating.cd3 <- function(x, wf, pViewName, plot = FALSE, batch = FALSE, xbin = 128
     nodeID <- add(wf, cd3.filterList, parent = pViewName)
     recompute(wf, nodeID)
     
-
     message("done.")
     if (plot) {
       print(plotGate(wf, nodeID, main = tView, xbin = xbin, pos = c(0.5,0.8)))
@@ -528,7 +545,7 @@ quadGate.sequential <- function(fr, markers, nslaves = 0, split = TRUE,
 	  filter3 <- Gating1D(flowSet(posFr), y = yParam, nslaves = nslaves,
                         method = gating_method, usePrior = usePrior,
                         filterId = markers[2], prior = prior_y, neg_cluster = 2,
-                        K = 3, nu.est = 2, ...)
+                        nu.est = 2, ...)
 
 	  cut.y.r <- filter3[[1]]@min
   } else {
@@ -597,7 +614,7 @@ quadGate.sequential <- function(fr, markers, nslaves = 0, split = TRUE,
 #' default, this value is \code{NULL} and is ignored.
 #' @param truncate_max Truncate observations greater than this maximum value. By
 #' default, this value is \code{NULL} and is ignored.
-#' @param percentile the percentile for which we will find the cutpoint using
+#' @param quantile the quantile for which we will find the cutpoint using
 #' the quantile \code{cutpoint_method}. If the \code{cutpoint_method} is not set
 #' to \code{quantile}, this argument is ignored.
 #' @param quantile_interval a vector of length 2 containing the end-points of the
@@ -610,7 +627,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
                          positive = TRUE, plot = FALSE, usePrior = 'no', prior = NULL,
                          cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean"),
                          neg_cluster = 1, truncate_min = NULL, truncate_max = NULL,
-                         percentile = 0.99, quantile_interval = c(0, 10), ...) {
+                         quantile = 0.99, quantile_interval = c(0, 10), ...) {
 
   cutpoint_method <- match.arg(cutpoint_method)
 
@@ -643,7 +660,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
   filter1 <- tmixFilter(filterId, params[1], K = K, trans = trans,
                         usePrior = usePrior, prior = prior, ...)
   tmixRes1 <- filter(fr, filter1)
-
+  
   # To determine the cutpoint, we first sort the centroids so that we can determine
   # the second largest centroid.
   centroids_sorted <- sort(getEstimates(tmixRes1)$locations)
@@ -692,7 +709,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
     x_dens <- dmvtmix(x = as.matrix(x_between), object = tmixRes1)
     cutpoint <- x_between[which.min(x_dens)]
   } else if (cutpoint_method == "quantile") {
-    cutpoint <- quantile_flowClust(p = percentile, object = tmixRes1, interval = quantile_interval)
+    cutpoint <- quantile_flowClust(p = quantile, object = tmixRes1, interval = quantile_interval)
   } else { # cutpoint_method == "posterior_mean"
     cutpoint <- centroids_sorted[neg_cluster]
   }
@@ -765,10 +782,14 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 #' \code{flowClust}, this value cannot be 2.
 #' @param plot a logical value indicating if the fitted mixture model should be
 #' plotted. By default, no.
-#' @param truncate_min Truncate observations less than this minimum value. By
-#' default, this value is \code{NULL} and is ignored.
-#' @param truncate_max Truncate observations greater than this maximum value. By
-#' default, this value is \code{NULL} and is ignored.
+#' @param truncate_min A vector of length 2. Truncate observations less than this
+#' minimum value. The first value truncates the \code{xChannel}, and the second
+#' value truncates the \code{yChannel}. By default, this vector is \code{NULL}
+#' and is ignored.
+#' @param truncate_max A vector of length 2. Truncate observations greater than
+#' this maximum value. The first value truncates the \code{xChannel}, and the
+#' second value truncates the \code{yChannel}. By default, this vector is
+#' \code{NULL} and is ignored.
 #' @param ... additional arguments that are passed to \code{flowClust}
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
@@ -781,22 +802,28 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   which_gate <- match.arg(which_gate)
   gate_type <- match.arg(gate_type)
 
-  # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
-  if (usePrior == "yes" && all.equal(prior_list, list(NA))) {
-    prior_list <- prior_flowClust2d(fr = fr, xChannel = xChannel, yChannel = yChannel, K = K)
-  }
-
   # If a truncation value is specified, we remove all observations less than this
   # value for the marker specified to construct the gate.
   # NOTE: These observations are removed from the 'flowFrame' locally and are gated
   # out only for the determining the gate.
   if (!is.null(truncate_min)) {
-    exprs(fr) <- exprs(fr)[exprs(fr)[, xChannel] >= truncate_min, ]
-    exprs(fr) <- exprs(fr)[exprs(fr)[, yChannel] >= truncate_min, ]    
+    exprs(fr) <- exprs(fr)[exprs(fr)[, xChannel] >= truncate_min[1], ]
+    exprs(fr) <- exprs(fr)[exprs(fr)[, yChannel] >= truncate_min[2], ]
+  }
+
+  if (!is.null(truncate_max)) {
+    exprs(fr) <- exprs(fr)[exprs(fr)[, xChannel] <= truncate_max[1], ]
+    exprs(fr) <- exprs(fr)[exprs(fr)[, yChannel] <= truncate_max[2], ]    
   }
 
   x <- exprs(fr)[, xChannel]
   y <- exprs(fr)[, yChannel]
+
+  # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
+  if (usePrior == "yes" && all.equal(prior_list, list(NA))) {
+    prior_list <- prior_flowClust2d(fr = fr, xChannel = xChannel, yChannel = yChannel, K = K)
+  }
+
 
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the

@@ -1,1 +1,12 @@
-setGeneric("gating", function(x, gs, ...) standardGeneric("gating"))
+setGeneric("vMarkers", function(x, ...) standardGeneric("vMarkers"))
+setGeneric("sMarkers", function(x, ...) standardGeneric("sMarkers"))
+setGeneric("lymphMarkers", function(x, ...) standardGeneric("lymphMarkers"))
+setGeneric("tMarkers", function(x, ...) standardGeneric("tMarkers"))
+setGeneric("tsubMarkers", function(x, ...) standardGeneric("tsubMarkers"))
+setGeneric("actMarkers", function(x, ...) standardGeneric("actMarkers"))
+setGeneric("memMarkers", function(x, ...) standardGeneric("memMarkers"))
+
+setGeneric("lymphPrior", function(x, ...) standardGeneric("lymphPrior"))
+setGeneric("gating", function(x, wf, ...) standardGeneric("gating"))
+setGeneric("Gating1D", function(obj, ...) standardGeneric("Gating1D"))
+setGeneric("Gating2D", function(obj, ...) standardGeneric("Gating2D"))

@@ -564,3 +564,49 @@ pairPlot<-function(x,...){
 				
 			})
 }
+
+
+# Code modified from:
+# http://stackoverflow.com/questions/11546256/two-way-density-plot-combined-with-one-way-density-plot-with-selected-regions-in
+plot2d_ggplot <- function(x, y, feature_pairs, bins = 30) {
+  require('ggplot2')
+  require('gtable')
+  data <- cbind.data.frame(x, y)
+
+  # To automatically plot specified features, we use the `ggplot2:::aes_string` function below.
+  # This function does not handle hyphenated column names well. To handle this, we apply the
+  # `make.names` function to convert to `ggplot2`-friendly names. However,
+  fp_orig <- feature_pairs
+  feature_pairs <- make.names(feature_pairs)
+  colnames(data) <- feature_pairs
+
+  p1 <- ggplot(data, aes_string(x = feature_pairs[1], y = feature_pairs[2])) +
+    stat_binhex(alpha = 1, bins = bins) +
+    scale_fill_gradientn(colours = c("darkblue", "lightblue", "green", "yellow", "orange", "red")) +
+    coord_cartesian(range(data[, feature_pairs[1]]), range(data[, feature_pairs[2]])) +
+    opts(legend.position = "none") + xlab(fp_orig[1]) + ylab(fp_orig[2])
+
+  p2 <- ggplot(data, aes_string(x = feature_pairs[1])) + stat_density(fill = "darkblue") +
+    coord_cartesian(range(data[, feature_pairs[1]]))
+
+  p3 <- ggplot(data, aes_string(x = feature_pairs[2])) + stat_density(fill = "darkblue") +
+    coord_flip(range(data[, feature_pairs[2]]))
+
+  gt <- ggplot_gtable(ggplot_build(p1))
+  gt2 <- ggplot_gtable(ggplot_build(p2))
+  gt3 <- ggplot_gtable(ggplot_build(p3))
+
+  gt1 <- gtable_add_cols(gt, unit(0.3, "null"), pos = -1)
+  gt1 <- gtable_add_rows(gt1, unit(0.3, "null"), pos = 0)
+
+  gt1 <- gtable_add_grob(gt1, gt2$grobs[[which(gt2$layout$name == "panel")]], 1, 4, 1, 4)
+  gt1 <- gtable_add_grob(gt1, gt2$grobs[[which(gt2$layout$name == "axis-l")]], 1, 3, 1, 3, clip = "off")
+
+  gt1 <- gtable_add_grob(gt1, gt3$grobs[[which(gt3$layout$name == "panel")]], 4, 6, 4, 6)
+  gt1 <- gtable_add_grob(gt1, gt3$grobs[[which(gt3$layout$name == "axis-b")]], 5, 6, 5, 6, clip = "off")
+
+  grid.newpage()
+  grid.draw(gt1)
+
+  invisible(gt1)
+}

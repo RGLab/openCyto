@@ -1048,3 +1048,41 @@ quantile_flowClust <- function(p, object, interval, ...) {
   uniroot(cdf_target, interval = interval, p = p, object = object, ...)$root
 }
 
+#' Extracts the quadrants of a quadGate as a list of rectangleGates
+#'
+#' The quadrants are numbered in a clockwise manner with the top-left quadrant
+#' numbered 1, the top-right quadrant numbered 2, and so on.
+#' 
+#' @param quad_gate a \code{quadGate} object
+#' @param markers character vector of the marker names for the x- and y-axes
+#' @param channels character vector of the channel names for the x- and y-axes
+#' @param quadrants a vector indicating the quadrants to extract
+#' @return a \code{filters} object containing a list of the rectangle gates
+quadGate2rectangleGates <- function(quad_gate, markers, channels, quadrants = 1:4) {
+  x_gate <- quad_gate@boundary[1]
+  y_gate <- quad_gate@boundary[2]
+
+  gates_list <- list()
+  
+  # Top-left quadrant
+  gates <- list(c(-Inf, x_gate), c(y_gate, Inf))
+  names(gates) <- channels
+  gates_list[[paste0(markers[1], "-", markers[2], "+")]] <- rectangleGate(gates)
+
+  # Top-right quadrant
+  gates <- list(c(x_gate, Inf), c(y_gate, Inf))
+  names(gates) <- channels
+  gates_list[[paste0(markers[1], "+", markers[2], "+")]] <- rectangleGate(gates)
+
+  # Lower-right quadrant
+  gates <- list(c(x_gate, Inf), c(-Inf, y_gate))
+  names(gates) <- channels
+  gates_list[[paste0(markers[1], "+", markers[2], "-")]] <- rectangleGate(gates)
+
+  # Lower-left quadrant
+  gates <- list(c(-Inf, x_gate), c(-Inf, y_gate))
+  names(gates) <- channels
+  gates_list[[paste0(markers[1], "-", markers[2], "-")]] <- rectangleGate(gates)
+
+  filters(gates_list[quadrants])
+}

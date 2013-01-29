@@ -40,7 +40,7 @@ setMethod("gating", signature = c("TCell", "GatingSet"),
 
 gating.tsub <- function(x, wf, pViewName, split = TRUE, plot = FALSE,
                         batch = TRUE, xbin = 128, step = 100, prior_CD4 = NULL,
-                        prior_CD8 = NULL, ...) {
+                        prior_CD8 = NULL, nslaves = 0, ...) {
   
   nodeNames <- getNodes(wf[[1]])
 
@@ -51,49 +51,63 @@ gating.tsub <- function(x, wf, pViewName, split = TRUE, plot = FALSE,
   if (step >= 5 && !any(unlist(lapply(tViews, grepl, nodeNames)))) {
     curData <- getData(wf, pViewName)
     message("T-sub gating...")
+
     markers <- tsubMarkers(x)
+    channels <- markers2channels(getData(wf[[1]]), markers)
+    
     xChannel <- markers[1]
     yChannel <- markers[2]
 
     ############################
     # sequential flowClust
     #############################
-    cd4cd8.filterList <- fsApply(curData, quadGate.sequential, markers = markers,
-                                 split = split, trans = 0, prior_x = prior_CD4,
-                                 prior_y = prior_CD8, nu = 30, ...)
-    ## only keep CD4+, CD8+
-    cd4cd8.filterList <- lapply(cd4cd8.filterList, function(curFilters) {
-      curFilters[["CD4+CD8+"]] <- NULL
-      curFilters[["CD4-CD8-"]] <- NULL
-      curFilters
-    })
-    cd4cd8.fl <- as(cd4cd8.filterList, "filtersList")
+    if (class(x) == "HVTN080") {
+      prior_list <- list(xChannel = prior_CD4, yChannel = prior_CD8)
 
+      cd4cd8.filterList <- Gating1D(curData, x = xChannel, y = yChannel,
+                                    trans = 0, usePrior = "yes", prior = prior_list,
+                                    neg_cluster = 2, nslaves = nslaves, ...)
+      
+      cd4cd8.filterList <- lapply(cd4cd8.filterList, quadGate2rectangleGates,
+                                  markers = markers, channels = channels, quadrants = c(1, 3))
+    } else {
+      cd4cd8.filterList <- fsApply(curData, quadGate.sequential, markers = markers,
+                                   split = split, trans = 0, prior_x = prior_CD4,
+                                   prior_y = prior_CD8, nu = 30, ...)
+      ## only keep CD4+, CD8+
+      cd4cd8.filterList <- lapply(cd4cd8.filterList, function(curFilters) {
+        curFilters[["CD4+CD8+"]] <- NULL
+        curFilters[["CD4-CD8-"]] <- NULL
+        curFilters
+      })
+    }
+
+    cd4cd8.fl <- as(cd4cd8.filterList, "filtersList")
     
     ############################
     #fetch 4 filterList from filtersList
     #before adding them to wf since wf doesn't support filtersList yet
     #############################
-    
+  
     cd4.list <- lapply(cd4cd8.fl, function(curFilters) {
       curFilters[["CD4+CD8-"]]@filterId <- "CD4"
       curFilters[["CD4+CD8-"]]
     })
     cd4.list <- filterList(cd4.list)
-    
+  
     cd8.list <- lapply(cd4cd8.fl, function(curFilters) {
       curFilters[["CD4-CD8+"]]@filterId <- "CD8"
       curFilters[["CD4-CD8+"]]
     })
     cd8.list <- filterList(cd8.list)
-    
+  
     #############
     #add to wf
     ##############
     nodeID1 <- add(wf, cd4.list, parent = pViewName)
     recompute(wf, nodeID1)
-    
-    nodeID2 <- add(wf,cd8.list, parent = pViewName)
+  
+    nodeID2 <- add(wf, cd8.list, parent = pViewName)
     recompute(wf, nodeID2)
     
     message("done.")  

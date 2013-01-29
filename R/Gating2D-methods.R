@@ -27,11 +27,7 @@ setMethod("Gating2D", signature = c("flowSet"), definition = function(obj, ...) 
 
   f1 <- eval(substitute(pData(obj)$f, list(f = groupBy)))
   if (!collapse) {
-    if(class(obj) == "ncdfFlowSet") {
-      fslist <- split(obj, f1)@datalist
-    } else {
-      fslist <- split(obj, f1)
-    }
+    fslist <- split(obj, f1)
 
     if (any(grepl("parallel", loadedNamespaces()))
         && (is.null(nslaves) || nslaves > 1)) {

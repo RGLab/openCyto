@@ -47,7 +47,8 @@ gating.polyfunction <- function(x, wf, pViewName, plot = FALSE, batch = FALSE,
 
   if(step >= 7) {
     ## all the comibnations of A & B & C
-
+    # The 'permutations' function is from the 'gregmisc' package on CRAN.
+    require('gregmisc')
     opList <- permutations(n = 1, r = nMarkers - 1, c("&"), repeats = TRUE)
     isNotList <- permutations(n = 2, r = nMarkers, c("!", ""), repeats = TRUE)
     polyExprsList <- apply(opList, 1, function(curOps) {

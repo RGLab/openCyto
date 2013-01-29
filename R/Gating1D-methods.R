@@ -28,11 +28,7 @@ setMethod("Gating1D", signature = c("flowSet"), definition = function(obj, ...) 
   }
 
   if (!collapse) {
-    if (class(obj) == "ncdfFlowSet") {
-      fslist <- split(obj, f1)@datalist
-    } else {
-      fslist <- split(obj, f1)
-    }
+    fslist <- split(obj, f1)
 
     if (any(grepl("parallel", loadedNamespaces()))
         && (is.null(nslaves) || nslaves > 1)) {
@@ -140,7 +136,7 @@ setMethod("Gating1D", signature = c("flowSet"), definition = function(obj, ...) 
       }
 
       # If two stains are given, we apply flowClust to each marker and then
-      # combine the two gates into a quandrant gate.
+      # combine the two gates into a quadrant gate.
       gate_x <- flowClust.1d(fr = nc[[1]], params = stains[1], tol = tol,
                              filterId = as.character(getChannelMarker(nc[[1]], stains[1])$desc),
                              prior = prior$xChannel, ...)

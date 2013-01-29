@@ -8,7 +8,7 @@ setMethod("gating", signature = c("BCell", "GatingSet"),
   gating.nonDebris(x, wf, pViewName = lView, ...)
 
   lView <- "nonDebris"
-  gating.lymph(x, wf, pViewName = lView, gate_1D = FALSE, which_gate = "left", ...)
+  gating.lymph(x, wf, pViewName = lView, xChannel = "FSC-A", yChannel = "SSC-A", which_gate = "left", ...)
 
   lView <- "Lymph"
   # To select the appropriate singlet gating, we use the following logic:
