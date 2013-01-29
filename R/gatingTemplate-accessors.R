@@ -58,7 +58,7 @@ setMethod("show",signature=c("gatingTemplate"),definition=function(object)
 setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 		{
 			x<-as(x,"graphNEL")
-			browser()
+#			browser()
 			
 			nAttrs<-list(label=unlist(nodeData(x,attr="label")))
 			#get gating method name attr from edges
@@ -76,7 +76,7 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 			names(eCols)<-e.colnames#restore names 
 			eAttrs<-list(color=eCols)
 #			browser()
-			lay<-Rgraphviz::layoutGraph(x
+			plot(x
 					,nodeAttrs=nAttrs
 					,edgeAttrs=eAttrs
 					,attrs=list(graph=list(rankdir="LR",page=c(8.5,11))
@@ -91,7 +91,7 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 								)
 			)
 			
-			
+#			browser()
 			plot.space = par()[["usr"]]
 			x1 = plot.space[1]
 			x2 = plot.space[2]
@@ -99,8 +99,8 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 			y2 = plot.space[4]
 			
 			
-			renderGraph(lay)
-			legend(x1,y2
+#			plot(lay)
+			legend(x1+100,y2-100
 					,legend=gm.txt
 					,title="Gating Methods"
 					,col=gm.col

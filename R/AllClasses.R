@@ -40,13 +40,18 @@ setClass("gatingMethod"
 						,args="character"
 						)	
 )
-
+isPolyfunctional<-function(popName){
+#	browser()
+	grepl("^\\[\\:.+\\:\\]$",popName)
+}
+#constructor from csv 
 gatingTemplate<-function(file,name){
 	#read csv
 	df<-read.csv(file,as.is=T)
 	#create graph with root node
 	g<-graphNEL(nodes="0",edgemode="directed")
 	nodeDataDefaults(g,"label")<-"root"
+	nodeDataDefaults(g,"name")<-"root"
 	edgeDataDefaults(g,"gatingMethod")<-""
 	#parse each row
 	nEdges<-nrow(df)
@@ -56,6 +61,7 @@ gatingTemplate<-function(file,name){
 		curNodeID<-as.character(i)
 		parent<-df[i,"parent"]
 		curPop<-df[i,"alias"]
+		curPopName<-df[i,"pop"]
 #		browser()
 		gm<-new("gatingMethod"
 				,name=df[i,"method"]
@@ -68,6 +74,7 @@ gatingTemplate<-function(file,name){
 			src<-"0"
 			g<-graph::addNode(curNodeID,g)
 			nodeData(g,curNodeID,"label")<-curPop
+			nodeData(g,curNodeID,"name")<-curPopName
 			g<-addEdge(src,curNodeID,g)
 #			browser()
 			edgeData(g,src,curNodeID,"gatingMethod")<-gm
@@ -77,8 +84,12 @@ gatingTemplate<-function(file,name){
 			discovered<-dfs(g)[[1]]
 			g<-graph::addNode(curNodeID,g)
 			nodeData(g,curNodeID,"label")<-curPop
-			#split by logical operator in case of boolean gates
-			refNodes<-strsplit(parent,"&|\\|")[[1]]
+			nodeData(g,curNodeID,"name")<-curPopName
+			#TODO:deal with not symbol!
+			if(isPolyfunctional(curPopName))
+				refNodes<-strsplit(parent,"\\:")[[1]] #split by colon when polyfunctional boolean gates
+			else
+				refNodes<-strsplit(parent,"&|\\|")[[1]]#split by logical operator when regular boolean gates
 			for(refNode in refNodes)
 			{
 						#split by "/" for each reference node
