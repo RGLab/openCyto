@@ -61,26 +61,15 @@ gating.tsub <- function(x, wf, pViewName, split = TRUE, plot = FALSE,
     ############################
     # sequential flowClust
     #############################
-    if (class(x) == "HVTN080") {
-      prior_list <- list(xChannel = prior_CD4, yChannel = prior_CD8)
-
-      cd4cd8.filterList <- Gating1D(curData, x = xChannel, y = yChannel,
-                                    trans = 0, usePrior = "yes", prior = prior_list,
-                                    neg_cluster = 2, nslaves = nslaves, ...)
-      
-      cd4cd8.filterList <- lapply(cd4cd8.filterList, quadGate2rectangleGates,
-                                  markers = markers, channels = channels, quadrants = c(1, 3))
-    } else {
-      cd4cd8.filterList <- fsApply(curData, quadGate.sequential, markers = markers,
-                                   split = split, trans = 0, prior_x = prior_CD4,
-                                   prior_y = prior_CD8, nu = 30, ...)
-      ## only keep CD4+, CD8+
-      cd4cd8.filterList <- lapply(cd4cd8.filterList, function(curFilters) {
-        curFilters[["CD4+CD8+"]] <- NULL
-        curFilters[["CD4-CD8-"]] <- NULL
-        curFilters
-      })
-    }
+    cd4cd8.filterList <- fsApply(curData, quadGate.sequential, markers = markers,
+                                 split = split, trans = 0, prior_x = prior_CD4,
+                                 prior_y = prior_CD8, nu = 30, ...)
+    ## only keep CD4+, CD8+
+    cd4cd8.filterList <- lapply(cd4cd8.filterList, function(curFilters) {
+      curFilters[["CD4+CD8+"]] <- NULL
+      curFilters[["CD4-CD8-"]] <- NULL
+      curFilters
+    })
 
     cd4cd8.fl <- as(cd4cd8.filterList, "filtersList")
     

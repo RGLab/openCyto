@@ -1086,3 +1086,23 @@ quadGate2rectangleGates <- function(quad_gate, markers, channels, quadrants = 1:
 
   filters(gates_list[quadrants])
 }
+
+#' Constructs a vector of all the combinations of A & B & C
+#'
+#' The \code{permutations} function is from the \code{gregmisc} package on CRAN.
+#' @param markers character vector of marker names
+#' @return vector containing all combinations of the markers
+#' @examples
+#' polyfunction_nodes(c("IFNg", "IL2", "TNFa", "GzB", "CD57"))
+polyfunction_nodes <- function(markers) {
+  require('gregmisc')
+  markers <- paste0(markers, "+")
+  num_markers <- length(markers)
+  and_list <- as.vector(permutations(n = 1, r = num_markers - 1, c("&"), repeats = TRUE))
+  isnot_list <- permutations(n = 2, r = num_markers, c("!", ""),
+                             repeats = TRUE)
+  apply(isnot_list, 1, function(isnot_row) {
+    isnot_row[-1] <- paste0(and_list, isnot_row[-1])
+    paste(paste0(isnot_row, markers), collapse = "")
+  })
+}
