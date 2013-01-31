@@ -4,57 +4,65 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"), definition = f
 			
 			#gate each node by the topological order
 			#maintain the mapping between template node ID and gating set node ID
-			#in order to refer back to the template and find the parent 
-			gtNodeIDs<-tsort(x)
-			for(gtParentID in gtNodeIDs)
+			#in order to refer gating set node ID back to the template ID and find the parent gs node ID 
+			gt_node_ids<-tsort(x)
+			node_ids<-cbind(gt=gt_node_ids,gs=NA)
+			node_ids[1,"gs"]<-1#fill out default gsid for root node
+			for(i in 1:nrow(node_ids))
 			{
-				browser()
-				curGtNode<-getNodes(gt,gtParentID)
-				parentName<-curGtNode["name"]
-				parentAlias<-curGtNode["label"]
-				curChildren.gt.IDs<-getChildren(gt,gtParentID)
-				#check if gates are the same and merge them
-				gates<-lapply(curChildren.gt.IDs,function(curChildren.gt.ID){
-							getGate(gt,gtParentID,curChildren.gt.ID)
+				gt_parent_id<-node_ids[i,"gt"]
+				gt_parent_pop<-getNodes(gt,gt_parent_id)
+				parent_name<-gt_parent_pop["name"]
+				parent_alias<-gt_parent_pop["label"]
+				#detect all the branches/gates sourced from gt_parent_id
+				gt_children_ids<-getChildren(gt,gt_parent_id)
+				gates<-lapply(gt_children_ids,function(i){
+							getGate(gt,gt_parent_id,i)
 						})
-				if(isSame(gates))
-					gates<-gates[[1]]
-				lapply(gates,function(gate){
-							
-						})
+				isSame<-duplicated(gates)
+				if(all(!isSame))
+				{
+					#do the gating for each unique gate
+					lapply(gates,function(gate){
+								
+								browser()
+								names<-lapply(gt_children_ids
+												,function(gt_children_id){
+													getNodes(gt,gt_children_id)
+												})
+								alias<-getNodes(gate["pop"])
+#								dims<-unname(gate["dims"])
+#								args<-as.symbol(unname(gate["args"]))
+								#pass the arguments to the gating function
+								thisCall<-substitute(
+										gating(x=x
+												,wf=gs
+												,parent=parent
+												,name=pop
+												,xChannel = dims[1]
+												, yChannel = dims[2]
+												,args
+										)
+										,list(args=args))
+								eval(thisCall)
+							})	
+				}else
+				{
+					##quadgate
+					##TODO:currently each parent should either have one quadgate or multiple separate gates
+					#we may need to figure out how to extend it to a more generic scenario
+					if(length(which(isSame))<=3)#quadgate should only have 3 duplicates
+					{
+						
+					}else stop("don't know how to handle quadgate with more than 4 sub-populations!")
+				}
+				
+				
 				gt.child.node<-getNodes(gt,curChildren.gt.ID)
 				
-				#use curNode as a parent population
-				#and try to detect all the branches sourced from curNode
-				#and merge them to one gating method if they share the same
-				#dims and method names
-				#name the resulting gated population by the dest of each branch
 				
 				#if the current parent doesn't exsit in gs
 				#then need to go back to gate the parent first  
-				children<-x[x[,"parent"]==parent,]
-				#there may be multiple entries for each gate				
-				gates<-unique(children[,c("dims","method","args")])
-				apply(gates,1,function(gate){
-							#deal with each gate applied to the current pop
-							browser()
-							gm<-unname(gate["method"])
-							pop<-unname(gate["pop"])
-							dims<-unname(gate["dims"])
-							args<-as.symbol(unname(gate["args"]))
-							#pass the arguments to the gating function
-							thisCall<-substitute(
-									get(gm)(x=x
-											,wf=gs
-											,parent=parent
-											,name=pop
-											,xChannel = dims[1]
-											, yChannel = dims[2]
-											,args
-									)
-									,list(args=args))
-							eval(thisCall)
-						})
 			
 			}
 			
@@ -69,18 +77,21 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"), definition = f
 setMethod("getNodes",signature=c("gatingTemplate"),definition=function(x,y)
 {
 	
-	nodeData(x,y)[[1]]
+	nodeData(x,y,"pop")[[1]]
 })
 
 setMethod("getChildren",signature=c("gatingTemplate","character"),definition=function(obj,y)
 {
 	
-	edges(gt,y)[[1]]		
+	edges(gt,y)[[1]]	
 })
-#setMethod("getGate",signature=c("gatingTemplate","character"),definition=function(obj,y)
-#{
-#			subset(obj,parent==y)		
-#		})
+setMethod("getGate",signature=c("gatingTemplate","character"),definition=function(obj,y,z)
+{
+		edgeData(obj,from=y,to=z,attr="gatingMethod")[[1]]
+	
+})
+
+
 
 
 setMethod("show",signature=c("gatingTemplate"),definition=function(object)
@@ -94,9 +105,6 @@ setMethod("show",signature=c("gatingTemplate"),definition=function(object)
 		})
 setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 		{
-			x<-as(x,"graphNEL")
-#			browser()
-			
 			
 			#get gating method name attr from edges
 			gm.names<-unlist(lapply(edgeData(x,attr="gatingMethod"),names))
@@ -123,7 +131,7 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 #			browser()
 			
 			#encode the node shape and color with isSubsets
-			nodeTypes<-unlist(lapply(nodeData(x,attr="isSubsets"),function(y){ifelse(y,"subset","pop")}))
+			nodeTypes<-unlist(lapply(nodeData(x,attr="pop"),function(y){ifelse(class(y)=="gtSubsets","subset","pop")}))
 			n.colnames<-names(nodeTypes)
 			nodeType<-unique(nodeTypes)
 			
@@ -139,13 +147,14 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 			nLtys<-LineType[nodeTypes]
 			names(nLtys)<-n.colnames
 			
-			nLabels<-unlist(nodeData(x,attr="label"))
+#			browser()
+			nLabels<-unlist(lapply(nodeData(x,attr="pop"),alias))
 			
 			nAttrs<-list(label=nLabels
 						,fillcolor=nFillCol
 						,lty=nLtys)
-#			browser()
-			plot(x
+			
+			plot(as(x,"graphNEL")
 					,nodeAttrs=nAttrs
 					,edgeAttrs=eAttrs
 					,attrs=list(graph=list(rankdir="LR",page=c(8.5,11))
@@ -171,11 +180,6 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 					,lty=edge.styles[legend.lty]
 					,cex=0.8
 					)
-		})
-setMethod("names",signature=c("gatingMethod"),definition=function(x)
-		{
-			
-			x@name
 		})
 
 

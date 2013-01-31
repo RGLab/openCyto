@@ -40,6 +40,17 @@ setClass("gatingMethod"
 						,args="character"
 						)	
 )
+
+setClass("gtPopulation"
+		,representation(name="character"
+				,alias="character"
+		)	
+)
+setClass("gtSubsets"
+		,contains="gtPopulation"
+		)	
+
+
 isPolyfunctional<-function(gm){
 #	browser()
 #	grepl("^\\[\\:.+\\:\\]$",x)
@@ -51,10 +62,11 @@ gatingTemplate<-function(file,name){
 	df<-read.csv(file,as.is=T)
 	#create graph with root node
 	g<-graphNEL(nodes="0",edgemode="directed")
-	nodeDataDefaults(g,"label")<-"root"
-	nodeDataDefaults(g,"name")<-"root"
-	nodeDataDefaults(g,"isSubsets")<-FALSE
+	g<-as(g,"gatingTemplate")
+	nodeDataDefaults(g,"pop")<-""
 	edgeDataDefaults(g,"gatingMethod")<-""
+	#add default root
+	nodeData(g,"0","pop")<-new("gtPopulation",name="root",alias="root")
 	#parse each row
 	nEdges<-nrow(df)
 	edgs<-vector("list",nEdges)
@@ -64,6 +76,8 @@ gatingTemplate<-function(file,name){
 		parent<-df[i,"parent"]
 		curPop<-df[i,"alias"]
 		curPopName<-df[i,"pop"]
+		curNode<-new("gtPopulation",name=curPopName,alias=curPop)
+					
 #		browser()
 		gm<-new("gatingMethod"
 				,name=df[i,"method"]
@@ -75,20 +89,17 @@ gatingTemplate<-function(file,name){
 		{
 			src<-"0"
 			g<-graph::addNode(curNodeID,g)
-			nodeData(g,curNodeID,"label")<-curPop
-			nodeData(g,curNodeID,"name")<-curPopName
-			nodeData(g,curNodeID,"isSubsets")<-FALSE
 			
+			nodeData(g,curNodeID,"pop")<-curNode
 			g<-addEdge(src,curNodeID,g)
-#			browser()
+
 			edgeData(g,src,curNodeID,"gatingMethod")<-gm
 		}else
 		{
 			#travese the graph to get node list for matching later on
 			discovered<-dfs(g)[[1]]
 			g<-graph::addNode(curNodeID,g)
-			nodeData(g,curNodeID,"label")<-curPop
-			nodeData(g,curNodeID,"name")<-curPopName
+			
 			#TODO:deal with not symbol!
 			isPoly<-isPolyfunctional(gm)
 			if(isPoly)
@@ -96,8 +107,9 @@ gatingTemplate<-function(file,name){
 			else
 				refNodes<-strsplit(parent,"&|\\|")[[1]]#split by logical operator when regular boolean gates
 			
-			nodeData(g,curNodeID,"isSubsets")<-isPoly
-			
+			if(isPoly)
+				curNode<-as(curNode,"gtSubsets")
+			nodeData(g,curNodeID,"pop")<-curNode			
 			for(refNode in refNodes)
 			{
 						#split by "/" for each reference node
@@ -111,7 +123,7 @@ gatingTemplate<-function(file,name){
 				for(ancesterID in discovered)
 				{
 #										browser()
-					if(nodeData(g,ancesterID,"label")==firstToken)
+					if(alias(getNodes(g,ancesterID))==firstToken)
 					{
 						curAncesterID<-ancesterID
 						
@@ -131,7 +143,7 @@ gatingTemplate<-function(file,name){
 					for(ancesterID in dests)
 					{
 #										browser()
-						if(nodeData(g,ancesterID,"label")==curToken)
+						if(alias(getNodes(g,ancesterID))==curToken)
 						{
 							curAncesterID<-ancesterID
 							
@@ -153,8 +165,8 @@ gatingTemplate<-function(file,name){
 	
 	
 #	browser()
-	gt<-as(g,"gatingTemplate")
-	gt@name<-name
-	gt
+	
+	g@name<-name
+	g
 }
 
