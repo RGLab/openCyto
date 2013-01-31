@@ -10,11 +10,18 @@
 #'
 #' Some samples in the \code{flowSet} object may not have \code{K} distinct peaks
 #' apparent in the KDEs, in which case we will find less than the specified
-#' number with the remaining values being set to \code{NA}. Furthermore, the peaks
-#' may be misaligned across the samples, due to a missing peak. Hence, we
-#' recommend that the Huber estimators be used to aggregate the values. This
+#' number with the remaining values being set to \code{NA}. For any sample that
+#' has less than \code{K} peaks, we align its peaks with those of the first
+#' sample that has \code{K} peaks.
+#'
+#' We recommend that the Huber estimators be used to aggregate the values. This
 #' option can be set in the \code{estimator} argument. Alternatively, the maximum
 #' likelihood estimators (MLE) under normality can be used.
+#'
+#' In the case that the majority of the samples have a peak with NA (i.e., K is
+#' overspecified for these samples), the 'huber' function can throw the following
+#' error. "Cannot estimate scale: MAD is zero for this sample." In this case, we
+#' throw a warning and use vague priors for the problematic peaks.
 #'
 #' To ensure that the KDEs are smooth, we recommend that the bandwidth set in the
 #' \code{adjust} argument be sufficiently large. We have defaulted this value to
@@ -32,8 +39,8 @@
 #' @param estimator the method to aggregate the samples in the \code{flow_set}.
 #' See details.
 #' @return list of the necessary prior parameters
-prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10, adjust = 1,
-                              estimator = c("huber", "mle")) {
+prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10,
+                              adjust = 1, estimator = c("huber", "mle")) {
 
   estimator <- match.arg(estimator)
 
@@ -45,7 +52,12 @@ prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10, adjust
     peaks <- sort(find_peaks(x, peaks = K, adjust = adjust), na.last = TRUE)
 
     if (estimator == "huber") {
-      variance <- huber(x)$s^2
+      # In the case that the MAD is 0, an error results, in which case we use the
+      # MLE instead.
+      variance <- try(huber(x)$s^2, silent = TRUE)
+      if (class(variance) == "try-error") {
+        variance <- var(x)
+      }
     } else {
       variance <- var(x)
     }
@@ -55,16 +67,38 @@ prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10, adjust
 
   peaks <- do.call(rbind, lapply(estimates, function(x) x$peaks))
   variances <- sapply(estimates, function(x) x$variance)
-  
+
+  # For each sample that has less than K peaks, we align its peaks with the peaks
+  # of the first sample having K peaks.
+  peaks <- align_peaks(peaks)
+
   if (estimator == "huber") {
-    huber_out <- apply(peaks, 2, huber)
+    # In the case that the majority of the samples have a peak with NA (i.e., K
+    # is overspecified for these samples), the 'huber' function can throw the
+    # following error. "Cannot estimate scale: MAD is zero for this sample."
+    # In this case, we throw a warning and use vague priors for the problematic peaks.
+    huber_out <- try(apply(peaks, 2, huber), silent = TRUE)
+    if (class(huber_out) == "try-error") {
+      warning("The number of peaks is overspecified. Using vague priors.")
+
+      huber_out <- lapply(seq_len(K), function(k) {
+        huber_peak <- try(huber(peaks[, k]), silent = TRUE)
+        if (class(huber_peak) == "try-error") {
+          huber_peak <- list(mu = mean(peaks[, k], na.rm = TRUE),
+               s = mean(variances))
+        }
+        huber_peak
+      })
+    }
     Mu0 <- sapply(huber_out, function(x) x$mu)
     Omega0 <- sapply(huber_out, function(x) x$s^2)
     Lambda0 <- huber(variances)$mu
   } else {
-    Mu0 <- colMeans(peaks)
-    Omega0 <- apply(peaks, 2, var)
-    Lambda0 <- mean(variances)
+    Mu0 <- colMeans(peaks, na.rm = TRUE)
+    Omega0 <- apply(peaks, 2, var, na.rm = TRUE)
+    Lambda0 <- mean(variances, na.rm = TRUE)
+    # If any of the variances in Omega0 are NA, we keep them vague by setting them to the value in Lambda0
+    Omega0[is.na(Omega0)] <- Lambda0
   }
 
   # Mu0 dimensions: K x p (p is the number of features. Here, p = 1 for 1D)
@@ -84,6 +118,48 @@ prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10, adjust
   w0 <- rep(w0, K)
 
   list(Mu0 = Mu0, Lambda0 = Lambda0, Omega0 = Omega0, nu0 = nu0, w0 = w0)
+}
+
+#' Peak alignment for prior elicitation
+#'
+#' We elicit data-driven priors by applying a kernel-density estimator (KDE) to
+#' obtain \code{K} peaks for several samples. Some samples may not have \code{K}
+#' distinct peaks apparent in the KDEs, in which case we will find less than the
+#' specified number with the remaining values being set to \code{NA}. For any
+#' sample that has less than \code{K} peaks, we align its peaks with those of the
+#' first sample that has \code{K} peaks.
+#'
+#' We apply the Hungarian algorithm implemented using the \code{solve_LSAP}
+#' function from the \code{clue} package.
+#'
+#' @param peaks matrix. The rows corresponds to the samples, and the columns
+#' correspond to the peaks. A value of \code{NA} is used if no peak is present.
+#' @return matrix where the peaks are aligned
+align_peaks <- function(peaks) {
+  require('clue')
+  K <- ncol(peaks)
+  
+  # For each sample that has less than K peaks, we align its peaks with the peaks
+  # of the first sample having K peaks.
+  num_peaks <- apply(peaks, 1, function(x) sum(!is.na(x)))
+  peaks_align <- peaks[min(which(num_peaks == K)), ]
+
+  aligned_peaks <- lapply(which(num_peaks < K), function(i) {
+    x <- peaks[i, ]
+    x <- x[!is.na(x)]
+
+    dist_align <- as.matrix(dist(c(x, peaks_align)))
+    dist_align[is.na(dist_align)] <- 0
+    dist_align <- dist_align[seq_along(x), seq_len(K) + length(x)]
+
+    # We extract the indices of alignment and then return a vector with the
+    # aligned peaks
+    align_idx <- as.vector(solve_LSAP(dist_align))
+    replace(rep(NA, K), align_idx, x)
+  })
+  aligned_peaks <- do.call(rbind, aligned_peaks)
+  peaks[num_peaks < K] <- aligned_peaks
+  peaks
 }
 
 
@@ -232,3 +308,4 @@ prior_means_flowClust1d <- function(wf, view_name = 'nonDebris+', channels,
 
   list(prior_means = prior_means, peaks_by_sample = peaks_by_sample, markers = markers)
 }
+
