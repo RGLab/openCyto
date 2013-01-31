@@ -11,16 +11,16 @@ setMethod("gating", signature = c("HVTN080", "GatingSet"), definition = function
 
   channel_vMarkers <- markers2channels(getData(wf)[[1]], vMarkers(x))
 
-  # Elicitation of priors for the Singlet gate
-  prior_singlet <- list()
-  prior_singlet$xChannel <- prior_flowClust1d(flow_set = getData(wf, parent),
+  # Elicitation of priors for the viable gate
+  prior_viable <- list()
+  prior_viable$xChannel <- prior_flowClust1d(flow_set = getData(wf, parent),
                                               channel = channel_vMarkers, K = 3,
                                               adjust = 1.5)
-  prior_singlet$yChannel <- prior_flowClust1d(flow_set = getData(wf, parent),
+  prior_viable$yChannel <- prior_flowClust1d(flow_set = getData(wf, parent),
                                               channel = "FSC-A", K = 3, adjust = 1.5)
 
   gating.viable(x, wf, pViewName = parent, xChannel = vMarkers(x), yChannel = "FSC-A",
-                usePrior = "yes", K = 3, prior = prior_singlet, ...)
+                usePrior = "yes", K = 3, prior = prior_viable, ...)
 
   parent <- "viable"
 
@@ -45,7 +45,6 @@ setMethod("gating", signature = c("HVTN080", "GatingSet"), definition = function
 
   # Elicitation of priors for the CD4 and CD8 gates
   channel_tsubMarkers <- markers2channels(getData(wf)[[1]], tsubMarkers(x))
-
   prior_CD4 <- prior_flowClust1d(flow_set = getData(wf, parent),
                                  channel = channel_tsubMarkers[1], K = 3,
                                  adjust = 1.5)
@@ -141,7 +140,6 @@ setMethod("gating", signature = c("HVTN080", "GatingSet"), definition = function
   gc()
 
   parent <- "not CD4"
-
   prior_IFNg <- prior_flowClust1d(flow_set = getData(wf, parent),
                                  channel = channel_IFNg, K = 3)
 
