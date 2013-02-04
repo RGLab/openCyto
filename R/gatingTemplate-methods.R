@@ -10,60 +10,66 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"), definition = f
 			node_ids[1,"gs"]<-1#fill out default gsid for root node
 			for(i in 1:nrow(node_ids))
 			{
+#				browser()
 				gt_parent_id<-node_ids[i,"gt"]
+				gs_parent_id<-node_ids[i,"gs"]
 				gt_parent_pop<-getNodes(gt,gt_parent_id)
-				parent_name<-gt_parent_pop["name"]
-				parent_alias<-gt_parent_pop["label"]
+				parent_name<-names(gt_parent_pop)
+				parent_alias<-alias(gt_parent_pop)
 				#detect all the branches/gates sourced from gt_parent_id
 				gt_children_ids<-getChildren(gt,gt_parent_id)
-				gates<-lapply(gt_children_ids,function(i){
-							getGate(gt,gt_parent_id,i)
-						})
-				isSame<-duplicated(gates)
-				if(all(!isSame))
-				{
-					#do the gating for each unique gate
-					lapply(gates,function(gate){
-								
-								browser()
-								names<-lapply(gt_children_ids
-												,function(gt_children_id){
-													getNodes(gt,gt_children_id)
-												})
-								alias<-getNodes(gate["pop"])
-#								dims<-unname(gate["dims"])
-#								args<-as.symbol(unname(gate["args"]))
-								#pass the arguments to the gating function
-								thisCall<-substitute(
-										gating(x=x
-												,wf=gs
-												,parent=parent
-												,name=pop
-												,xChannel = dims[1]
-												, yChannel = dims[2]
-												,args
-										)
-										,list(args=args))
-								eval(thisCall)
-							})	
-				}else
-				{
-					##quadgate
-					##TODO:currently each parent should either have one quadgate or multiple separate gates
-					#we may need to figure out how to extend it to a more generic scenario
-					if(length(which(isSame))<=3)#quadgate should only have 3 duplicates
+				#locate the gt node id in the map and check if gs node id already exsits				
+#				ind<-match(gt_children_ids,node_ids[,"gt"])
+#				gs_node_ids<-node_ids[ind,"gs"]
+#				if(all(is.na(gs_node_ids)))
+#				{	
+					#chec
+					gates<-lapply(gt_children_ids,function(i){
+								getGate(gt,gt_parent_id,i)
+							})
+					isSame<-duplicated(gates)
+					if(all(!isSame))
 					{
-						
-					}else stop("don't know how to handle quadgate with more than 4 sub-populations!")
-				}
+						#do the gating for each unique gate
+						for(gate in gates)
+						{
+									
+							
+							pops<-lapply(gt_children_ids
+											,function(gt_children_id){
+												getNodes(gt,gt_children_id)
+											})
+
+#							browser()
+							gs_node_ids<-gating(x=gate
+												,gs=gs
+												,parent=as.integer(gs_parent_id)
+												,gtPops=pops
+											)
+							#upodate gs node ids
+							ind<-match(gt_children_ids,node_ids[,"gt"])
+							node_ids[ind,"gs"]<-gs_node_ids
+						}	
+					}else
+					{
+						##quadgate
+						##TODO:currently each parent should either have one quadgate or multiple separate gates
+						#we may need to figure out how to extend it to a more generic scenario
+						if(length(which(isSame))<=3)#quadgate should only have 3 duplicates
+						{
+							
+						}else stop("don't know how to handle quadgate with more than 4 sub-populations!")
+					}
+					
+					
+					
 				
-				
-				gt.child.node<-getNodes(gt,curChildren.gt.ID)
-				
-				
-				#if the current parent doesn't exsit in gs
-				#then need to go back to gate the parent first  
-			
+#				}else if(all(!is.na(gs_node_ids)))
+#				{
+#					
+#					message("'",alias(getNodes(gt,gt_children_ids)),"' already exists,skip gating!")
+#				}else
+#					stop("Don't know how to handle partially gated children node yet!")
 			}
 			
 			
@@ -101,7 +107,7 @@ setMethod("show",signature=c("gatingTemplate"),definition=function(object)
 			cat(object@name)
 			cat("\n")
 #			browser()
-			cat("\twith ",length(object@nodes)," populations\n");
+			cat("\twith ",length(object@nodes)," populations defined\n");
 		})
 setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 		{
