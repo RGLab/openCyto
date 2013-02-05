@@ -101,59 +101,76 @@ setMethod("gating", signature = c("gatingMethod", "GatingSet")
 				else
 					stop("invalid population name!Name should end with '+' or '-' symbol.")
 				
-				thisCall[["positive"]]=positive
+				thisCall[["positive"]]<-positive
 				
 			}else #QuadGate
 			{
 				
 			}
 #			browser()
-			if(gm==".flowClust.1d")
+			#parse the string into named vector
+			paired_args<-strsplit(args,split="\\,")[[1]]
+			named_args<-unlist(lapply(paired_args,function(paired_arg){
+													curPair<-strsplit(paired_arg,split="=")[[1]]
+													curPair_value<-curPair[2]
+													names(curPair_value)<-curPair[1]
+													curPair_value
+												}
+										)
+								)
+			named_args<-as.list(named_args)
+			#parse args for flowClust 
+			#prior estimation is done separately from flowClust routine 
+			#because piror_flowClust1d requires the entire parent flowSet yet flowClust only takes one flowFrame
+			#####################################################################
+			if(grepl("^\\.flowClust\\.[12]d$",gm))
 			{
-				#parse args string to convert neg,pos to K and neg_cluster values
-				#we have to do it here in order to pass K for prior calculation
-				#and prior is currently calculated separately from flowClust.1d 
-				#because flowClust.1d only takes one flowFrame as input but piror_flowClust1d 
-				#requires the entire parent flowSet
-				###########################
 				
-				#parse the string into named vector
-				paired_args<-strsplit(args,split="\\,")[[1]]
-				named_args<-unlist(lapply(paired_args,function(paired_arg){
-															curPair<-strsplit(paired_arg,split="=")[[1]]
-															curPair_value<-curPair[2]
-															names(curPair_value)<-curPair[1]
-															curPair_value
-													}
-											)
-									)
-				named_args<-as.list(named_args)
-				#get the value of neg and pos
-				neg_cluster<-as.integer(named_args["neg"])			
-				K<-as.integer(named_args["pos"])+neg_cluster
-				
-				
-				# Elicitation of priors for flowClust
-				prior <- list()
-				if(!is.na(xChannel))
-					prior$xChannel <- prior_flowClust1d(flow_set = parent_data,channel = xChannel, K = K)
-				
+				if(gm==".flowClust.1d")
+				{
+					#get the value of neg and pos
+					neg_cluster<-as.integer(named_args["neg"])			
+					K<-as.integer(named_args["pos"])+neg_cluster
 					
-				prior$yChannel <- prior_flowClust1d(flow_set = parent_data,channel = yChannel, K = K)
+					
+					# Elicitation of priors for flowClust
+					prior <- list()
+					if(!is.na(xChannel))
+						prior$xChannel <- prior_flowClust1d(flow_set = parent_data,channel = xChannel, K = K)
+					
+					
+					prior$yChannel <- prior_flowClust1d(flow_set = parent_data,channel = yChannel, K = K)
+					
+					#replace neg and pos and convert the named vector back to string
+					named_args[["K"]]<-K
+					named_args[["neg_cluster"]]<-neg_cluster
+					named_args[["prior"]]<-prior
+					named_args<-named_args[-match(c("neg","pos"),names(named_args))]	
+				}else
+				{
+					#get the value of neg and pos
+					K<-as.integer(named_args["K"])			
+					named_args[["K"]]<-K
+					
+					
+					
+					# Elicitation of priors for flowClust
+					prior_list <- prior_flowClust2d(fr = parent_data[[1]]
+														,xChannel = xChannel
+														,yChannel = yChannel
+														, K = K)
+					
+					named_args[["prior_list"]]=prior_list
+					thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
+				}
 				
-				#replace neg and pos and convert the named vector back to string
-				named_args[["K"]]=K
-				named_args[["neg_cluster"]]=neg_cluster
-				named_args[["prior"]]=prior
-				named_args<-named_args[-match(c("neg","pos"),names(named_args))]
-				#add args to thisCall
-				for(arg in names(named_args))
-					thisCall[[arg]]<-named_args[[arg]]
 			}
+			#add args to thisCall
+			for(arg in names(named_args))
+				thisCall[[arg]]<-named_args[[arg]]
 			
 			
-			
-			
+#			browser()
 			##choose serial or parallel mode
 			if (num_nodes > 1) 
 			{
@@ -183,11 +200,12 @@ setMethod("gating", signature = c("gatingMethod", "GatingSet")
 			
 			#we expect a filter as returned value from gm
 	
-			browser()
+			
 			# Adds the list of singlet polygon gates to the workflow.
 			node_id <- add(gs, flist, parent = parent,name=popAlias)
 			recompute(gs, node_id)
 			message("done.")
+			
 		}else
 		{
 			message("Skip gating!Population '",popAlias,"' already exists.")
@@ -226,7 +244,8 @@ setMethod("gating", signature = c("gatingMethod", "GatingSet")
 		,filterId=""
 		,usePrior="yes"
 		,...
-		){
+		)
+{
 		
 			require("flowClust")
 	
@@ -266,6 +285,26 @@ setMethod("gating", signature = c("gatingMethod", "GatingSet")
 			quadGate(filterId = filterId, flowClust_quadGate)
 			
 		}
+}
+.flowClust.2d<-function(fs
+		, xChannel
+		,yChannel
+#		,filterId=""
+		,usePrior="yes"
+		,...
+){
+	
+	require("flowClust")
+	
+	
+	fr<-fs[[1]]
+#	browser()
+	flowClust.2d(fr = fr
+				, xChannel = xChannel
+				, yChannel = yChannel
+				,usePrior=usePrior
+				, ...)
+	
 }
 .rangeGate<-function(fs
 						, xChannel = NA

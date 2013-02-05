@@ -82,8 +82,11 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"), definition = f
 
 setMethod("getNodes",signature=c("gatingTemplate"),definition=function(x,y)
 {
-	
-	nodeData(x,y,"pop")[[1]]
+#	browser()
+	if(missing(y))
+		nodeData(x,attr="pop")
+	else
+		nodeData(x,y,"pop")[[1]]
 })
 
 setMethod("getChildren",signature=c("gatingTemplate","character"),definition=function(obj,y)
