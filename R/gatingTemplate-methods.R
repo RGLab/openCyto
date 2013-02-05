@@ -10,7 +10,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"), definition = f
 			node_ids[1,"gs"]<-1#fill out default gsid for root node
 			for(i in 1:nrow(node_ids))
 			{
-#				browser()
+				browser()
 				gt_parent_id<-node_ids[i,"gt"]
 				gs_parent_id<-node_ids[i,"gs"]
 				gt_parent_pop<-getNodes(gt,gt_parent_id)
@@ -40,7 +40,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"), definition = f
 												getNodes(gt,gt_children_id)
 											})
 
-#							browser()
+							browser()
 							gs_node_ids<-gating(x=gate
 												,gs=gs
 												,parent=as.integer(gs_parent_id)
