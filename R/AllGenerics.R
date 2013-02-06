@@ -1,4 +1,3 @@
-setGeneric("lymphPrior", function(x, ...) standardGeneric("lymphPrior"))
-
-setGeneric("Gating1D", function(obj, ...) standardGeneric("Gating1D"))
-setGeneric("Gating2D", function(obj, ...) standardGeneric("Gating2D"))
+setGeneric("gating", function(x,y,...) standardGeneric("gating"))
+setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
+setGeneric("gatingTemplate<-", function(x,value, ...) standardGeneric("gatingTemplate<-"))

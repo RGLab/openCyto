@@ -34,7 +34,7 @@ setClass("gatingTemplate",
 #		}
 	)
 
-setClass("gatingMethod"
+setClass("gtMethod"
 		,representation(name="character"
 						,dims="character"
 						,args="character"
@@ -42,8 +42,9 @@ setClass("gatingMethod"
 )
 
 setClass("gtPopulation"
-		,representation(name="character"
-				,alias="character"
+		,representation(id="numeric" #consistent with node label in gating template graph
+						,name="character"
+						,alias="character"
 		)	
 )
 setClass("gtSubsets"
@@ -56,30 +57,31 @@ isPolyfunctional<-function(gm){
 #	grepl("^\\[\\:.+\\:\\]$",x)
 	names(gm)=="polyfunctions"
 }
-#constructor from csv 
-gatingTemplate<-function(file,name){
+#constructor from csv
+setMethod("gatingTemplate",signature(x="character"),function(x,name){
+	
 	#read csv
-	df<-read.csv(file,as.is=T)
+	df<-read.csv(x,as.is=T)
 	#create graph with root node
-	g<-graphNEL(nodes="0",edgemode="directed")
+	g<-graphNEL(nodes="1",edgemode="directed")
 	g<-as(g,"gatingTemplate")
 	nodeDataDefaults(g,"pop")<-""
-	edgeDataDefaults(g,"gatingMethod")<-""
+	edgeDataDefaults(g,"gtMethod")<-""
 	#add default root
-	nodeData(g,"0","pop")<-new("gtPopulation",name="root",alias="root")
+	nodeData(g,"1","pop")<-new("gtPopulation",id=1,name="root",alias="root")
 	#parse each row
 	nEdges<-nrow(df)
 	edgs<-vector("list",nEdges)
 	for(i in 1:nEdges){
 		
-		curNodeID<-as.character(i)
+		curNodeID<-as.character(i+1)
 		parent<-df[i,"parent"]
 		curPop<-df[i,"alias"]
 		curPopName<-df[i,"pop"]
-		curNode<-new("gtPopulation",name=curPopName,alias=curPop)
+		curNode<-new("gtPopulation",id=as.numeric(curNodeID),name=curPopName,alias=curPop)
 					
 #		browser()
-		gm<-new("gatingMethod"
+		gm<-new("gtMethod"
 				,name=df[i,"method"]
 				,dims=df[i,"dims"]
 				,args=df[i,"args"]
@@ -87,13 +89,13 @@ gatingTemplate<-function(file,name){
 		cat("Adding population:",curPop,"\n")
 		if(parent=="root")
 		{
-			src<-"0"
+			src<-"1"
 			g<-graph::addNode(curNodeID,g)
 			
 			nodeData(g,curNodeID,"pop")<-curNode
 			g<-addEdge(src,curNodeID,g)
 
-			edgeData(g,src,curNodeID,"gatingMethod")<-gm
+			edgeData(g,src,curNodeID,"gtMethod")<-gm
 		}else
 		{
 			#travese the graph to get node list for matching later on
@@ -155,7 +157,7 @@ gatingTemplate<-function(file,name){
 				}
 #				browser()
 				g<-addEdge(curAncesterID,curNodeID,g)
-				edgeData(g,curAncesterID,curNodeID,"gatingMethod")<-gm
+				edgeData(g,curAncesterID,curNodeID,"gtMethod")<-gm
 			}
 			
 		}
@@ -168,5 +170,5 @@ gatingTemplate<-function(file,name){
 	
 	g@name<-name
 	g
-}
+})
 
