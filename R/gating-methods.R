@@ -54,6 +54,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSet"), definition = fu
 										)		
 					#upodate gs node ids
 					ind<-match(gt_children_ids,node_ids[,"gt"])
+#					browser()
 					node_ids[ind,"gs"]<-gs_node_ids
 				}	
 #					}else
@@ -105,8 +106,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 			
 			args<-parameters(x)
 			
-			
+#			browser()
 			gm<-paste(".",names(x),sep="")
+			
 			dims<-dims(x)
 			xChannel<-unname(dims["xChannel"])
 			yChannel<-unname(dims["yChannel"])
@@ -123,7 +125,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 			gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
 			
 
-			
+#			browser()
 			
 			if (!any(grepl(popAlias, gs_nodes))) 
 			{
@@ -329,6 +331,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				message("Skip gating!Population '",paste(popAlias,collapse=","),"' already exists.")
 #			browser()
 				gs_node_id<-getChildren(y[[1]],parent)
+				#select the corresponding gs node id by matching the node names
+				gs_node_name<-getNodes(y[[1]])[gs_node_id]
+				gs_node_id<-gs_node_id[match(popAlias,gs_node_name)]
 			}
 			
 			if (plot) {
@@ -337,7 +342,68 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 			names(gs_node_id)<-popIds
 			gs_node_id
 		})
-
+		
+setMethod("gating", signature = c("polyFunctions", "GatingSet")
+				, definition = function(x, y,gtPops, parent
+						,num_nodes = 1, parallel_type = c("multicore", "sock")
+						,plot = FALSE, xbin = 128, ...) 
+{
+	
+	require('parallel')
+	
+	args<-parameters(x)
+	gm<-paste(".",names(x),sep="")
+	popAlias<-unlist(lapply(gtPops,alias))
+	popNames<-unlist(lapply(gtPops,names))
+	gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
+	
+	
+	message("Population '",paste(popAlias,collapse=","),"'")
+	
+	
+	refNodes<-strsplit(args,split=":")[[1]]
+	
+	nMarkers <- length(refNodes)
+	## all the comibnations of A & B & C
+	# The 'permutations' function is from the 'gregmisc' package on CRAN.
+	require('gregmisc')
+	opList <- permutations(n = 1, r = nMarkers - 1, c("&"), repeats = TRUE)
+	isNotList <- permutations(n = 2, r = nMarkers, c("!", ""), repeats = TRUE)
+	polyExprsList <- apply(opList, 1, function(curOps) {
+				apply(isNotList, 1, function(curIsNot) {
+							polyExprs <- curIsNot
+							polyExprs[-1] <- paste0(curOps, curIsNot[-1])
+							
+							paste(paste0(polyExprs, refNodes), collapse = "")
+						})
+			})
+	polyExprsList <- as.vector(polyExprsList)
+	
+	#actual gating
+	lapply(polyExprsList, function(polyExpr) {
+				
+				tNodes <-polyExpr
+				polyExpr <- as.symbol(polyExpr)
+#					browser()
+				if (!any(tNodes %in% gs_nodes)) {
+					message(tNodes, " gating...")
+					bf <- eval(substitute(booleanFilter(x), list(x = polyExpr)))
+					bf@filterId <- tNodes
+					invisible(gs_node_id <- add(gs, bf, parent = parent))
+					invisible(recompute(gs, gs_node_id))
+				}else
+					message("Skip gating!Population '",tNodes,"' already exists.")
+			})					
+	
+	
+	
+	message("done.")
+		
+	
+	
+	return (-1)
+})
+		
 ## wrappers for the different gating routines
 .singletGate <- function(fs, xChannel = "FSC-A",yChannel = "FSC-H", prediction_level = 0.99,...) 
 {
@@ -479,3 +545,4 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 	require('flowStats')
 	quadrantGate(fs[[1]], stain = c(xChannel,yChannel), absolute = FALSE, inBetween = TRUE, ...)			
 }
+

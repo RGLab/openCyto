@@ -6,7 +6,7 @@
 setMethod("show",signature=c("gtMethod"),definition=function(object)
 		{
 			
-			cat("Gating Method: ")
+#			cat("Gating Method: ")
 			cat(names(object))
 			cat("(")
 #			browser()
@@ -17,6 +17,13 @@ setMethod("show",signature=c("gtMethod"),definition=function(object)
 			cat(") \n");
 		})
 
+setMethod("show",signature=c("boolMethod"),definition=function(object)
+		{
+			
+			cat(paste(class(object),"(",parameters(object),")",sep=""))
+			
+			cat("\n")
+		})
 
 setMethod("names",signature=c("gtMethod"),definition=function(x)
 		{

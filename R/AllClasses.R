@@ -40,7 +40,12 @@ setClass("gtMethod"
 						,args="character"
 						)	
 )
-
+setClass("boolMethod"
+		,contains="gtMethod"
+		)
+setClass("polyFunctions"
+		,contains="boolMethod"
+		)
 setClass("gtPopulation"
 		,representation(id="numeric" #consistent with node label in gating template graph
 						,name="character"
@@ -55,7 +60,7 @@ setClass("gtSubsets"
 isPolyfunctional<-function(gm){
 #	browser()
 #	grepl("^\\[\\:.+\\:\\]$",x)
-	names(gm)=="polyfunctions"
+	class(gm)=="polyFunctions"
 }
 #constructor from csv
 setMethod("gatingTemplate",signature(x="character"),function(x,name){
@@ -86,6 +91,12 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
 				,dims=df[i,"dims"]
 				,args=df[i,"args"]
 				)
+				
+		if(names(gm)=="boolGate")
+			gm<-as(gm,"boolMethod")
+		else if(names(gm)=="polyFunctions")
+			gm<-as(gm,"polyFunctions")
+					
 		cat("Adding population:",curPop,"\n")
 		if(parent=="root")
 		{
@@ -111,12 +122,13 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
 			
 			if(isPoly)
 				curNode<-as(curNode,"gtSubsets")
-			nodeData(g,curNodeID,"pop")<-curNode			
+			nodeData(g,curNodeID,"pop")<-curNode
+			
 			for(refNode in refNodes)
 			{
 						#split by "/" for each reference node
 						
-#				browser()
+				
 				tokens<-strsplit(refNode,"/")[[1]]
 				##locate the first token in traversed node list 
 				firstToken<-tokens[1]

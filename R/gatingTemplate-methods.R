@@ -48,7 +48,7 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 			names(eCols)<-e.colnames#restore names 
 			
 			#encode edge style
-			gm.isPoly<-unlist(lapply(gm.names,function(y)ifelse(y=="polyfunctions","poly","regular")))
+			gm.isPoly<-unlist(lapply(gm.names,function(y)ifelse(y=="polyFunctions","poly","regular")))
 			edge.styles<-c("solid","dashed")
 			names(edge.styles)<-unique(gm.isPoly)
 			eStyles<-edge.styles[gm.isPoly]
@@ -99,7 +99,7 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 			y1 = plot.space[3]
 			y2 = plot.space[4]
 			
-			legend.lty<-ifelse(gm.types=="polyfunctions","poly","regular")
+			legend.lty<-ifelse(gm.types=="polyFunctions","poly","regular")
 			legend(x1+100,y2-100
 					,legend=gm.types
 					,title="Gating Methods"
