@@ -343,13 +343,42 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 			gs_node_id
 		})
 		
-setMethod("gating", signature = c("polyFunctions", "GatingSet")
-				, definition = function(x, y,gtPops, parent
-						,num_nodes = 1, parallel_type = c("multicore", "sock")
-						,plot = FALSE, xbin = 128, ...) 
+setMethod("gating", signature = c("boolMethod", "GatingSet")
+		, definition = function(x, y,gtPops, parent, ...) 
 {
 	
-	require('parallel')
+	args<-parameters(x)
+	gm<-paste(".",names(x),sep="")
+	popAlias<-unlist(lapply(gtPops,alias))
+	popNames<-unlist(lapply(gtPops,names))
+	gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
+	popIds<-unlist(lapply(gtPops,"slot","id"))
+
+	tNodes <-args
+	if (!(tNodes %in% gs_nodes)) {
+		message(tNodes, " gating...")
+		bf <- eval(substitute(booleanFilter(x), list(x = as.symbol(tNodes))))
+		bf@filterId <- tNodes
+		invisible(gs_node_id <- add(gs, bf, parent = parent))
+		invisible(recompute(gs, gs_node_id))
+	}else
+	{
+#		browser()
+		message("Skip gating!Population '",tNodes,"' already exists.")
+		gs_node_id<-getChildren(y[[1]],parent)
+		#select the corresponding gs node id by matching the node names
+		gs_node_name<-getNodes(y[[1]])[gs_node_id]
+		gs_node_id<-gs_node_id[match(tNodes,gs_node_name)]	
+	}
+	message("done.")
+	
+	names(gs_node_id)<-popIds
+	gs_node_id
+})		
+
+setMethod("gating", signature = c("polyFunctions", "GatingSet")
+				, definition = function(x, y,gtPops, parent, ...) 
+{
 	
 	args<-parameters(x)
 	gm<-paste(".",names(x),sep="")
@@ -382,17 +411,20 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	#actual gating
 	lapply(polyExprsList, function(polyExpr) {
 				
-				tNodes <-polyExpr
-				polyExpr <- as.symbol(polyExpr)
+#				tNodes <-polyExpr
+#				polyExpr <- as.symbol(polyExpr)
+				
 #					browser()
-				if (!any(tNodes %in% gs_nodes)) {
-					message(tNodes, " gating...")
-					bf <- eval(substitute(booleanFilter(x), list(x = polyExpr)))
-					bf@filterId <- tNodes
-					invisible(gs_node_id <- add(gs, bf, parent = parent))
-					invisible(recompute(gs, gs_node_id))
-				}else
-					message("Skip gating!Population '",tNodes,"' already exists.")
+				bgt<-new("boolMethod",name=polyExpr,args=polyExpr)
+				gating(bgt,gs,parent=parent,gtPops=gtPops,...)
+#				if (!any(tNodes %in% gs_nodes)) {
+#					message(tNodes, " gating...")
+#					bf <- eval(substitute(booleanFilter(x), list(x = polyExpr)))
+#					bf@filterId <- tNodes
+#					invisible(gs_node_id <- add(gs, bf, parent = parent))
+#					invisible(recompute(gs, gs_node_id))
+#				}else
+#					message("Skip gating!Population '",tNodes,"' already exists.")
 			})					
 	
 	
