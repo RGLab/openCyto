@@ -133,10 +133,10 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				if(!is.na(xChannel))
 				{
 					xParam <- getChannelMarker(parent_data[[1]], xChannel)
-					xChannel<-xParam$name
+					xChannel<-as.character(xParam$name)
 				}
 				yParam <- getChannelMarker(parent_data[[1]], yChannel)
-				yChannel<-yParam$name
+				yChannel<-as.character(yParam$name)
 				# Splits the flow set into a list, where each element in the list is a
 				# flowSet containg one flow frame.
 				# Below, we access manually the individual flow frame with current_frame[[1]].
