@@ -11,7 +11,7 @@ setMethod("getNodes",signature=c("gatingTemplate"),definition=function(x,y)
 setMethod("getChildren",signature=c("gatingTemplate","character"),definition=function(obj,y)
 {
 	
-	edges(gt,y)[[1]]	
+	edges(obj,y)[[1]]	
 })
 setMethod("getGate",signature=c("gatingTemplate","character"),definition=function(obj,y,z)
 {

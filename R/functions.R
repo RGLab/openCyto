@@ -374,7 +374,7 @@ getChannelMarker<-function(frm,name,fix=FALSE)
 	if(fix)
 		ind<-which(toupper(pd$name)%in%toupper(name))
 	else
-		ind<-which(grepl(pname,pd$name))
+		ind<-which(grepl(pname,pd$name,ignore.case=T))
 		
 	
 	
@@ -388,7 +388,7 @@ getChannelMarker<-function(frm,name,fix=FALSE)
 									if(fix)
 										any(unlist(lapply(strsplit(x," "),function(y)toupper(y)%in%toupper(name))))
 									else
-										grepl(pattern=pname,x)
+										grepl(pattern=pname,x,ignore.case=T)
 							})
 						)
 					)

@@ -18,6 +18,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSet"), definition = fu
 				parent_name<-names(gt_parent_pop)
 				parent_alias<-alias(gt_parent_pop)
 				#detect all the branches/gates sourced from gt_parent_id
+#				browser()
 				gt_children_ids<-getChildren(gt,gt_parent_id)
 				#locate the gt node id in the map and check if gs node id already exsits				
 #				ind<-match(gt_children_ids,node_ids[,"gt"])
@@ -51,9 +52,10 @@ setMethod("gating", signature = c("gatingTemplate","GatingSet"), definition = fu
 										,y
 										,parent=as.integer(gs_parent_id)
 										,gtPops=pops
-										)		
+										)	
+#					browser()					
 					#upodate gs node ids
-					ind<-match(gt_children_ids,node_ids[,"gt"])
+					ind<-match(gs_node_ids,node_ids[,"gt"])
 #					browser()
 					node_ids[ind,"gs"]<-gs_node_ids
 				}	
@@ -112,12 +114,6 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 			dims<-dims(x)
 			xChannel<-unname(dims["xChannel"])
 			yChannel<-unname(dims["yChannel"])
-			if(!is.na(xChannel))
-				xChannel_s<-paste("'",xChannel,"'",sep="")
-			else
-				xChannel_s<-xChannel
-			if(!is.na(yChannel))
-				yChannel_s<-paste("'",yChannel,"'",sep="")
 			
 			popAlias<-unlist(lapply(gtPops,alias))
 			popNames<-unlist(lapply(gtPops,names))
@@ -133,7 +129,14 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				
 				parent_data <- getData(y, parent)
 				parallel_type <- match.arg(parallel_type)
-				
+				##get the accurate channel name by matching to the fr
+				if(!is.na(xChannel))
+				{
+					xParam <- getChannelMarker(parent_data[[1]], xChannel)
+					xChannel<-xParam$name
+				}
+				yParam <- getChannelMarker(parent_data[[1]], yChannel)
+				yChannel<-yParam$name
 				# Splits the flow set into a list, where each element in the list is a
 				# flowSet containg one flow frame.
 				# Below, we access manually the individual flow frame with current_frame[[1]].
@@ -169,28 +172,30 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 #			browser()
 				#parse the string into named vector
 				paired_args<-strsplit(args,split="\\,")[[1]]
-				named_args<-unlist(lapply(paired_args
+				paired_args<-unlist(lapply(paired_args
 										,function(paired_arg){
 											curPair<-strsplit(paired_arg,split="=")[[1]]
 											curPair_value<-curPair[2]
 											#strip while spaces and quote symbols
 											curPair_value<-sub("[ \t\n\r]*$", "", sub("^[ \t\n\r]*", "", curPair_value))
-											curPair_value<-gsub("\"","",curPair_value)
+											curPair_value<-gsub("\'","",curPair_value)
 #											browser()
-											names(curPair_value)<-sub("[ \t\n\r]*$", "", sub("^[ \t\n\r]*", "", curPair[1]))
+											curName<-sub("[ \t\n\r]*$", "", sub("^[ \t\n\r]*", "", curPair[1]))
+											curName<-tolower(curName)
+											names(curPair_value)<-curName
 											curPair_value
 											}
 										)
 									)
-				named_args<-as.list(named_args)
+				paired_args<-as.list(paired_args)
 				#try to convert to numeric if applicable
-				named_args<-lapply(named_args,function(cur_arg){
+				paired_args<-lapply(paired_args,function(cur_arg){
 							cur_arg_new<-as.numeric(cur_arg)
 							if(!is.na(cur_arg_new))
 								cur_arg<-cur_arg_new
 							cur_arg
 						})
-#				browser()
+				
 				#parse args for flowClust 
 				#prior estimation is done separately from flowClust routine 
 				#because piror_flowClust1d requires the entire parent flowSet yet flowClust only takes one flowFrame
@@ -202,10 +207,10 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 					{
 						#get the value of neg and pos
 						
-						if(all(is.element(c("pos","neg"),names(named_args))))
+						if(all(is.element(c("pos","neg"),names(paired_args))))
 						{
-							neg_cluster<-as.integer(named_args["neg"])			
-							K<-as.integer(named_args["pos"])+neg_cluster
+							neg_cluster<-as.integer(paired_args["neg"])			
+							K<-as.integer(paired_args["pos"])+neg_cluster
 						}else
 						{
 							message("either 'neg' or 'pos' argument is missing!Using default setting:neg=1,pos=1")
@@ -223,22 +228,31 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						
 #						browser()
 						#replace neg and pos and convert the named vector back to string
-						named_args[["K"]]<-K
-						named_args[["neg_cluster"]]<-neg_cluster
-						named_args[["prior"]]<-prior
-						neg_ind<-match("neg",names(named_args))
+						paired_args[["K"]]<-K
+						paired_args[["neg_cluster"]]<-neg_cluster
+						paired_args[["prior"]]<-prior
+						neg_ind<-match("neg",names(paired_args))
 						if(!is.na(neg_ind))
-							named_args<-named_args[-neg_ind]	
-						pos_ind<-match("pos",names(named_args))
+							paired_args<-paired_args[-neg_ind]
+						
+						pos_ind<-match("pos",names(paired_args))
 						if(!is.na(pos_ind))
-							named_args<-named_args[-pos_ind]
+							paired_args<-paired_args[-pos_ind]
+						
+						
 					}else
 					{
 						#get the value of neg and pos
-						K<-as.integer(named_args["K"])			
-						named_args[["K"]]<-K
-						
-						
+						if(is.element(c("k"),names(paired_args)))
+						{
+							K<-as.integer(paired_args["k"])			
+						}else
+						{
+							message("'K' argument is missing!Using default setting:K=2")
+							K<-2
+						}	
+						paired_args[["k"]]<-K						
+						names(paired_args)[match("k",names(paired_args))]<-"K"#restore K to capital letter
 						
 						# Elicitation of priors for flowClust
 						prior_list <- prior_flowClust2d(fr = parent_data[[1]]
@@ -246,17 +260,18 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 								,yChannel = yChannel
 								, K = K)
 						
-						named_args[["prior_list"]]=prior_list
+						paired_args[["prior_list"]]=prior_list
 						thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
 					}
-					
+								
 				}
-				#add args to thisCall
-				for(arg in names(named_args))
-					thisCall[[arg]]<-named_args[[arg]]
+				#update arg_names
+				
+				for(arg in names(paired_args))
+					thisCall[[arg]]<-paired_args[[arg]]
 				
 				
-#			browser()
+
 				##choose serial or parallel mode
 				if (num_nodes > 1) 
 				{
@@ -285,7 +300,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				}
 				
 				#we expect a filter/filters from gm
-				
+#				browser()
 				if(class(flist[[1]])=="filters")#reconstruct filterlist out of filterslist
 				{
 					#right now we consider quadgate as the only use case for filters
@@ -302,7 +317,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						curAlias<-popAlias[i]
 						curPop<-popNames[i]
 						curPopId<-popIds[i]
-
+#						browser()
 						quadInd<-which(unlist(lapply(quadPatterns,grepl,curPop)))
 						#fetch appropriate filter based on the quadrant ind
 						curFlist <- lapply(flist, function(curFilters) {
@@ -310,7 +325,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 									curFilters[[quadInd]]
 								})
 						curFlist <- filterList(curFlist)
-						cur_gs_node_id <- add(gs, curFlist, parent = parent,name=curAlias)	
+						cur_gs_node_id <- add(y, curFlist, parent = parent,name=curAlias)	
 						recompute(y, cur_gs_node_id)
 						gs_node_id<-c(gs_node_id,cur_gs_node_id)
 					}
@@ -320,7 +335,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				}else
 				{
 					gs_node_id <- add(y, flist, parent = parent,name=popAlias)
-					recompute(gs, gs_node_id)
+					recompute(y, gs_node_id)
 					
 				}
 				
@@ -359,8 +374,8 @@ setMethod("gating", signature = c("boolMethod", "GatingSet")
 		message(tNodes, " gating...")
 		bf <- eval(substitute(booleanFilter(x), list(x = as.symbol(tNodes))))
 		bf@filterId <- tNodes
-		invisible(gs_node_id <- add(gs, bf, parent = parent))
-		invisible(recompute(gs, gs_node_id))
+		invisible(gs_node_id <- add(y, bf, parent = parent))
+		invisible(recompute(y, gs_node_id))
 	}else
 	{
 #		browser()
@@ -410,21 +425,8 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	
 	#actual gating
 	lapply(polyExprsList, function(polyExpr) {
-				
-#				tNodes <-polyExpr
-#				polyExpr <- as.symbol(polyExpr)
-				
-#					browser()
 				bgt<-new("boolMethod",name=polyExpr,args=polyExpr)
-				gating(bgt,gs,parent=parent,gtPops=gtPops,...)
-#				if (!any(tNodes %in% gs_nodes)) {
-#					message(tNodes, " gating...")
-#					bf <- eval(substitute(booleanFilter(x), list(x = polyExpr)))
-#					bf@filterId <- tNodes
-#					invisible(gs_node_id <- add(gs, bf, parent = parent))
-#					invisible(recompute(gs, gs_node_id))
-#				}else
-#					message("Skip gating!Population '",tNodes,"' already exists.")
+				gating(bgt,y,parent=parent,gtPops=gtPops,...)
 			})					
 	
 	
@@ -455,7 +457,8 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 {
 	
 	require("flowClust")
-	
+	require("MASS")
+#	browser()
 	
 	fr<-fs[[1]]
 #		browser()			
@@ -496,7 +499,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 			
 			negFr <- newFrList[[paste0(xStain, "-")]]
 			posFr <- newFrList[[paste0(xStain, "+")]]
-			
+#			browser()
 			filter2 <- flowClust.1d(negFr, params = yChannel,
 					usePrior = usePrior
 					,filterId = as.character(yStain)
@@ -555,26 +558,62 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	
 	
 	fr<-fs[[1]]
-#	browser()
 	flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel,usePrior=usePrior, ...)
 	
 }
 .rangeGate<-function(fs, xChannel = NA,yChannel,absolute = FALSE,filterId="",...)
 {
 	require('flowStats')
-	rangeGate(fs[[1]], stain = yChannel, inBetween = TRUE, absolute = absolute,
-			filterId = filterId, ...)	
+	fr<-fs[[1]]
+#	browser()
+	rangeGate(x=fr, stain = yChannel, inBetween = TRUE, absolute = absolute,
+				filterId = filterId
+				, ...
+				)	
 }
 
 
 .quantileGate<-function(fs, xChannel = NA,yChannel,probs = 0.999,filterId="",...)
 {
-	quantileGate(fr = fs[[1]], probs = probs, stain = yChannel, filterId = filterId, ...)	
+	fr<-fs[[1]]
+	quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)	
 }
 
 .quadrantGate<-function(fs, xChannel = NA,yChannel,...)
 {
+	
 	require('flowStats')
-	quadrantGate(fs[[1]], stain = c(xChannel,yChannel), absolute = FALSE, inBetween = TRUE, ...)			
+	fr<-fs[[1]]
+	
+	qfilter<-quadrantGate(fr, stain = c(xChannel,yChannel), absolute = FALSE, inBetween = TRUE, ...)
+#	browser()
+	
+	###############################################################     
+	#construct rectangleGates based on the cuts and popNames,clock-wise
+	###############################################################
+	cut.x<-qfilter@boundary[xChannel]
+	cut.y<-qfilter@boundary[yChannel]
+	gateList <- new("filters")
+	
+	chnls<-c(xChannel, yChannel)
+	markers<-chnls
+	
+	coord <- list(c(-Inf, cut.x), c(cut.y, Inf))
+	names(coord) <- as.character(chnls)
+	gateList[[paste(paste0(markers, c("-", "+")), collapse="")]] <- rectangleGate(coord)
+	
+	coord <- list(c(cut.x, Inf), c(cut.y, Inf))
+	names(coord) <- as.character(chnls)
+	gateList[[paste(paste0(markers, c("+", "+")), collapse="")]] <- rectangleGate(coord)
+	
+	coord <- list(c(cut.x, Inf), c(-Inf, cut.y))
+	names(coord) <- as.character(chnls)
+	gateList[[paste(paste0(markers, c("+", "-")), collapse="")]] <- rectangleGate(coord)
+	
+	coord <- list(c(-Inf, cut.x), c(-Inf, cut.y))
+	names(coord) <- as.character(chnls)
+	gateList[[paste(paste0(markers, c("-", "-")), collapse="")]] <- rectangleGate(coord)
+	
+	gateList
 }
 
