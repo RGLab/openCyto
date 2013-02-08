@@ -8,17 +8,16 @@ Maintainer: Mike Jiang <wjiang2@fhcrc.org>
 Description: This package is designed to facilitate the automated gating methods in sequential way to mimic the manual gating strategy.  
 License: Artistic-2.0
 LazyLoad: yes
-Collate: 	AllClasses.R 
-			AllGenerics.R
+Collate: 	AllGenerics.R 
+			AllClasses.R
 			bayes-flowClust.R
 			functions.R
 			gating-methods.R 
 			gating-functions.R
 			gatingTemplate-methods.R
-			gMethod-methods.R
-			gPopulation-methods.R 
+			gtMethod-methods.R
+			gtPopulation-methods.R 
 			median-logicle-transform.R 
 Depends: flowWorkspace,flowClust,flowStats			 
-
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
 
