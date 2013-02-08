@@ -113,14 +113,15 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
 			discovered<-dfs(g)[[1]]
 			g<-graph::addNode(curNodeID,g)
 			
-			#TODO:deal with not symbol!
-			isPoly<-isPolyfunctional(gm)
-			if(isPoly)
+#			TODO:deal with not symbol!
+#			isPoly<-isPolyfunctional(gm)
+			if(class(gm)=="polyFunctions")
 				refNodes<-strsplit(parent,"\\:")[[1]] #split by colon when polyfunctional boolean gates
-			else
+			else if(class(gm)=="boolMethod")
 				refNodes<-strsplit(parent,"&|\\|")[[1]]#split by logical operator when regular boolean gates
-			
-			if(isPoly)
+			else
+				refNodes<-parent
+			if(class(gm)=="polyFunctions")
 				curNode<-as(curNode,"gtSubsets")
 			nodeData(g,curNodeID,"pop")<-curNode
 			

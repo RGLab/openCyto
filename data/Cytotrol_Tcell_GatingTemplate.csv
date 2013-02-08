@@ -1,0 +1,16 @@
+"alias","pop","parent","dims","method","args"
+"nonDebris","nonDebris+","root","FSC-A","flowClust.1d","Neg=1,pos=1"
+"lymph","lymph+","nonDebris","FSC-A,SSC-A","flowClust.2d","K=2"
+"cd3","cd3+","lymph","CD3","rangeGate",
+"cd4","cd4+cd8-","cd3","cd4,cd8","flowClust.1d","split=FALSE"
+"cd8","cd4-cd8+","cd3","cd4,cd8","flowClust.1d","split=FALSE"
+"activated cd4","CD38+HLADR+","cd4","CD38,HLA-DR","quadrantGate",
+"activated cd8","CD38+HLADR+","cd8","CD38,HLA-DR","quadrantGate",
+"Effector","CCR7+CD45RA-","cd4","CCR7,CD45RA","quadrantGate",
+"Naive","CCR7-CD45RA-","cd4","CCR7,CD45RA","quadrantGate",
+"Central memory","CCR7-CD45RA+","cd4","CCR7,CD45RA","quadrantGate",
+"Effector memory","CCR7+CD45RA+","cd4","CCR7,CD45RA","quadrantGate",
+"Effector","CCR7+CD45RA-","cd8","CCR7,CD45RA","quadrantGate",
+"Naive","CCR7-CD45RA-","cd8","CCR7,CD45RA","quadrantGate",
+"Central memory","CCR7-CD45RA+","cd8","CCR7,CD45RA","quadrantGate",
+"Effector memory","CCR7+CD45RA+","cd8","CCR7,CD45RA","quadrantGate",

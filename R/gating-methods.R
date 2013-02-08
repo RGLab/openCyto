@@ -449,7 +449,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	singletGate(fs[[1]], area = xChannel
 			, height = yChannel
 			,prediction_level = prediction_level
-	)$gate
+	)
 	
 }
 .flowClust.1d<-function(fs, xChannel = NA,yChannel,tol=1e-3,prior=NULL,filterId=""
