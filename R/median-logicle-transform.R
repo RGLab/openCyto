@@ -26,7 +26,11 @@ estimateMedianLogicle <- function(fs, channels, m = 4.5, q = 0.05) {
     })
   })
   # Replaces 'r' in flowCore:::.lgclTrans
-  neg_marker_quantiles <- apply(neg_marker_quantiles, 2, median)[channels]
+  neg_marker_quantiles <- apply(neg_marker_quantiles, 2, median, na.rm = TRUE)[channels]
+
+  # In the case that no negative markers are present, we set this quantile to the
+  # default value of 1/2.
+  neg_marker_quantiles <- replace(neg_marker_quantiles, is.na(neg_marker_quantiles), 0.5)
 
   # Replaces 't' in flowCore:::.lgclTrans
   max_range <- do.call(rbind, lapply(fsApply(fs, range), function(x) {
