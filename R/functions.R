@@ -212,7 +212,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 	y <- exprs(fr)[, yChannel]
 	
 	# If appropriate, we generate prior parameters for the Bayesian version of flowClust.
-	if (usePrior == "yes" && all.equal(prior_list, list(NA))) {
+	if (usePrior == "yes" && identical(prior_list, list(NA))) {
 		prior_list <- prior_flowClust2d(fr = fr, xChannel = xChannel, yChannel = yChannel, K = K)
 	}
 	
