@@ -20,24 +20,16 @@ setMethod("gating", signature = c("gatingTemplate","GatingSet"), definition = fu
 				#detect all the branches/gates sourced from gt_parent_id
 #				browser()
 				gt_children_ids<-getChildren(gt,gt_parent_id)
-				#locate the gt node id in the map and check if gs node id already exsits				
-#				ind<-match(gt_children_ids,node_ids[,"gt"])
-#				gs_node_ids<-node_ids[ind,"gs"]
-#				if(all(is.na(gs_node_ids)))
-#				{	
+				
 				
 				gates<-lapply(gt_children_ids,function(i){
 							getGate(gt,gt_parent_id,i)
 						})
-#				browser()
-#					isSame<-unique(gates)
-#					if(all(!isSame))
-#					{
 				#do the gating for each unique gate
 				for(gate in unique(gates))
 				{
 					
-
+#					browser()
 					#select the children that are associated with this gate
 					children_ind<-which(unlist(lapply(gates,"identical",gate)))
 					cur_gt_children_ids<-gt_children_ids[children_ind]
@@ -53,45 +45,13 @@ setMethod("gating", signature = c("gatingTemplate","GatingSet"), definition = fu
 										,parent=as.integer(gs_parent_id)
 										,gtPops=pops
 										)	
-#					browser()					
+					
 					#upodate gs node ids
-					ind<-match(gs_node_ids,node_ids[,"gt"])
-#					browser()
+					ind<-match(names(gs_node_ids),node_ids[,"gt"])
+
 					node_ids[ind,"gs"]<-gs_node_ids
 				}	
-#					}else
-#					{
-#						
-#						##quadgate
-#						##TODO:currently each parent should either have one quadgate or multiple separate gates
-#						#we may need to figure out how to extend it to a more generic scenario
-#						if(length(which(isSame))<=3)#quadgate should only have 3 duplicates
-#						{
-#							gate<-gates[[1]]
-#							pops<-lapply(gt_children_ids
-#									,function(gt_children_id){
-#										getNodes(gt,gt_children_id)
-#									})
-#							pops
-#						}else 
-#							stop("don't know how to handle quadgate with more than 4 sub-populations!")
-#					}
-				
-				
-				
-				
-#				}else if(all(!is.na(gs_node_ids)))
-#				{
-#					
-#					message("'",alias(getNodes(gt,gt_children_ids)),"' already exists,skip gating!")
-#				}else
-#					stop("Don't know how to handle partially gated children node yet!")
 			}
-			
-			
-			
-			
-			
 			
 			message("finished.")
 		})
@@ -217,7 +177,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 							neg_cluster<-as.integer(1)			
 							K<-2
 						}
-						
+#						browser()
 						# Elicitation of priors for flowClust
 						prior <- list()
 						if(!is.na(xChannel))

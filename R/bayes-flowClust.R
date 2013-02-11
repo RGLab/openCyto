@@ -70,7 +70,16 @@ prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10,
 
   # For each sample that has less than K peaks, we align its peaks with the peaks
   # of the first sample having K peaks.
-  peaks <- align_peaks(peaks)
+#	browser()
+	
+	rowInds<-which(apply(peaks,1,function(curPeak){
+			  !any(is.na(curPeak))
+		  }))
+	if(length(rowInds)==0)
+		stop("invalid peak matrix!")
+	else 
+		rowInd<-rowInds[1]
+  peaks <- flowClust:::peakMatch(peaks,rowInd)
 
   if (estimator == "huber") {
     # In the case that the majority of the samples have a peak with NA (i.e., K
