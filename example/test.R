@@ -4,14 +4,16 @@
 ###############################################################################
 library(flowWorkspace)
 library(openCyto)
-source("/home/wjiang2/rglab/workspace/openCyto/R/AllGenerics.R")
-source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
-source("/home/wjiang2/rglab/workspace/openCyto/R/gtPopulation-methods.R")
-source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
-source("/home/wjiang2/rglab/workspace/openCyto/R/gtMethod-methods.R")
-source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
-source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
-source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
+lapply(list.files("/home/wjiang2/rglab/workspace/openCyto/R",full=T),source)
+#source("/home/wjiang2/rglab/workspace/openCyto/R/AllGenerics.R")
+#source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
+#source("/home/wjiang2/rglab/workspace/openCyto/R/gtPopulation-methods.R")
+#source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
+#source("/home/wjiang2/rglab/workspace/openCyto/R/gtMethod-methods.R")
+#source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
+#source("/home/wjiang2/rglab/workspace/openCyto/R/gating-functions.R")
+#source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
+#source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
 
 path<-"openCyto"
 load(file.path(path,"data/065_fs.rda"))
@@ -64,4 +66,11 @@ gs2<-GatingSet(fs_bcell)
 gating(gt2,gs2)
 plotGate(gs2[[1]],bool=T,xbin=128)
 
+#
+library(openCyto)
+archive_path <- '/loc/no-backup/ramey'
 
+gt <- gatingTemplate(file.path(archive_path, "HVTN065-GatingTemplate.csv"), "HVTN065")
+gs <- unarchive(file = file.path(archive_path, "test-HVTN065.tar"), archive_path)
+gating(gt, gs)
+plotGate(gs[[1]],bool=T,xbin=128,margin=T)
