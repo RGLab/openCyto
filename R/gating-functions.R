@@ -102,7 +102,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
     # First, we sort the data.
     order_x <- order(x)
     x_sorted <- x[order_x]
-    labels <- Map(tmixRes1, rm.outliers = FALSE)[order_x]
+    labels <- flowClust::Map(tmixRes1, rm.outliers = FALSE)[order_x]
 
     # Determine which observations are between the first two centroids and their
     # corresponding cluster labels.
