@@ -1,4 +1,4 @@
-setMethod("gating", signature = c("gatingTemplate","GatingSet"), definition = function(x,y, ...) {
+setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definition = function(x,y, ...) {
 			
 #			browser()
 			#gate each node by the topological order
@@ -44,6 +44,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSet"), definition = fu
 										,y
 										,parent=as.integer(gs_parent_id)
 										,gtPops=pops
+										,...
 										)	
 					
 					#upodate gs node ids
