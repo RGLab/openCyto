@@ -180,11 +180,10 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 #						browser()
 						# Elicitation of priors for flowClust
 						prior <- list()
-						if(!is.na(xChannel))
-							prior$xChannel <- prior_flowClust1d(flow_set = parent_data,channel = xChannel, K = K)
-						
-						
-						prior$yChannel <- prior_flowClust1d(flow_set = parent_data,channel = yChannel, K = K)
+						if(!is.na(xChannel)) {
+              prior$xChannel <- prior_flowClust1d(flow_set = parent_data, channel = xChannel, K = K)
+            }
+						prior$yChannel <- prior_flowClust1d(flow_set = parent_data, channel = yChannel, K = K)
 						
 #						browser()
 						#replace neg and pos and convert the named vector back to string
@@ -215,10 +214,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						names(paired_args)[match("k",names(paired_args))]<-"K"#restore K to capital letter
 						
 						# Elicitation of priors for flowClust
-						prior_list <- prior_flowClust2d(fr = parent_data[[1]]
-								,xChannel = xChannel
-								,yChannel = yChannel
-								, K = K)
+						prior_list <- prior_flowClust(fr = parent_data, channels = c(xChannel, yChannel), K = K)
 						
 						paired_args[["prior_list"]]=prior_list
 						thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
@@ -229,8 +225,6 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				
 				for(arg in names(paired_args))
 					thisCall[[arg]]<-paired_args[[arg]]
-				
-				
 
 				##choose serial or parallel mode
 				if (num_nodes > 1) 
@@ -412,44 +406,31 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	)
 	
 }
-.flowClust.1d<-function(fs, xChannel = NA,yChannel,tol=1e-3,prior=NULL,filterId=""
-						,usePrior="yes",split=TRUE,...)
+.flowClust.1d<-function(fs, xChannel = NA, yChannel, tol = 1e-5, prior = NULL,
+                        filterId = "", usePrior = "yes", split = TRUE, ...)
 {
 	
 	require("flowClust")
 	require("MASS")
-#	browser()
 	
-	fr<-fs[[1]]
-#		browser()			
-	if(is.na(xChannel))#1d gate			
-		flowClust.1d(fr = fr
-				,params = yChannel
-				,tol = tol
-				,filterId = filterId
-				,prior = prior$yChannel
-				,usePrior=usePrior
-				
-				,...)
-	else#quadgate 
-	{
+	fr <- fs[[1]]
+	if (is.na(xChannel)) { #1d gate
+    flowClust.1d(fr = fr, params = yChannel, tol = tol, filterId = filterId,
+                 prior = prior$yChannel, usePrior = usePrior, ...)
+  } else { #quadgate 
 		xParam <- getChannelMarker(fr, xChannel)
 		yParam <- getChannelMarker(fr, yChannel)
-		xChannel<-xParam$name
-		xStain<-xParam$desc
-		yChannel<-yParam$name
-		yStain<-yParam$desc
-#			browser()
-		filter1 <- flowClust.1d(fr = fr
-				, params = xChannel, tol = tol
-				,filterId = as.character(xStain)
-				,prior = prior$xChannel
-				,usePrior=usePrior
-				, ...)
+		xChannel <- xParam$name
+		xStain <- xParam$desc
+		yChannel <- yParam$name
+		yStain <- yParam$desc
+		filter1 <- flowClust.1d(fr = fr, params = xChannel, tol = tol,
+                            filterId = as.character(xStain),
+                            prior = prior$xChannel, usePrior = usePrior, ...)
+
 		################################      
 		#flowClust on xParam
 		################################
-		
 		cut.x <- filter1@min
 		if (split) {
 			################################################################
@@ -459,27 +440,19 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 			
 			negFr <- newFrList[[paste0(xStain, "-")]]
 			posFr <- newFrList[[paste0(xStain, "+")]]
-#			browser()
-			filter2 <- flowClust.1d(negFr, params = yChannel,
-					usePrior = usePrior
-					,filterId = as.character(yStain)
-					,prior = prior$yChannel
-					, ...)
+
+			filter2 <- flowClust.1d(negFr, params = yChannel, tol = tol,
+                              filterId = as.character(yStain), usePrior = usePrior,
+                              prior = prior$yChannel, ...)
 			cut.y.l <- filter2@min
 			
-			filter3 <- flowClust.1d(posFr, params = yChannel,
-					usePrior = usePrior
-					,filterId = as.character(yStain)
-					,prior = prior$yChannel
-					, ...)
-			
+			filter3 <- flowClust.1d(posFr, params = yChannel, tol = tol,
+                              usePrior = usePrior, filterId = as.character(yStain),
+                              prior = prior$yChannel, ...)
 			cut.y.r <- filter3@min
 		} else {
-			filter2 <- flowClust.1d(fr, params = yChannel,
-					usePrior = usePrior
-					,filterId = as.character(yStain)
-					,prior = prior$yChannel
-					, ...)
+			filter2 <- flowClust.1d(fr, params = yChannel, tol = tol, usePrior = usePrior,
+                              filterId = as.character(yStain), prior = prior$yChannel, ...)
 			cut.y.l <- cut.y.r <- filter2@min
 		}
 		
@@ -511,15 +484,10 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	}
 	
 }
-.flowClust.2d<-function(fs, xChannel,yChannel,usePrior="yes",...)
-{
-	
+.flowClust.2d<-function(fs, xChannel, yChannel, usePrior = "yes", ...) {
 	require("flowClust")
-	
-	
-	fr<-fs[[1]]
-	flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel,usePrior=usePrior, ...)
-	
+	fr <- fs[[1]]
+	flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel, usePrior = usePrior, ...)
 }
 .rangeGate<-function(fs, xChannel = NA,yChannel,absolute = FALSE,filterId="",...)
 {
@@ -533,9 +501,8 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 }
 
 
-.quantileGate<-function(fs, xChannel = NA,yChannel,probs = 0.999,filterId="",...)
-{
-	fr<-fs[[1]]
+.quantileGate<-function(fs, xChannel = NA, yChannel, probs = 0.999, filterId="", ...) {
+	fr <- fs[[1]]
 	quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)	
 }
 

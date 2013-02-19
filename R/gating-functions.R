@@ -1,6 +1,3 @@
-
-
-
 #' Applies flowClust to 1 feature to determine a cutpoint between the minimum
 #' cluster and all other clusters.
 #'
@@ -23,8 +20,6 @@
 #' \code{flowClust}.
 #' @param prior_list list of prior parameters for the Bayesian \code{flowClust}.
 #' If \code{usePrior} is set to 'no', then the list is unused.
-#' @param prior_mean a vector of length \code{K} that provides the prior means
-#' for each peak. By default, this is \code{NULL}, in which case 
 #' @param trans numeric indicating whether the Box-Cox transformation parameter
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
 #' (cluster-speciﬁc estimation). NOTE: For the Bayesian version of
@@ -242,10 +237,10 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 
   x <- exprs(fr)[, xChannel]
   y <- exprs(fr)[, yChannel]
-#browser()
+
   # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
   if (usePrior == "yes" && identical(prior_list, list(NA))) {
-    prior_list <- prior_flowClust2d(fr = fr, xChannel = xChannel, yChannel = yChannel, K = K)
+    prior_list <- prior_flowClust(fr = fr, channels = c(xChannel, yChannel), K = K)
   }
 
 
