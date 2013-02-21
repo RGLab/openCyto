@@ -12,5 +12,5 @@
 "TNFa","TNFa+","cd8","Alexa 680-A","flowClust.1d","cutpoint_method='quantile',quantile=0.995"
 "IFNg","IFNg+","cd8","PE Cy7-A","flowClust.1d","cutpoint_method='quantile',quantile=0.995"
 "IL2","IL2+","cd8","PE Green laser-A","flowClust.1d","cutpoint_method='quantile',quantile=0.995"
-"IL2|IFNg","cd4:IL2|IFNg","cd4",,"boolGate","cd4/IL2+|cd4/IFNg"
+"IL2|IFNg","cd4:IL2|IFNg","cd4",,"boolGate","cd4/IL2|cd4/IFNg"
 "cd8 subsets","cd8 subsets","cd8",,"polyFunctions","cd8/IFNg:cd8/IL2:cd8/TNFa"

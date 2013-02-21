@@ -1,10 +1,25 @@
-setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definition = function(x,y,fct=NULL, ...) {
+setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definition = function(x,y,env_fct=NULL, ...) {
 			
 #			browser()
 			#gate each node by the topological order
 			#maintain the mapping between template node ID and gating set node ID
 			#in order to refer gating set node ID back to the template ID and find the parent gs node ID
 			
+			if(!is.null(env_fct))
+			{
+				#use the fcTree if already exists 
+				if(exists("fcTree",env_fct))
+				{
+					fcTree<-get("fcTree",env_fct)
+				}else
+				{
+					#create one from gt if not
+					fcTree<-gt
+					nodeDataDefaults(fcTree,"fcObj")<-new("fcObject")#add extra slot to store priors
+					assign("fcTree",fcTree,env_fct)		
+				}
+				
+			}
 			
 			gt<-x
 			gt_node_ids<-tsort(gt)
@@ -53,10 +68,11 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 					ind<-match(names(gs_node_ids),node_ids[,"gt"])
 					node_ids[ind,"gs"]<-gs_node_ids
 					#update fct
-					if(!is.null(fct))
+					if(!is.null(env_fct))
 					{
-						browser()
-						nodeData(fct,cur_gt_children_ids,"fcObj")<-res["fcObj"]
+#						browser()
+						if(length(res[["fcObj"]]@prior)>0)
+							nodeData(env_fct$fcTree,cur_gt_children_ids,"fcObj")<-res[["fcObj"]]
 						
 					}
 					
@@ -64,7 +80,8 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 			}
 			
 			message("finished.")
-			fct
+			#update fcTree
+#			assign("fcTree",fcTree,env_fct)
 		})
 
 		
