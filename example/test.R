@@ -66,5 +66,3 @@ gs <- unarchive(file = file.path(archive_path, "test-HVTN065.tar"), archive_path
 gating(gt, gs)
 plotGate(gs[[1]],bool=T,xbin=128,margin=T)
 
-
-write(file.path("gsl-1.13",paste(basename(list.dirs("flowClust/src/gsl-1.13",full.names=F,recursive=F)),".libs/*.a \\",sep="/")),file="txt")

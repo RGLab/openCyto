@@ -1,8 +1,6 @@
-# TODO: Add comment
-# 
-# Author: wjiang2
 ###############################################################################
-## exsits for the purpose of dispatching 
+## a class representing the gating method and population info in a graph object 
+###############################################################################
 setClass("gatingTemplate",
 		contains="graphNEL"
 		,representation(name="character")
@@ -33,7 +31,43 @@ setClass("gatingTemplate",
 #				TRUE
 #		}
 	)
+	
+###############################################################################	
+#extend filter class to have extra slot to store posteriors from flowClust gating routine 	
+###############################################################################
+setClass("fcFilter"
+		,representation(filter="filter"
+						,posteriors="list")
+	)
+fcFilter<-function(x,y)
+{
+	res<-new("fcFilter")
+	res@filter<-x
+	res@posteriors<-y
+	res
+}
 
+##a container to store prior and posteriors from flowClust gating
+setClass("fcObject"
+		,representation(prior="list"
+						,posteriors="list")
+		)
+fcObject<-function(x,y)
+{
+ new("fcObject",prior=x,posteriors=y)	
+}
+###############################################################################	
+##a flowClust tree is a container to hold priors and posteriors that can be visualized
+## for the purpose of fine-tunning parameters for flowClust algorithm
+###############################################################################
+setClass("fcTree",
+		contains="gatingTemplate"
+		)
+fcTree<-function(gt){
+		res<-as(gt,"fcTree")
+		nodeDataDefaults(res,"fcObj")<-new("fcObject")
+		res
+		}	
 setClass("gtMethod"
 		,representation(name="character"
 						,dims="character"

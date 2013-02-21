@@ -1,9 +1,11 @@
-setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definition = function(x,y, ...) {
+setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definition = function(x,y,fct=NULL, ...) {
 			
 #			browser()
 			#gate each node by the topological order
 			#maintain the mapping between template node ID and gating set node ID
 			#in order to refer gating set node ID back to the template ID and find the parent gs node ID
+			
+			
 			gt<-x
 			gt_node_ids<-tsort(gt)
 			node_ids<-cbind(gt=gt_node_ids,gs=NA)
@@ -40,28 +42,36 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 							})
 #							browser()					
 					#pass the pops and gate to gating routine
-					gs_node_ids<-gating(x=gate
+					res<-gating(x=gate
 										,y
 										,parent=as.integer(gs_parent_id)
 										,gtPops=pops
 										,...
 										)	
-					
+					gs_node_ids<-res[["gs_node_id"]]
 					#upodate gs node ids
 					ind<-match(names(gs_node_ids),node_ids[,"gt"])
-
 					node_ids[ind,"gs"]<-gs_node_ids
+					#update fct
+					if(!is.null(fct))
+					{
+#						browser()
+						nodeData(fct,cur_gt_children_ids,"fcObj")<-res["fcObj"]
+						
+					}
+					
 				}	
 			}
 			
 			message("finished.")
+			fct
 		})
 
 		
 setMethod("gating", signature = c("gtMethod", "GatingSet")
 		, definition = function(x, y,gtPops, parent
 				,num_nodes = 1, parallel_type = c("multicore", "sock")
-				,plot = FALSE, xbin = 128, ...) 
+				,plot = FALSE, xbin = 128,...) 
 		{
 			
 			require('parallel')
@@ -83,6 +93,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 			
 
 #			browser()
+			fcObj<-new("fcObject")
 			
 			if (!any(grepl(popAlias, gs_nodes))) 
 			{
@@ -200,7 +211,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						if(!is.na(pos_ind))
 							paired_args<-paired_args[-pos_ind]
 						
-						
+						prior_list<-prior
 					}else
 					{
 						#get the value of neg and pos
@@ -224,7 +235,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						paired_args[["prior_list"]]=prior_list
 						thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
 					}
-								
+					fcObj@prior<-prior_list				
 				}
 				#update arg_names
 				
@@ -232,7 +243,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 					thisCall[[arg]]<-paired_args[[arg]]
 				
 				
-
+				
 				##choose serial or parallel mode
 				if (num_nodes > 1) 
 				{
@@ -282,7 +293,6 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						quadInd<-which(unlist(lapply(quadPatterns,grepl,curPop)))
 						#fetch appropriate filter based on the quadrant ind
 						curFlist <- lapply(flist, function(curFilters) {
-#								curFilters[[quadInd]]@filterId <- curAlias
 									curFilters[[quadInd]]
 								})
 						curFlist <- filterList(curFlist)
@@ -295,6 +305,18 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 					
 				}else
 				{
+				
+#					browser()
+					#parse posteriors and filter from from fcFilter
+					if(class(flist[[1]])=="fcFilter")
+					{
+						
+						posteriors_list<-lapply(flist,"slot","posteriors")
+						fcObj@posteriors<-posteriors_list
+						
+						flist<-lapply(flist,"slot","filter")
+					}
+					
 					gs_node_id <- add(y, flist, parent = parent,name=popAlias)
 					recompute(y, gs_node_id)
 					
@@ -316,7 +338,13 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
 			}
 			names(gs_node_id)<-popIds
-			gs_node_id
+#			gs_node_id
+			list(gs_node_id=gs_node_id
+				 ,fcObj=fcObj
+		 		)
+			
+			
+			
 		})
 		
 setMethod("gating", signature = c("boolMethod", "GatingSet")
@@ -349,7 +377,8 @@ setMethod("gating", signature = c("boolMethod", "GatingSet")
 	message("done.")
 	
 	names(gs_node_id)<-popIds
-	gs_node_id
+#	gs_node_id
+	list(gs_node_id)
 })		
 
 setMethod("gating", signature = c("polyFunctions", "GatingSet")
@@ -396,7 +425,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 		
 	
 	
-	return (-1)
+	list()
 })
 		
 ## wrappers for the different gating routines
@@ -510,6 +539,8 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 		
 		gateList
 	}
+	
+	
 	
 }
 .flowClust.2d<-function(fs, xChannel,yChannel,usePrior="yes",...)

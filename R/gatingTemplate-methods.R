@@ -10,7 +10,7 @@ setMethod("getNodes",signature=c("gatingTemplate"),definition=function(x,y)
 
 setMethod("getChildren",signature=c("gatingTemplate","character"),definition=function(obj,y)
 {
-	
+#	browser()
 	edges(obj,y)[[1]]	
 })
 setMethod("getGate",signature=c("gatingTemplate","character"),definition=function(obj,y,z)
@@ -111,24 +111,24 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 		})
 
 #extend flowWorkspace to store gatingSet 
-setMethod("gatingTemplate",signature(x="GatingSet"),function(x){
-			
-			gatingTemplate(x[[1]])			
-			
-		})
-setMethod("gatingTemplate",signature(x="GatingHierarchy"),function(x){
-			
-				
-			r<-nodeDataDefaults(x@tree,"data")[["data"]];
-			r$gt
-
-		})
-setReplaceMethod("gatingTemplate",signature(x="GatingSet"),function(x,value){
-	
-			
-	r<-nodeDataDefaults(x[[1]]@tree,"data")[["data"]];
-	r$gt<-value
-	x
-	
-})
+#setMethod("gatingTemplate",signature(x="GatingSet"),function(x){
+#			
+#			gatingTemplate(x[[1]])			
+#			
+#		})
+#setMethod("gatingTemplate",signature(x="GatingHierarchy"),function(x){
+#			
+#				
+#			r<-nodeDataDefaults(x@tree,"data")[["data"]];
+#			r$gt
+#
+#		})
+#setReplaceMethod("gatingTemplate",signature(x="GatingSet"),function(x,value){
+#	
+#			
+#	r<-nodeDataDefaults(x[[1]]@tree,"data")[["data"]];
+#	r$gt<-value
+#	x
+#	
+#})
 

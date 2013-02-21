@@ -18,6 +18,6 @@ Collate: 	AllGenerics.R
 			gtMethod-methods.R
 			gtPopulation-methods.R 
 			median-logicle-transform.R 
-Depends: flowWorkspace,flowClust,flowStats			 
+Depends: methods,flowWorkspace,flowClust,flowStats			 
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
 

@@ -1,2 +1,27 @@
 
-exportPattern("^[^\\.]")
+exportClasses(gatingTemplate
+			,fcTree
+			,fcFilter
+			,gtMethod
+			,boolMethod
+			,polyFunctions
+			,gtPopulation
+			,gtSubsets)
+
+export(fcFilter
+	,flowClust.1d
+	,flowClust.2d
+	)
+
+exportMethods(getNodes
+			,getChildren
+			,getGate
+			,show
+			,plot
+			,gating
+			,names
+			,dims
+			,parameters
+			,alias
+			,gatingTemplate
+)

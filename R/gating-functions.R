@@ -51,7 +51,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
                          positive = TRUE, plot = FALSE, usePrior = 'no', prior = NULL,
                          cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean"),
                          neg_cluster = 1, truncate_min = NULL, truncate_max = NULL,
-                         quantile = 0.99, quantile_interval = c(0, 10), ...) {
+                         quantile = 0.99, quantile_interval = c(0, 10),...) {
 
   cutpoint_method <- match.arg(cutpoint_method)
 
@@ -138,6 +138,9 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
     cutpoint <- centroids_sorted[neg_cluster]
   }
 
+  #TODO:write priors and posteriors to flowClust_env
+
+
   # After the 1D cutpoint is set, we set the gate coordinates used in the
   # rectangleGate that is returned. If the `positive` argument is set to TRUE,
   # then the gate consists of the entire real line to the right of the cut point.
@@ -151,6 +154,13 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
   names(gate_coordinates) <- params
   
   fres <- rectangleGate(gate_coordinates, filterId = filterId)
+  
+ #save posteriors
+ posteriors<-list(mu=tmixRes1@mu
+					,lamdda=tmixRes1@lambda
+					,sigma=tmixRes1@sigma
+					,nu=tmixRes1@nu
+					)
   
   if (plot) {
     gate_pct <- round(100 * mean(x > cutpoint), 3)
@@ -180,7 +190,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
     }
   }
 
-  fres
+  fcFilter(fres,posteriors)
 }
 
 #' Applies flowClust to two features in a flowFrame to construct an elliptical
