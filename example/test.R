@@ -2,8 +2,10 @@
 # ICS
 # 
 ###############################################################################
+unloadNamespace("openCyto")
 library(flowWorkspace)
 library(openCyto)
+source("/home/wjiang2/rglab/workspace/openCyto/R/AllGenerics.R")
 lapply(list.files("/home/wjiang2/rglab/workspace/openCyto/R",full=T),source)
 
 path<-"openCyto"
@@ -12,8 +14,8 @@ load(file.path(path,"data/065_fs.rda"))
 gt<-gatingTemplate(file.path(path,"data/ICS_GatingTemplate.csv"),"ICS")
 gt
 #getNodes(gt,"14")
-#getChildren(gt,"2")
-#getGate(gt,"14","17")
+getChildren(obj=gt,y="2")
+getGate(gt,"14","17")
 #getNodes(gt)
 #png("openCyto/gatingTemplate.png")
 plot(gt)
@@ -26,7 +28,9 @@ fs_trans<-transform(fs,trans)
 gs<-GatingSet(fs_trans)
 #gatingTemplate(gs)<-gt
 #gatingTemplate(gs)
-gating(gt,gs)
+fct<-fcTree(gt)
+assign()
+fct<-gating(gt,gs)
 plot(gs[[1]])
 getNodes(gs[[1]])
 plotGate(gs[[1]],xbin=128)

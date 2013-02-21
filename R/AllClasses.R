@@ -60,8 +60,8 @@ fcObject<-function(x,y)
 ##a flowClust tree is a container to hold priors and posteriors that can be visualized
 ## for the purpose of fine-tunning parameters for flowClust algorithm
 ###############################################################################
-setClass("fcTree",
-		contains="gatingTemplate"
+setClass("fcTree"
+		,contains="environment"
 		)
 fcTree<-function(gt){
 		res<-as(gt,"fcTree")

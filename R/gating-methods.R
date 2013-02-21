@@ -55,7 +55,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 					#update fct
 					if(!is.null(fct))
 					{
-#						browser()
+						browser()
 						nodeData(fct,cur_gt_children_ids,"fcObj")<-res["fcObj"]
 						
 					}
