@@ -112,7 +112,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 #			browser()
 			fcObj<-new("fcObject")
 			
-			if (!any(grepl(popAlias, gs_nodes))) 
+			if (!any(sapply(popAlias,function(a)any(grepl(a, gs_nodes)))))
 			{
 				message("Population '",paste(popAlias,collapse=","),"'")
 				
@@ -202,7 +202,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 							K<-as.integer(paired_args["pos"])+neg_cluster
 						}else
 						{
-							message("either 'neg' or 'pos' argument is missing!Using default setting:neg=1,pos=1")
+							message("Using default setting:neg=1,pos=1")
 							neg_cluster<-as.integer(1)			
 							K<-2
 						}

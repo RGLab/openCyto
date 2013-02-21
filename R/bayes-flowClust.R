@@ -204,8 +204,17 @@ prior_flowClust2d <- function(fr, xChannel, yChannel, K = 2, nu0 = 4, w0 = 10, a
   # then the remaining 'y_peaks' will be NA. In this case, we replace the NA peaks
   # with the first peak. Effectively, this sets the prior means as equal.
   # TODO: Devise a better prior elicitation in the future.
+  # NOTE: This is also a problem in the x-dimension!
+  # Add jitter rather than making them equal.
   if (any(is.na(y_peaks))) {
-    y_peaks[is.na(y_peaks)] <- y_peaks[1]
+    na.ind<-is.na(y_peaks)
+    y_peaks[na.ind] <- y_peaks[1]
+    y_peaks[na.ind]<-jitter(y_peaks[na.ind])
+  }
+  if(any(is.na(x_peak))){
+    na_ind<-is.na(x_peak)
+    x_peak[na.ind]<-x_peak[1]
+    x_peak[na.ind]<-jitter(x_peak[na.ind])
   }
   
   Mu0 <- cbind(x_peak, y_peaks)
