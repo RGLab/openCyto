@@ -84,7 +84,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 
 #			browser()
 			
-			if (!any(grepl(popAlias, gs_nodes))) 
+			if (!any(sapply(popAlias,function(a)any(grepl(a, gs_nodes)))))
 			{
 				message("Population '",paste(popAlias,collapse=","),"'")
 				
