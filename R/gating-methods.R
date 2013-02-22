@@ -231,14 +231,12 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				if (num_nodes > 1) 
 				{
 					message("Running in parallel mode with ", num_nodes, " nodes.")
-					if (parallel_type == "multicore") 
-					{
+					if (parallel_type == "multicore") {
 						thisCall[[1]]<-quote(mclapply)
 						thisCall[["mc.cores"]]<-num_nodes
 						flist<-eval(thisCall)
 						
-					}else 
-					{
+					} else {
 						cl <- makeCluster(num_nodes, type = "SOCK")
 						thisCall[[1]]<-quote(parLapply)
 						thisCall[["cl"]]<-cl
@@ -268,7 +266,6 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 									,".+-.+-$")   #bottom left	--									
 					for(i in 1:length(popNames))
 					{
-
 						curAlias<-popAlias[i]
 						curPop<-popNames[i]
 						curPopId<-popIds[i]
@@ -285,19 +282,12 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						gs_node_id<-c(gs_node_id,cur_gs_node_id)
 					}
 					
-					
-					
-				}else
-				{
+				} else {
 					gs_node_id <- add(y, flist, parent = parent,name=popAlias)
 					recompute(y, gs_node_id)
-					
 				}
-				
 				message("done.")
-				
-			}else
-			{
+			} else {
 				message("Skip gating!Population '",paste(popAlias,collapse=","),"' already exists.")
 #			browser()
 				gs_node_id<-getChildren(y[[1]],parent)
@@ -392,21 +382,20 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	
 	return (-1)
 })
-		
+
 ## wrappers for the different gating routines
-.singletGate <- function(fs, xChannel = "FSC-A",yChannel = "FSC-H", prediction_level = 0.99,...) 
-{
+.singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H", prediction_level = 0.99, ...) {
 	require('flowStats')
 	# Creates a list of polygon gates based on the prediction bands at the minimum and maximum
 	# x_channel observation using a robust linear model trained by flowStats.
-	
-	
-	singletGate(fs[[1]], area = xChannel
-			, height = yChannel
-			,prediction_level = prediction_level
-	)
-	
+	singletGate(fs[[1]], area = xChannel, height = yChannel,
+              prediction_level = prediction_level)
 }
+
+.mindensity <- function(fs, xChannel = "FSC-A", filterId = "", ...) {
+	mindensity(flow_frame = fs[[1]], channel = xChannel, filter_id = filterId, ...)
+}
+
 .flowClust.1d<-function(fs, xChannel = NA, yChannel, tol = 1e-5, prior = NULL,
                         filterId = "", usePrior = "yes", split = TRUE, ...)
 {
@@ -500,7 +489,6 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 				, ...
 				)	
 }
-
 
 .quantileGate<-function(fs, xChannel = NA, yChannel, probs = 0.999, filterId="", ...) {
 	fr <- fs[[1]]

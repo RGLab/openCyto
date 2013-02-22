@@ -462,3 +462,54 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 	}
 	rectangleGate(gate_coordinates, filterId = filterId)
 }
+
+#' Applies a kernel density esti flowClust to 1 feature to determine a cutpoint
+#' between the minimum cluster and all other clusters.
+#'
+#' We fit a kernel density estimator to the cells in the \code{flowFrame} and
+#' identify the two largest peaks using the \code{find_peaks} function. We then
+#' select as the cutpoint the value at which the minimum density is attained.
+#'
+#' @param flow_frame a \code{flowFrame} object
+#' @param channel TODO
+#' @param filter_id TODO
+#' @param positive If \code{TRUE}, then the gate consists of the entire real line
+#' to the right of the cut point. Otherwise, the gate is the entire real line to
+#' the left of the cut point. (Default: \code{TRUE})
+#' @param ... Additional arguments pased on to the \code{find_peaks} function.
+#' @return a \code{rectangleGate} object based on the minimum density cutpoint
+mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
+                       ...) {
+  if (missing(channel) || length(channel) != 1) {
+    stop("A singlet channel must be specified.")
+  }
+  # Grabs the data matrix that is being gated.
+  x <- exprs(flow_frame)[, channel]
+
+  # Find the minimum density between the two highest peaks and set the cutpoint
+  # there.
+  peaks <- find_peaks(x, peaks = 2, ...)
+  density_x <- density(x, ...)
+
+  # Extract the indices of the observations between the peaks
+  idx_between <- which(peaks[1] <= density_x$x & density_x$x <= peaks[2])
+
+  x <- density_x$x[idx_between]
+  y <- density_x$y[idx_between]
+
+  cutpoint <- x[which.min(y)]
+
+  # After the 1D cutpoint is set, we set the gate coordinates used in the
+  # rectangleGate that is returned. If the `positive` argument is set to TRUE,
+  # then the gate consists of the entire real line to the right of the cut point.
+  # Otherwise, the gate is the entire real line to the left of the cut point.
+  if (positive) {
+    gate_coordinates <- list(c(cutpoint, Inf))
+  } else {
+    gate_coordinates <- list(c(-Inf, cutpoint))
+  }
+
+  names(gate_coordinates) <- channel
+  
+  rectangleGate(gate_coordinates, filterId = filter_id)
+}
