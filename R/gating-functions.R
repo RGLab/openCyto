@@ -196,7 +196,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 #' @param usePrior Should we use the Bayesian version of \code{flowClust}?
 #' Answers are "yes", "no", or "vague". The answer is passed along to
 #' \code{flowClust}.
-#' @param prior_list list of prior parameters for the Bayesian \code{flowClust}.
+#' @param prior list of prior parameters for the Bayesian \code{flowClust}.
 #' If \code{usePrior} is set to 'no', then the list is unused.
 #' @param trans numeric indicating whether the Box-Cox transformation parameter
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
@@ -218,12 +218,14 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
-                         usePrior = 'no', prior_list = list(NA), trans = 0,
+                         usePrior = 'no', prior = list(NA), trans = 0,
                          plot = FALSE, target_centroid,
                          gate_type = c("ellipse", "axis"), quantile = 0.995,
                          truncate_min = NULL, truncate_max = NULL, ...) {
 
-  which_gate <- match.arg(which_gate)
+  if (missing(target_centroid)) {
+    stop("The target centroid must be specified.")
+  }
   gate_type <- match.arg(gate_type)
 
   # If a truncation value is specified, we remove all observations less than this
@@ -244,16 +246,15 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   y <- exprs(fr)[, yChannel]
 
   # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
-  if (usePrior == "yes" && identical(prior_list, list(NA))) {
-    prior_list <- prior_flowClust(fr = fr, channels = c(xChannel, yChannel), K = K)
+  if (usePrior == "yes" && identical(prior, list(NA))) {
+    prior <- prior_flowClust(fr = fr, channels = c(xChannel, yChannel), K = K)
   }
-
 
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the
-  # elements in the list `prior_list`.
+  # elements in the list `prior`.
   filter1 <- tmixFilter(filterId, c(xChannel, yChannel), K = K, trans = trans,
-                        usePrior = usePrior, prior = prior_list, ...)
+                        usePrior = usePrior, prior = prior, ...)
   tmixRes1 <- filter(fr, filter1)
 
   # Converts the tmixFilterResult object to a polygonGate.
@@ -453,14 +454,14 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
     gate_coordinates <- list(c(-Inf, cutpoint))
   }
   names(gate_coordinates) <- stain
-	
+  
   if (plot) {
-		hist(x)
-		plot(density(x))
-		abline(v = cutpoint, col = "red")
-		text(y = 0.5, x = cutpoint, labels = paste("quantile:", probs))
-	}
-	rectangleGate(gate_coordinates, filterId = filterId)
+    hist(x)
+    plot(density(x))
+    abline(v = cutpoint, col = "red")
+    text(y = 0.5, x = cutpoint, labels = paste("quantile:", probs))
+  }
+  rectangleGate(gate_coordinates, filterId = filterId)
 }
 
 #' Applies a kernel density esti flowClust to 1 feature to determine a cutpoint
