@@ -1,5 +1,5 @@
 setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definition = function(x,y,env_fct=NULL, ...) {
-			
+			gt<-x
 #			browser()
 			#gate each node by the topological order
 			#maintain the mapping between template node ID and gating set node ID
@@ -20,7 +20,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 				
 			}
 			
-			gt<-x
+			
 			gt_node_ids<-tsort(gt)
 			node_ids<-cbind(gt=gt_node_ids,gs=NA)
 			node_ids[1,"gs"]<-1#fill out default gsid for root node
@@ -61,7 +61,8 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 										,parent=as.integer(gs_parent_id)
 										,gtPops=pops
 										,...
-										)	
+										)
+																		
 					gs_node_ids<-res[["gs_node_id"]]
 					#upodate gs node ids
 					ind<-match(names(gs_node_ids),node_ids[,"gt"])
@@ -70,7 +71,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 					if(!is.null(env_fct))
 					{
 #						browser()
-						if(length(res[["fcObj"]]@prior)>0)
+						if(!is.null(res[["fcObj"]])&&length(res[["fcObj"]]@prior)>0)
 							nodeData(env_fct$fct,cur_gt_children_ids,"fcObj")<-res[["fcObj"]]
 						
 					}
@@ -284,6 +285,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				}else
 				{
 					thisCall[[1]]<-quote(lapply)#select loop mode
+					browser()
 					flist<-eval(thisCall)
 				}
 				
@@ -305,7 +307,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						curAlias<-popAlias[i]
 						curPop<-popNames[i]
 						curPopId<-popIds[i]
-#						browser()
+						browser()
 						quadInd<-which(unlist(lapply(quadPatterns,grepl,curPop)))
 						#fetch appropriate filter based on the quadrant ind
 						curFlist <- lapply(flist, function(curFilters) {
@@ -381,6 +383,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSet")
 		bf@filterId <- tNodes
 		invisible(gs_node_id <- add(y, bf, parent = parent))
 		invisible(recompute(y, gs_node_id))
+		message("done.")
 	}else
 	{
 #		browser()
@@ -390,11 +393,11 @@ setMethod("gating", signature = c("boolMethod", "GatingSet")
 		gs_node_name<-getNodes(y[[1]])[gs_node_id]
 		gs_node_id<-gs_node_id[match(tNodes,gs_node_name)]	
 	}
-	message("done.")
+	
 	
 	names(gs_node_id)<-popIds
 #	gs_node_id
-	list(gs_node_id)
+	list("gs_node_id"=gs_node_id)
 })		
 
 setMethod("gating", signature = c("polyFunctions", "GatingSet")
@@ -405,6 +408,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	gm<-paste(".",names(x),sep="")
 	popAlias<-unlist(lapply(gtPops,alias))
 	popNames<-unlist(lapply(gtPops,names))
+	
 	gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
 	
 	
@@ -486,12 +490,13 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 		yChannel<-yParam$name
 		yStain<-yParam$desc
 #			browser()
-		filter1 <- flowClust.1d(fr = fr
+		fcFilter1 <- flowClust.1d(fr = fr
 				, params = xChannel, tol = tol
 				,filterId = as.character(xStain)
 				,prior = prior$xChannel
 				,usePrior=usePrior
 				, ...)
+		filter1<-fcFilter1@filter
 		################################      
 		#flowClust on xParam
 		################################
@@ -506,26 +511,29 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 			negFr <- newFrList[[paste0(xStain, "-")]]
 			posFr <- newFrList[[paste0(xStain, "+")]]
 #			browser()
-			filter2 <- flowClust.1d(negFr, params = yChannel,
+			fcFilter2 <- flowClust.1d(negFr, params = yChannel,
 					usePrior = usePrior
 					,filterId = as.character(yStain)
 					,prior = prior$yChannel
 					, ...)
+			filter2<-fcFilter2@filter
 			cut.y.l <- filter2@min
 			
-			filter3 <- flowClust.1d(posFr, params = yChannel,
+			fcFilter3 <- flowClust.1d(posFr, params = yChannel,
 					usePrior = usePrior
 					,filterId = as.character(yStain)
 					,prior = prior$yChannel
 					, ...)
+			filter3<-fcFilter3@filter
 			
 			cut.y.r <- filter3@min
 		} else {
-			filter2 <- flowClust.1d(fr, params = yChannel,
+			fcFilter2 <- flowClust.1d(fr, params = yChannel,
 					usePrior = usePrior
 					,filterId = as.character(yStain)
 					,prior = prior$yChannel
 					, ...)
+			filter2<-fcFilter2@filte
 			cut.y.l <- cut.y.r <- filter2@min
 		}
 		

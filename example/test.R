@@ -4,12 +4,20 @@
 ###############################################################################
 unloadNamespace("openCyto")
 library(flowWorkspace)
-library(openCyto)
+#library(openCyto)
 source("/home/wjiang2/rglab/workspace/openCyto/R/AllGenerics.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
-lapply(list.files("/home/wjiang2/rglab/workspace/openCyto/R",full=T),source)
+source("/home/wjiang2/rglab/workspace/openCyto/R/gating-functions.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/gtMethod-methods.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/gtPopulation-methods.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/fcObject-methods.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/fcTree-methods.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/median-logicle-transform.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
+library(MASS)
 
 path<-"openCyto"
 load(file.path(path,"data/065_fs.rda"))
