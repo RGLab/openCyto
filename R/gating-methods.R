@@ -130,33 +130,35 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 #				grepl(popNames				
 				}else
 					stop("don't know how to handle quadgate with more than 4 sub-populations!")
-#			browser()
+
+				paired_args<-as.list(as.list(parse(text=paste("c(",args,")")))[[1]])[-1]
+				names(paired_args)<-tolower(names(paired_args))
 				#parse the string into named vector
-				paired_args<-strsplit(args,split="\\,")[[1]]
-				paired_args<-unlist(lapply(paired_args
-										,function(paired_arg){
-											curPair<-strsplit(paired_arg,split="=")[[1]]
-											curPair_value<-curPair[2]
-											#strip while spaces and quote symbols
-											curPair_value<-sub("[ \t\n\r]*$", "", sub("^[ \t\n\r]*", "", curPair_value))
-											curPair_value<-gsub("\'","",curPair_value)
-#											browser()
-											curName<-sub("[ \t\n\r]*$", "", sub("^[ \t\n\r]*", "", curPair[1]))
-											curName<-tolower(curName)
-											names(curPair_value)<-curName
-											curPair_value
-											}
-										)
-									)
-				paired_args<-as.list(paired_args)
+#				paired_args<-strsplit(args,split="\\,")[[1]]
+#				paired_args<-unlist(lapply(paired_args
+#										,function(paired_arg){
+#											curPair<-strsplit(paired_arg,split="=")[[1]]
+#											curPair_value<-curPair[2]
+#											#strip while spaces and quote symbols
+#											curPair_value<-sub("[ \t\n\r]*$", "", sub("^[ \t\n\r]*", "", curPair_value))
+#											curPair_value<-gsub("\'","",curPair_value)
+##											browser()
+#											curName<-sub("[ \t\n\r]*$", "", sub("^[ \t\n\r]*", "", curPair[1]))
+#											curName<-tolower(curName)
+#											names(curPair_value)<-curName
+#											curPair_value
+#											}
+#										)
+#									)
+#				paired_args<-as.list(paired_args)
 				#try to convert to numeric if applicable
-				paired_args<-lapply(paired_args,function(cur_arg){
-							cur_arg_new<-as.numeric(cur_arg)
-							if(!is.na(cur_arg_new))
-								cur_arg<-cur_arg_new
-							cur_arg
-						})
-				
+#				paired_args<-lapply(paired_args,function(cur_arg){
+#							cur_arg_new<-as.numeric(cur_arg)
+#							if(!is.na(cur_arg_new))
+#								cur_arg<-cur_arg_new
+#							cur_arg
+#						})
+#			browser()				
 				#parse args for flowClust 
 				#prior estimation is done separately from flowClust routine 
 				#because piror_flowClust1d requires the entire parent flowSet yet flowClust only takes one flowFrame
