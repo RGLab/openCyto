@@ -72,5 +72,5 @@ archive_path <- '/loc/no-backup/ramey'
 
 gt <- gatingTemplate(file.path(archive_path, "HVTN065-GatingTemplate.csv"), "HVTN065")
 gs <- unarchive(file = file.path(archive_path, "test-HVTN065.tar"), archive_path)
-gating(gt, gs)
+gating(gt, gs, num_nodes = 8, parallel_type = "multicore")
 plotGate(gs[[1]],bool=T,xbin=128,margin=T)

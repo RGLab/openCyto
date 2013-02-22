@@ -185,6 +185,9 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 #' cutpoint to be the point at which the density between the first and second
 #' smallest cluster centroids is minimum.
 #'
+#' The cluster for the population of interest is selected as the one with cluster
+#' centroid nearest the \code{target_centroid} in Euclidean distance.
+#'
 #' @param fr a \code{flowFrame} object
 #' @param xChannel TODO
 #' @param yChannel TODO
@@ -201,6 +204,8 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 #' \code{flowClust}, this value cannot be 2.
 #' @param plot a logical value indicating if the fitted mixture model should be
 #' plotted. By default, no.
+#' @param target_centroid a numeric vector of length \code{K} containing the
+#' location of the cluster of interest. See details.
 #' @param truncate_min A vector of length 2. Truncate observations less than this
 #' minimum value. The first value truncates the \code{xChannel}, and the second
 #' value truncates the \code{yChannel}. By default, this vector is \code{NULL}
@@ -214,7 +219,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 #' gating.
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior_list = list(NA), trans = 0,
-                         plot = FALSE, which_gate = c("bottom", "top", "left", "right"),
+                         plot = FALSE, target_centroid,
                          gate_type = c("ellipse", "axis"), quantile = 0.995,
                          truncate_min = NULL, truncate_max = NULL, ...) {
 
@@ -255,11 +260,10 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # We select the cluster with the minimum 'yChannel' to be the subpopulation from
   # which we obtain the contour (ellipse) to generate the polygon gate.
   fitted_means <- getEstimates(tmixRes1)$locations
-  cluster_selected <- switch(which_gate,
-                             bottom = which.min(fitted_means[, 2]),
-                             top = which.max(fitted_means[, 2]),
-                             left = which.min(fitted_means[, 1]),
-                             right = which.max(fitted_means[, 1]))    
+  target_dist <- apply(fitted_means, 1, function(x) {
+    dist(rbind(x, target_centroid))
+  })
+  cluster_selected <- which.min(target_dist)
 
   if (gate_type == "ellipse") {
     contour_ellipse <- .getEllipse(filter = tmixRes1,
