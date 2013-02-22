@@ -8,6 +8,7 @@ library(openCyto)
 source("/home/wjiang2/rglab/workspace/openCyto/R/AllGenerics.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
 lapply(list.files("/home/wjiang2/rglab/workspace/openCyto/R",full=T),source)
 
 path<-"openCyto"
@@ -38,7 +39,10 @@ plotGate(gs[[1]],xbin=128)
 getData(gs1)[[1]]
 
 #plot priors
+plotGate(x=gs,3)
+X11()
 plot(env1$fct,"v",posteriors=T)
+plotGate(x=gs,4)
 plot(env1$fct,"nonDebris",posteriors=T)
 
 #Tcell is already transformed
