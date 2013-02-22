@@ -289,16 +289,32 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     # towards the first quadrant.
     if (all(u1 >= 0)) {
       axis <- sqrt(lambda1 * chisq_quantile) * u1
-      axis_perp <- sqrt(lambda2 * chisq_quantile) * u2
+      if (u2[1] > 0) {
+        axis_perp <- sqrt(lambda2 * chisq_quantile) * u2    
+      } else {
+        axis_perp <- -sqrt(lambda2 * chisq_quantile) * u2    
+      }
     } else if (all(-u1 >= 0)) {
       axis <- -sqrt(lambda1 * chisq_quantile) * u1
-      axis_perp <- sqrt(lambda2 * chisq_quantile) * u2
+      if (u2[1] > 0) {
+        axis_perp <- sqrt(lambda2 * chisq_quantile) * u2    
+      } else {
+        axis_perp <- -sqrt(lambda2 * chisq_quantile) * u2    
+      }
     } else if (all(u2 >= 0)) {
       axis <- sqrt(lambda2 * chisq_quantile) * u2
-      axis_perp <- sqrt(lambda1 * chisq_quantile) * u1
+      if (u1[1] > 0) {
+        axis_perp <- sqrt(lambda1 * chisq_quantile) * u1   
+      } else {
+        axis_perp <- -sqrt(lambda1 * chisq_quantile) * u1    
+      }
     } else if (all(-u2 >= 0)) {
       axis <- -sqrt(lambda2 * chisq_quantile) * u2
-      axis_perp <- sqrt(lambda1 * chisq_quantile) * u1
+      if (u1[1] > 0 ) {
+        axis_perp <- sqrt(lambda1 * chisq_quantile) * u1   
+      } else {
+        axis_perp <- -sqrt(lambda1 * chisq_quantile) * u1    
+      }
     }
 
     # The gate location is the frame of reference for the gate. If it is xbar,
@@ -316,14 +332,14 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     # the gate to have the same shape for the observed data.
     x_max <- max(x) + sd(x)
     y_max <- max(y) + sd(y)
-    gate_x <- c(x_max, (gate_location - axis_perp)[2])
-    gate_y <- c((gate_location + axis_perp)[1], y_max)
+    gate_x <- c(x_max, (gate_location + axis_perp)[2])
+    gate_y <- c((gate_location - axis_perp)[1], y_max)
 
     # We extend the gate to the min and max values
     polygon_gate <- rbind(gate_location + axis_perp,
-                          gate_y,
-                          c(x_max, y_max),
                           gate_x,
+                          c(x_max, y_max),
+                          gate_y,
                           gate_location - axis_perp)
 
     colnames(polygon_gate) <- c(xChannel, yChannel)

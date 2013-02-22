@@ -343,4 +343,4 @@ align_peaks <- function(peaks) {
   peaks[num_peaks < K] <- aligned_peaks
   peaks
 }
-    
+

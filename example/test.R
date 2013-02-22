@@ -5,15 +5,6 @@
 library(flowWorkspace)
 library(openCyto)
 lapply(list.files("/home/wjiang2/rglab/workspace/openCyto/R",full=T),source)
-#source("/home/wjiang2/rglab/workspace/openCyto/R/AllGenerics.R")
-#source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
-#source("/home/wjiang2/rglab/workspace/openCyto/R/gtPopulation-methods.R")
-#source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
-#source("/home/wjiang2/rglab/workspace/openCyto/R/gtMethod-methods.R")
-#source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
-#source("/home/wjiang2/rglab/workspace/openCyto/R/gating-functions.R")
-#source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
-#source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
 
 path<-"openCyto"
 load(file.path(path,"data/065_fs.rda"))
@@ -74,3 +65,6 @@ gt <- gatingTemplate(file.path(archive_path, "HVTN065-GatingTemplate.csv"), "HVT
 gs <- unarchive(file = file.path(archive_path, "test-HVTN065.tar"), archive_path)
 gating(gt, gs, num_nodes = 8, parallel_type = "multicore")
 plotGate(gs[[1]],bool=T,xbin=128,margin=T)
+
+
+write(file.path("gsl-1.13",paste(basename(list.dirs("flowClust/src/gsl-1.13",full.names=F,recursive=F)),".libs/*.a \\",sep="/")),file="txt")
