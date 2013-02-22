@@ -8,15 +8,14 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 			if(!is.null(env_fct))
 			{
 				#use the fcTree if already exists 
-				if(exists("fcTree",env_fct))
+				if(exists("fct",env_fct))
 				{
-					fcTree<-get("fcTree",env_fct)
+					fct<-get("fct",env_fct)
 				}else
 				{
 					#create one from gt if not
-					fcTree<-gt
-					nodeDataDefaults(fcTree,"fcObj")<-new("fcObject")#add extra slot to store priors
-					assign("fcTree",fcTree,env_fct)		
+					fct<-fcTree(gt)
+					assign("fct",fct,env_fct)		
 				}
 				
 			}
@@ -72,7 +71,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 					{
 #						browser()
 						if(length(res[["fcObj"]]@prior)>0)
-							nodeData(env_fct$fcTree,cur_gt_children_ids,"fcObj")<-res[["fcObj"]]
+							nodeData(env_fct$fct,cur_gt_children_ids,"fcObj")<-res[["fcObj"]]
 						
 					}
 					
@@ -80,8 +79,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 			}
 			
 			message("finished.")
-			#update fcTree
-#			assign("fcTree",fcTree,env_fct)
+			
 		})
 
 		
@@ -228,6 +226,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						if(!is.na(pos_ind))
 							paired_args<-paired_args[-pos_ind]
 						
+						prior$yChannel$channelName<-yChannel#for prior plot
 						prior_list<-prior
 					}else
 					{

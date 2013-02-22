@@ -37,6 +37,9 @@ getNodes(gs[[1]])
 plotGate(gs[[1]],xbin=128)
 getData(gs1)[[1]]
 
+#plot priors
+plot(env1$fct,"v",posteriors=T)
+plot(env1$fct,"nonDebris",posteriors=T)
 
 #Tcell is already transformed
 load(file.path(path,"data/fs_tcell.rda"))

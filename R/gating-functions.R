@@ -138,9 +138,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
     cutpoint <- centroids_sorted[neg_cluster]
   }
 
-  #TODO:write priors and posteriors to flowClust_env
-
-
+  
   # After the 1D cutpoint is set, we set the gate coordinates used in the
   # rectangleGate that is returned. If the `positive` argument is set to TRUE,
   # then the gate consists of the entire real line to the right of the cut point.
@@ -160,6 +158,8 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 					,lamdda=tmixRes1@lambda
 					,sigma=tmixRes1@sigma
 					,nu=tmixRes1@nu
+					,min=min(x)
+					,max=max(x)
 					)
   
   if (plot) {
@@ -340,6 +340,13 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     colnames(polygon_gate) <- c(xChannel, yChannel)
     flowClust_gate <- polygonGate(filterId = filterId, boundaries = polygon_gate)
   }
+  
+  #TODO:need to verify if this is the right way to grab posteriors from 2-D tmixRes
+  posteriors<-list(mu=tmixRes1@mu
+				  ,lamdda=tmixRes1@lambda
+				  ,sigma=tmixRes1@sigma
+				  ,nu=tmixRes1@nu
+		 		 )
 
   if (plot) {
     plot(fr, tmixRes1, main = filterId)
@@ -361,37 +368,9 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     }
   }
 
-  flowClust_gate
+  fcFilter(flowClust_gate,posteriors)
 }
 
-flowClust.act <- function(fr, params, filterId, nslaves = 0,
-                          gating_method = "flowClust", usePrior = "yes",
-                          prior_x = NULL, prior_y = NULL, ...) {
-
-  # flowClust on xParam
-  gate_xParam <- Gating1D(flowSet(fr), y = params[1], positive = TRUE, nslaves = nslaves,
-                          method = gating_method, usePrior = usePrior,
-                          filterId = channels2markers(fr, params[1]),
-                          prior = prior_x, ...)
-
-  # Subsets the data for further gating on the positive population.
-  newFr <- Subset(flowSet(fr), gate_xParam)
-  
-  # flowClust on yParam
-  gate_yParam <- Gating1D(newFr, y = params[2], nslaves = nslaves,
-                          method = gating_method, usePrior = usePrior,
-                          filterId = channels2markers(fr, params[2]),
-                          prior = prior_y, K = 3, neg_cluster = 2, ...)
-
-  # Extracts the gate information from each gate.
-  gate_xParam <- c(gate_xParam[[1]]@min, gate_xParam[[1]]@max)
-  gate_yParam <- c(gate_yParam[[1]]@min, gate_yParam[[1]]@max)
-
-  # Constructs a rectangleGate based on the flowClust cuts.
-  activated_gate <- list(gate_xParam, gate_yParam)
-  names(activated_gate) <- params
-  rectangleGate(activated_gate, filterId = filterId)
-}
 
 #' Finds a specified number of peaks in the given vector after smoothing the data
 #' with a kernel density estimator.
