@@ -56,7 +56,7 @@ fs_bcell[[1]]
 gs2<-GatingSet(fs_bcell)
 gating(gt2,gs2)
 plotGate(gs2[[1]],bool=T,xbin=128)
-
+plotGate(gs2[[1]],"IgD-cd27+",bool=T,xbin=128)
 #
 library(openCyto)
 archive_path <- '/loc/no-backup/ramey'
