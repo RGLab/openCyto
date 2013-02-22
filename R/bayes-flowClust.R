@@ -2,7 +2,7 @@
 #'
 #' We elicit data-driven prior parameters from a \code{flowSet} object for
 #' specified channels. For each sample in the \code{flowSet} object, we apply the
-#' given \code{method} to elicit the priors parameters.
+#' given \code{prior_method} to elicit the priors parameters.
 #' 
 #' Currently, we have implemented only two methods. In the case that one channel
 #' is given, we use the kernel-density estimator (KDE) approach for each sample
@@ -15,20 +15,21 @@
 #' @param channels a character vector containing the channels in the
 #' \code{flowSet} from which we elicit the prior parameters for the Student's t
 #' mixture
+#' @param prior_method the method to elicit the prior parameters
 #' @param K the number of mixture components to identify
 #' @param nu0 prior degrees of freedom of the Student's t mixture components.
 #' @param w0 the number of prior pseudocounts of the Student's t mixture components.
 #' @param ... Additional arguments passed to the prior elicitation method selected
 #' @return list of the necessary prior parameters
-prior_flowClust <- function(flow_set, channels, method = c("kmeans"), K = 2,
-                            nu0 = 4, w0 = 10, ...) {
+prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
+                            K = 2, nu0 = 4, w0 = 10, ...) {
 
   if (length(channels) == 1) {
     prior_list <- prior_flowClust1d(flow_set = flow_set, channel = channels,
                                     K = K, nu0 = nu0, w0 = w0, ...)
   } else {
-    method <- match.arg(method)
-    if (method == "kmeans") {
+    prior_method <- match.arg(prior_method)
+    if (prior_method == "kmeans") {
       prior_list <- prior_kmeans(flow_set = flow_set, channels = channels, K = K,
                                  nu0 = nu0, w0 = w0, ...)
     }

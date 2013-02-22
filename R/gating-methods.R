@@ -181,9 +181,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						# Elicitation of priors for flowClust
 						prior <- list()
 						if(!is.na(xChannel)) {
-              prior$xChannel <- prior_flowClust1d(flow_set = parent_data, channel = xChannel, K = K)
+              prior$xChannel <- prior_flowClust(flow_set = parent_data, channels = xChannel, K = K, ...)
             }
-						prior$yChannel <- prior_flowClust1d(flow_set = parent_data, channel = yChannel, K = K)
+						prior$yChannel <- prior_flowClust(flow_set = parent_data, channels = yChannel, K = K, ...)
 						
 #						browser()
 						#replace neg and pos and convert the named vector back to string
@@ -214,7 +214,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						names(paired_args)[match("k",names(paired_args))]<-"K"#restore K to capital letter
 						
 						# Elicitation of priors for flowClust
-						prior_list <- prior_flowClust(fr = parent_data, channels = c(xChannel, yChannel), K = K)
+						prior_list <- prior_flowClust(flow_set = parent_data, channels = c(xChannel, yChannel), K = K, ...)
 						
 						paired_args[["prior_list"]]=prior_list
 						thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
