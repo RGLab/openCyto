@@ -47,20 +47,18 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       
       require('parallel')
       
-      args<-parameters(x)
+      args <- parameters(x)
+      gm <- paste0(".",names(x))
       
-      gm<-paste(".",names(x),sep="")
+      dims <- dims(x)
+      xChannel <- unname(dims["xChannel"])
+      yChannel <- unname(dims["yChannel"])
       
-      dims<-dims(x)
-      xChannel<-unname(dims["xChannel"])
-      yChannel<-unname(dims["yChannel"])
+      popAlias <- unlist(lapply(gtPops, alias))
+      popNames <- unlist(lapply(gtPops, names))
+      popIds <- unlist(lapply(gtPops, "slot", "id"))
+      gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
       
-      popAlias<-unlist(lapply(gtPops,alias))
-      popNames<-unlist(lapply(gtPops,names))
-      popIds<-unlist(lapply(gtPops,"slot","id"))
-      gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
-      
-      browser()
       if (!any(sapply(popAlias,function(a)any(grepl(a, gs_nodes))))) {
         message("Population '",paste(popAlias,collapse=","),"'")
         
@@ -69,17 +67,17 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         ## get the accurate channel name by matching to the fr
         if (!is.na(xChannel)) {
           xParam <- getChannelMarker(parent_data[[1]], xChannel)
-          xChannel<-as.character(xParam$name)
+          xChannel <- as.character(xParam$name)
         }
         yParam <- getChannelMarker(parent_data[[1]], yChannel)
-        yChannel<-as.character(yParam$name)
+        yChannel <- as.character(yParam$name)
 
         # Splits the flow set into a list, where each element in the list is a
         # flowSet containg one flow frame.
         # Below, we access manually the individual flow frame with current_frame[[1]].
         fslist <- split(parent_data, sampleNames(parent_data))
         
-        #construct method call
+        # construct method call
         thisCall <- substitute(f1())
         thisCall[["X"]] <- quote(fslist) # set data
         thisCall[["FUN"]] <- as.symbol(gm) # set gating method
@@ -105,146 +103,143 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
           stop("don't know how to handle quadgate with more than 4 sub-populations!")
         }
         # parse the string into named vector
-        paired_args<-strsplit(args,split="\\,")[[1]]
-        paired_args<-unlist(lapply(paired_args, function(paired_arg) {
-          curPair<-strsplit(paired_arg,split="=")[[1]]
-          curPair_value<-curPair[2]
-          #strip while spaces and quote symbols
-          curPair_value<-sub("[ \t\n\r]*$", "", sub("^[ \t\n\r]*", "", curPair_value))
-          curPair_value<-gsub("\'","",curPair_value)
-          curName<-sub("[ \t\n\r]*$", "", sub("^[ \t\n\r]*", "", curPair[1]))
-          curName<-tolower(curName)
-          names(curPair_value)<-curName
-          curPair_value
-        }))
-        paired_args<-as.list(paired_args)
-        #try to convert to numeric if applicable
-        paired_args <- lapply(paired_args, function(cur_arg) {
-          cur_arg_new<-as.numeric(cur_arg)
-          if (!is.na(cur_arg_new)) {
-            cur_arg<-cur_arg_new
-          }
-          cur_arg
-        })
+        paired_args <- as.list(as.list(parse(text = paste("c(",args,")")))[[1]])[-1]
+        names(paired_args) <- tolower(names(paired_args))
         
-        #parse args for flowClust 
-        #prior estimation is done separately from flowClust routine 
-        #because prior_flowClust1d requires the entire parent flowSet yet flowClust only takes one flowFrame
+        # parse args for flowClust 
+        # prior estimation is done separately from flowClust routine 
+        # because prior_flowClust1d requires the entire parent flowSet yet flowClust only takes one flowFrame
         #####################################################################
-        if(grepl("^\\.flowClust\\.[12]d$",gm)) {
-          if(gm==".flowClust.1d") {
+        if (grepl("^\\.flowClust\\.[12]d$", gm)) {
+          if (gm == ".flowClust.1d") {
             #get the value of neg and pos
             
-            if(all(is.element(c("pos","neg"),names(paired_args)))) {
-              neg_cluster<-as.integer(paired_args["neg"])     
-              K<-as.integer(paired_args["pos"])+neg_cluster
+            if (all(is.element(c("pos", "neg"), names(paired_args)))) {
+              neg_cluster <- as.integer(paired_args["neg"])     
+              K <- as.integer(paired_args["pos"]) + neg_cluster
             } else {
-              message("Using default setting:neg=1,pos=1")
-              neg_cluster<-as.integer(1)      
-              K<-2
+              message("Using default setting:neg=1, pos=1")
+              neg_cluster <- as.integer(1)      
+              K <- 2
             }
             # Elicitation of priors for flowClust
             prior <- list()
-            if(!is.na(xChannel)) {
+            if (!is.na(xChannel)) {
               prior$xChannel <- prior_flowClust(flow_set = parent_data, channels = xChannel, K = K, ...)
             }
             prior$yChannel <- prior_flowClust(flow_set = parent_data, channels = yChannel, K = K, ...)
             
             #replace neg and pos and convert the named vector back to string
-            paired_args[["K"]]<-K
-            paired_args[["neg_cluster"]]<-neg_cluster
-            paired_args[["prior"]]<-prior
-            neg_ind<-match("neg",names(paired_args))
-            if(!is.na(neg_ind))
-              paired_args<-paired_args[-neg_ind]
+            paired_args[["K"]] <- K
+            paired_args[["neg_cluster"]] <- neg_cluster
+            paired_args[["prior"]] <- prior
+            neg_ind <- match("neg", names(paired_args))
+            if (!is.na(neg_ind)) {
+              paired_args <- paired_args[-neg_ind]
+            }
             
-            pos_ind<-match("pos",names(paired_args))
-            if(!is.na(pos_ind)) {
-              paired_args<-paired_args[-pos_ind]
+            pos_ind <- match("pos",names(paired_args))
+            if (!is.na(pos_ind)) {
+              paired_args <- paired_args[-pos_ind]
             }
           } else {
             # get the value of neg and pos
-            if (is.element(c("k"),names(paired_args))) {
+            if (is.element(c("k"), names(paired_args))) {
               K <- as.integer(paired_args["k"])     
             } else {
               message("'K' argument is missing!Using default setting:K=2")
               K <- 2
             } 
-            paired_args[["k"]]<-K           
-            names(paired_args)[match("k",names(paired_args))]<-"K"#restore K to capital letter
+            paired_args[["k"]] <- K
+            names(paired_args)[match("k", names(paired_args))] <- "K" #restore K to capital letter
             
             # Elicitation of priors for flowClust
             prior <- prior_flowClust(flow_set = parent_data, channels = c(xChannel, yChannel), K = K, ...)
             
             paired_args[["prior"]] <- prior
-            thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
+            thisCall[["positive"]] <- NULL #remove positive arg since 2D gate doesn't understand it
           }
         }
-        #update arg_names
+        # update arg_names
         
-        for (arg in names(paired_args))
+        for (arg in names(paired_args)) {
           thisCall[[arg]]<-paired_args[[arg]]
+        }
 
-        ##choose serial or parallel mode
+        ## choose serial or parallel mode
         if (num_nodes > 1) {
           message("Running in parallel mode with ", num_nodes, " nodes.")
           if (parallel_type == "multicore") {
-            thisCall[[1]]<-quote(mclapply)
-            thisCall[["mc.cores"]]<-num_nodes
-            flist<-eval(thisCall)
+            thisCall[[1]] <- quote(mclapply)
+            thisCall[["mc.cores"]] <- num_nodes
+            flist <- eval(thisCall)
           } else {
             cl <- makeCluster(num_nodes, type = "SOCK")
-            thisCall[[1]]<-quote(parLapply)
-            thisCall[["cl"]]<-cl
+            thisCall[[1]] <- quote(parLapply)
+            thisCall[["cl"]] <- cl
             #replace FUN with fun for parLapply
-            thisCall["fun"]<-thisCall["FUN"]
-            thisCall["FUN"]<-NULL
-            flist<-eval(thisCall)
+            thisCall["fun"] <- thisCall["FUN"]
+            thisCall["FUN"] <- NULL
+            flist <- eval(thisCall)
             stopCluster(cl)
           }
         } else {
-          thisCall[[1]]<-quote(lapply)#select loop mode
-          flist<-eval(thisCall)
+          thisCall[[1]] <- quote(lapply) #select loop mode
+          flist <- eval(thisCall)
         }
         
         #we expect a filter/filters from gm
-        if (class(flist[[1]])=="filters") { #reconstruct filterlist out of filterslist
+        if (class(flist[[1]]) == "filters") { #reconstruct filterlist out of filterslist
           #right now we consider quadgate as the only use case for filters
-          gs_node_id<-NULL
-          #clock-wise starting from top-left quadrant                     
+          gs_node_id <- NULL
+          # clock-wise starting from top-left quadrant(assuming X followed by Y channel) 
           quadPatterns<-c(".+-.+\\+$"   #top left  -+
                   ,".+\\+.+\\+$" #top right ++
                   ,".+\\+.+-$"  #bottom right +-
                   ,".+-.+-$")   #bottom left  --                  
           for (i in 1:length(popNames)) {
-            curAlias<-popAlias[i]
-            curPop<-popNames[i]
-            curPopId<-popIds[i]
+            curAlias <- popAlias[i]
+            curPop <- popNames[i]
+            curPopId <- popIds[i]
 
-            quadInd<-which(unlist(lapply(quadPatterns,grepl,curPop)))
+            # check if popname is give as Y[*]X[*]
+            YX_pattern <- paste0(dims["yChannel"], ".+", dims["xChannel"], ".+")
+            XY_pattern <- paste0(dims["xChannel"], ".+", dims["yChannel"], ".+")
+            # do the flipping if YX
+            if (grepl(YX_pattern,curPop)) {
+              pos <- regexpr(dims["xChannel"], curPop)
+              xterm <- substring(curPop, pos, nchar(curPop))
+              yterm <- substring(curPop, 1, pos - 1)
+              toMatch <- paste0(xterm, yterm)
+            } else if (grepl(XY_pattern,curPop)) {
+              toMatch <- curPop #keep as it is if XY
+            } else {
+              stop("X,Y axis do not match between 'dims'(",dims,") and 'pop'(",curPop,")")
+            }
+
+            quadInd <- which(unlist(lapply(quadPatterns, grepl, toMatch)))
+            
             #fetch appropriate filter based on the quadrant ind
             curFlist <- lapply(flist, function(curFilters) {
-#               curFilters[[quadInd]]@filterId <- curAlias
-                  curFilters[[quadInd]]
-                })
+              curFilters[[quadInd]]
+            })
             curFlist <- filterList(curFlist)
-            cur_gs_node_id <- add(y, curFlist, parent = parent,name=curAlias) 
+            cur_gs_node_id <- add(y, curFlist, parent = parent,name = curAlias)
             recompute(y, cur_gs_node_id)
-            gs_node_id<-c(gs_node_id,cur_gs_node_id)
+            gs_node_id <- c(gs_node_id, cur_gs_node_id)
           }
-          
         } else {
-          gs_node_id <- add(y, flist, parent = parent,name=popAlias)
+          gs_node_id <- add(y, flist, parent = parent, name = popAlias)
           recompute(y, gs_node_id)
         }
         message("done.")
       } else {
         message("Skip gating!Population '",paste(popAlias,collapse=","),"' already exists.")
 
-        gs_node_id<-getChildren(y[[1]],parent)
+        gs_node_id <- getChildren(y[[1]], parent)
         #select the corresponding gs node id by matching the node names
-        gs_node_name<-getNodes(y[[1]])[gs_node_id]
-        gs_node_id<-gs_node_id[match(popAlias,gs_node_name)]
+        gs_node_name <- getNodes(y[[1]])[gs_node_id]
+        gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
       }
       
       if (plot) {
@@ -256,14 +251,14 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     
 setMethod("gating", signature = c("boolMethod", "GatingSet"),
           definition = function(x, y, gtPops, parent, ...) {
-  args<-parameters(x)
-  gm<-paste(".",names(x),sep="")
-  popAlias<-unlist(lapply(gtPops,alias))
-  popNames<-unlist(lapply(gtPops,names))
-  gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
-  popIds<-unlist(lapply(gtPops,"slot","id"))
+  args <- parameters(x)
+  gm <- paste0(".", names(x))
+  popAlias <- unlist(lapply(gtPops, alias))
+  popNames <- unlist(lapply(gtPops, names))
+  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
+  popIds <- unlist(lapply(gtPops, "slot", "id"))
 
-  tNodes <-args
+  tNodes <- args
   if (!(tNodes %in% gs_nodes)) {
     message(tNodes, " gating...")
     bf <- eval(substitute(booleanFilter(x), list(x = as.symbol(tNodes))))
@@ -271,8 +266,8 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
     invisible(gs_node_id <- add(y, bf, parent = parent))
     invisible(recompute(y, gs_node_id))
   } else {
-    message("Skip gating!Population '",tNodes,"' already exists.")
-    gs_node_id<-getChildren(y[[1]],parent)
+    message("Skip gating!Population '", tNodes, "' already exists.")
+    gs_node_id <- getChildren(y[[1]], parent)
     #select the corresponding gs node id by matching the node names
     gs_node_name<-getNodes(y[[1]])[gs_node_id]
     gs_node_id<-gs_node_id[match(tNodes,gs_node_name)]  
@@ -285,8 +280,8 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
 
 setMethod("gating", signature = c("polyFunctions", "GatingSet"),
           definition = function(x, y, gtPops, parent, ...) {
-  args<-parameters(x)
-  gm<-paste(".",names(x),sep="")
+  args <- parameters(x)
+  gm <- paste0(".",names(x))
   popAlias<-unlist(lapply(gtPops,alias))
   popNames<-unlist(lapply(gtPops,names))
   gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
@@ -331,8 +326,8 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet"),
               prediction_level = prediction_level)
 }
 
-.mindensity <- function(fs, xChannel = "FSC-A", filterId = "", ...) {
-  mindensity(flow_frame = fs[[1]], channel = xChannel, filter_id = filterId, ...)
+.mindensity <- function(fs, yChannel = "FSC-A", filterId = "", ...) {
+  mindensity(flow_frame = fs[[1]], channel = yChannel, filter_id = filterId, ...)
 }
 
 .flowClust.1d <- function(fs, xChannel = NA, yChannel, tol = 1e-5, prior = NULL,
