@@ -298,7 +298,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 					#right now we consider quadgate as the only use case for filters
 					gs_node_id<-NULL
 #					browser()
-					#clock-wise starting from top-left quadrant											
+					#clock-wise starting from top-left quadrant(assuming X followed by Y channel)											
 					quadPatterns<-c(".+-.+\\+$"   #top left  -+
 									,".+\\+.+\\+$" #top right ++
 									,".+\\+.+-$"  #bottom right +-
@@ -309,8 +309,22 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						curAlias<-popAlias[i]
 						curPop<-popNames[i]
 						curPopId<-popIds[i]
-						browser()
-						quadInd<-which(unlist(lapply(quadPatterns,grepl,curPop)))
+						#check if popname is give as Y[*]X[*]
+						YX_pattern<-paste(dims["yChannel"],".+", dims["xChannel"],".+",sep="")
+						XY_pattern<-paste(dims["xChannel"],".+", dims["yChannel"],".+",sep="")
+						#do the flipping if YX
+						if(grepl(YX_pattern,curPop))
+						{
+							pos<-regexpr(dims["xChannel"],curPop)
+							xterm<-substring(curPop,pos,nchar(curPop))
+							yterm<-substring(curPop,1,pos-1)
+							toMatch<-paste(xterm,yterm,sep="")
+						}else if(grepl(XY_pattern,curPop))
+							toMatch<-curPop #keep as it is if XY
+						else
+							stop("X,Y axis do not match between 'dims'(",dims,") and 'pop'(",curPop,")")
+						
+						quadInd<-which(unlist(lapply(quadPatterns,grepl,toMatch)))
 						#fetch appropriate filter based on the quadrant ind
 						curFlist <- lapply(flist, function(curFilters) {
 									curFilters[[quadInd]]
