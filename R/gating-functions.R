@@ -50,10 +50,6 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 
   cutpoint_method <- match.arg(cutpoint_method)
 
-  if (neg_cluster + 1 > K) {
-    stop("The value for K specified is larger than the index of the positive cluster.")
-  }
-
   # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
   if (usePrior == "yes" && is.null(prior)) {
     prior <- prior_flowClust1d(fr = fr, channel = params[1], K = K, adjust = adjust)

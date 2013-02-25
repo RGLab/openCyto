@@ -113,13 +113,13 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         if (grepl("^\\.flowClust\\.[12]d$", gm)) {
           if (gm == ".flowClust.1d") {
             #get the value of neg and pos
-            
             if (all(is.element(c("pos", "neg"), names(paired_args)))) {
-              neg_cluster <- as.integer(paired_args["neg"])     
-              K <- as.integer(paired_args["pos"]) + neg_cluster
+              neg_cluster <- as.integer(paired_args["neg"])
+              pos_cluster <- as.integer(paired_args["pos"])
+              K <- neg_cluster + pos_cluster
             } else {
-              message("Using default setting:neg=1, pos=1")
-              neg_cluster <- as.integer(1)      
+              message("Using default setting: neg = 1, pos = 1")
+              neg_cluster <- pos_cluster <- as.integer(1)      
               K <- 2
             }
             # Elicitation of priors for flowClust
@@ -129,16 +129,23 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
             }
             prior$yChannel <- prior_flowClust(flow_set = parent_data, channels = yChannel, K = K, ...)
             
-            #replace neg and pos and convert the named vector back to string
             paired_args[["K"]] <- K
             paired_args[["neg_cluster"]] <- neg_cluster
             paired_args[["prior"]] <- prior
+
+            # If the number of positive clusters is 0 and no cutpoint method has
+            # been specified, we use the quantile gate by default.
+            if (pos_cluster == 0 && is.null(paired_args[["cutpoint_method"]])) {
+              paired_args[["cutpoint_method"]] <- "quantile"
+            }
+
+            # replace neg and pos and convert the named vector back to string
             neg_ind <- match("neg", names(paired_args))
             if (!is.na(neg_ind)) {
               paired_args <- paired_args[-neg_ind]
             }
             
-            pos_ind <- match("pos",names(paired_args))
+            pos_ind <- match("pos", names(paired_args))
             if (!is.na(pos_ind)) {
               paired_args <- paired_args[-pos_ind]
             }
@@ -147,14 +154,16 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
             if (is.element(c("k"), names(paired_args))) {
               K <- as.integer(paired_args["k"])     
             } else {
-              message("'K' argument is missing!Using default setting:K=2")
+              message("'K' argument is missing! Using default setting: K = 2")
               K <- 2
             } 
             paired_args[["k"]] <- K
-            names(paired_args)[match("k", names(paired_args))] <- "K" #restore K to capital letter
+            # restore K to capital letter
+            names(paired_args)[match("k", names(paired_args))] <- "K"
             
             # Elicitation of priors for flowClust
-            prior <- prior_flowClust(flow_set = parent_data, channels = c(xChannel, yChannel), K = K, ...)
+            prior <- prior_flowClust(flow_set = parent_data,
+                                     channels = c(xChannel, yChannel), K = K, ...)
             
             paired_args[["prior"]] <- prior
             thisCall[["positive"]] <- NULL #remove positive arg since 2D gate doesn't understand it
@@ -163,7 +172,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         # update arg_names
         
         for (arg in names(paired_args)) {
-          thisCall[[arg]]<-paired_args[[arg]]
+          thisCall[[arg]] <- paired_args[[arg]]
         }
 
         ## choose serial or parallel mode
@@ -177,7 +186,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
             cl <- makeCluster(num_nodes, type = "SOCK")
             thisCall[[1]] <- quote(parLapply)
             thisCall[["cl"]] <- cl
-            #replace FUN with fun for parLapply
+            # replace FUN with fun for parLapply
             thisCall["fun"] <- thisCall["FUN"]
             thisCall["FUN"] <- NULL
             flist <- eval(thisCall)
