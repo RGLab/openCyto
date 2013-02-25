@@ -1,3 +1,44 @@
+#' Elicits data-driven priors from a flowSet object for specified channels
+#'
+#' We elicit data-driven prior parameters from a \code{flowSet} object for
+#' specified channels. For each sample in the \code{flowSet} object, we apply the
+#' given \code{prior_method} to elicit the priors parameters.
+#' 
+#' Currently, we have implemented only two methods. In the case that one channel
+#' is given, we use the kernel-density estimator (KDE) approach for each sample
+#' to obtain \code{K} peaks from which we elicit prior parameters. Otherwise,
+#' if more than one channel is specified, we apply K-Means to each of the samples
+#' in the \code{flowSet} and aggregate the clusters to elicit the prior
+#' parameters.
+#'
+#' @param flow_set a \code{flowSet} object
+#' @param channels a character vector containing the channels in the
+#' \code{flowSet} from which we elicit the prior parameters for the Student's t
+#' mixture
+#' @param prior_method the method to elicit the prior parameters
+#' @param K the number of mixture components to identify
+#' @param nu0 prior degrees of freedom of the Student's t mixture components.
+#' @param w0 the number of prior pseudocounts of the Student's t mixture components.
+#' @param ... Additional arguments passed to the prior elicitation method selected
+#' @return list of the necessary prior parameters
+prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
+                            K = 2, nu0 = 4, w0 = 10, ...) {
+
+  if (length(channels) == 1) {
+    prior_list <- prior_flowClust1d(flow_set = flow_set, channel = channels,
+                                    K = K, nu0 = nu0, w0 = w0, ...)
+  } else {
+    prior_method <- match.arg(prior_method)
+    if (prior_method == "kmeans") {
+      prior_list <- prior_kmeans(flow_set = flow_set, channels = channels, K = K,
+                                 nu0 = nu0, w0 = w0, ...)
+    }
+  }
+
+  prior_list
+}
+
+
 #' Elicits data-driven priors from a flowSet object for a specified channel
 #'
 #' We elicit data-driven prior parameters from a \code{flowSet} object for a
@@ -70,16 +111,7 @@ prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10,
 
   # For each sample that has less than K peaks, we align its peaks with the peaks
   # of the first sample having K peaks.
-#	browser()
-	
-	rowInds<-which(apply(peaks,1,function(curPeak){
-			  !any(is.na(curPeak))
-		  }))
-	if(length(rowInds)==0)
-		stop("invalid peak matrix!")
-	else 
-		rowInd<-rowInds[1]
-  peaks <- flowClust:::peakMatch(peaks,rowInd)
+  peaks <- align_peaks(peaks)
 
   if (estimator == "huber") {
     # In the case that the majority of the samples have a peak with NA (i.e., K
@@ -129,6 +161,140 @@ prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10,
   list(Mu0 = Mu0, Lambda0 = Lambda0, Omega0 = Omega0, nu0 = nu0, w0 = w0)
 }
 
+#' Elicits data-driven priors from a flowSet object for specified channels using
+#' the K-Means clustering algorithm
+#'
+#' We elicit data-driven prior parameters from a \code{flowSet} object for
+#' specified channels. For each sample in the \code{flowSet} object, we apply
+#' \code{kmeans} to obtain \code{K} clusters. From each cluster, we determine its
+#' centroid and the sample covariance matrix. We then aggregate these two sample
+#' moments across all samples for each cluster. 
+#'
+#' Because the cluster labels returned from \code{kmeans} are arbitrary, we align
+#' the clusters based on the centroids that are closest to a randomly selected
+#' reference sample. We apply the Hungarian algorithm implemented using the
+#' \code{solve_LSAP} function from the \code{clue} package to assist with the
+#' alignment.
+#'
+#' If each frame within \code{flow_set} has a large number of cells, the
+#' computational costs of \code{kmeans} can be a burden. We provide the option
+#' to randomly select \code{pct}, a percentage of the cells from each flow frame
+#' to which \code{kmeans} is applied.
+#'
+#' @param flow_set a \code{flowSet} object
+#' @param channels a character vector containing the channels in the
+#' \code{flowSet} from which we elicit the prior parameters for the Student's t
+#' mixture
+#' @param K the number of mixture components to identify
+#' @param nu0 prior degrees of freedom of the Student's t mixture components.
+#' @param w0 the number of prior pseudocounts of the Student's t mixture
+#' components.
+#' @param nstart number of random starts used by \code{kmeans} algorithm
+#' @param pct percentage of randomly selected cells in each \code{flowFrame}
+#' that is used to elicit the prior parameters. The value should must be greater
+#' than 0 and less than or equal to 1.
+#' @param ... Additional arguments passed to \code{kmeans}
+#' @return list of \code{flowClust} prior parameters
+prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
+                         pct = 0.1, ...) {
+  require('clue')
+
+  # For each randomly selected sample in the flow_set, we apply K-means with to
+  # find K clusters and retain additional summary statistics to elicit the prior
+  # parameters for flowClust.
+  num_samples <- length(flow_set)
+  
+  kmeans_summary <- lapply(seq_len(num_samples), function(i) {
+    # Grabs the channel data for the ith sample and randomly selects the
+    # specified percentage of cells to which we apply 'kmeans'
+    x <- exprs(flow_set[[i]])[, channels]
+    x <- x[sample(seq_len(nrow(x)), pct * nrow(x)), ]
+    kmeans_out <- kmeans(x = x, centers = K, nstart = nstart) #, ...)
+
+    cluster_centroids <- kmeans_out$centers
+    cluster_sizes <- kmeans_out$size
+
+    cluster_covs <- tapply(seq_len(nrow(x)), kmeans_out$cluster, function(i) {
+      cov(x[i, ])
+    })
+
+    list(centroids = cluster_centroids, sizes = cluster_sizes, covs = cluster_covs)
+  })
+
+  # We randomly select one of the flowFrame's within the flow_set as a reference
+  # sample.
+  ref_sample <- sample.int(length(kmeans_summary), 1)
+  kmeans_ref_sample <- kmeans_summary[[ref_sample]]
+  kmeans_ref_sample$covs <- unname(kmeans_ref_sample$covs)
+  kmeans_ref_sample$covs <- aperm(simplify2array(kmeans_ref_sample$covs), c(3, 1, 2))
+  ref_centroids <- kmeans_ref_sample$centroids
+
+  # Because the cluster labels returned from 'kmeans' are arbitrary, we align the
+  # clusters based on the centroids that are closest to the reference sample.
+  kmeans_summary <- kmeans_summary[-ref_sample]
+  kmeans_centroids <- lapply(kmeans_summary, function(x) x$centroids)
+  
+  # For each sample, we obtain the alignment indices.
+  ref_indices <- lapply(kmeans_centroids, function(centroids) {
+    dist_centroids <- as.matrix(dist(rbind(ref_centroids, centroids)))
+    dist_centroids <- dist_centroids[seq_len(K), seq_len(K) + K]
+    as.vector(solve_LSAP(dist_centroids))
+  })
+
+  # Now, we align the 'kmeans' summary information using the alignment indices.
+  kmeans_summary <- mapply(function(kmeans_sample, align_idx) {
+    kmeans_sample$centroids <- kmeans_sample$centroids[align_idx, ]
+    kmeans_sample$sizes <- kmeans_sample$sizes[align_idx]
+    kmeans_sample$covs <- unname(kmeans_sample$covs[align_idx])
+
+    # Converts covariance matrices to a 3D array (K x p x p)
+    kmeans_sample$covs <- aperm(simplify2array(kmeans_sample$covs), c(3, 1, 2))
+
+    kmeans_sample
+  }, kmeans_summary, ref_indices, SIMPLIFY = FALSE)
+
+  # Appends the reference sample to the 'kmeans' summary list.
+  kmeans_summary <- c(kmeans_summary, list(kmeans_ref_sample))
+
+  # Mu0 dimensions: K x p
+  # Prior Mean
+  # p is the number of features, corresponding to the number of 'channels'
+  # We average each of the cluster centroids across all samples to elicit Mu0.
+  p <- length(channels)
+  Mu0 <- Reduce("+", lapply(kmeans_summary, function(x) x$centroids)) / num_samples
+  Mu0 <- matrix(Mu0, K, p)
+
+  # Lambda0 dimensions: K x p x p
+  # Prior Covariance Matrix
+  # For each cluster, we pool the covariance matrices from all samples to elicit
+  # Lambda0.
+  kmeans_sizes <- do.call(rbind,lapply(kmeans_summary, function(x) x$sizes))
+  kmeans_sizes_sum <- colSums(kmeans_sizes)
+  kmeans_scatter <- lapply(kmeans_summary, function(x) x$sizes * x$covs)
+  Lambda0 <- Reduce("+", kmeans_scatter) / kmeans_sizes_sum
+  Lambda0 <- array(Lambda0, c(K, p, p))
+
+  # Omega0 dimensions: K x p x p
+  # Hyperprior covariance matrix for the prior mean Mu0
+  # For each cluster we calculate the covariance matrix of the cluster centroids
+  # across all samples to elicit Omega0.
+  kmeans_centroids <- lapply(kmeans_summary, function(x) x$centroids)
+  centroids_split <- lapply(kmeans_centroids, split, f = seq_len(K))
+  Omega0 <- lapply(seq_len(K), function(k) {
+    cov(do.call(rbind, lapply(centroids_split, function(x) x[[k]])))
+  })
+  Omega0 <- array(do.call(rbind, lapply(Omega0, as.vector)), dim = c(K, p, p))
+
+  # We assume that the degrees of freedom is the same for each mixture component.
+  nu0 <- rep(nu0, K)
+
+  # We assume that the prior probability of mixture component membership is equal
+  # across all mixture components and use 10 pseudocounts.
+  w0 <- rep(w0, K)
+
+  list(Mu0 = Mu0, Lambda0 = Lambda0, Omega0 = Omega0, nu0 = nu0, w0 = w0)
+}
+
 #' Peak alignment for prior elicitation
 #'
 #' We elicit data-driven priors by applying a kernel-density estimator (KDE) to
@@ -161,6 +327,13 @@ align_peaks <- function(peaks) {
     dist_align[is.na(dist_align)] <- 0
     dist_align <- dist_align[seq_along(x), seq_len(K) + length(x)]
 
+    # The 'solve_LSAP' function expects a matrix. In the case that only one peak
+    # is present, 'dist_align' is a vector. We coerce it to a matrix to prevent
+    # an error with 'solve_LSAP'.
+    if (is.vector(dist_align)) {
+      dist_align <- matrix(dist_align, nrow = 1)
+    }
+
     # We extract the indices of alignment and then return a vector with the
     # aligned peaks
     align_idx <- as.vector(solve_LSAP(dist_align))
@@ -169,161 +342,5 @@ align_peaks <- function(peaks) {
   aligned_peaks <- do.call(rbind, aligned_peaks)
   peaks[num_peaks < K] <- aligned_peaks
   peaks
-}
-
-
-#' Generates data-driven priors for the Bayesian version of flowClust for 2-D
-#' gating.
-#'
-#' We use vague priors (i.e., scaled identity matrices), where the scales are
-#' determined by the covariance matrix of the overall data without regard to the
-#' mixture components.
-#'
-#' To construct a prior for the \code{K} means (i.e., Mu0), we use a common prior
-#' mean along the x-channel to be the highest density point. For the y-channel
-#' prior mean, we find \code{K} peaks along the y-channel using a kernel-density
-#' estimator.
-#'
-#' @param fr a \code{flowFrame} object
-#' @param xChannel TODO
-#' @param yChannel TODO
-#' @param nu0 prior degrees of freedom of the Student's t mixture components.
-#' @param w0 the number of prior pseudocounts.
-#' @return list of the necessary prior parameters
-prior_flowClust2d <- function(fr, xChannel, yChannel, K = 2, nu0 = 4, w0 = 10, adjust = 2) {
-
-  # From the given flowFrame, grabs the data.
-  x <- exprs(fr)[, c(xChannel, yChannel)]
-  cov_x <- cov(x)
-
-  # Mu0 dimensions: K x p (p is the number of features. Here, p = 2 for 2D)
-  x_peak <- find_peaks(x[, xChannel], peaks = K, adjust = adjust)
-  y_peaks <- sort(find_peaks(x[, yChannel], peaks = K, adjust = adjust), na.last = TRUE)
-
-  # HACK: In the event that the number of peaks along the y-axis is overspecified,
-  # then the remaining 'y_peaks' will be NA. In this case, we replace the NA peaks
-  # with the first peak. Effectively, this sets the prior means as equal.
-  # TODO: Devise a better prior elicitation in the future.
-  # NOTE: This is also a problem in the x-dimension!
-  # Add jitter rather than making them equal.
-  if (any(is.na(y_peaks))) {
-    na.ind<-is.na(y_peaks)
-    y_peaks[na.ind] <- y_peaks[1]
-    y_peaks[na.ind]<-jitter(y_peaks[na.ind])
-  }
-  if(any(is.na(x_peak))){
-    na_ind<-is.na(x_peak)
-    x_peak[na.ind]<-x_peak[1]
-    x_peak[na.ind]<-jitter(x_peak[na.ind])
-  }
-  
-  Mu0 <- cbind(x_peak, y_peaks)
-
-  # We assume that the prior probability of mixture component membership is equal
-  # across all mixture components and use 10 pseudocounts.
-  w0 <- rep(w0, K)
-
-  # Lambda0 dimensions: K x p x p
-  Lambda0 <- aperm(replicate(K, cov_x), perm = c(3, 2, 1))
-
-  # Omega0 dimensions: K x p x p
-  Omega0 <- aperm(replicate(K, cov_x), perm = c(3, 2, 1))
-
-  list(Mu0 = Mu0, nu0 = nu0, w0 = w0, Lambda0 = Lambda0, Omega0 = Omega0)
-}
-
-#' Prior means elicitation for robust 1D-gating with the Bayesian flowClust.
-#'
-#' We elicit prior means for 1D-gating using the Bayesian version of
-#' \code{flowClust}. For each sample, we apply a kernel-density estimator to each
-#' of the specified channels and obtain two peaks. The minimum of these peaks is
-#' labeled the 'Negative' peak, while the maximum is labeled the 'Positive' peak.
-#' We pool each of the 'Negative' and 'Positive' peaks across the specified
-#' channels for each of the given samples to obtain a prior mean for the
-#' 'Negative' and 'Positive' peaks, respectively.
-#'
-#' Some channels will not have two distinct peaks in the kernel-density estimate.
-#' By default, we do not consider a channel in the prior-means elicitation if
-#' this channel has only one clear peak in any of the samples. If
-#' \code{remove_missing_peaks} is set to \code{FALSE}, then the default behavior
-#' is altered and all of the channels for which we have two distinct peaks will
-#' be included in the prior-means elicitation.
-#'
-#' To ensure that the kernel-density estimates are smooth, we recommend that the
-#' bandwidth set in the \code{adjust} argument be sufficiently large. We have
-#' defaulted this to 3. If the bandwidth is not large enough, the density
-#' estimate may contain numerous bumps, resulting in erroneous peaks.
-#'
-#' @param wf the workflow that contains the samples from which the prior means
-#' should be calculated
-#' @param view_name the workflow view used to elicit the prior means. By default,
-#' the prior means are computed conditional on the cellular debris being gated
-#' out.
-#' @param channels the channels that are used to elicit the prior means
-#' @param remove_missing_peaks Should we remove channels that do not have two
-#' clearly defined peaks? By default, yes. See Details.
-#' @param adjust the bandwidth to use in the kernel density estimation. See
-#' \code{\link{density}} for more information.
-#' @return list containing the elicited prior means, the kernel-density peaks
-#' computed for each marker by sample, and a vector of the markers included
-#' in the elication of the prior means.
-#' @examples \dontrun{
-#' # For a given workflow and view, we use all of the channels in the workflow
-#' # that do not include 'Time' and forward- and side-scatter channels.
-#' view_name <- 'nonDebris+'
-#' wf_colnames <- colnames(Data(wf[[view_name]]))
-#' channels <- wf_colnames[!(wf_colnames %in% c("Time", "FSC-A", "FSC-H", "FSC-W", "SSC-A", "SSC-H"))]
-#' prior_means_1d(wf = wf, view_name = view_name, channels = channels)
-#' }
-prior_means_flowClust1d <- function(wf, view_name = 'nonDebris+', channels,
-                                    remove_missing_peaks = TRUE, adjust = 3) {
-  require('plyr')
-  require('reshape2')
-
-  # For each of the samples, grabs the markers
-  markers_samples <- lapply(seq_along(Data(wf[[view_name]])), function(i) {
-    # For the current view, we grab the ith sample data matrix for the channels
-    # that correspond to markers.
-    markers_x <- exprs(Data(wf[[view_name]])[[i]])[, channels]
-
-    # Updates the channel names to the corresponding markers.
-    colnames(markers_x) <- channels2markers(wf = wf, channels = channels)
-
-    cbind.data.frame(Sample = paste("Sample", i), markers_x)
-  })
-  markers_samples <- do.call(rbind, markers_samples)
-
-  # The markers are the column names from the above data.frame except for the
-  # first column, which denotes the "Sample" number.
-  markers <- colnames(markers_samples)[-1]
-
-  # Melts the markers into a ggplot2-friendly data.frame
-  melt_markers <- melt(markers_samples, id = "Sample", variable.name = "Marker")
-
-  # For each sample and for each of its markers, we find the highest 2 peaks from
-  # a kernel-density estimator.
-  marker_peaks <- ddply(melt_markers, .(Sample, Marker), function(x) {
-    find_peaks(x$value, peaks = 2, adjust = adjust)
-  })
-  colnames(marker_peaks) <- c("Sample", "Marker", "Negative", "Positive")
-
-  # Melts the data.frame of peaks for each marker by sample.
-  peaks_by_sample <- melt(marker_peaks, id = c("Sample", "Marker"), variable = "Peak")
-
-  if (remove_missing_peaks) {
-    # Determines which markers have two clear peaks.
-    markers_two_peaks <- ddply(peaks_by_sample, .(Marker), summarize, two_peaks = !any(is.na(value)))
-    markers_two_peaks <- as.character(subset(markers_two_peaks, two_peaks == TRUE)$Marker)
-    markers <- markers_two_peaks
-
-    # Subsets the peaks for each marker by sample.
-    peaks_by_sample <- subset(peaks_by_sample, Marker %in% markers_two_peaks)
-  }
-
-  # We calculate the data-driven prior mean as the average of the two peaks across all samples
-  # and across all markers for which we were able to find two clear peaks.
-  prior_means <- sort(ddply(peaks_by_sample, .(Peak), summarize, avg = mean(value, na.rm = TRUE))$avg)
-
-  list(prior_means = prior_means, peaks_by_sample = peaks_by_sample, markers = markers)
 }
 
