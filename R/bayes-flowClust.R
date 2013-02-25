@@ -11,6 +11,11 @@
 #' in the \code{flowSet} and aggregate the clusters to elicit the prior
 #' parameters.
 #'
+#' In the rare case that a prior covariance matrix is singular, we shrink the
+#' eigenvalues of the matrix slightly to ensure that it is positive definite. For
+#' instance, if the \code{flow_set} has two samples, this case can occur. The
+#' amount of shrinkage is controlled in \code{shrink}.
+#'
 #' @param flow_set a \code{flowSet} object
 #' @param channels a character vector containing the channels in the
 #' \code{flowSet} from which we elicit the prior parameters for the Student's t
@@ -19,10 +24,12 @@
 #' @param K the number of mixture components to identify
 #' @param nu0 prior degrees of freedom of the Student's t mixture components.
 #' @param w0 the number of prior pseudocounts of the Student's t mixture components.
+#' @param shrink the amount of eigenvalue shrinkage to add in the case the prior
+#' covariance matrices are singular. See details.
 #' @param ... Additional arguments passed to the prior elicitation method selected
 #' @return list of the necessary prior parameters
 prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
-                            K = 2, nu0 = 4, w0 = 10, ...) {
+                            K = 2, nu0 = 4, w0 = 10, shrink = 1e-6, ...) {
 
   if (length(channels) == 1) {
     prior_list <- prior_flowClust1d(flow_set = flow_set, channel = channels,
@@ -33,6 +40,24 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
       prior_list <- prior_kmeans(flow_set = flow_set, channels = channels, K = K,
                                  nu0 = nu0, w0 = w0, ...)
     }
+    # In the rare case a covariance matrix is singular, we shrink the eigenvalues
+    # of the matrix. The amount of shrinkage is controlled in 'shrink'.
+    require('plyr')
+    prior_list$Lambda0 <- aaply(prior_list$Lambda0, 1, function(cov_mat) {
+      if (class(try(solve(cov_mat), silent = TRUE)) == "try-error") {
+        cov_mat <- cov_mat + shrink * diag(nrow(cov_mat))
+      }
+      cov_mat
+    })
+    prior_list$Lambda0 <- unname(prior_list$Lambda0)
+
+    prior_list$Omega0 <- aaply(prior_list$Omega0, 1, function(cov_mat) {
+      if (class(try(solve(cov_mat), silent = TRUE)) == "try-error") {
+        cov_mat <- cov_mat + shrink * diag(nrow(cov_mat))
+      }
+      cov_mat
+    })
+    prior_list$Omega0 <- unname(prior_list$Omega0)
   }
 
   prior_list
