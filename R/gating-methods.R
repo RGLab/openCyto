@@ -555,7 +555,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 		###############################################################     
 		#construct rectangleGates based on the cuts and popNames,clock-wise
 		###############################################################
-		gateList <- new("filters")
+		gateList <- list()
 		
 		chnls<-c(xChannel, yChannel)
 		markers<-c(xStain,yStain)
@@ -596,7 +596,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 		
 		
 		
-		gateList
+		as(gateList[c(1,3,4,2)],"filters")#return the 4 quadrants in clock-wise order 
 	}
 	
 }	
