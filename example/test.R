@@ -61,8 +61,15 @@ plot(gt1)
 
 fs_tcell[[1]]
 gs1<-GatingSet(fs_tcell)
-gating(gt1,gs1)
+gating(gt1,gs1,env1)
 plotGate(gs1[[1]],xbin=128)
+plot(env1$fct,"nonDebris",post=T)
+plot(env1$fct,"cd3",post=T)
+plot(env1$fct,"cd4",post=T,channel="<B710-A>")
+plot(env1$fct,"activated cd4",post=T,channel="<R660-A>")
+plot(env1$fct,2,post=T)
+plot(env1$fct,"Lymph",post=T)
+
 #xyplot(`<B710-A>`~`<R660-A>`,fs_tcell)
 #densityplot(~.,fs_tcell[[1]])
 

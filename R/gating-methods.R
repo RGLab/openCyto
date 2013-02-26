@@ -105,8 +105,6 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 			
 			
 			args<-parameters(x)
-			
-#			browser()
 			gm<-paste(".",names(x),sep="")
 			
 			dims<-dims(x)
@@ -323,7 +321,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						curFlist <- lapply(flist, function(curFilters) {
 									curFilters[[quadInd]]
 								})
-#						browser()
+						
 						#save the fcFilter if applicable
 						if(extends(class(curFlist[[1]]),"fcFilter"))
 						{
@@ -378,7 +376,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 			names(gs_node_id)<-popIds
 			if(length(fcObjList)>0)
 				names(fcObjList)<-popIds
-#			gs_node_id
+#			browser()
 			list(gs_node_id=gs_node_id
 				 ,fcObjList=fcObjList
 		 		)

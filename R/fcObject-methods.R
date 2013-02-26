@@ -30,14 +30,16 @@ setMethod("getFcFilter",sig=c("fcObject"),definition=function(x){
 
 #
 setMethod("plot",sig=c("fcObject","ANY"),definition=function(x,y,samples=NULL,posteriors=FALSE,...){
-			priorNames<-names(x@prior)
 			
+			priorNames<-names(x@prior)
+			if(is.null(priorNames))
+				stop("no valid flowClust prior for this population!")
 			if(is.null(y))
 			{
 				if(length(priorNames)==1)
 					y<-priorNames[1]
 				else
-					stop("Need to specify which prior:",paste(priorNames,collapse="or"))
+					stop("Need to specify which channel:",paste(priorNames,collapse="or"))
 			}			
 #		browser()
 		prior<-getPrior(x=x,y=y)
