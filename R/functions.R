@@ -275,7 +275,7 @@ spillover1<-function(x, unstained=NULL, cols=NULL, fsc="FSC-A",
 	if(length(ind)==0)
 	{
 		#try marker name
-		which(unlist(lapply(pd$des,function(x){
+		ind<-which(unlist(lapply(pd$des,function(x){
 									#split by white space and then match each individual string
 			#									browser()
 												if(fix)
@@ -287,6 +287,7 @@ spillover1<-function(x, unstained=NULL, cols=NULL, fsc="FSC-A",
 				)
 	
 	}
+	ind
 	
 }
 getChannelMarker<-function(frm,name,...)
