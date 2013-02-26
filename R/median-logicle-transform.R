@@ -3,24 +3,24 @@
 #' Of the negative values for each channel specified, the median of the specified
 #' quantiles are used.
 #'
-#' @param fs object of class 'flowSet'
+#' @param flow_set object of class 'flowSet'
 #' @param channels character vector of channels to transform
 #' @param m TODO -- default value from .lgclTrans
 #' @param q quantile
 #' @return TODO
-estimateMedianLogicle <- function(fs, channels, m = 4.5, q = 0.05) {
-  if (!is(fs, "flowSet")) {
-    stop("fs has to be an object of class 'flowSet'")
+estimateMedianLogicle <- function(flow_set, channels, m = 4.5, q = 0.05) {
+  if (!is(flow_set, "flowSet")) {
+    stop("flow_set has to be an object of class 'flowSet'")
   }
   if (missing(channels)) {
     stop("Please specify the channels to be logicle transformed")
   }
-  indx <- channels %in% colnames(fs)
+  indx <- channels %in% unname(colnames(exprs(flow_set[[1]])))
   if (!all(indx)) {
-    stop(paste("Channels", channels[!indx], "were not found in fs "))
+    stop(paste("Channels", channels[!indx], "were not found in flow_set "))
   }
 
-  neg_marker_quantiles <- fsApply(fs, function(sample) {
+  neg_marker_quantiles <- fsApply(flow_set, function(sample) {
     apply(exprs(sample), 2, function(markers) {
       quantile(markers[markers < 0], probs = q)
     })
@@ -33,7 +33,7 @@ estimateMedianLogicle <- function(fs, channels, m = 4.5, q = 0.05) {
   neg_marker_quantiles <- replace(neg_marker_quantiles, is.na(neg_marker_quantiles), 0.5)
 
   # Replaces 't' in flowCore:::.lgclTrans
-  max_range <- do.call(rbind, lapply(fsApply(fs, range), function(x) {
+  max_range <- do.call(rbind, lapply(fsApply(flow_set, range), function(x) {
     x[2, channels]
   }))
   max_range <- apply(max_range, 2, max)
@@ -41,12 +41,12 @@ estimateMedianLogicle <- function(fs, channels, m = 4.5, q = 0.05) {
   # Replaces 'w' in flowCore:::.lgclTrans
   w <- (m - log10(max_range / abs(neg_marker_quantiles))) / 2
 
-  trans <- lapply(channels, function(channel) {
+  transformation <- lapply(channels, function(channel) {
     transId <- paste(channel, "medianLogicleTransform", sep = "_")
 
     logicleTransform(transformationId = transId, w = w[channel],
                      t = max_range[channel], m = m, a = 0)
   })
 
-  transformList(channels, trans, transformationId = "medianLogicleTransform")
+  transformList(channels, transformation, transformationId = "medianLogicleTransform")
 }
