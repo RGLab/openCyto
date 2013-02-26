@@ -1,6 +1,3 @@
-
-
-
 #' Applies flowClust to 1 feature to determine a cutpoint between the minimum
 #' cluster and all other clusters.
 #'
@@ -23,8 +20,6 @@
 #' \code{flowClust}.
 #' @param prior_list list of prior parameters for the Bayesian \code{flowClust}.
 #' If \code{usePrior} is set to 'no', then the list is unused.
-#' @param prior_mean a vector of length \code{K} that provides the prior means
-#' for each peak. By default, this is \code{NULL}, in which case 
 #' @param trans numeric indicating whether the Box-Cox transformation parameter
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
 #' (cluster-speciﬁc estimation). NOTE: For the Bayesian version of
@@ -54,10 +49,6 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
                          quantile = 0.99, quantile_interval = c(0, 10),...) {
 
   cutpoint_method <- match.arg(cutpoint_method)
-
-  if (neg_cluster + 1 > K) {
-    stop("The value for K specified is larger than the index of the positive cluster.")
-  }
 
   # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
   if (usePrior == "yes" && is.null(prior)) {
@@ -202,6 +193,9 @@ postList[[params[1]]]<-posteriors
 #' cutpoint to be the point at which the density between the first and second
 #' smallest cluster centroids is minimum.
 #'
+#' The cluster for the population of interest is selected as the one with cluster
+#' centroid nearest the \code{target_centroid} in Euclidean distance.
+#'
 #' @param fr a \code{flowFrame} object
 #' @param xChannel TODO
 #' @param yChannel TODO
@@ -210,7 +204,7 @@ postList[[params[1]]]<-posteriors
 #' @param usePrior Should we use the Bayesian version of \code{flowClust}?
 #' Answers are "yes", "no", or "vague". The answer is passed along to
 #' \code{flowClust}.
-#' @param prior_list list of prior parameters for the Bayesian \code{flowClust}.
+#' @param prior list of prior parameters for the Bayesian \code{flowClust}.
 #' If \code{usePrior} is set to 'no', then the list is unused.
 #' @param trans numeric indicating whether the Box-Cox transformation parameter
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
@@ -218,6 +212,8 @@ postList[[params[1]]]<-posteriors
 #' \code{flowClust}, this value cannot be 2.
 #' @param plot a logical value indicating if the fitted mixture model should be
 #' plotted. By default, no.
+#' @param target_centroid a numeric vector of length \code{K} containing the
+#' location of the cluster of interest. See details.
 #' @param truncate_min A vector of length 2. Truncate observations less than this
 #' minimum value. The first value truncates the \code{xChannel}, and the second
 #' value truncates the \code{yChannel}. By default, this vector is \code{NULL}
@@ -230,12 +226,14 @@ postList[[params[1]]]<-posteriors
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
-                         usePrior = 'no', prior_list = list(NA), trans = 0,
-                         plot = FALSE, which_gate = c("bottom", "top", "left", "right"),
+                         usePrior = 'no', prior = list(NA), trans = 0,
+                         plot = FALSE, target_centroid,
                          gate_type = c("ellipse", "axis"), quantile = 0.995,
                          truncate_min = NULL, truncate_max = NULL, ...) {
 
-  which_gate <- match.arg(which_gate)
+  if (missing(target_centroid)) {
+    stop("The target centroid must be specified.")
+  }
   gate_type <- match.arg(gate_type)
 
   # If a truncation value is specified, we remove all observations less than this
@@ -254,29 +252,27 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 
   x <- exprs(fr)[, xChannel]
   y <- exprs(fr)[, yChannel]
-#browser()
-  # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
-  if (usePrior == "yes" && identical(prior_list, list(NA))) {
-    prior_list <- prior_flowClust2d(fr = fr, xChannel = xChannel, yChannel = yChannel, K = K)
-  }
 
+  # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
+  if (usePrior == "yes" && identical(prior, list(NA))) {
+    prior <- prior_flowClust(fr = fr, channels = c(xChannel, yChannel), K = K)
+  }
 
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the
-  # elements in the list `prior_list`.
+  # elements in the list `prior`.
   filter1 <- tmixFilter(filterId, c(xChannel, yChannel), K = K, trans = trans,
-                        usePrior = usePrior, prior = prior_list, ...)
+                        usePrior = usePrior, prior = prior, ...)
   tmixRes1 <- filter(fr, filter1)
 
   # Converts the tmixFilterResult object to a polygonGate.
   # We select the cluster with the minimum 'yChannel' to be the subpopulation from
   # which we obtain the contour (ellipse) to generate the polygon gate.
   fitted_means <- getEstimates(tmixRes1)$locations
-  cluster_selected <- switch(which_gate,
-                             bottom = which.min(fitted_means[, 2]),
-                             top = which.max(fitted_means[, 2]),
-                             left = which.min(fitted_means[, 1]),
-                             right = which.max(fitted_means[, 1]))    
+  target_dist <- apply(fitted_means, 1, function(x) {
+    dist(rbind(x, target_centroid))
+  })
+  cluster_selected <- which.min(target_dist)
 
   if (gate_type == "ellipse") {
     contour_ellipse <- .getEllipse(filter = tmixRes1,
@@ -302,34 +298,33 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     # towards the first quadrant.
     if (all(u1 >= 0)) {
       axis <- sqrt(lambda1 * chisq_quantile) * u1
-      if(u2[1]>0){
+      if (u2[1] > 0) {
         axis_perp <- sqrt(lambda2 * chisq_quantile) * u2    
-      }else {
+      } else {
         axis_perp <- -sqrt(lambda2 * chisq_quantile) * u2    
       }
-    }else if (all(-u1 >= 0)) {
+    } else if (all(-u1 >= 0)) {
       axis <- -sqrt(lambda1 * chisq_quantile) * u1
-      if(u2[1]>0){
+      if (u2[1] > 0) {
         axis_perp <- sqrt(lambda2 * chisq_quantile) * u2    
-      }else {
+      } else {
         axis_perp <- -sqrt(lambda2 * chisq_quantile) * u2    
       }
-    }else if (all(u2 >= 0)) {
+    } else if (all(u2 >= 0)) {
       axis <- sqrt(lambda2 * chisq_quantile) * u2
-      if(u1[1]>0){
+      if (u1[1] > 0) {
         axis_perp <- sqrt(lambda1 * chisq_quantile) * u1   
-      }else {
+      } else {
         axis_perp <- -sqrt(lambda1 * chisq_quantile) * u1    
       }
-    }else if (all(-u2 >= 0)) {
+    } else if (all(-u2 >= 0)) {
       axis <- -sqrt(lambda2 * chisq_quantile) * u2
-      if(u1[1]>0){
+      if (u1[1] > 0 ) {
         axis_perp <- sqrt(lambda1 * chisq_quantile) * u1   
-      }else {
+      } else {
         axis_perp <- -sqrt(lambda1 * chisq_quantile) * u1    
       }
     }
-      
 
     # The gate location is the frame of reference for the gate. If it is xbar,
     # then the frame of reference is the cross-section along the eigenvector
@@ -446,12 +441,63 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
     gate_coordinates <- list(c(-Inf, cutpoint))
   }
   names(gate_coordinates) <- stain
-	
+  
   if (plot) {
-		hist(x)
-		plot(density(x))
-		abline(v = cutpoint, col = "red")
-		text(y = 0.5, x = cutpoint, labels = paste("quantile:", probs))
-	}
-	rectangleGate(gate_coordinates, filterId = filterId)
+    hist(x)
+    plot(density(x))
+    abline(v = cutpoint, col = "red")
+    text(y = 0.5, x = cutpoint, labels = paste("quantile:", probs))
+  }
+  rectangleGate(gate_coordinates, filterId = filterId)
+}
+
+#' Applies a kernel density esti flowClust to 1 feature to determine a cutpoint
+#' between the minimum cluster and all other clusters.
+#'
+#' We fit a kernel density estimator to the cells in the \code{flowFrame} and
+#' identify the two largest peaks using the \code{find_peaks} function. We then
+#' select as the cutpoint the value at which the minimum density is attained.
+#'
+#' @param flow_frame a \code{flowFrame} object
+#' @param channel TODO
+#' @param filter_id TODO
+#' @param positive If \code{TRUE}, then the gate consists of the entire real line
+#' to the right of the cut point. Otherwise, the gate is the entire real line to
+#' the left of the cut point. (Default: \code{TRUE})
+#' @param ... Additional arguments pased on to the \code{find_peaks} function.
+#' @return a \code{rectangleGate} object based on the minimum density cutpoint
+mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
+                       ...) {
+  if (missing(channel) || length(channel) != 1) {
+    stop("A singlet channel must be specified.")
+  }
+  # Grabs the data matrix that is being gated.
+  x <- exprs(flow_frame)[, channel]
+
+  # Find the minimum density between the two highest peaks and set the cutpoint
+  # there.
+  peaks <- find_peaks(x, peaks = 2, ...)
+  density_x <- density(x, ...)
+
+  # Extract the indices of the observations between the peaks
+  idx_between <- which(peaks[1] <= density_x$x & density_x$x <= peaks[2])
+
+  x <- density_x$x[idx_between]
+  y <- density_x$y[idx_between]
+
+  cutpoint <- x[which.min(y)]
+
+  # After the 1D cutpoint is set, we set the gate coordinates used in the
+  # rectangleGate that is returned. If the `positive` argument is set to TRUE,
+  # then the gate consists of the entire real line to the right of the cut point.
+  # Otherwise, the gate is the entire real line to the left of the cut point.
+  if (positive) {
+    gate_coordinates <- list(c(cutpoint, Inf))
+  } else {
+    gate_coordinates <- list(c(-Inf, cutpoint))
+  }
+
+  names(gate_coordinates) <- channel
+  
+  rectangleGate(gate_coordinates, filterId = filter_id)
 }

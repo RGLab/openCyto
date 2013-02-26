@@ -76,6 +76,7 @@ fs_bcell[[1]]
 gs2<-GatingSet(fs_bcell)
 gating(gt2,gs2,env1)
 plotGate(gs2[[1]],bool=T,xbin=128)
+
 plot(env1$fct,"nonDebris",post=T)
 plot(env1$fct,"cd19",post=T)
 plot(env1$fct,"IgD-cd27+",channel="<G780-A>",post=T)
@@ -86,6 +87,9 @@ archive_path <- '/loc/no-backup/ramey'
 
 gt <- gatingTemplate(file.path(archive_path, "HVTN065-GatingTemplate.csv"), "HVTN065")
 gs <- unarchive(file = file.path(archive_path, "test-HVTN065.tar"), archive_path)
-gating(gt, gs)
+gating(gt, gs, num_nodes = 8, parallel_type = "multicore")
 plotGate(gs[[1]],bool=T,xbin=128,margin=T)
+
+
+write(file.path("gsl-1.13",paste(basename(list.dirs("flowClust/src/gsl-1.13",full.names=F,recursive=F)),".libs/*.a \\",sep="/")),file="txt")
 

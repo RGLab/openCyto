@@ -1,3 +1,4 @@
+
 setGeneric("gating", function(x,y,...) standardGeneric("gating"))
 setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definition = function(x,y,env_fct=NULL, ...) {
 			gt<-x
@@ -460,21 +461,16 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	
 	list()
 })
-		
+
 ## wrappers for the different gating routines
-.singletGate <- function(fs, xChannel = "FSC-A",yChannel = "FSC-H", prediction_level = 0.99,...) 
-{
-	require('flowStats')
-	# Creates a list of polygon gates based on the prediction bands at the minimum and maximum
-	# x_channel observation using a robust linear model trained by flowStats.
-	
-	
-	singletGate(fs[[1]], area = xChannel
-			, height = yChannel
-			,prediction_level = prediction_level
-	)
-	
+.singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H", prediction_level = 0.99, ...) {
+  require('flowStats')
+  # Creates a list of polygon gates based on the prediction bands at the minimum and maximum
+  # x_channel observation using a robust linear model trained by flowStats.
+  singletGate(fs[[1]], area = xChannel, height = yChannel,
+              prediction_level = prediction_level)
 }
+
 .flowClust.1d<-function(fs, xChannel = NA,yChannel,tol=1e-3,prior=NULL,filterId=""
 						,usePrior="yes",split=TRUE,...)
 {
@@ -595,72 +591,71 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 		gateList
 	}
 	
+}	
 	
-	
-}
-.flowClust.2d<-function(fs, xChannel,yChannel,usePrior="yes",...)
-{
-	
-	require("flowClust")
-	
-	
-	fr<-fs[[1]]
-	flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel,usePrior=usePrior, ...)
-	
-}
-.rangeGate<-function(fs, xChannel = NA,yChannel,absolute = FALSE,filterId="",...)
-{
-	require('flowStats')
-	fr<-fs[[1]]
-#	browser()
-	rangeGate(x=fr, stain = yChannel, inBetween = TRUE, absolute = absolute,
-				filterId = filterId
-				, ...
-				)	
+
+
+.mindensity <- function(fs, yChannel = "FSC-A", filterId = "", ...) {
+  mindensity(flow_frame = fs[[1]], channel = yChannel, filter_id = filterId, ...)
+
 }
 
 
-.quantileGate<-function(fs, xChannel = NA,yChannel,probs = 0.999,filterId="",...)
-{
-	fr<-fs[[1]]
-	quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)	
+
+
+.flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", prior = NULL, ...) {
+  require("flowClust")
+  fr <- fs[[1]]
+  flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel,
+               usePrior = usePrior, prior = prior, ...)
 }
 
-.quadrantGate<-function(fs, xChannel = NA,yChannel,...)
-{
-	
-	require('flowStats')
-	fr<-fs[[1]]
-	
-	qfilter<-quadrantGate(fr, stain = c(xChannel,yChannel), absolute = FALSE, inBetween = TRUE, ...)
-#	browser()
-	
-	###############################################################     
-	#construct rectangleGates based on the cuts and popNames,clock-wise
-	###############################################################
-	cut.x<-qfilter@boundary[xChannel]
-	cut.y<-qfilter@boundary[yChannel]
-	gateList <- new("filters")
-	
-	chnls<-c(xChannel, yChannel)
-	markers<-chnls
-	
-	coord <- list(c(-Inf, cut.x), c(cut.y, Inf))
-	names(coord) <- as.character(chnls)
-	gateList[[paste(paste0(markers, c("-", "+")), collapse="")]] <- rectangleGate(coord)
-	
-	coord <- list(c(cut.x, Inf), c(cut.y, Inf))
-	names(coord) <- as.character(chnls)
-	gateList[[paste(paste0(markers, c("+", "+")), collapse="")]] <- rectangleGate(coord)
-	
-	coord <- list(c(cut.x, Inf), c(-Inf, cut.y))
-	names(coord) <- as.character(chnls)
-	gateList[[paste(paste0(markers, c("+", "-")), collapse="")]] <- rectangleGate(coord)
-	
-	coord <- list(c(-Inf, cut.x), c(-Inf, cut.y))
-	names(coord) <- as.character(chnls)
-	gateList[[paste(paste0(markers, c("-", "-")), collapse="")]] <- rectangleGate(coord)
-	
-	gateList
+.rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE,
+                       filterId = "", ...) {
+  require('flowStats')
+  fr <- fs[[1]]
+  rangeGate(x = fr, stain = yChannel, inBetween = TRUE, absolute = absolute,
+            filterId = filterId, ...)
+}
+
+.quantileGate <- function(fs, xChannel = NA, yChannel, probs = 0.999,
+                          filterId = "", ...) {
+  fr <- fs[[1]]
+  quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)
+}
+
+.quadrantGate <- function(fs, xChannel = NA, yChannel, ...) {
+  require('flowStats')
+  fr<-fs[[1]]
+  
+  qfilter<-quadrantGate(fr, stain = c(xChannel,yChannel), absolute = FALSE, inBetween = TRUE, ...)
+  
+  ###############################################################     
+  #construct rectangleGates based on the cuts and popNames,clock-wise
+  ###############################################################
+  cut.x<-qfilter@boundary[xChannel]
+  cut.y<-qfilter@boundary[yChannel]
+  gateList <- new("filters")
+  
+  chnls<-c(xChannel, yChannel)
+  markers<-chnls
+  
+  coord <- list(c(-Inf, cut.x), c(cut.y, Inf))
+  names(coord) <- as.character(chnls)
+  gateList[[paste(paste0(markers, c("-", "+")), collapse="")]] <- rectangleGate(coord)
+  
+  coord <- list(c(cut.x, Inf), c(cut.y, Inf))
+  names(coord) <- as.character(chnls)
+  gateList[[paste(paste0(markers, c("+", "+")), collapse="")]] <- rectangleGate(coord)
+  
+  coord <- list(c(cut.x, Inf), c(-Inf, cut.y))
+  names(coord) <- as.character(chnls)
+  gateList[[paste(paste0(markers, c("+", "-")), collapse="")]] <- rectangleGate(coord)
+  
+  coord <- list(c(-Inf, cut.x), c(-Inf, cut.y))
+  names(coord) <- as.character(chnls)
+  gateList[[paste(paste0(markers, c("-", "-")), collapse="")]] <- rectangleGate(coord)
+  
+  gateList
 }
 
