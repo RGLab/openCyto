@@ -154,6 +154,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
   fres <- rectangleGate(gate_coordinates, filterId = filterId)
   
  #save posteriors
+postList<-list()
  posteriors<-list(mu=tmixRes1@mu
 					,lamdda=tmixRes1@lambda
 					,sigma=tmixRes1@sigma
@@ -161,6 +162,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 					,min=min(x)
 					,max=max(x)
 					)
+postList[[params[1]]]<-posteriors
   
   if (plot) {
     gate_pct <- round(100 * mean(x > cutpoint), 3)
@@ -190,7 +192,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
     }
   }
 
-  fcFilter(fres,posteriors)
+  fcRectangleGate(fres,postList)
 }
 
 #' Applies flowClust to two features in a flowFrame to construct an elliptical
@@ -385,7 +387,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     }
   }
 
-  fcFilter(flowClust_gate,posteriors)
+  fcPolygonGate(flowClust_gate,posteriors)
 }
 
 

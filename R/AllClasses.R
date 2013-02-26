@@ -33,16 +33,25 @@ setClass("gatingTemplate",
 	)
 	
 ###############################################################################	
-#extend filter class to have extra slot to store posteriors from flowClust gating routine 	
+#extend flowCore gate classes to have extra slot to store posteriors from flowClust gating routine 	
 ###############################################################################
-setClass("fcFilter"
-		,representation(filter="filter"
-						,posteriors="list")
-	)
-fcFilter<-function(x,y)
+setClass("fcFilter",representation("VIRTUAL",posteriors="list"))
+
+#setClassUnion("fcRectangleGate",c("rectangleGate","fcFilter"))
+setClass("fcRectangleGate",contains=c("fcFilter","rectangleGate"))
+
+
+fcRectangleGate<-function(x,y)
 {
-	res<-new("fcFilter")
-	res@filter<-x
+	res<-as(x,"fcRectangleGate")
+	res@posteriors<-y
+	res
+}
+
+setClass("fcPolygonGate",contains=c("fcFilter","polygonGate"))
+fcPolygonGate<-function(x,y)
+{
+	res<-as(x,"fcPolygonGate")
 	res@posteriors<-y
 	res
 }
@@ -50,11 +59,11 @@ fcFilter<-function(x,y)
 ##a container to store prior and posteriors from flowClust gating
 setClass("fcObject"
 		,representation(prior="list"
-						,posteriors="list")
+						,fcFilters="list")
 		)
 fcObject<-function(x,y)
 {
- new("fcObject",prior=x,posteriors=y)	
+ new("fcObject",prior=x,fcFilters=y)	
 }
 ###############################################################################	
 ##a flowClust tree is a container to hold priors and posteriors that can be visualized
@@ -97,6 +106,8 @@ isPolyfunctional<-function(gm){
 #	grepl("^\\[\\:.+\\:\\]$",x)
 	class(gm)=="polyFunctions"
 }
+
+setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
 #constructor from csv
 setMethod("gatingTemplate",signature(x="character"),function(x,name){
 	

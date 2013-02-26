@@ -11,7 +11,7 @@ setMethod("getNodes",signature=c("fcTree"),definition=function(x,y)
 			else
 				nodeData(x,y)
 		})
-setMethod("plot",sig=c("fcTree","character"),definition=function(x,y,isAlias=TRUE,...){
+setMethod("plot",sig=c("fcTree","character"),definition=function(x,y,channel=NULL,isAlias=TRUE,...){
 			#get fcobject
 #			browser()
 			nodes<-getNodes(x)
@@ -22,7 +22,7 @@ setMethod("plot",sig=c("fcTree","character"),definition=function(x,y,isAlias=TRU
 				ind<-match(y,allAlias)
 				if(length(ind)>1)
 					stop("Population '",y,"' is ambiguous!")
-				else if(length(ind)==0)
+				else if(is.na(ind))
 					stop("Population '",y,"' is not found!")
 				else
 				{
@@ -30,8 +30,9 @@ setMethod("plot",sig=c("fcTree","character"),definition=function(x,y,isAlias=TRU
 				}
 			}else
 				matchedNode<-nodes[[y]]
-			
+#			browser()
 			fcObj<-matchedNode$fcObj
-			plot(x=fcObj,main=matchedNode$pop@name,...)
+			
+			plot(x=fcObj,y=channel,main=matchedNode$pop@name,...)
 		})
 

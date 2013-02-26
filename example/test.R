@@ -5,7 +5,6 @@
 unloadNamespace("openCyto")
 library(flowWorkspace)
 #library(openCyto)
-source("/home/wjiang2/rglab/workspace/openCyto/R/AllGenerics.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
@@ -14,6 +13,7 @@ source("/home/wjiang2/rglab/workspace/openCyto/R/gtMethod-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gtPopulation-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/fcObject-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/fcTree-methods.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/fcFilter-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/median-logicle-transform.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
@@ -74,10 +74,13 @@ plot(gt2)
 
 fs_bcell[[1]]
 gs2<-GatingSet(fs_bcell)
-gating(gt2,gs2)
+gating(gt2,gs2,env1)
 plotGate(gs2[[1]],bool=T,xbin=128)
+plot(env1$fct,"nonDebris",post=T)
+plot(env1$fct,"cd19",post=T)
+plot(env1$fct,"IgD-cd27+",channel="<G780-A>",post=T)
+plot(env1$fct,"IgD-cd27+",post=T,channel="<V545-A>")
 
-#
 library(openCyto)
 archive_path <- '/loc/no-backup/ramey'
 

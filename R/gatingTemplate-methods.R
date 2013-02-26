@@ -111,6 +111,9 @@ setMethod("plot",signature=c("gatingTemplate"),definition=function(x,y=missing)
 		})
 
 #extend flowWorkspace to store gatingSet 
+
+#setGeneric("gatingTemplate<-", function(x,value, ...) standardGeneric("gatingTemplate<-"))
+
 #setMethod("gatingTemplate",signature(x="GatingSet"),function(x){
 #			
 #			gatingTemplate(x[[1]])			
