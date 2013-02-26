@@ -187,30 +187,38 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						
 						if(all(is.element(c("pos","neg"),names(paired_args))))
 						{
-							neg_cluster<-as.integer(paired_args["neg"])			
-							K<-as.integer(paired_args["pos"])+neg_cluster
+							neg_cluster <- as.integer(paired_args["neg"])
+							pos_cluster <- as.integer(paired_args["pos"])
+							K <- neg_cluster + pos_cluster
 						}else
 						{
-							message("Using default setting:neg=1,pos=1")
-							neg_cluster<-as.integer(1)			
-							K<-2
+							message("Using default setting: neg = 1, pos = 1")
+							neg_cluster <- pos_cluster <- as.integer(1)
+							K <- 2
 						}
 #						browser()
 						# Elicitation of priors for flowClust
 						if(!is.na(xChannel))
-							prior_list[[xChannel]] <- prior_flowClust1d(flow_set = parent_data,channel = xChannel, K = K)
-						
-						prior_list[[yChannel]] <- prior_flowClust1d(flow_set = parent_data,channel = yChannel, K = K)
-						
+							prior_list[[xChannel]] <-  prior_flowClust(flow_set = parent_data, channels = xChannel, K = K, ...)
+
+						prior_list[[yChannel]] <- prior_flowClust(flow_set = parent_data, channels = yChannel, K = K, ...)
+ 									
 #						browser()
 						#replace neg and pos and convert the named vector back to string
 						paired_args[["K"]]<-K
 						paired_args[["neg_cluster"]]<-neg_cluster
 						paired_args[["prior"]]<-prior_list
+						
+						# If the number of positive clusters is 0 and no cutpoint method has
+						# been specified, we use the quantile gate by default.
+						if (pos_cluster == 0 && is.null(paired_args[["cutpoint_method"]])) {
+							paired_args[["cutpoint_method"]] <- "quantile"
+						}
+						
 						neg_ind<-match("neg",names(paired_args))
 						if(!is.na(neg_ind))
 							paired_args<-paired_args[-neg_ind]
-						
+												
 						pos_ind<-match("pos",names(paired_args))
 						if(!is.na(pos_ind))
 							paired_args<-paired_args[-pos_ind]
@@ -227,17 +235,17 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						{
 							message("'K' argument is missing!Using default setting:K=2")
 							K<-2
-						}	
+						}
+						
 						paired_args[["k"]]<-K						
 						names(paired_args)[match("k",names(paired_args))]<-"K"#restore K to capital letter
 						
+	
 						# Elicitation of priors for flowClust
-						prior_list <- prior_flowClust2d(fr = parent_data[[1]]
-								,xChannel = xChannel
-								,yChannel = yChannel
-								, K = K)
-						
-						paired_args[["prior_list"]]<-prior_list
+						prior_list <- prior_flowClust(flow_set = parent_data,
+														channels = c(xChannel, yChannel)
+														, K = K, ...)
+						paired_args[["prior"]]<-prior_list
 						thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
 					}
 									
@@ -571,9 +579,9 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 		##cut.x,cut.y.r(2nd,3rd quad)
 		postX<-posteriors(filter1)
 		if(split)
-			postY<-	posteriors(filter2)
+			postY<-	posteriors(filter3)
 		else
-			postY<-posteriors(filter3)
+			postY<-posteriors(filter2)
 		postList<-c(postX,postY)
 		
 		coord <- list(c(cut.x, Inf), c(cut.y.r, Inf))

@@ -258,39 +258,59 @@ spillover1<-function(x, unstained=NULL, cols=NULL, fsc="FSC-A",
 }
 
 
-
-getChannelMarker<-function(frm,name,fix=FALSE)
-{
-	#try stain name
-	pd<-pData(parameters(frm))
-	pname<-paste(name,"([ ]|$)",sep="")
-#	browser()
+.flowParamMatch<-function(pd,name,fix=FALSE,partial=FALSE){
+	if(partial)
+		pname<-name
+	else
+		pname<-paste(name,"([ ]|$)",sep="") #try to compelete word match by following with a space or the end of string 
+	
 	if(fix)
 		ind<-which(toupper(pd$name)%in%toupper(name))
 	else
 		ind<-which(grepl(pname,pd$name,ignore.case=T))
-		
 	
 	
-		
+	
+	
 	if(length(ind)==0)
 	{
 		#try marker name
-		ind<-which(unlist(lapply(pd$des,function(x){
-								#split by white space and then match each individual string
-#									browser()
-									if(fix)
-										any(unlist(lapply(strsplit(x," "),function(y)toupper(y)%in%toupper(name))))
-									else
-										grepl(pattern=pname,x,ignore.case=T)
-							})
+		which(unlist(lapply(pd$des,function(x){
+									#split by white space and then match each individual string
+			#									browser()
+												if(fix)
+													any(unlist(lapply(strsplit(x," "),function(y)toupper(y)%in%toupper(name))))
+												else
+													grepl(pattern=pname,x,ignore.case=T)
+											})
 						)
-					)
+				)
+	
+	}
+	
+}
+getChannelMarker<-function(frm,name,...)
+{
+	#try stain name
+	pd<-pData(parameters(frm))
+	#try complete match first
+	ind<-.flowParamMatch(pd,name,...)
+	if(length(ind)>1)
+		stop("multiple markers matched: ",name)
+	
+	if(length(ind)==0)
+	{
+		#if no match then give a second try to patial match
+		ind<-.flowParamMatch(pd,name,partial=TRUE,...)
 		if(length(ind)==0)
 			stop("can't find ",name)
-		if(length(ind)>1)
+		else if(length(ind)>1)
 			stop("multiple markers matched: ",name)
+		else
+			warning(name," is partially matched with ",pd[ind,c("name","desc")])
 	}
+		
+	
 	
 	pd[ind,c("name","desc")]
 }
