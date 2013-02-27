@@ -2,15 +2,22 @@
 exportClasses(gatingTemplate
 			,fcTree
 			,fcFilter
+			,fcRectangleGate
+			,fcPolygonGate
+			,fcObject
+			,fcObject2d
 			,gtMethod
 			,boolMethod
 			,polyFunctions
 			,gtPopulation
 			,gtSubsets)
 
-export(fcFilter
+export(fcRectangleGate
+	,fcPolygonGate
+	,fcObject
 	,flowClust.1d
 	,flowClust.2d
+	,fcTree
 	)
 
 exportMethods(getNodes

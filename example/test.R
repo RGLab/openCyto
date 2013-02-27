@@ -4,7 +4,7 @@
 ###############################################################################
 unloadNamespace("openCyto")
 library(flowWorkspace)
-#library(openCyto)
+library(openCyto)
 source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
@@ -17,7 +17,7 @@ source("/home/wjiang2/rglab/workspace/openCyto/R/fcFilter-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/median-logicle-transform.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
-library(MASS)
+#library(MASS)
 
 path<-"openCyto"
 load(file.path(path,"data/065_fs.rda"))
@@ -61,6 +61,7 @@ plot(gt1)
 
 fs_tcell[[1]]
 gs1<-GatingSet(fs_tcell)
+env1<-new.env(parent=emptyenv())
 gating(gt1,gs1,env1)
 plotGate(gs1[[1]],xbin=128)
 plot(env1$fct,"nonDebris",post=T)
@@ -81,6 +82,7 @@ plot(gt2)
 
 fs_bcell[[1]]
 gs2<-GatingSet(fs_bcell)
+env1<-new.env(parent=emptyenv())
 gating(gt2,gs2,env1)
 plotGate(gs2[[1]],bool=T,xbin=128)
 

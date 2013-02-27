@@ -1,7 +1,7 @@
 Package: openCyto
 Type: Package
 Title:Hierarchical Gating Pipeline for flow cytometry data
-Version: 0.99
+Version: 0.99.1
 Date: 2012-06-10
 Author: Mike Jiang, John Ramey, Greg Finak, Raphael Gottardo
 Maintainer: Mike Jiang <wjiang2@fhcrc.org>
@@ -20,6 +20,6 @@ Collate: 	AllClasses.R
 			fcObject-methods.R
 			fcTree-methods.R
 			fcFilter-methods.R
-Depends: methods,flowWorkspace,flowClust,flowStats			 
+Depends: methods,flowWorkspace,flowClust,flowStats,MASS			 
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
 
