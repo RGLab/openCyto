@@ -278,7 +278,7 @@ getChannelMarker <- function(frm, name, fix = FALSE) {
   } else {
     ind <- which(grepl(pname, pd$name, ignore.case = TRUE))
   }
-
+}
 .flowParamMatch<-function(pd,name,fix=FALSE,partial=FALSE){
 	if(partial)
 		pname<-name
