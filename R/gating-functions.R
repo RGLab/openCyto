@@ -216,7 +216,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
                          plot = FALSE, target_centroid,
-                         gate_type = c("ellipse", "axis"), quantile = 0.995,
+                         gate_type = c("ellipse", "axis"), quantile = 0.9,
                          truncate_min = NULL, truncate_max = NULL, ...) {
 
   if (missing(target_centroid)) {
@@ -263,8 +263,8 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   cluster_selected <- which.min(target_dist)
 
   if (gate_type == "ellipse") {
-    contour_ellipse <- .getEllipse(filter = tmixRes1,
-                                   include = cluster_selected)
+    contour_ellipse <- .getEllipse(filter = tmixRes1, include = cluster_selected,
+                                   quantile = quantile)
     flowClust_gate <- polygonGate(.gate = matrix(contour_ellipse, ncol = 2,
                                     dimnames = list(NULL, tmixRes1@varNames)),
                                   filterId = filterId)

@@ -198,36 +198,48 @@ spillover1<-function(x, unstained=NULL, cols=NULL, fsc="FSC-A",
 			}
 		}
 
-
-
 #' Creates a matrix of points on an ellipse from a fitted flowClust model.
 #'
 #' The ellipse is constructed from a contour from the fitted flowClust model.
-#' The contour level is specified with \code{level}.
 #'
-#' @param filter object containing the fitted flowClust model.
-#' @param include the mixture component in the fitted flowClust model for which
-#' the contour (ellipse) is returned
+#' By default, the contour level is extracted from the \code{ruleOutliers} slot
+#' in the \code{filter}. The user can override this level by specifying value
+#' between 0 and 1 in \code{quantile}.
+#'
+#' @param filter object containing the fitted \code{flowClust} model.
+#' @param include the mixture component in the fitted \code{flowClust} model for
+#' which the contour (ellipse) is returned
 #' @param ecol TODO
 #' @param elty TODO
-#' @param level the contour level of the ellipse
+#' @param quantile the contour level of the ellipse. See details.
 #' @param npoints the number of points on the ellipse
 #' @param subset the dimensions of the mixture component to return
 #' @return matrix containing the points of the ellipse from the flowClust contour
 .getEllipse <- function(filter = NULL, include = seq_len(filter@K), ecol = 1,
-                        elty = 1, level = NULL, npoints = 501, subset = c(1, 2)) {
+                        elty = 1, quantile = NULL, npoints = 501, subset = c(1, 2)) {
+
+  # Sets the quantile of the ellipse.
+  if (is.null(quantile)) {
+    quantile <- filter@ruleOutliers[2]
+  } else {
+    if (!is.numeric(quantile) || quantile < 0 || quantile > 1) {
+      stop("The 'quantile' must be a numeric value between 0 and 1.")
+    }
+  }
+
+  # py is the degrees of freedom?
   py <- 2
   ecol <- matrix(ecol, length(include))
   elty <- matrix(elty, length(include))
 
   if (all(filter@nu != Inf)) {
     if (filter@ruleOutliers[1] == 0) { # 0 means quantile
-      cc <- py * qf(filter@ruleOutliers[2], py, filter@nu)
+      cc <- py * qf(p = quantile, py, filter@nu)
     } else { # 1 means u.cutoff
-      cc <- ((filter@nu + py) / filter@ruleOutliers[2] - filter@nu)    
+      cc <- ((filter@nu + py) / quantile - filter@nu)
     }
   } else {
-    cc <- qchisq(filter@ruleOutliers[2], py)
+    cc <- qchisq(p = quantile, py)
   }
 	
 	j <- 0
@@ -257,49 +269,38 @@ spillover1<-function(x, unstained=NULL, cols=NULL, fsc="FSC-A",
   res
 }
 
+getChannelMarker <- function(frm, name, fix = FALSE) {
+  #try stain name
+  pd<-pData(parameters(frm))
+  pname<-paste(name,"([ ]|$)",sep="")
+  if (fix) {
+    ind <- which(toupper(pd$name) %in% toupper(name))
+  } else {
+    ind <- which(grepl(pname, pd$name, ignore.case = TRUE))
+  }
 
+  if(length(ind) == 0) {
+    # try marker name
+    ind <- which(unlist(lapply(pd$des, function(x) {
+      # split by white space and then match each individual string
+      if (fix) {
+        any(unlist(lapply(strsplit(x, " "), function(y) {
+          toupper(y) %in% toupper(name)
+        })))
+      } else {
+        grepl(pattern=pname,x,ignore.case=T)
+      }
+    })))
 
-getChannelMarker<-function(frm,name,fix=FALSE)
-{
-	#try stain name
-	pd<-pData(parameters(frm))
-	pname<-paste(name,"([ ]|$)",sep="")
-#	browser()
-	if(fix)
-		ind<-which(toupper(pd$name)%in%toupper(name))
-	else
-		ind<-which(grepl(pname,pd$name,ignore.case=T))
-		
-	
-	
-		
-	if(length(ind)==0)
-	{
-		#try marker name
-		ind<-which(unlist(lapply(pd$des,function(x){
-								#split by white space and then match each individual string
-#									browser()
-									if(fix)
-										any(unlist(lapply(strsplit(x," "),function(y)toupper(y)%in%toupper(name))))
-									else
-										grepl(pattern=pname,x,ignore.case=T)
-							})
-						)
-					)
-		if(length(ind)==0)
-			stop("can't find ",name)
-		if(length(ind)>1)
-			stop("multiple markers matched: ",name)
-	}
-	
-	pd[ind,c("name","desc")]
+    if (length(ind) == 0) {
+      stop("can't find ", name)
+    } else if(length(ind) > 1) {
+      stop("multiple markers matched: ", name)
+    }
+  }
+
+  pd[ind, c("name", "desc")]
 }
-
-
-
-
-
-
 
 #' For the given workflow, we look up the given markers and return the
 #' corresponding channels.
