@@ -83,7 +83,10 @@ setMethod("plot",sig=c("fcObject","ANY"),definition=function(x,y,samples=NULL,po
 					lines(x_dens, posterior_density, col = rainbow(K)[k], lwd = 1)
 					#plot gate
 
-					abline(v=curFilter@min[y],col="grey")
+		
+					g<-c(curFilter@min[y],curFilter@max[y])
+					ind<-which(!is.infinite(g))
+					abline(v=g[ind],col="grey")
 				}
 				
 			}

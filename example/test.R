@@ -47,7 +47,7 @@ gating(gt,gs,env1)
 plot(gs[[1]])
 getNodes(gs[[1]])
 plotGate(gs[[1]],xbin=128)
-getData(gs1)[[1]]
+
 
 #plot priors
 plotGate(x=gs,3)
