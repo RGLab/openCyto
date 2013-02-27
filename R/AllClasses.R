@@ -87,6 +87,9 @@ isPolyfunctional<-function(gm){
 
 #gating arguments parser
 .argParser<-function(txt){
+	
+	#trim whitespaces at beginning and the end of string
+	txt<-gsub("^\\s*|\\s*$","",txt)
 	paired_args<-paste("c(",txt,")")
 	paired_args<-try(parse(text=paired_args),silent = TRUE)
 	if(class(paired_args)=="try-error")
