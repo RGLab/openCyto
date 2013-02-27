@@ -21,7 +21,7 @@ setMethod("plot",sig=c("fcTree","character"),definition=function(x,y,channel=NUL
 			ind<-which(allAlias%in%y)
 			if(length(ind)>1)
 				stop("Population '",y,"' is ambiguous!")
-			else if(is.na(ind))
+			else if(length(ind)==0)
 				stop("Population '",y,"' is not found!")
 			else
 			{
@@ -30,7 +30,7 @@ setMethod("plot",sig=c("fcTree","character"),definition=function(x,y,channel=NUL
 		
 			
 			fcObj<-matchedNode$fcObj
-			
+#			browser()
 			plot(x=fcObj,y=channel,main=matchedNode$pop@name,...)
 		})
 

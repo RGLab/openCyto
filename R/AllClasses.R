@@ -65,6 +65,10 @@ fcObject<-function(x,y)
 {
  new("fcObject",prior=x,fcFilters=y)	
 }
+#for the purpose of method dispatching
+setClass("fcObject2d"
+		,contains="fcObject"
+)
 ###############################################################################	
 ##a flowClust tree is a container to hold priors and posteriors that can be visualized
 ## for the purpose of fine-tunning parameters for flowClust algorithm

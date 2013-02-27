@@ -90,4 +90,6 @@ setMethod("plot",sig=c("fcObject","ANY"),definition=function(x,y,samples=NULL,po
 		}
 		
 	})	
-			
+setMethod("plot",sig=c("fcObject2d","ANY"),definition=function(x,y,samples=NULL,posteriors=FALSE,...){
+	message("To be implemented!")			
+		})

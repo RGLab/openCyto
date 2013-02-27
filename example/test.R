@@ -68,7 +68,7 @@ plot(env1$fct,"cd3",post=T)
 plot(env1$fct,"cd4",post=T,channel="<B710-A>")
 plot(env1$fct,"activated cd4",post=T,channel="<R660-A>")
 plot(env1$fct,2,post=T)
-plot(env1$fct,"Lymph",post=T)
+plot(env1$fct,"lymph",post=T)
 
 #xyplot(`<B710-A>`~`<R660-A>`,fs_tcell)
 #densityplot(~.,fs_tcell[[1]])

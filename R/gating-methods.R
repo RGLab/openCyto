@@ -322,15 +322,31 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 									curFilters[[quadInd]]
 								})
 						
-						#save the fcFilter if applicable
 						if(extends(class(curFlist[[1]]),"fcFilter"))
 						{
-							fcObjList<-c(fcObjList,new("fcObject"
-														,prior=prior_list
-														,fcFilters=curFlist
-														)
-											)
+							#save the fcFilter if applicable
+							if(class(curFlist[[1]])=="fcRectangleGate")
+							{
+								curFcObj<-new("fcObject"
+										,prior=prior_list
+										,fcFilters=curFlist
+								)
+								
+								
+							}else if(class(curFlist[[1]])=="fcPolygonGate")
+							{
+								curFcObj<-new("fcObject2d"
+										,prior=prior_list
+										,fcFilters=curFlist
+								)
+							}else
+								stop("not a valid fcFilter!")
+								
+								
+							fcObjList<-c(fcObjList,curFcObj)
 						}
+						
+						
 						curFlist <- filterList(curFlist)
 						cur_gs_node_id <- add(y, curFlist, parent = parent,name=curAlias)	
 						recompute(y, cur_gs_node_id)
@@ -343,16 +359,27 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				}else
 				{
 #				browser()
-					#append it to fcObj if it is a fcFilter
 					if(extends(class(flist[[1]]),"fcFilter"))
 					{
-						
-						fcObjList[[1]]<-new("fcObject"
-											,prior=prior_list
-											,fcFilters=flist)
-					}	
-					
-					
+						#append it to fcObj if it is a fcFilter
+						if(class(flist[[1]])=="fcRectangleGate")
+						{
+							curFcObj<-new("fcObject"
+									,prior=prior_list
+									,fcFilters=flist
+							)
+							
+							
+						}else if(class(flist[[1]])=="fcPolygonGate")
+						{
+							curFcObj<-new("fcObject2d"
+									,prior=prior_list
+									,fcFilters=flist
+							)
+						}else
+							stop("not a valid fcFilter!")	
+						fcObjList[[1]]<-curFcObj
+					}
 					gs_node_id <- add(y, flist, parent = parent,name=popAlias)
 					recompute(y, gs_node_id)
 					
