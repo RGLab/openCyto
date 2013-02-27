@@ -12,9 +12,10 @@ setMethod("show",signature=c("gtMethod"),definition=function(object)
 #			browser()
 			chnls<-dims(object)
 			cat(paste(paste(names(chnls),chnls,sep="="),collapse=","))
-			cat(",")
-			cat(parameters(object))
+#			cat(",")
 			cat(") \n");
+			cat(parameters(object))
+			
 		})
 
 setMethod("show",signature=c("boolMethod"),definition=function(object)
