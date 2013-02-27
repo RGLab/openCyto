@@ -168,9 +168,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				}else
 					stop("don't know how to handle quadgate with more than 4 sub-populations!")
 
-				paired_args<-as.list(as.list(parse(text=paste("c(",args,")")))[[1]])[-1]
-				names(paired_args)<-tolower(names(paired_args))
-
+			
 				prior_list<- list()
 				#prior estimation is done separately from flowClust routine 
 				#because piror_flowClust1d requires the entire parent flowSet yet flowClust only takes one flowFrame
@@ -183,10 +181,10 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 					{
 						#get the value of neg and pos
 						
-						if(all(is.element(c("pos","neg"),names(paired_args))))
+						if(all(is.element(c("pos","neg"),names(args))))
 						{
-							neg_cluster <- as.integer(paired_args["neg"])
-							pos_cluster <- as.integer(paired_args["pos"])
+							neg_cluster <- as.integer(args["neg"])
+							pos_cluster <- as.integer(args["pos"])
 							K <- neg_cluster + pos_cluster
 						}else
 						{
@@ -203,55 +201,55 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
  									
 #						browser()
 						#replace neg and pos and convert the named vector back to string
-						paired_args[["K"]]<-K
-						paired_args[["neg_cluster"]]<-neg_cluster
-						paired_args[["prior"]]<-prior_list
+						args[["K"]]<-K
+						args[["neg_cluster"]]<-neg_cluster
+						args[["prior"]]<-prior_list
 						
 						# If the number of positive clusters is 0 and no cutpoint method has
 						# been specified, we use the quantile gate by default.
-						if (pos_cluster == 0 && is.null(paired_args[["cutpoint_method"]])) {
-							paired_args[["cutpoint_method"]] <- "quantile"
+						if (pos_cluster == 0 && is.null(args[["cutpoint_method"]])) {
+							args[["cutpoint_method"]] <- "quantile"
 						}
 						
-						neg_ind<-match("neg",names(paired_args))
+						neg_ind<-match("neg",names(args))
 						if(!is.na(neg_ind))
-							paired_args<-paired_args[-neg_ind]
+							args<-args[-neg_ind]
 												
-						pos_ind<-match("pos",names(paired_args))
+						pos_ind<-match("pos",names(args))
 						if(!is.na(pos_ind))
-							paired_args<-paired_args[-pos_ind]
+							args<-args[-pos_ind]
 						
 						
 						
 					}else
 					{
 						#get the value of neg and pos
-						if(is.element(c("k"),names(paired_args)))
+						if(is.element(c("k"),names(args)))
 						{
-							K<-as.integer(paired_args["k"])			
+							K<-as.integer(args["k"])			
 						}else
 						{
 							message("'K' argument is missing!Using default setting:K=2")
 							K<-2
 						}
 						
-						paired_args[["k"]]<-K						
-						names(paired_args)[match("k",names(paired_args))]<-"K"#restore K to capital letter
+						args[["k"]]<-K						
+						names(args)[match("k",names(args))]<-"K"#restore K to capital letter
 						
 	
 						# Elicitation of priors for flowClust
 						prior_list <- prior_flowClust(flow_set = parent_data,
 														channels = c(xChannel, yChannel)
 														, K = K, ...)
-						paired_args[["prior"]]<-prior_list
+						args[["prior"]]<-prior_list
 						thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
 					}
 									
 				}
 				#update arg_names
 				
-				for(arg in names(paired_args))
-					thisCall[[arg]]<-paired_args[[arg]]
+				for(arg in names(args))
+					thisCall[[arg]]<-args[[arg]]
 				
 				
 				
@@ -416,17 +414,18 @@ setMethod("gating", signature = c("boolMethod", "GatingSet")
 		, definition = function(x, y,gtPops, parent, ...) 
 {
 	
-	args<-parameters(x)
+	args<-parameters(x)[[1]]
+#	browser()
 	gm<-paste(".",names(x),sep="")
 	popAlias<-unlist(lapply(gtPops,alias))
 	popNames<-unlist(lapply(gtPops,names))
 	gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
 	popIds<-unlist(lapply(gtPops,"slot","id"))
 
-	tNodes <-args
+	tNodes <-deparse(args)
 	if (!(tNodes %in% gs_nodes)) {
 		message(tNodes, " gating...")
-		bf <- eval(substitute(booleanFilter(x), list(x = as.symbol(tNodes))))
+		bf <- eval(substitute(booleanFilter(x), list(x = args)))
 		bf@filterId <- tNodes
 		invisible(gs_node_id <- add(y, bf, parent = parent))
 		invisible(recompute(y, gs_node_id))
@@ -450,8 +449,8 @@ setMethod("gating", signature = c("boolMethod", "GatingSet")
 setMethod("gating", signature = c("polyFunctions", "GatingSet")
 				, definition = function(x, y,gtPops, parent, ...) 
 {
-	
-	args<-parameters(x)
+#	browser()
+	args<-deparse(parameters(x)[[1]])
 	gm<-paste(".",names(x),sep="")
 	popAlias<-unlist(lapply(gtPops,alias))
 	popNames<-unlist(lapply(gtPops,names))
@@ -482,7 +481,8 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	
 	#actual gating
 	lapply(polyExprsList, function(polyExpr) {
-				bgt<-new("boolMethod",name=polyExpr,args=polyExpr)
+#				browser()
+				bgt<-new("boolMethod",name=polyExpr,args=list(as.symbol(polyExpr)))
 				gating(bgt,y,parent=parent,gtPops=gtPops,...)
 			})					
 	

@@ -30,7 +30,7 @@
 #' @return list of the necessary prior parameters
 prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = 10, shrink = 1e-6, ...) {
-
+	require(MASS)
   if (length(channels) == 1) {
     prior_list <- prior_flowClust1d(flow_set = flow_set, channel = channels,
                                     K = K, nu0 = nu0, w0 = w0, ...)

@@ -4,7 +4,7 @@
 ###############################################################################
 unloadNamespace("openCyto")
 library(flowWorkspace)
-library(openCyto)
+#library(openCyto)
 source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
@@ -17,7 +17,9 @@ source("/home/wjiang2/rglab/workspace/openCyto/R/fcFilter-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/median-logicle-transform.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
-#library(MASS)
+
+
+
 
 path<-"openCyto"
 load(file.path(path,"data/065_fs.rda"))
@@ -30,6 +32,7 @@ getGate(gt,"14","17")
 #getNodes(gt)
 #png("openCyto/gatingTemplate.png")
 plot(gt)
+class(gt)
 #dev.off()
 
 ##transform the ICS data

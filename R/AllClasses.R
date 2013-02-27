@@ -1,35 +1,9 @@
 ###############################################################################
 ## a class representing the gating method and population info in a graph object 
 ###############################################################################
-setClass("gatingTemplate",
-		contains="graphNEL"
+setClass("gatingTemplate"
+		,contains="graphNEL"
 		,representation(name="character")
-#		,validity=function(object){
-#			#check if the parent is ambiguous or not valid			
-#			parent_matches<-sapply(levels(object[,"parent"]),function(x){
-#						matches<-length(grep(x,object[,"pop"],fix=T))
-#						if(matches==0&&x=="root")
-#							matches<-1
-#						matches
-#					})
-#			
-#			invalid_parent<-which(parent_matches==0)
-#			ambiguous_parent<-which(parent_matches>1)
-#			if(length(invalid_parent)>0)
-#				return(paste("The following parent population names are not valid:"
-#							,paste(names(invalid_parent)
-#								,collapse=",")
-#							)
-#						)
-#			else if(length(ambiguous_parent)>0)
-#				return(paste("The following parent population names are ambiguous:"
-#								,paste(names(ambiguous_parent)
-#										,collapse=",")
-#						)
-#				)
-#			else 
-#				TRUE
-#		}
 	)
 	
 ###############################################################################	
@@ -85,7 +59,7 @@ fcTree<-function(gt){
 setClass("gtMethod"
 		,representation(name="character"
 						,dims="character"
-						,args="character"
+						,args="list"
 						)	
 )
 setClass("boolMethod"
@@ -111,6 +85,21 @@ isPolyfunctional<-function(gm){
 	class(gm)=="polyFunctions"
 }
 
+#gating arguments parser
+.argParser<-function(txt){
+	paired_args<-paste("c(",txt,")")
+	paired_args<-try(parse(text=paired_args),silent = TRUE)
+	if(class(paired_args)=="try-error")
+	{
+		errmsg<-attr(paired_args,"condition")
+		msg <- conditionMessage(errmsg)
+		stop("invalid gating argument:\n",msg)
+	}
+	paired_args<-as.list(as.list(paired_args)[[1]])[-1]
+	
+	names(paired_args)<-tolower(names(paired_args))
+	paired_args
+}
 setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
 #constructor from csv
 setMethod("gatingTemplate",signature(x="character"),function(x,name){
@@ -139,7 +128,7 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
 		gm<-new("gtMethod"
 				,name=df[i,"method"]
 				,dims=df[i,"dims"]
-				,args=df[i,"args"]
+				,args=.argParser(df[i,"args"])
 				)
 				
 		if(names(gm)=="boolGate")
