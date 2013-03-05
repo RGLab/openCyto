@@ -30,3 +30,21 @@ setMethod("posteriors",sig=c("fcFilter","character"),definition=function(x,y){
 #			}
 			
 		})
+setGeneric("priors", function(x,y,...) standardGeneric("priors"))
+setMethod("priors",sig=c("fcFilter","ANY"),definition=function(x,y="missing"){
+      x@priors
+      
+    })
+setMethod("priors",sig=c("fcFilter","character"),definition=function(x,y){
+      prior<-priors(x)
+      
+      
+      priorNames<-names(prior)
+      ind<-match(y,priorNames)
+      if(is.na(ind))
+        stop("FcFilter not found for:",y)
+      else
+        prior[[ind]]		
+#			}
+      
+    })    

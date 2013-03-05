@@ -40,8 +40,6 @@ paramters<-colnames(fs[[1]])
 trans <- estimateLogicle(fs[[1]], channels = paramters[!grepl("[F|S]SC|[T|t]ime",paramters)])
 fs_trans<-transform(fs,trans)
 gs<-GatingSet(fs_trans)
-#gatingTemplate(gs)<-gt
-#gatingTemplate(gs)
 env1<-new.env(parent=emptyenv())
 gating(gt,gs,env1)
 plot(gs[[1]])
@@ -55,7 +53,8 @@ X11()
 plot(env1$fct,"v",posteriors=T)
 plotGate(x=gs,4)
 plot(env1$fct,"nonDebris",posteriors=T)
-
+plot(env1$fct,"cd4",posteriors=T,channel="PE Cy55-A")
+plot(env1$fct,"cd4",posteriors=T,channel="FITC-A")
 #Tcell is already transformed
 load(file.path(path,"data/fs_tcell.rda"))
 
@@ -87,7 +86,7 @@ fs_bcell[[1]]
 gs2<-GatingSet(fs_bcell)
 env1<-new.env(parent=emptyenv())
 gating(gt2,gs2,env1)
-plotGate(gs2[[1]],bool=T,xbin=128)
+plotGate(gs[[1]],bool=T,xbin=128)
 
 plot(env1$fct,"nonDebris",post=T)
 plot(env1$fct,"cd19",post=T)

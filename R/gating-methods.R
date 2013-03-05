@@ -65,7 +65,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 										,...
 										)
 					gs_node_ids<-res[["gs_node_id"]]										
-					fcObjList<-res[["fcObjList"]]													
+                    filterObjList<-res[["filterObjList"]]													
 					for(curGtId in names(gs_node_ids))
 					{
 #						browser()
@@ -77,9 +77,9 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 						if(!is.null(env_fct))
 						{
 #						browser()
-							if(!is.null(fcObjList)&&length(fcObjList)>0)
+							if(!is.null(filterObjList)&&length(filterObjList)>0)
 							{
-								nodeData(env_fct$fct,curGtId,"fcObj")<-fcObjList[[curGtId]]
+								nodeData(env_fct$fct,curGtId,"fList")[[1]]<-filterObjList[[curGtId]]
 							}
 							
 							
@@ -118,7 +118,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 			
 
 #			browser()
-			fcObjList<-list()
+			filterObjList<-list()
 			
 			
 			if (!any(sapply(popAlias,function(a)any(grepl(a, gs_nodes)))))
@@ -175,8 +175,10 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				#####################################################################
 				if(grepl("^\\.flowClust\\.[12]d$",gm))
 				{
-#				browser()
-					
+				
+                    prior_group<-args[["prior_group"]]
+                    args[["prior_group"]]<-NULL
+                    
 					if(gm==".flowClust.1d")
 					{
 						#get the value of neg and pos
@@ -195,9 +197,10 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 #						browser()
 						# Elicitation of priors for flowClust
 						if(!is.na(xChannel))
-							prior_list[[xChannel]] <-  prior_flowClust(flow_set = parent_data, channels = xChannel, K = K, ...)
+							prior_list[[xChannel]] <- .prior_flowClust(flow_set = parent_data, channels = xChannel, K = K, prior_group=prior_group, ...)
 
-						prior_list[[yChannel]] <- prior_flowClust(flow_set = parent_data, channels = yChannel, K = K, ...)
+                        prior_list[[yChannel]] <- .prior_flowClust(flow_set = parent_data, channels = yChannel, K = K, prior_group=prior_group, ...)
+
  									
 #						browser()
 						#replace neg and pos and convert the named vector back to string
@@ -236,11 +239,11 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						args[["k"]]<-K						
 						names(args)[match("k",names(args))]<-"K"#restore K to capital letter
 						
-	
+#	browser()
 						# Elicitation of priors for flowClust
-						prior_list <- prior_flowClust(flow_set = parent_data,
+						prior_list <- .prior_flowClust(flow_set = parent_data,
 														channels = c(xChannel, yChannel)
-														, K = K, ...)
+														, K = K, prior_group=prior_group, ...)
 						args[["prior"]]<-prior_list
 						thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
 					}
@@ -322,30 +325,12 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						
 						if(extends(class(curFlist[[1]]),"fcFilter"))
 						{
-							#save the fcFilter if applicable
-							if(class(curFlist[[1]])=="fcRectangleGate")
-							{
-								curFcObj<-new("fcObject"
-										,prior=prior_list
-										,fcFilters=curFlist
-								)
-								
-								
-							}else if(class(curFlist[[1]])=="fcPolygonGate")
-							{
-								curFcObj<-new("fcObject2d"
-										,prior=prior_list
-										,fcFilters=curFlist
-								)
-							}else
-								stop("not a valid fcFilter!")
-								
-								
-							fcObjList<-c(fcObjList,curFcObj)
-						}
+                            curFlist <- fcFilterList(curFlist)
+						}else
+                          curFlist <- filterList(curFlist)
+                        
+                        filterObjList[[i]]<-curFlist
 						
-						
-						curFlist <- filterList(curFlist)
 						cur_gs_node_id <- add(y, curFlist, parent = parent,name=curAlias)	
 						recompute(y, cur_gs_node_id)
 						gs_node_id<-c(gs_node_id,cur_gs_node_id)
@@ -358,26 +343,11 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				{
 #				browser()
 					if(extends(class(flist[[1]]),"fcFilter"))
-					{
-						#append it to fcObj if it is a fcFilter
-						if(class(flist[[1]])=="fcRectangleGate")
-						{
-							curFcObj<-new("fcObject"
-									,prior=prior_list
-									,fcFilters=flist
-							)
-							
-							
-						}else if(class(flist[[1]])=="fcPolygonGate")
-						{
-							curFcObj<-new("fcObject2d"
-									,prior=prior_list
-									,fcFilters=flist
-							)
-						}else
-							stop("not a valid fcFilter!")	
-						fcObjList[[1]]<-curFcObj
-					}
+                      flist <- fcFilterList(flist)
+                    else
+                      flist <-filterList(flist)
+                    
+                    filterObjList[[1]]<-flist
 					gs_node_id <- add(y, flist, parent = parent,name=popAlias)
 					recompute(y, gs_node_id)
 					
@@ -399,11 +369,11 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
 			}
 			names(gs_node_id)<-popIds
-			if(length(fcObjList)>0)
-				names(fcObjList)<-popIds
+			if(length(filterObjList)>0)
+				names(filterObjList)<-popIds
 #			browser()
 			list(gs_node_id=gs_node_id
-				 ,fcObjList=fcObjList
+				 ,filterObjList=filterObjList
 		 		)
 			
 			
@@ -495,6 +465,28 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	list()
 })
 
+#wrapper for prior_flowClust to return sample-specific priors 
+.prior_flowClust <- function(flow_set, prior_group=NULL, ...){
+#  browser()
+  if(is.null(prior_group))
+  {
+    prior_list<-  prior_flowClust(flow_set, ...)
+    #replicate the prior for each sample
+    sapply(sampleNames(flow_set),function(i)prior_list,simplify=FALSE)
+  }else
+  {
+    
+    splitBy1<-factor(pData(flow_set)[,prior_group])
+    fs_list<-split(flow_set,splitBy1)
+    names(fs_list)<-NULL #strip group name
+    plist<-lapply(fs_list,function(fs){
+          prior_list<-prior_flowClust(fs, ...)
+          #replicate the prior for each sample within this prior group
+          sapply(sampleNames(fs),function(i)prior_list,simplify=FALSE)
+          })
+    unlist(plist,recursive=FALSE)
+  }
+}
 ## wrappers for the different gating routines
 .singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H", prediction_level = 0.99, ...) {
   require('flowStats')
@@ -510,21 +502,25 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	
 	require("flowClust")
 	require("MASS")
-#	browser()
 	
-	fr<-fs[[1]]
+	sname <- sampleNames(fs)
+	fr <- fs[[sname]]
+    priorList<-list()
+    priorList[[yChannel]]<-prior[[yChannel]][[sname]]
+    
 #		browser()			
 	if(is.na(xChannel))#1d gate			
 		flowClust.1d(fr = fr
 				,params = yChannel
 				,tol = tol
 				,filterId = filterId
-				,prior = prior[[yChannel]]
+				,prior = priorList[[yChannel]]
 				,usePrior=usePrior
-				
 				,...)
 	else#quadgate 
 	{
+        priorList[[xChannel]]<-prior[[xChannel]][[sname]]
+        
 		xParam <- getChannelMarker(fr, xChannel)
 		yParam <- getChannelMarker(fr, yChannel)
 		xChannel<-xParam$name
@@ -535,7 +531,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 		filter1 <- flowClust.1d(fr = fr
 								, params = xChannel, tol = tol
 								,filterId = as.character(xStain)
-								,prior = prior[[xChannel]]
+								,prior = priorList[[xChannel]]
 								,usePrior=usePrior
 								, ...)
 		
@@ -557,21 +553,21 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 			filter2 <- flowClust.1d(negFr, params = yChannel,
 									usePrior = usePrior
 									,filterId = as.character(yStain)
-									,prior = prior[[yChannel]]
+									,prior = priorList[[yChannel]]
 									, ...)
 			cut.y.l <- filter2@min
 			
 			filter3 <- flowClust.1d(posFr, params = yChannel,
 									usePrior = usePrior
 									,filterId = as.character(yStain)
-									,prior = prior[[yChannel]]
+									,prior = priorList[[yChannel]]
 									, ...)
 			cut.y.r <- filter3@min
 		} else {
 			filter2 <- flowClust.1d(fr, params = yChannel,
 									usePrior = usePrior
 									,filterId = as.character(yStain)
-									,prior = prior[[yChannel]]
+									,prior = priorList[[yChannel]]
 									, ...)
 
 			cut.y.l <- cut.y.r <- filter2@min
@@ -592,12 +588,16 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 		
 		coord <- list(c(-Inf, cut.x), c(cut.y.l, Inf))
 		names(coord) <- as.character(chnls)
-		thisFcFilter<-fcRectangleGate(rectangleGate(coord),postList)
+		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
+                                      , priorList
+                                      , postList)
 		gateList[[paste(paste0(markers, c("-", "+")), collapse="")]] <-thisFcFilter 
 		
 		coord <- list(c(-Inf, cut.x), c(-Inf, cut.y.l))
 		names(coord) <- as.character(chnls)
-		thisFcFilter<-fcRectangleGate(rectangleGate(coord),postList)
+		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
+                                      , priorList
+                                      , postList)
 		gateList[[paste(paste0(markers, c("-", "-")), collapse="")]] <- thisFcFilter
 		
 
@@ -611,12 +611,16 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 		
 		coord <- list(c(cut.x, Inf), c(cut.y.r, Inf))
 		names(coord) <- as.character(chnls)
-		thisFcFilter<-fcRectangleGate(rectangleGate(coord),postList)
+		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
+                                      , priorList
+                                      , postList)
 		gateList[[paste(paste0(markers, c("+", "+")), collapse="")]] <- thisFcFilter
 		
 		coord <- list(c(cut.x, Inf), c(-Inf, cut.y.r))
 		names(coord) <- as.character(chnls)
-		thisFcFilter<-fcRectangleGate(rectangleGate(coord),postList)
+		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
+                                      , priorList
+                                      , postList)
 		gateList[[paste(paste0(markers, c("+", "-")), collapse="")]] <- thisFcFilter
 		
 		
@@ -638,9 +642,11 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 
 .flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", prior = NULL, ...) {
   require("flowClust")
-  fr <- fs[[1]]
+  sname <- sampleNames(fs)
+  fr <- fs[[sname]]
+  
   flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel,
-               usePrior = usePrior, prior = prior, ...)
+               usePrior = usePrior, prior = prior[[sname]], ...)
 }
 
 .rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE,

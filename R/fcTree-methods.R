@@ -12,7 +12,7 @@ setMethod("getNodes",signature=c("fcTree"),definition=function(x,y)
 				nodeData(x,y)
 		})
 setMethod("plot",sig=c("fcTree","character"),definition=function(x,y,channel=NULL,...){
-			#get fcobject
+			#get filterList
 #			browser()
 			nodes<-getNodes(x)
 			
@@ -29,9 +29,9 @@ setMethod("plot",sig=c("fcTree","character"),definition=function(x,y,channel=NUL
 			}
 		
 			
-			fcObj<-matchedNode$fcObj
+            flist<-matchedNode[["fList"]]
 #			browser()
-			plot(x=fcObj,y=channel,main=matchedNode$pop@name,...)
+			plot(x=flist,y=channel,main=matchedNode$pop@name,...)
 		})
 
 setMethod("plot",sig=c("fcTree","numeric"),definition=function(x,y,channel=NULL,...){

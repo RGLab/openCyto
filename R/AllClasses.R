@@ -9,39 +9,53 @@ setClass("gatingTemplate"
 ###############################################################################	
 #extend flowCore gate classes to have extra slot to store posteriors from flowClust gating routine 	
 ###############################################################################
-setClass("fcFilter",representation("VIRTUAL",posteriors="list"))
+setClass("fcFilter",representation("VIRTUAL",priors="list",posteriors="list"))
 
 #setClassUnion("fcRectangleGate",c("rectangleGate","fcFilter"))
 setClass("fcRectangleGate",contains=c("fcFilter","rectangleGate"))
 
 
-fcRectangleGate<-function(x,y)
+fcRectangleGate<-function(x,priors,posts)
 {
 	res<-as(x,"fcRectangleGate")
-	res@posteriors<-y
+    res@priors<-priors
+    res@posteriors<-posts
 	res
 }
 
 setClass("fcPolygonGate",contains=c("fcFilter","polygonGate"))
-fcPolygonGate<-function(x,y)
+
+fcPolygonGate<-function(x,priors,posts)
 {
-	res<-as(x,"fcPolygonGate")
-	res@posteriors<-y
-	res
+  res<-as(x,"fcPolygonGate")
+  res@priors<-priors
+  res@posteriors<-posts
+  res
 }
 
-##a container to store prior and posteriors from flowClust gating
-setClass("fcObject"
-		,representation(prior="list"
-						,fcFilters="list")
+setClass("fcFilterList"
+		,contains="filterList"
 		)
-fcObject<-function(x,y)
+fcFilterList<-function(x)
 {
- new("fcObject",prior=x,fcFilters=y)	
+#  browser()
+  
+  if(!all(unlist(lapply(x,function(i)extends(class(i),"fcFilter")))))
+    stop("not all filters are fcFilter!")
+  if(class(x) == "list")
+    x <- filterList(x)
+  
+  sname<-names(x)
+  x <- as(x,"fcFilterList")
+
+  attr(x,"names")<-sname
+  x
+
+  	
 }
 #for the purpose of method dispatching
-setClass("fcObject2d"
-		,contains="fcObject"
+setClass("fcFilterList2d"
+		,contains="fcFilterList"
 )
 ###############################################################################	
 ##a flowClust tree is a container to hold priors and posteriors that can be visualized
@@ -53,7 +67,7 @@ setClass("fcTree"
 fcTree<-function(gt){
 		
 		res<-as(gt,"fcTree")
-		nodeDataDefaults(res,"fcObj")<-new("fcObject")
+		nodeDataDefaults(res,"fList")<-new("filterList")
 		res
 		}	
 setClass("gtMethod"

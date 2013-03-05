@@ -154,6 +154,8 @@ postList<-list()
 					,max=max(x)
 					)
 postList[[params[1]]]<-posteriors
+priorList<-list()
+priorList[[params[1]]]<-prior
   
   if (plot) {
     gate_pct <- round(100 * mean(x > cutpoint), 3)
@@ -183,7 +185,7 @@ postList[[params[1]]]<-posteriors
     }
   }
 
-  fcRectangleGate(fres,postList)
+  fcRectangleGate(fres,priorList,postList)
 }
 
 #' Applies flowClust to two features in a flowFrame to construct an elliptical
@@ -382,7 +384,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     }
   }
 
-  fcPolygonGate(flowClust_gate,posteriors)
+  fcPolygonGate(flowClust_gate,prior,posteriors)
 }
 
 
