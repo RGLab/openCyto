@@ -98,7 +98,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 setMethod("gating", signature = c("gtMethod", "GatingSet")
 		, definition = function(x, y,gtPops, parent
 				,num_nodes = 1, parallel_type = c("multicore", "sock")
-				,plot = FALSE, xbin = 128,...) 
+				,plot = FALSE, xbin = 128,prior_group=NULL,...) 
 		{
 			
 			require('parallel')
@@ -175,10 +175,13 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				#####################################################################
 				if(grepl("^\\.flowClust\\.[12]d$",gm))
 				{
-				
-                    prior_group <- args[["prior_group"]]
+#				    browser()
+                    #parse the local prior_group
+                    local_prior_group <- args[["prior_group"]]
                     args[["prior_group"]] <- NULL
-                    
+                    #overwrite the golbal one if the local is specified 
+                    if(!is.null(local_prior_group))
+                      prior_group <- local_prior_group
                     
                     prior_source <- args[["prior_source"]]
                     args[["prior_source"]] <- NULL

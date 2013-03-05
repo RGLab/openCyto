@@ -41,7 +41,7 @@ trans <- estimateLogicle(fs[[1]], channels = paramters[!grepl("[F|S]SC|[T|t]ime"
 fs_trans<-transform(fs,trans)
 gs<-GatingSet(fs_trans)
 env1<-new.env(parent=emptyenv())
-gating(gt,gs,env1)
+gating(gt,gs,env1, prior_group='VISITNO')
 plot(gs[[1]])
 getNodes(gs[[1]])
 plotGate(gs[[1]],xbin=128)
