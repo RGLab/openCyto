@@ -55,6 +55,7 @@ plotGate(x=gs,4)
 plot(env1$fct,"nonDebris",posteriors=T)
 plot(env1$fct,"cd4",posteriors=T,channel="PE Cy55-A")
 plot(env1$fct,"cd4",posteriors=T,channel="FITC-A")
+plot(env1$fct,"TNFa",posteriors=T)
 #Tcell is already transformed
 load(file.path(path,"data/fs_tcell.rda"))
 

@@ -6,7 +6,7 @@
 "cd3","cd3+","lymph","cd3","rangeGate","simple = TRUE"
 "cd4","cd4+cd8-","cd3","cd4,cd8","flowClust.1d","neg=1,pos=1"
 "cd8","cd4-cd8+","cd3","cd4,cd8","flowClust.1d","neg=1,pos=1"
-"TNFa","TNFa+","cd4","TNFa","flowClust.1d","cutpoint_method='quantile',quantile=0.995"
+"TNFa","TNFa+","cd4","TNFa","flowClust.1d","cutpoint_method='quantile',quantile=0.995,prior_source='cd3'"
 "IFNg","IFNg+","cd4","IFNg","flowClust.1d","cutpoint_method='quantile',quantile=0.995"
 "IL2","IL2+","cd4","IL2","flowClust.1d","cutpoint_method='quantile',quantile=0.995"
 "TNFa","TNFa+","cd8","TNFa","flowClust.1d","cutpoint_method='quantile',quantile=0.995"

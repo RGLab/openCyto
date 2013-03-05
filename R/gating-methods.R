@@ -176,8 +176,17 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				if(grepl("^\\.flowClust\\.[12]d$",gm))
 				{
 				
-                    prior_group<-args[["prior_group"]]
-                    args[["prior_group"]]<-NULL
+                    prior_group <- args[["prior_group"]]
+                    args[["prior_group"]] <- NULL
+                    
+                    
+                    prior_source <- args[["prior_source"]]
+                    args[["prior_source"]] <- NULL
+                    if(is.null(prior_source))
+                      prior_data <- parent_data
+                    else
+                      prior_data <- getData(y, prior_source)
+                      
                     
 					if(gm==".flowClust.1d")
 					{
@@ -197,9 +206,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 #						browser()
 						# Elicitation of priors for flowClust
 						if(!is.na(xChannel))
-							prior_list[[xChannel]] <- .prior_flowClust(flow_set = parent_data, channels = xChannel, K = K, prior_group=prior_group, ...)
+							prior_list[[xChannel]] <- .prior_flowClust(flow_set = prior_data, channels = xChannel, K = K, prior_group=prior_group, ...)
 
-                        prior_list[[yChannel]] <- .prior_flowClust(flow_set = parent_data, channels = yChannel, K = K, prior_group=prior_group, ...)
+                        prior_list[[yChannel]] <- .prior_flowClust(flow_set = prior_data, channels = yChannel, K = K, prior_group=prior_group, ...)
 
  									
 #						browser()
@@ -241,7 +250,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						
 #	browser()
 						# Elicitation of priors for flowClust
-						prior_list <- .prior_flowClust(flow_set = parent_data,
+						prior_list <- .prior_flowClust(flow_set = prior_data,
 														channels = c(xChannel, yChannel)
 														, K = K, prior_group=prior_group, ...)
 						args[["prior"]]<-prior_list
