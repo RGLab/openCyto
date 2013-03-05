@@ -54,9 +54,9 @@ fcFilterList<-function(x)
   	
 }
 #for the purpose of method dispatching
-setClass("fcFilterList2d"
-		,contains="fcFilterList"
-)
+#setClass("fcFilterList2d"
+#		,contains="fcFilterList"
+#)
 ###############################################################################	
 ##a flowClust tree is a container to hold priors and posteriors that can be visualized
 ## for the purpose of fine-tunning parameters for flowClust algorithm

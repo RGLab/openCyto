@@ -4,8 +4,7 @@ exportClasses(gatingTemplate
 			,fcFilter
 			,fcRectangleGate
 			,fcPolygonGate
-			,fcObject
-			,fcObject2d
+			,fcFilterList
 			,gtMethod
 			,boolMethod
 			,polyFunctions
@@ -14,7 +13,7 @@ exportClasses(gatingTemplate
 
 export(fcRectangleGate
 	,fcPolygonGate
-	,fcObject
+	,fcFilterList
 	,flowClust.1d
 	,flowClust.2d
 	,fcTree
