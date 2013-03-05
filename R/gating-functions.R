@@ -239,13 +239,13 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 #' gating.
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
-                         plot = FALSE, target,
+                         plot = FALSE, target = rep(0, K),
                          gate_type = c("ellipse", "axis"), quantile = 0.9,
                          axis_translation = 0.25, truncate_min = NULL,
                          truncate_max = NULL, ...) {
 
-  if (missing(target)) {
-    stop("The target location must be specified.")
+  if (length(target) != K) {
+    stop("The target location vector must be a numeric vector of length 'K'.")
   }
   gate_type <- match.arg(gate_type)
 
