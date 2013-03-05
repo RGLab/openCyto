@@ -1,6 +1,6 @@
 "alias","pop","parent","dims","method","args"
 "nonDebris","nonDebris+","root","FSC-A","flowClust.1d","Neg=1,pos=2"
-"lymph","lymph+","nonDebris","FSC-A,SSC-A","flowClust.2d","K=2,quantile=0.8,target_centroid=c(1e5,5e4)"
+"lymph","lymph+","nonDebris","FSC-A,SSC-A","flowClust.2d","K=2,quantile=0.8,target=c(1e5,5e4)"
 "cd3","cd3-","lymph","cd3","mindensity",
 "cd19","cd19","cd3","cd19","mindensity"
 "cd20","cd20+","cd3","cd20","mindensity"
@@ -11,4 +11,4 @@
 "IgD+cd27+","IgD+cd27+","cd19&cd20","IgD,cd27","flowClust.1d","split=FALSE"
 "IgD+cd27-","IgD+cd27-","cd19&cd20","IgD,cd27","flowClust.1d","split=FALSE"
 "IgD-cd27-","IgD-cd27-","cd19&cd20","IgD,cd27","flowClust.1d","split=FALSE"
-"transitional","transitional+","cd19&cd20","cd38,cd24","flowClust.2d","K=4,gate_type='axis',target_centroid=c(3.5e3,3.5e3),quantile=0.995"
+"transitional","transitional+","cd19&cd20","cd38,cd24","flowClust.2d","K=4,gate_type='axis',target=c(3.5e3,3.5e3),quantile=0.995,axis_translation=0.55"

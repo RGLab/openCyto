@@ -143,19 +143,17 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
   names(gate_coordinates) <- params
   
   fres <- rectangleGate(gate_coordinates, filterId = filterId)
-  
- #save posteriors
-postList<-list()
- posteriors<-list(mu=tmixRes1@mu
-					,lamdda=tmixRes1@lambda
-					,sigma=tmixRes1@sigma
-					,nu=tmixRes1@nu
-					,min=min(x)
-					,max=max(x)
-					)
-postList[[params[1]]]<-posteriors
-priorList<-list()
-priorList[[params[1]]]<-prior
+
+  # Saves posterior point estimates
+  postList <- list()
+  posteriors <- list(mu = tmixRes1@mu, lamdda = tmixRes1@lambda,
+                     sigma = tmixRes1@sigma, nu = tmixRes1@nu, min = min(x),
+                     max = max(x))
+  postList[[params[1]]] <- posteriors
+
+  # Saves prior point estimates
+  priorList <- list()
+  priorList[[params[1]]] <- prior
   
   if (plot) {
     gate_pct <- round(100 * mean(x > cutpoint), 3)
@@ -185,18 +183,24 @@ priorList[[params[1]]]<-prior
     }
   }
 
-  fcRectangleGate(fres,priorList,postList)
+  fcRectangleGate(fres, priorList, postList)
 }
 
-#' Applies flowClust to two features in a flowFrame to construct an elliptical
-#' gate.
+#' Applies flowClust to two features in a flowFrame
 #'
 #' We cluster the observations in \code{fr} into \code{K} clusters. We set the
 #' cutpoint to be the point at which the density between the first and second
 #' smallest cluster centroids is minimum.
 #'
 #' The cluster for the population of interest is selected as the one with cluster
-#' centroid nearest the \code{target_centroid} in Euclidean distance.
+#' centroid nearest the \code{target} in Euclidean distance.
+#'
+#' When constructing the axis gate, we translate the gate from the cluster
+#' centroid of along the eigenvector with positive slope from the bottom-left
+#' corner to top-right corner. The \code{axis_translation} argument scales the
+#' translation shift as a function of the appropriate chi-squared coefficient.
+#' The larger \code{axis_translation} is, the more gate is shifted in a positive
+#' direction.
 #'
 #' @param fr a \code{flowFrame} object
 #' @param xChannel TODO
@@ -214,8 +218,14 @@ priorList[[params[1]]]<-prior
 #' \code{flowClust}, this value cannot be 2.
 #' @param plot a logical value indicating if the fitted mixture model should be
 #' plotted. By default, no.
-#' @param target_centroid a numeric vector of length \code{K} containing the
-#' location of the cluster of interest. See details.
+#' @param target a numeric vector of length \code{K} containing the location of
+#' the cluster of interest. See details.
+#' @param gate_type character value specifying the type of gate to construct from
+#' the \code{flowClust} fit
+#' @param quantile the contour level of the target cluster from the
+#' \code{flowClust} fit to construct the gate
+#' @param axis_translation a numeric value between 0 and 1 used to position the
+#' gate if \code{gate_type} is selected as \code{"axis"}. See details.
 #' @param truncate_min A vector of length 2. Truncate observations less than this
 #' minimum value. The first value truncates the \code{xChannel}, and the second
 #' value truncates the \code{yChannel}. By default, this vector is \code{NULL}
@@ -229,12 +239,13 @@ priorList[[params[1]]]<-prior
 #' gating.
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
-                         plot = FALSE, target_centroid,
+                         plot = FALSE, target,
                          gate_type = c("ellipse", "axis"), quantile = 0.9,
-                         truncate_min = NULL, truncate_max = NULL, ...) {
+                         axis_translation = 0.25, truncate_min = NULL,
+                         truncate_max = NULL, ...) {
 
-  if (missing(target_centroid)) {
-    stop("The target centroid must be specified.")
+  if (missing(target)) {
+    stop("The target location must be specified.")
   }
   gate_type <- match.arg(gate_type)
 
@@ -272,7 +283,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # which we obtain the contour (ellipse) to generate the polygon gate.
   fitted_means <- getEstimates(tmixRes1)$locations
   target_dist <- apply(fitted_means, 1, function(x) {
-    dist(rbind(x, target_centroid))
+    dist(rbind(x, target))
   })
   cluster_selected <- which.min(target_dist)
 
@@ -321,7 +332,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
       }
     } else if (all(-u2 >= 0)) {
       axis <- -sqrt(lambda2 * chisq_quantile) * u2
-      if (u1[1] > 0 ) {
+      if (u1[1] > 0) {
         axis_perp <- sqrt(lambda1 * chisq_quantile) * u1   
       } else {
         axis_perp <- -sqrt(lambda1 * chisq_quantile) * u1    
@@ -332,7 +343,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     # then the frame of reference is the cross-section along the eigenvector
     # from top-left to bottom-right. We translate this reference as a function
     # of the appropriate chi-squared coefficient.
-    gate_location <- xbar + 0.25 * axis
+    gate_location <- xbar + axis_translation * axis
 
     # To construct the gate, we have effectively shifted the eigenvector with the
     # negative slope. We then extend the gate both horizontally and vertically
@@ -357,12 +368,9 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     flowClust_gate <- polygonGate(filterId = filterId, boundaries = polygon_gate)
   }
   
-  #TODO:need to verify if this is the right way to grab posteriors from 2-D tmixRes
-  posteriors<-list(mu=tmixRes1@mu
-				  ,lamdda=tmixRes1@lambda
-				  ,sigma=tmixRes1@sigma
-				  ,nu=tmixRes1@nu
-		 		 )
+  # TODO: need to verify if this is the right way to grab posteriors from 2-D tmixRes
+  posteriors <- list(mu = tmixRes1@mu, lamdda = tmixRes1@lambda,
+                     sigma = tmixRes1@sigma, nu = tmixRes1@nu)
 
   if (plot) {
     plot(fr, tmixRes1, main = filterId)
@@ -384,7 +392,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     }
   }
 
-  fcPolygonGate(flowClust_gate,prior,posteriors)
+  fcPolygonGate(flowClust_gate, prior, posteriors)
 }
 
 
