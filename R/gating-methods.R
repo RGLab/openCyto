@@ -3,10 +3,6 @@ setGeneric("gating", function(x,y,...) standardGeneric("gating"))
 setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definition = function(x,y,env_fct=NULL, ...) {
 			gt<-x
 #			browser()
-			#gate each node by the topological order
-			#maintain the mapping between template node ID and gating set node ID
-			#in order to refer gating set node ID back to the template ID and find the parent gs node ID
-			
 			if(!is.null(env_fct))
 			{
 				#use the fcTree if already exists 
@@ -22,73 +18,55 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 				
 			}
 			
-			
+            #gate each node by the topological order
 			gt_node_ids<-tsort(gt)
+            
+            #maintain the mapping between template node ID and gating set node ID
+            #in order to refer gating set node ID back to the template ID and find the parent gs node ID
 			node_ids<-cbind(gt=gt_node_ids,gs=NA)
 			node_ids[1,"gs"]<-1#fill out default gsid for root node
-			for(i in 1:nrow(node_ids))
+            
+			for(i in 2:nrow(node_ids))
 			{
-				
+
 				#get parent node to gate
-				gt_parent_id<-node_ids[i,"gt"]
-				gs_parent_id<-node_ids[i,"gs"]
-				gt_parent_pop<-getNodes(gt,gt_parent_id)
-				parent_name<-names(gt_parent_pop)
-				parent_alias<-alias(gt_parent_pop)
-				#detect all the branches/gates sourced from gt_parent_id
-#				browser()
-				gt_children_ids<-getChildren(gt,gt_parent_id)
-				
-				
-				gates<-lapply(gt_children_ids,function(i){
-							getGate(gt,gt_parent_id,i)
-						})
-				#do the gating for each unique gate
-				for(gate in unique(gates))
-				{
-					
-#					browser()
-					#select the children that are associated with this gate
-					children_ind<-which(unlist(lapply(gates,"identical",gate)))
-					cur_gt_children_ids<-gt_children_ids[children_ind]
-					#get population info
-					pops<-lapply(cur_gt_children_ids
-							,function(gt_children_id){
-								getNodes(gt,gt_children_id)
-							})
-#							browser()					
-					#pass the pops and gate to gating routine
-					res<-gating(x=gate
-										,y
-										,parent=as.integer(gs_parent_id)
-										,gtPops=pops
-										,...
-										)
-					gs_node_ids<-res[["gs_node_id"]]										
-                    filterObjList<-res[["filterObjList"]]													
-					for(curGtId in names(gs_node_ids))
-					{
-#						browser()
-						#upodate gs node ids
-						curGsId<-gs_node_ids[[curGtId]]
-						ind<-match(curGtId,node_ids[,"gt"])
-						node_ids[ind,"gs"]<-curGsId
-						#update fct
-						if(!is.null(env_fct))
-						{
-#						browser()
-							if(!is.null(filterObjList)&&length(filterObjList)>0)
-							{
-								nodeData(env_fct$fct,curGtId,"fList")[[1]]<-filterObjList[[curGtId]]
-							}
-							
-							
-						}	
-					}
-					
+				gt_node_id<-node_ids[i,"gt"]
+				gt_node_pop<-getNodes(gt,gt_node_id)
+                #parent node in graph is used as reference node
+				gt_ref_ids<-getParent(gt,gt_node_id)
+                #the parent to be used in gs is from parent slot of pop object
+                gt_parent_id <- as.character(gt_node_pop@parentID)
+                
+				#extract gate method from one edge(since multiple edge to the same node is redudant)
+                this_gate <- getGate(gt,gt_ref_ids[1],gt_node_id)
+
+                parentInd <- match(gt_parent_id, node_ids[, "gt"])
+                if(is.na(parentInd))
+                  stop("parent node '", names(getNodes(gt,gt_parent_id)),"' not gated yet!")
+                gs_parent_id<-node_ids[parentInd,"gs"]
+				#pass the pops and gate to gating routine
+				res<-gating(x=this_gate
+							,y
+							,parent=as.integer(gs_parent_id)
+							,gtPop=gt_node_pop
+							,...
+							)
+#                browser()
+				gs_node_id <- res[["gs_node_id"]]										
+                filterObj <- res[["filterObj"]]													
+
+				#upodate gs node ids
+                if(!is.null(gs_node_id))node_ids[i, "gs"] <- gs_node_id
+				#update fct
+				if(!is.null(env_fct)&&!is.null(filterObj)){
+						nodeData(env_fct$fct,gt_node_id,"fList")[[1]]<-filterObj
 					
 				}	
-			}
+				
+				
+				
+			}	
+			
 			
 			message("finished.")
 			
@@ -96,7 +74,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 
 		
 setMethod("gating", signature = c("gtMethod", "GatingSet")
-		, definition = function(x, y,gtPops, parent
+		, definition = function(x, y,gtPop, parent
 				,num_nodes = 1, parallel_type = c("multicore", "sock")
 				,plot = FALSE, xbin = 128,prior_group=NULL,...) 
 		{
@@ -110,20 +88,19 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 			dims<-dims(x)
 			xChannel<-unname(dims["xChannel"])
 			yChannel<-unname(dims["yChannel"])
-			
-			popAlias<-unlist(lapply(gtPops,alias))
-			popNames<-unlist(lapply(gtPops,names))
-			popIds<-unlist(lapply(gtPops,"slot","id"))
+			is_1d_gate <- any(is.na(dims))
+            
+			popAlias<-alias(gtPop)
+			popName<-names(gtPop)
+			popId<-gtPop@id
 			gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
 			
 
 #			browser()
-			filterObjList<-list()
 			
-			
-			if (!any(sapply(popAlias,function(a)any(grepl(a, gs_nodes)))))
+			if (length(gs_nodes)==0||!popAlias%in%gs_nodes)
 			{
-				message("Population '",paste(popAlias,collapse=","),"'")
+				message("Population '",popAlias,"'")
 				
 				parent_data <- getData(y, parent)
 				parallel_type <- match.arg(parallel_type)
@@ -147,26 +124,20 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				thisCall[["xChannel"]]<-xChannel#set x,y channel
 				thisCall[["yChannel"]]<-yChannel
 				
-#						browser()
-				#append positive argument based on population name
-				if(length(popNames)==1) #1d gate
-				{
-					#parse the +.- from pop name
-					if(grepl("-$",popNames))
-						positive=FALSE
-					else if(grepl("+$",popNames))
-						positive=TRUE
-					else
-						stop("invalid population name!Name should end with '+' or '-' symbol.")
-					
-					thisCall[["positive"]]<-positive
-					
-				}else if(length(popNames)<=4)#QuadGate
-				{
-					message("quadGate...")
-#				grepl(popNames				
-				}else
-					stop("don't know how to handle quadgate with more than 4 sub-populations!")
+#                browser()
+				#parse the +.- from pop name
+                if(is_1d_gate){
+                  if(grepl("-$",popName)){
+                    positive=FALSE
+                  }else if(grepl("+$", popName))
+                    positive=TRUE
+                  else
+                    stop("invalid population name!Name should end with '+' or '-' symbol.")
+                  
+                  thisCall[["positive"]]<-positive
+                }else{
+                  
+                }
 
 			
 				prior_list<- list()
@@ -180,15 +151,17 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
                     local_prior_group <- args[["prior_group"]]
                     args[["prior_group"]] <- NULL
                     #overwrite the golbal one if the local is specified 
-                    if(!is.null(local_prior_group))
-                      prior_group <- local_prior_group
+                    if(!is.null(local_prior_group))prior_group <- local_prior_group
                     
                     prior_source <- args[["prior_source"]]
                     args[["prior_source"]] <- NULL
-                    if(is.null(prior_source))
+                    
+                    if(is.null(prior_source)){
                       prior_data <- parent_data
-                    else
+                    }else{
                       prior_data <- getData(y, prior_source)
+                    }
+                      
                       
                     
 					if(gm==".flowClust.1d")
@@ -227,12 +200,10 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						}
 						
 						neg_ind<-match("neg",names(args))
-						if(!is.na(neg_ind))
-							args<-args[-neg_ind]
+						if(!is.na(neg_ind))args<-args[-neg_ind]
 												
 						pos_ind<-match("pos",names(args))
-						if(!is.na(pos_ind))
-							args<-args[-pos_ind]
+						if(!is.na(pos_ind))args<-args[-pos_ind]
 						
 						
 						
@@ -257,16 +228,13 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 														channels = c(xChannel, yChannel)
 														, K = K, prior_group=prior_group, ...)
 						args[["prior"]]<-prior_list
-						thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
+#						thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
 					}
 									
 				}
 				#update arg_names
 				
-				for(arg in names(args))
-					thisCall[[arg]]<-args[[arg]]
-				
-				
+				for(arg in names(args))thisCall[[arg]]<-args[[arg]]
 				
 				##choose serial or parallel mode
 				if (num_nodes > 1) 
@@ -308,58 +276,61 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 									,".+\\+.+\\+$" #top right ++
 									,".+\\+.+-$"  #bottom right +-
 									,".+-.+-$")   #bottom left	--									
-					for(i in 1:length(popNames))
-					{
+					
 
-						curAlias<-popAlias[i]
-						curPop<-popNames[i]
-						curPopId<-popIds[i]
-						#check if popname is give as Y[*]X[*]
-						YX_pattern<-paste(dims["yChannel"],".+", dims["xChannel"],".+",sep="")
-						XY_pattern<-paste(dims["xChannel"],".+", dims["yChannel"],".+",sep="")
-						#do the flipping if YX
-						if(grepl(YX_pattern,curPop))
-						{
-							pos<-regexpr(dims["xChannel"],curPop)
-							xterm<-substring(curPop,pos,nchar(curPop))
-							yterm<-substring(curPop,1,pos-1)
-							toMatch<-paste(xterm,yterm,sep="")
-						}else if(grepl(XY_pattern,curPop))
-							toMatch<-curPop #keep as it is if XY
-						else
-							stop("X,Y axis do not match between 'dims'(",dims,") and 'pop'(",curPop,")")
+					curAlias<-popAlias
+					curPop<-popName
+					curPopId<-popId
+					#check if popname is give as Y[*]X[*]
+					YX_pattern<-paste(dims["yChannel"],".+", dims["xChannel"],".+",sep="")
+					XY_pattern<-paste(dims["xChannel"],".+", dims["yChannel"],".+",sep="")
+					#do the flipping if YX
+					if(grepl(YX_pattern,curPop))
+					{
+						pos<-regexpr(dims["xChannel"],curPop)
+						xterm<-substring(curPop,pos,nchar(curPop))
+						yterm<-substring(curPop,1,pos-1)
+						toMatch<-paste(xterm,yterm,sep="")
+					}else if(grepl(XY_pattern,curPop))
+						toMatch<-curPop #keep as it is if XY
+					else
+						stop("X,Y axis do not match between 'dims'(",dims,") and 'pop'(",curPop,")")
+					
+					quadInd<-which(unlist(lapply(quadPatterns,grepl,toMatch)))
+					#fetch appropriate filter based on the quadrant ind
+					curFlist <- lapply(flist, function(curFilters) {
+								curFilters[[quadInd]]
+							})
+					
+					if(extends(class(curFlist[[1]]),"fcFilter"))
+					{
+                      filterObj <- fcFilterList(curFlist)
+					}else{
+                      filterObj <- filterList(curFlist)
+                    }
+                      
+                      
+                      
+					
+					cur_gs_node_id <- add(y, curFlist, parent = parent,name=curAlias)	
+					recompute(y, cur_gs_node_id)
+					gs_node_id<-c(gs_node_id,cur_gs_node_id)
 						
-						quadInd<-which(unlist(lapply(quadPatterns,grepl,toMatch)))
-						#fetch appropriate filter based on the quadrant ind
-						curFlist <- lapply(flist, function(curFilters) {
-									curFilters[[quadInd]]
-								})
-						
-						if(extends(class(curFlist[[1]]),"fcFilter"))
-						{
-                            curFlist <- fcFilterList(curFlist)
-						}else
-                          curFlist <- filterList(curFlist)
-                        
-                        filterObjList[[i]]<-curFlist
-						
-						cur_gs_node_id <- add(y, curFlist, parent = parent,name=curAlias)	
-						recompute(y, cur_gs_node_id)
-						gs_node_id<-c(gs_node_id,cur_gs_node_id)
-						
-					}
+					
 					
 					
 					
 				}else
 				{
 #				browser()
-					if(extends(class(flist[[1]]),"fcFilter"))
+					if(extends(class(flist[[1]]),"fcFilter")){
                       flist <- fcFilterList(flist)
-                    else
+                    }else{
                       flist <-filterList(flist)
+                    }
+                      
                     
-                    filterObjList[[1]]<-flist
+                    filterObj<-flist
 					gs_node_id <- add(y, flist, parent = parent,name=popAlias)
 					recompute(y, gs_node_id)
 					
@@ -375,17 +346,16 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				#select the corresponding gs node id by matching the node names
 				gs_node_name<-getNodes(y[[1]])[gs_node_id]
 				gs_node_id<-gs_node_id[match(popAlias,gs_node_name)]
+                filterObj <- NULL
 			}
 			
 			if (plot) {
 				print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
 			}
-			names(gs_node_id)<-popIds
-			if(length(filterObjList)>0)
-				names(filterObjList)<-popIds
-#			browser()
+			
+
 			list(gs_node_id=gs_node_id
-				 ,filterObjList=filterObjList
+				 ,filterObj=filterObj
 		 		)
 			
 			
@@ -393,16 +363,18 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 		})
 		
 setMethod("gating", signature = c("boolMethod", "GatingSet")
-		, definition = function(x, y,gtPops, parent, ...) 
+		, definition = function(x, y,gtPop, parent, ...) 
 {
 	
 	args<-parameters(x)[[1]]
 #	browser()
 	gm<-paste(".",names(x),sep="")
-	popAlias<-unlist(lapply(gtPops,alias))
-	popNames<-unlist(lapply(gtPops,names))
+    popAlias<-alias(gtPop)
+    popName<-names(gtPop)
+    popId<-gtPop@id
+    
 	gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
-	popIds<-unlist(lapply(gtPops,"slot","id"))
+	
 
 	tNodes <-deparse(args)
 	if (!(tNodes %in% gs_nodes)) {
@@ -423,19 +395,20 @@ setMethod("gating", signature = c("boolMethod", "GatingSet")
 	}
 	
 	
-	names(gs_node_id)<-popIds
+	
 #	gs_node_id
 	list("gs_node_id"=gs_node_id)
 })		
 
 setMethod("gating", signature = c("polyFunctions", "GatingSet")
-				, definition = function(x, y,gtPops, parent, ...) 
+				, definition = function(x, y,gtPop, parent, ...) 
 {
 #	browser()
-	args<-deparse(parameters(x)[[1]])
+
+    refNodes<-x@refNodes
 	gm<-paste(".",names(x),sep="")
-	popAlias<-unlist(lapply(gtPops,alias))
-	popNames<-unlist(lapply(gtPops,names))
+    popAlias<-alias(gtPop)
+    popName<-names(gtPop)
 	
 	gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
 	
@@ -443,12 +416,12 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	message("Population '",paste(popAlias,collapse=","),"'")
 	
 	
-	refNodes<-strsplit(args,split=":")[[1]]
+#	refNodes<-strsplit(args,split=":")[[1]]
 	
 	nMarkers <- length(refNodes)
 	## all the comibnations of A & B & C
 	# The 'permutations' function is from the 'gregmisc' package on CRAN.
-	require('gregmisc')
+#	require('gregmisc')
 	opList <- permutations(n = 1, r = nMarkers - 1, c("&"), repeats = TRUE)
 	isNotList <- permutations(n = 2, r = nMarkers, c("!", ""), repeats = TRUE)
 	polyExprsList <- apply(opList, 1, function(curOps) {
@@ -465,7 +438,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	lapply(polyExprsList, function(polyExpr) {
 #				browser()
 				bgt<-new("boolMethod",name=polyExpr,args=list(as.symbol(polyExpr)))
-				gating(bgt,y,parent=parent,gtPops=gtPops,...)
+				gating(bgt,y,parent=parent,gtPop=gtPop,...)
 			})					
 	
 	
@@ -476,7 +449,120 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	
 	list()
 })
+setMethod("gating", signature = c("refGate", "GatingSet")
+    , definition = function(x, y,gtPop, parent, plot = FALSE, xbin = 128, ...) 
+  {
+    refNodes<-x@refNodes
+    gm<-paste(".",names(x),sep="")
+    popAlias<-alias(gtPop)
+    popName<-names(gtPop)
+#    popId<-gtPop@id
+    dims <- dims(x)
+    xChannel<-dims[["xChannel"]]
+    yChannel<-dims[["yChannel"]]
 
+    
+    gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
+    
+    
+#           browser()
+    
+    if (length(gs_nodes)==0||!popAlias%in%gs_nodes)
+    {
+      
+      message("Population '",paste(popAlias,collapse=","),"'")
+      if(length(refNodes) > 2)
+      {
+        stop("Not sure how to construct gate from more than 2 reference nodes!")
+      }
+  
+      fr<-getData(y[[1]])
+      
+      flist <- lapply(y, function(gh){
+  #          browser()
+          #extract gates from reference nodes  
+          glist<-lapply(refNodes,function(refNode)getGate(gh,refNode))
+          #standardize the names for the gate parameters and dims 
+          gate_params <- unlist(lapply(glist, function(g){
+                                            cur_param <- parameters(g)
+                                          getChannelMarker(fr,cur_param)["name"]
+                                }))
+          
+          dim_params <- unlist(lapply(dims,function(dim){
+                                        getChannelMarker(fr,dim)["name"]
+                                        }))
+          #match the gate param to dims to find gates for x, y dimensions                              
+          x_g <- glist[[match(dim_params[1],gate_params)]]                      
+          y_g <- glist[[match(dim_params[2],gate_params)]]
+          cut.x <- x_g@min 
+          cut.y <- y_g@min    
+        
+          
+                                                     
+          quadPatterns<-c(".+-.+\\+$"   #top left  -+
+              ,".+\\+.+\\+$" #top right ++
+              ,".+\\+.+-$"  #bottom right +-
+              ,".+-.+-$")   #bottom left  --                                  
+          
+          #check if popname is give as Y[*]X[*]
+          YX_pattern<-paste(dims["yChannel"],".+", dims["xChannel"],".+",sep="")
+          XY_pattern<-paste(dims["xChannel"],".+", dims["yChannel"],".+",sep="")
+          #do the flipping if YX
+          if(grepl(YX_pattern,popName))
+          {
+            pos<-regexpr(dims["xChannel"],popName)
+            xterm<-substring(popName,pos,nchar(popName))
+            yterm<-substring(popName,1,pos-1)
+            toMatch<-paste(xterm,yterm,sep="")
+          }else if(grepl(XY_pattern,popName))
+            toMatch<-popName #keep as it is if XY
+          else
+            stop("X,Y axis do not match between 'dims'(",paste(dims, collapse=","),") and 'pop'(",popName,")")
+  #        browser()
+          quadInd<-which(unlist(lapply(quadPatterns,grepl,toMatch)))
+          
+          #construct rectangleGate from reference cuts
+          if(quadInd == 1){
+              coord <- list(c(-Inf, cut.x), c(cut.y, Inf))  
+          }else if(quadInd == 2){
+              coord <- list(c(cut.x,Inf), c(cut.y, Inf))
+          }else if(quadInd == 3){
+              coord <- list(c(cut.x,Inf), c(-Inf,cut.y))
+          }else if(quadInd == 4){
+              coord <- list(c(-Inf, cut.x), c(-Inf,cut.y))
+          }else
+            stop("Pop names does not match to any quadrant pattern!")
+         
+          
+          names(coord) <- as.character(dim_params)
+          rectangleGate(coord)
+          
+        })
+      
+        flist<-filterList(flist)
+        gs_node_id <- add(y, flist, parent = parent,name=popAlias)
+        recompute(y, gs_node_id)
+        
+        if (plot) {
+          print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
+        }
+      }else{
+        
+        message("Skip gating!Population '",popAlias,"' already exists.")
+#           browser()
+        gs_node_id<-getChildren(y[[1]],parent)
+        #select the corresponding gs node id by matching the node names
+        gs_node_name<-getNodes(y[[1]])[gs_node_id]
+        gs_node_id<-gs_node_id[match(popAlias,gs_node_name)]
+        flist <- NULL
+        
+      }
+      message("done.")
+      list(gs_node_id=gs_node_id
+          ,filterObj=flist
+      )
+    
+  })
 #wrapper for prior_flowClust to return sample-specific priors 
 .prior_flowClust <- function(flow_set, prior_group=NULL, ...){
 #  browser()
@@ -501,7 +587,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 }
 ## wrappers for the different gating routines
 .singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H", prediction_level = 0.99, ...) {
-  require('flowStats')
+#  require('flowStats')
   # Creates a list of polygon gates based on the prediction bands at the minimum and maximum
   # x_channel observation using a robust linear model trained by flowStats.
   singletGate(fs[[1]], area = xChannel, height = yChannel,
@@ -512,8 +598,8 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 						,usePrior="yes",split=TRUE,...)
 {
 	
-	require("flowClust")
-	require("MASS")
+#	require("flowClust")
+#	require("MASS")
 	
 	sname <- sampleNames(fs)
 	fr <- fs[[sname]]
@@ -653,7 +739,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 
 
 .flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", prior = NULL, ...) {
-  require("flowClust")
+#  require("flowClust")
   sname <- sampleNames(fs)
   fr <- fs[[sname]]
   
@@ -663,7 +749,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 
 .rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE,
                        filterId = "", ...) {
-  require('flowStats')
+#  require('flowStats')
   fr <- fs[[1]]
   rangeGate(x = fr, stain = yChannel, inBetween = TRUE, absolute = absolute,
             filterId = filterId, ...)
@@ -676,7 +762,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 }
 
 .quadrantGate <- function(fs, xChannel = NA, yChannel, ...) {
-  require('flowStats')
+#  require('flowStats')
   fr<-fs[[1]]
   
   qfilter<-quadrantGate(fr, stain = c(xChannel,yChannel), absolute = FALSE, inBetween = TRUE, ...)

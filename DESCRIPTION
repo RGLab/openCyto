@@ -20,6 +20,7 @@ Collate: 	AllClasses.R
 			fcFilterList-methods.R
 			fcTree-methods.R
 			fcFilter-methods.R
-Depends: methods,flowWorkspace,flowClust,flowStats,MASS			 
+Depends: methods,flowWorkspace,flowClust,MASS
+Imports: flowStats			 
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
 

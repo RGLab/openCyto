@@ -1,4 +1,6 @@
 
+import(gtools,permutations)
+
 exportClasses(gatingTemplate
 			,fcTree
 			,fcFilter
@@ -9,7 +11,8 @@ exportClasses(gatingTemplate
 			,boolMethod
 			,polyFunctions
 			,gtPopulation
-			,gtSubsets)
+			,gtSubsets
+			,refGate)
 
 export(fcRectangleGate
 	,fcPolygonGate

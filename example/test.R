@@ -11,8 +11,8 @@ source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gating-functions.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gtMethod-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gtPopulation-methods.R")
-source("/home/wjiang2/rglab/workspace/openCyto/R/fcObject-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/fcTree-methods.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/fcFilterList-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/fcFilter-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/median-logicle-transform.R")
@@ -21,7 +21,7 @@ source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
 
 
 
-path<-"openCyto"
+path<-"/home/wjiang2/rglab/workspace/openCyto"
 load(file.path(path,"data/065_fs.rda"))
 
 gt<-gatingTemplate(file.path(path,"data/ICS_GatingTemplate.csv"),"ICS")
@@ -43,8 +43,9 @@ gs<-GatingSet(fs_trans)
 env1<-new.env(parent=emptyenv())
 gating(gt,gs,env1, prior_group='VISITNO')
 plot(gs[[1]])
+plot(gs[[1]],bool=T)
 getNodes(gs[[1]])
-plotGate(gs[[1]],xbin=128)
+plotGate(gs[[1]],xbin=128,margin=T)
 
 
 #plot priors
@@ -87,7 +88,9 @@ fs_bcell[[1]]
 gs2<-GatingSet(fs_bcell)
 env1<-new.env(parent=emptyenv())
 gating(gt2,gs2,env1)
-plotGate(gs[[1]],bool=T,xbin=128)
+plot(gs2[[1]],bool=T)
+plotGate(gs2[[1]],bool=T,xbin=64)
+
 
 plot(env1$fct,"nonDebris",post=T)
 plot(env1$fct,"cd19",post=T)

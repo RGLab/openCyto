@@ -13,6 +13,13 @@ setMethod("getChildren",signature=c("gatingTemplate","character"),definition=fun
 #	browser()
 	edges(obj,y)[[1]]	
 })
+
+setMethod("getParent",signature=c("gatingTemplate","character"),definition=function(obj,y)
+    {
+   
+    inEdges(y,obj)[[1]]   
+    })
+
 setMethod("getGate",signature=c("gatingTemplate","character"),definition=function(obj,y,z)
 {
 		edgeData(obj,from=y,to=z,attr="gtMethod")[[1]]
