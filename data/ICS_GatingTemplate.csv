@@ -4,8 +4,12 @@
 "nonDebris","nonDebris-","v","FSC-A","flowClust.1d","neg=2,pos=1,prior_group='PTID'"
 "lymph","lymph+","nonDebris","FSC-A,SSC-A","flowClust.2d","K=2,target=c(15e4,5e4)"
 "cd3","cd3+","lymph","cd3","rangeGate","simple = TRUE"
-"cd4","cd4+cd8-","cd3","cd4,cd8","flowClust.1d","neg=1,pos=1"
-"cd8","cd4-cd8+","cd3","cd4,cd8","flowClust.1d","neg=1,pos=1"
+"cd4_pos","cd4+","cd3","cd4","flowClust.1d",
+"cd4_neg","cd4-","cd3","cd4","flowClust.1d",
+"cd8gate_pos","cd8+","cd4_pos","cd8","flowClust.1d",
+"cd8gate_neg","cd8-","cd4_neg","cd8","flowClust.1d",
+"cd4","cd4+cd8-","cd3","cd4,cd8","refGate","cd4_pos:cd8gate_pos"
+"cd8","cd4-cd8+","cd3","cd4,cd8","refGate","cd4_pos:cd8gate_neg"
 "TNFa","TNFa+","cd4","TNFa","flowClust.1d","cutpoint_method='quantile',quantile=0.995,prior_source='cd3'"
 "IFNg","IFNg+","cd4","IFNg","flowClust.1d","cutpoint_method='quantile',quantile=0.995,prior_group='PTID'"
 "IL2","IL2+","cd4","IL2","flowClust.1d","cutpoint_method='quantile',quantile=0.995"

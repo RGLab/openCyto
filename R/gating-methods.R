@@ -492,8 +492,11 @@ setMethod("gating", signature = c("refGate", "GatingSet")
           #match the gate param to dims to find gates for x, y dimensions                              
           x_g <- glist[[match(dim_params[1],gate_params)]]                      
           y_g <- glist[[match(dim_params[2],gate_params)]]
-          cut.x <- x_g@min 
-          cut.y <- y_g@min    
+          #pick the non-infinite coordinate as the cut points
+          x_coord <- c(x_g@min,x_g@max)
+          y_coord <- c(y_g@min,y_g@max)
+          cut.x <- x_coord[!is.infinite(x_coord)] 
+          cut.y <- y_coord[!is.infinite(y_coord)]
         
           
                                                      
