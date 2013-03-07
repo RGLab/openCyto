@@ -135,8 +135,6 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
                     stop("invalid population name!Name should end with '+' or '-' symbol.")
                   
                   thisCall[["positive"]]<-positive
-                }else{
-                  
                 }
 
 			
@@ -266,62 +264,62 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 				
 				#we expect a filter/filters from gm
 #				browser()
-				if(class(flist[[1]])=="filters")#reconstruct filterlist out of filterslist
-				{
-					#right now we consider quadgate as the only use case for filters
-					gs_node_id<-NULL
-#					browser()
-					#clock-wise starting from top-left quadrant(assuming X followed by Y channel)											
-					quadPatterns<-c(".+-.+\\+$"   #top left  -+
-									,".+\\+.+\\+$" #top right ++
-									,".+\\+.+-$"  #bottom right +-
-									,".+-.+-$")   #bottom left	--									
-					
-
-					curAlias<-popAlias
-					curPop<-popName
-					curPopId<-popId
-					#check if popname is give as Y[*]X[*]
-					YX_pattern<-paste(dims["yChannel"],".+", dims["xChannel"],".+",sep="")
-					XY_pattern<-paste(dims["xChannel"],".+", dims["yChannel"],".+",sep="")
-					#do the flipping if YX
-					if(grepl(YX_pattern,curPop))
-					{
-						pos<-regexpr(dims["xChannel"],curPop)
-						xterm<-substring(curPop,pos,nchar(curPop))
-						yterm<-substring(curPop,1,pos-1)
-						toMatch<-paste(xterm,yterm,sep="")
-					}else if(grepl(XY_pattern,curPop))
-						toMatch<-curPop #keep as it is if XY
-					else
-						stop("X,Y axis do not match between 'dims'(",dims,") and 'pop'(",curPop,")")
-					
-					quadInd<-which(unlist(lapply(quadPatterns,grepl,toMatch)))
-					#fetch appropriate filter based on the quadrant ind
-					curFlist <- lapply(flist, function(curFilters) {
-								curFilters[[quadInd]]
-							})
-					
-					if(extends(class(curFlist[[1]]),"fcFilter"))
-					{
-                      filterObj <- fcFilterList(curFlist)
-					}else{
-                      filterObj <- filterList(curFlist)
-                    }
-                      
-                      
-                      
-					
-					cur_gs_node_id <- add(y, curFlist, parent = parent,name=curAlias)	
-					recompute(y, cur_gs_node_id)
-					gs_node_id<-c(gs_node_id,cur_gs_node_id)
-						
-					
-					
-					
-					
-				}else
-				{
+#				if(class(flist[[1]])=="filters")#reconstruct filterlist out of filterslist
+#				{
+#					#right now we consider quadgate as the only use case for filters
+#					gs_node_id<-NULL
+##					browser()
+#					#clock-wise starting from top-left quadrant(assuming X followed by Y channel)											
+#					quadPatterns<-c(".+-.+\\+$"   #top left  -+
+#									,".+\\+.+\\+$" #top right ++
+#									,".+\\+.+-$"  #bottom right +-
+#									,".+-.+-$")   #bottom left	--									
+#					
+#
+#					curAlias<-popAlias
+#					curPop<-popName
+#					curPopId<-popId
+#					#check if popname is give as Y[*]X[*]
+#					YX_pattern<-paste(dims["yChannel"],".+", dims["xChannel"],".+",sep="")
+#					XY_pattern<-paste(dims["xChannel"],".+", dims["yChannel"],".+",sep="")
+#					#do the flipping if YX
+#					if(grepl(YX_pattern,curPop))
+#					{
+#						pos<-regexpr(dims["xChannel"],curPop)
+#						xterm<-substring(curPop,pos,nchar(curPop))
+#						yterm<-substring(curPop,1,pos-1)
+#						toMatch<-paste(xterm,yterm,sep="")
+#					}else if(grepl(XY_pattern,curPop))
+#						toMatch<-curPop #keep as it is if XY
+#					else
+#						stop("X,Y axis do not match between 'dims'(",dims,") and 'pop'(",curPop,")")
+#					
+#					quadInd<-which(unlist(lapply(quadPatterns,grepl,toMatch)))
+#					#fetch appropriate filter based on the quadrant ind
+#					curFlist <- lapply(flist, function(curFilters) {
+#								curFilters[[quadInd]]
+#							})
+#					
+#					if(extends(class(curFlist[[1]]),"fcFilter"))
+#					{
+#                      filterObj <- fcFilterList(curFlist)
+#					}else{
+#                      filterObj <- filterList(curFlist)
+#                    }
+#                      
+#                      
+#                      
+#					
+#					cur_gs_node_id <- add(y, curFlist, parent = parent,name=curAlias)	
+#					recompute(y, cur_gs_node_id)
+#					gs_node_id<-c(gs_node_id,cur_gs_node_id)
+#						
+#					
+#					
+#					
+#					
+#				}else
+#				{
 #				browser()
 					if(extends(class(flist[[1]]),"fcFilter")){
                       flist <- fcFilterList(flist)
@@ -334,7 +332,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 					gs_node_id <- add(y, flist, parent = parent,name=popAlias)
 					recompute(y, gs_node_id)
 					
-				}
+#				}
 				
 				message("done.")
 				
@@ -420,8 +418,6 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 	
 	nMarkers <- length(refNodes)
 	## all the comibnations of A & B & C
-	# The 'permutations' function is from the 'gregmisc' package on CRAN.
-#	require('gregmisc')
 	opList <- permutations(n = 1, r = nMarkers - 1, c("&"), repeats = TRUE)
 	isNotList <- permutations(n = 2, r = nMarkers, c("!", ""), repeats = TRUE)
 	polyExprsList <- apply(opList, 1, function(curOps) {
@@ -452,6 +448,8 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet")
 setMethod("gating", signature = c("refGate", "GatingSet")
     , definition = function(x, y,gtPop, parent, plot = FALSE, xbin = 128, ...) 
   {
+    
+#    browser()
     refNodes<-x@refNodes
     gm<-paste(".",names(x),sep="")
     popAlias<-alias(gtPop)
@@ -465,7 +463,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
     gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
     
     
-#           browser()
+           
     
     if (length(gs_nodes)==0||!popAlias%in%gs_nodes)
     {
@@ -478,7 +476,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
   
       fr<-getData(y[[1]])
       
-      flist <- lapply(y, function(gh){
+      flist <- flowWorkspace::lapply(y, function(gh){
   #          browser()
           #extract gates from reference nodes  
           glist<-lapply(refNodes,function(refNode)getGate(gh,refNode))
@@ -533,7 +531,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
           }else
             stop("Pop names does not match to any quadrant pattern!")
          
-          
+#          browser()
           names(coord) <- as.character(dim_params)
           rectangleGate(coord)
           
@@ -587,7 +585,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 }
 ## wrappers for the different gating routines
 .singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H", prediction_level = 0.99, ...) {
-#  require('flowStats')
+
   # Creates a list of polygon gates based on the prediction bands at the minimum and maximum
   # x_channel observation using a robust linear model trained by flowStats.
   singletGate(fs[[1]], area = xChannel, height = yChannel,
@@ -598,8 +596,6 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 						,usePrior="yes",split=TRUE,...)
 {
 	
-#	require("flowClust")
-#	require("MASS")
 	
 	sname <- sampleNames(fs)
 	fr <- fs[[sname]]
@@ -607,124 +603,127 @@ setMethod("gating", signature = c("refGate", "GatingSet")
     priorList[[yChannel]]<-prior[[yChannel]][[sname]]
     
 #		browser()			
-	if(is.na(xChannel))#1d gate			
-		flowClust.1d(fr = fr
-				,params = yChannel
-				,tol = tol
-				,filterId = filterId
-				,prior = priorList[[yChannel]]
-				,usePrior=usePrior
-				,...)
-	else#quadgate 
-	{
-        priorList[[xChannel]]<-prior[[xChannel]][[sname]]
-        
-		xParam <- getChannelMarker(fr, xChannel)
-		yParam <- getChannelMarker(fr, yChannel)
-		xChannel<-xParam$name
-		xStain<-xParam$desc
-		yChannel<-yParam$name
-		yStain<-yParam$desc
-#			browser()
-		filter1 <- flowClust.1d(fr = fr
-								, params = xChannel, tol = tol
-								,filterId = as.character(xStain)
-								,prior = priorList[[xChannel]]
-								,usePrior=usePrior
-								, ...)
-		
-		################################      
-		#flowClust on xParam
-		################################
-		
-		cut.x <- filter1@min
-		
-		if (split) {
-			################################################################
-			## split the data for the further gating
-			################################################################
-			newFrList <- flowCore::split(fr, filter1)
-			
-			negFr <- newFrList[[paste0(xStain, "-")]]
-			posFr <- newFrList[[paste0(xStain, "+")]]
-#			browser()
-			filter2 <- flowClust.1d(negFr, params = yChannel,
-									usePrior = usePrior
-									,filterId = as.character(yStain)
-									,prior = priorList[[yChannel]]
-									, ...)
-			cut.y.l <- filter2@min
-			
-			filter3 <- flowClust.1d(posFr, params = yChannel,
-									usePrior = usePrior
-									,filterId = as.character(yStain)
-									,prior = priorList[[yChannel]]
-									, ...)
-			cut.y.r <- filter3@min
-		} else {
-			filter2 <- flowClust.1d(fr, params = yChannel,
-									usePrior = usePrior
-									,filterId = as.character(yStain)
-									,prior = priorList[[yChannel]]
-									, ...)
-
-			cut.y.l <- cut.y.r <- filter2@min
-		}
-		
-		###############################################################     
-		#construct rectangleGates based on the cuts and popNames,clock-wise
-		###############################################################
-		gateList <- list()
-		
-		chnls<-c(xChannel, yChannel)
-		markers<-c(xStain,yStain)
-#		browser()
-		##cut.x,cut.y.l (1st,4th quad)
-		postX<-posteriors(filter1)
-		postY<-posteriors(filter2)
-		postList<-c(postX,postY)
-		
-		coord <- list(c(-Inf, cut.x), c(cut.y.l, Inf))
-		names(coord) <- as.character(chnls)
-		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
-                                      , priorList
-                                      , postList)
-		gateList[[paste(paste0(markers, c("-", "+")), collapse="")]] <-thisFcFilter 
-		
-		coord <- list(c(-Inf, cut.x), c(-Inf, cut.y.l))
-		names(coord) <- as.character(chnls)
-		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
-                                      , priorList
-                                      , postList)
-		gateList[[paste(paste0(markers, c("-", "-")), collapse="")]] <- thisFcFilter
-		
-
-		##cut.x,cut.y.r(2nd,3rd quad)
-		postX<-posteriors(filter1)
-		if(split)
-			postY<-	posteriors(filter3)
-		else
-			postY<-posteriors(filter2)
-		postList<-c(postX,postY)
-		
-		coord <- list(c(cut.x, Inf), c(cut.y.r, Inf))
-		names(coord) <- as.character(chnls)
-		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
-                                      , priorList
-                                      , postList)
-		gateList[[paste(paste0(markers, c("+", "+")), collapse="")]] <- thisFcFilter
-		
-		coord <- list(c(cut.x, Inf), c(-Inf, cut.y.r))
-		names(coord) <- as.character(chnls)
-		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
-                                      , priorList
-                                      , postList)
-		gateList[[paste(paste0(markers, c("+", "-")), collapse="")]] <- thisFcFilter
-		
-		
-		
-		as(gateList[c(1,3,4,2)],"filters")#return the 4 quadrants in clock-wise order 
-	}
+	if(is.na(xChannel)){
+      #1d gate           
+      flowClust.1d(fr = fr
+          ,params = yChannel
+          ,tol = tol
+          ,filterId = filterId
+          ,prior = priorList[[yChannel]]
+          ,usePrior=usePrior
+          ,...) 
+    }else
+      stop("flowClust1d does not support 2d gate!")
+#	else#quadgate 
+#	{
+#        priorList[[xChannel]]<-prior[[xChannel]][[sname]]
+#        
+#		xParam <- getChannelMarker(fr, xChannel)
+#		yParam <- getChannelMarker(fr, yChannel)
+#		xChannel<-xParam$name
+#		xStain<-xParam$desc
+#		yChannel<-yParam$name
+#		yStain<-yParam$desc
+##			browser()
+#		filter1 <- flowClust.1d(fr = fr
+#								, params = xChannel, tol = tol
+#								,filterId = as.character(xStain)
+#								,prior = priorList[[xChannel]]
+#								,usePrior=usePrior
+#								, ...)
+#		
+#		################################      
+#		#flowClust on xParam
+#		################################
+#		
+#		cut.x <- filter1@min
+#		
+#		if (split) {
+#			################################################################
+#			## split the data for the further gating
+#			################################################################
+#			newFrList <- flowCore::split(fr, filter1)
+#			
+#			negFr <- newFrList[[paste0(xStain, "-")]]
+#			posFr <- newFrList[[paste0(xStain, "+")]]
+##			browser()
+#			filter2 <- flowClust.1d(negFr, params = yChannel,
+#									usePrior = usePrior
+#									,filterId = as.character(yStain)
+#									,prior = priorList[[yChannel]]
+#									, ...)
+#			cut.y.l <- filter2@min
+#			
+#			filter3 <- flowClust.1d(posFr, params = yChannel,
+#									usePrior = usePrior
+#									,filterId = as.character(yStain)
+#									,prior = priorList[[yChannel]]
+#									, ...)
+#			cut.y.r <- filter3@min
+#		} else {
+#			filter2 <- flowClust.1d(fr, params = yChannel,
+#									usePrior = usePrior
+#									,filterId = as.character(yStain)
+#									,prior = priorList[[yChannel]]
+#									, ...)
+#
+#			cut.y.l <- cut.y.r <- filter2@min
+#		}
+#		
+#		###############################################################     
+#		#construct rectangleGates based on the cuts and popNames,clock-wise
+#		###############################################################
+#		gateList <- list()
+#		
+#		chnls<-c(xChannel, yChannel)
+#		markers<-c(xStain,yStain)
+##		browser()
+#		##cut.x,cut.y.l (1st,4th quad)
+#		postX<-posteriors(filter1)
+#		postY<-posteriors(filter2)
+#		postList<-c(postX,postY)
+#		
+#		coord <- list(c(-Inf, cut.x), c(cut.y.l, Inf))
+#		names(coord) <- as.character(chnls)
+#		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
+#                                      , priorList
+#                                      , postList)
+#		gateList[[paste(paste0(markers, c("-", "+")), collapse="")]] <-thisFcFilter 
+#		
+#		coord <- list(c(-Inf, cut.x), c(-Inf, cut.y.l))
+#		names(coord) <- as.character(chnls)
+#		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
+#                                      , priorList
+#                                      , postList)
+#		gateList[[paste(paste0(markers, c("-", "-")), collapse="")]] <- thisFcFilter
+#		
+#
+#		##cut.x,cut.y.r(2nd,3rd quad)
+#		postX<-posteriors(filter1)
+#		if(split)
+#			postY<-	posteriors(filter3)
+#		else
+#			postY<-posteriors(filter2)
+#		postList<-c(postX,postY)
+#		
+#		coord <- list(c(cut.x, Inf), c(cut.y.r, Inf))
+#		names(coord) <- as.character(chnls)
+#		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
+#                                      , priorList
+#                                      , postList)
+#		gateList[[paste(paste0(markers, c("+", "+")), collapse="")]] <- thisFcFilter
+#		
+#		coord <- list(c(cut.x, Inf), c(-Inf, cut.y.r))
+#		names(coord) <- as.character(chnls)
+#		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
+#                                      , priorList
+#                                      , postList)
+#		gateList[[paste(paste0(markers, c("+", "-")), collapse="")]] <- thisFcFilter
+#		
+#		
+#		
+#		as(gateList[c(1,3,4,2)],"filters")#return the 4 quadrants in clock-wise order 
+#	}
 	
 }	
 	
@@ -739,7 +738,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 
 
 .flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", prior = NULL, ...) {
-#  require("flowClust")
+
   sname <- sampleNames(fs)
   fr <- fs[[sname]]
   
@@ -749,7 +748,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 
 .rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE,
                        filterId = "", ...) {
-#  require('flowStats')
+
   fr <- fs[[1]]
   rangeGate(x = fr, stain = yChannel, inBetween = TRUE, absolute = absolute,
             filterId = filterId, ...)
@@ -762,7 +761,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 }
 
 .quadrantGate <- function(fs, xChannel = NA, yChannel, ...) {
-#  require('flowStats')
+
   fr<-fs[[1]]
   
   qfilter<-quadrantGate(fr, stain = c(xChannel,yChannel), absolute = FALSE, inBetween = TRUE, ...)

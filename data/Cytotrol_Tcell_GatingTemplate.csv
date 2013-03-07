@@ -2,10 +2,13 @@
 "nonDebris","nonDebris+","root","FSC-A","flowClust.1d","Neg=1,pos=1"
 "lymph","lymph+","nonDebris","FSC-A,SSC-A","flowClust.2d","K=2,target=c(1e5,5e4)"
 "cd3","cd3+","lymph","CD3","mindensity",
-"cd4","cd4+cd8-","cd3","cd4,cd8","flowClust.1d","split=FALSE"
-"cd8","cd4-cd8+","cd3","cd4,cd8","flowClust.1d","split=FALSE"
+"cd4gate","cd4","cd3","cd4","flowClust.1d",
+"cd8gate","cd8","cd3","cd8","flowClust.1d",
+"cd4","cd4+cd8-","cd3","cd4gate,cd8gate","refGate",
+"cd8","cd4-cd8+","cd3","cd4gate,cd8gate","refGate",
 "activated cd4","CD38+HLA+","cd4","CD38,HLA","flowClust.1d",
 "activated cd8","CD38+HLA+","cd8","CD38,HLA","flowClust.1d",
+"cd4gate","cd4","cd3",,,
 "Effector","CCR7+CD45RA-","cd4","CCR7,CD45RA","flowClust.1d",
 "Naive","CCR7-CD45RA-","cd4","CCR7,CD45RA","flowClust.1d",
 "Central memory","CCR7-CD45RA+","cd4","CCR7,CD45RA","flowClust.1d",

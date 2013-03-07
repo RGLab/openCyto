@@ -3,8 +3,16 @@
 # 
 ###############################################################################
 unloadNamespace("openCyto")
+library(openCyto)
+
 library(flowWorkspace)
-#library(openCyto)
+library(flowClust)
+library(flowStats)
+library(MASS)
+library(plyr)
+library(clue)
+library(gtools)
+
 source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
@@ -20,19 +28,22 @@ source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
 
 
 
-
 path<-"/home/wjiang2/rglab/workspace/openCyto"
+
+###############
+##ICS
+###############
 load(file.path(path,"data/065_fs.rda"))
 
 gt<-gatingTemplate(file.path(path,"data/ICS_GatingTemplate.csv"),"ICS")
 gt
 #getNodes(gt,"14")
-getChildren(obj=gt,y="2")
-getGate(gt,"14","17")
+#getChildren(obj=gt,y="2")
+#getGate(gt,"14","17")
 #getNodes(gt)
 #png("openCyto/gatingTemplate.png")
 plot(gt)
-class(gt)
+
 #dev.off()
 
 ##transform the ICS data
@@ -57,7 +68,11 @@ plot(env1$fct,"nonDebris",posteriors=T)
 plot(env1$fct,"cd4",posteriors=T,channel="PE Cy55-A")
 plot(env1$fct,"cd4",posteriors=T,channel="FITC-A")
 plot(env1$fct,"TNFa",posteriors=T)
+
+###############
 #Tcell is already transformed
+###############
+
 load(file.path(path,"data/fs_tcell.rda"))
 
 gt1<-gatingTemplate(file.path(path,"data/Cytotrol_Tcell_GatingTemplate.csv"),"Tcell")
@@ -78,16 +93,20 @@ plot(env1$fct,"lymph",post=T)
 #xyplot(`<B710-A>`~`<R660-A>`,fs_tcell)
 #densityplot(~.,fs_tcell[[1]])
 
-#Bcell
+###############
+#Bcell is already transformed
+###############
+
 load(file.path(path,"data/fs_bcell.rda"))
 
 gt2<-gatingTemplate(file.path(path,"data/Cytotrol_Bcell_GatingTemplate.csv"),"Bcell")
 plot(gt2)
 
-fs_bcell[[1]]
+
 gs2<-GatingSet(fs_bcell)
 env1<-new.env(parent=emptyenv())
 gating(gt2,gs2,env1)
+
 plot(gs2[[1]],bool=T)
 plotGate(gs2[[1]],bool=T,xbin=64)
 

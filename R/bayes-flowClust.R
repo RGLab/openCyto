@@ -30,7 +30,7 @@
 #' @return list of the necessary prior parameters
 prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = 10, shrink = 1e-6, ...) {
-	require(MASS)
+
   if (length(channels) == 1) {
     prior_list <- prior_flowClust1d(flow_set = flow_set, channel = channels,
                                     K = K, nu0 = nu0, w0 = w0, ...)
@@ -42,7 +42,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
     }
     # In the rare case a covariance matrix is singular, we shrink the eigenvalues
     # of the matrix. The amount of shrinkage is controlled in 'shrink'.
-    require('plyr')
+
     prior_list$Lambda0 <- aaply(prior_list$Lambda0, 1, function(cov_mat) {
       if (class(try(solve(cov_mat), silent = TRUE)) == "try-error") {
         cov_mat <- cov_mat + shrink * diag(nrow(cov_mat))
@@ -222,7 +222,7 @@ prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10,
 #' @return list of \code{flowClust} prior parameters
 prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
                          pct = 0.1, ...) {
-  require('clue')
+  
 
   # For each randomly selected sample in the flow_set, we apply K-means with to
   # find K clusters and retain additional summary statistics to elicit the prior
@@ -336,7 +336,7 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
 #' correspond to the peaks. A value of \code{NA} is used if no peak is present.
 #' @return matrix where the peaks are aligned
 align_peaks <- function(peaks) {
-  require('clue')
+  
   K <- ncol(peaks)
   
   # For each sample that has less than K peaks, we align its peaks with the peaks

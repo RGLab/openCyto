@@ -269,16 +269,17 @@ spillover1<-function(x, unstained=NULL, cols=NULL, fsc="FSC-A",
   res
 }
 
-getChannelMarker <- function(frm, name, fix = FALSE) {
-  #try stain name
-  pd<-pData(parameters(frm))
-  pname<-paste(name,"([ ]|$)",sep="")
-  if (fix) {
-    ind <- which(toupper(pd$name) %in% toupper(name))
-  } else {
-    ind <- which(grepl(pname, pd$name, ignore.case = TRUE))
-  }
-}
+#getChannelMarker <- function(frm, name, fix = FALSE) {
+#  #try stain name
+#  
+#  pd<-pData(parameters(frm))
+#  pname<-paste(name,"([ ]|$)",sep="")
+#  if (fix) {
+#    ind <- which(toupper(pd$name) %in% toupper(name))
+#  } else {
+#    ind <- which(grepl(pname, pd$name, ignore.case = TRUE))
+#  }
+#}
 .flowParamMatch<-function(pd,name,fix=FALSE,partial=FALSE){
 	if(partial)
 		pname<-name
@@ -480,7 +481,7 @@ quadGate2rectangleGates <- function(quad_gate, markers, channels, quadrants = 1:
 #' @examples
 #' polyfunction_nodes(c("IFNg", "IL2", "TNFa", "GzB", "CD57"))
 polyfunction_nodes <- function(markers) {
-  require('gregmisc')
+  
   markers <- paste0(markers, "+")
   num_markers <- length(markers)
   and_list <- as.vector(permutations(n = 1, r = num_markers - 1, c("&"), repeats = TRUE))

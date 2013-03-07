@@ -1,5 +1,10 @@
 
-import(gtools,permutations)
+importFrom(gtools,permutations)
+importFrom(flowStats,singletGate,quadrantGate,rangeGate)
+importFrom(flowClust,tmixFilter,getEstimates,rbox)
+importFrom(MASS,huber)
+importFrom(plyr,aaply)
+importFrom(clue,solve_LSAP)
 
 exportClasses(gatingTemplate
 			,fcTree
