@@ -244,8 +244,8 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          axis_translation = 0.25, truncate_min = NULL,
                          truncate_max = NULL, ...) {
 
-  if (length(target) != K) {
-    stop("The target location vector must be a numeric vector of length 'K'.")
+  if (length(target) != 2) {
+    stop("The 'target' location must be a numeric vector of length 2.")
   }
   gate_type <- match.arg(gate_type)
 
