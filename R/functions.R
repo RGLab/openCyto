@@ -1,4 +1,157 @@
-
+.preprocess_csv <- function(x){
+  
+  df <- read.csv(x, as.is = T)
+  
+  df <- apply(df, 1, function(this_row){
+        
+        
+          alias <- this_row["alias"]
+          popName <- this_row["pop"]
+          parent <- this_row["parent"]
+          dims <- this_row["dims"]
+          gm <- this_row["method"]
+          args <- this_row["args"]        
+          
+#          cat("Preprocessing pop: ",popName,"\n")
+          
+          #assuming the positive population is selected by adding + if no +/- are defined in pop name
+          if(!grepl("[+-]",popName))popName <- paste(popName, "+", sep = "")
+            
+          
+          dim_count <- length(strsplit(split = ",", dims)[[1]])
+          if(!dim_count%in%c(1,2)){
+            if(!(dim_count == 0&&gm%in%c("polyfunctions","boolGate","refGate"))) 
+              stop("invalid number of dimensions: ",dim_count)
+          }
+          #validity check for pop and determine if expanded to multiple pops
+          one_pop_token <- "[\\+-]"
+          pop_name_pat <- "[^\\+-]+"
+          one_pop_pat <- paste(pop_name_pat,one_pop_token,sep="") 
+          
+          two_pop_token <- "(\\+/-)|(-/\\+)"
+          two_pop_pat <- paste(pop_name_pat,"(", two_pop_token, ")",sep="")
+  
+          
+          if(grepl(paste("^", one_pop_pat, "$",sep=""),popName)||grepl(paste("^", two_pop_pat, "$",sep="") ,popName)){
+            #A+ or A+/- 
+            is_expand <- FALSE
+            if(gm=="flowClust"){
+              if(dim_count == 1){
+                gm <- "flowClust.1d"
+              }else{
+                gm <- "flowClust.2d"
+              }
+            }
+              
+          }else if(grepl(paste("^(", one_pop_pat, "){2}$",sep=""),popName)){
+            #A[+-]B[+-]
+            
+            if(gm=="flowClust"){
+              if(dim_count == 2){
+                gm <- "flowClust.1d"
+              }else{
+                stop("dimensions '",dims,"' is not consistent with pop name '",popName,"'")
+              }
+            }
+            #needs to be split into two 1d gates and one refgate
+             is_expand <- TRUE
+           }else if(grepl(paste("^(", two_pop_pat, "){2}$",sep="") ,popName)||grepl(paste("^", two_pop_pat,one_pop_pat, "$",sep="") ,popName)||grepl(paste("^", one_pop_pat, two_pop_pat, "$",sep="") ,popName)){
+               #A+/-B+/-
+                 is_expand <- TRUE
+               if(gm=="flowClust"){
+                 if(dim_count == 1){
+                   gm <- "flowClust.1d"
+                 }else{
+                   gm <- "flowClust.2d"
+                 }
+               }
+           }else{
+            stop("invalid population pattern '",popName,"'")
+           }
+          
+           names(gm)<-"method"
+           names(popName) <- "pop"
+           #do the expansion
+          
+           if(is_expand){
+             
+               cat("expanding pop: ",popName,"\n")
+               
+               #split pop name
+               pop_pat <- paste("(", one_pop_pat, ")|(", two_pop_pat,")",sep="")
+               term_pos <- gregexpr(pop_pat, popName)[[1]]
+               x_term <- substr(popName, 1, term_pos[2] - 1)
+               y_term <- substr(popName, term_pos[2], nchar(popName))
+               
+               #try to split terms
+               splitted_terms <- lapply(c(x_term,y_term),function(cur_term){
+              #                 browser()
+                               token_pos <- gregexpr(two_pop_token, cur_term)[[1]]
+                               if(token_pos >0){
+                                 dim_name <- substr(cur_term, 1, token_pos - 1)
+                                 splitted_term <- paste(dim_name, c("+","-"), sep = "")
+                                 
+                               }else{
+                                 splitted_term <- cur_term
+                               }
+                               splitted_term
+                             })
+               #generate the actual pops
+               new_pops <- as.character(outer(splitted_terms[[1]],splitted_terms[[2]], paste, sep = ""))
+               
+               #create two 1d gates and refGates if necessary
+               if(gm!="refGate"){
+                    #create 1d gate for each dim
+                      res_1d <- do.call(rbind, lapply(c(x_term,y_term), function(cur_term){
+                                
+                                                      toReplace <- paste("("
+                                                                        , two_pop_token
+                                                                        , ")|("
+                                                                        , one_pop_token
+                                                                        , ")"
+                                                                        , sep="")
+                                                   cur_dim <- sub(toReplace,"", cur_term)
+                                                  c(alias=cur_term, pop=cur_term, parent, dims=cur_dim, gm, args) 
+                                                })
+                                        )
+                   
+                   #TODO: May need to prepend parent 
+                    #and to make sure reference node is uniquely identifiable
+                    ref_args <- paste(splitted_terms[[1]][1]
+                                        ,splitted_terms[[2]][1]
+                                        ,sep=":")
+                   #create ref gate for each new_pop                 )
+                    res_ref <- do.call(rbind, lapply(new_pops, function(new_pop){
+                                            c(alias = new_pop, pop = new_pop, parent, dims
+                                                    , gm = "refGate"
+                                                    , args = ref_args
+                                                ) 
+                                          })
+                                        )
+                    res<-rbind(res_1d, res_ref)
+                   
+               }else{
+                 #simply replicate rows to expand refGates
+                 res <- do.call(rbind, lapply(new_pops, function(new_pop){
+                                       c(alias=new_pop, pop=new_pop, parent, dims, gm, args) 
+                                     })
+                             )  
+               }                       
+             
+             
+           }else{ #no expand
+               res<-as.data.frame(as.list(c(alias, popName, parent, dims, gm, args)),stringsAsFactors=FALSE)  
+            
+#             browser()
+             
+           }
+           
+         res 
+        })
+#        browser()  
+    as.data.frame(do.call(rbind,df),stringsAsFactors=FALSE)
+#              
+}
 read.FCS.csv<-function(file,stains=NA){
 	mat<-as.matrix(read.csv(file,check.names=FALSE))
 	

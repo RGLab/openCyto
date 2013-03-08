@@ -35,7 +35,7 @@ path<-"/home/wjiang2/rglab/workspace/openCyto"
 ###############
 load(file.path(path,"data/065_fs.rda"))
 
-gt<-gatingTemplate(file.path(path,"data/ICS_GatingTemplate.csv"),"ICS")
+gt<-gatingTemplate(file.path(path,"data/ICS.csv"),"ICS")
 gt
 #getNodes(gt,"14")
 #getChildren(obj=gt,y="2")
@@ -50,13 +50,14 @@ plot(gt)
 paramters<-colnames(fs[[1]])
 trans <- estimateLogicle(fs[[1]], channels = paramters[!grepl("[F|S]SC|[T|t]ime",paramters)])
 fs_trans<-transform(fs,trans)
+
 gs<-GatingSet(fs_trans)
 env1<-new.env(parent=emptyenv())
 gating(gt,gs,env1, prior_group='VISITNO')
 plot(gs[[1]])
 plot(gs[[1]],bool=T)
 getNodes(gs[[1]])
-plotGate(gs[[1]],xbin=128,margin=T)
+plotGate(gs[[1]],c(11,16),xbin=128,margin=T)
 
 
 #plot priors
@@ -98,8 +99,8 @@ plot(env1$fct,"lymph",post=T)
 ###############
 
 load(file.path(path,"data/fs_bcell.rda"))
-
-gt2<-gatingTemplate(file.path(path,"data/Cytotrol_Bcell_GatingTemplate.csv"),"Bcell")
+gt2<-gatingTemplate(file.path(path,"data/Cytotrol_Bcell_expanded.csv"),"Bcell")
+gt2<-gatingTemplate(file.path(path,"data/Cytotrol_Bcell.csv"),"Bcell")
 plot(gt2)
 
 

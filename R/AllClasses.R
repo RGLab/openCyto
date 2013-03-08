@@ -188,8 +188,8 @@ setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
 #constructor from csv
 setMethod("gatingTemplate",signature(x="character"),function(x,name){
 	
-	#read csv
-	df<-read.csv(x,as.is=T)
+	df <- .preprocess_csv(x)
+#    browser()
 	#create graph with root node
 	g<-graphNEL(nodes="1",edgemode="directed")
 	g<-as(g,"gatingTemplate")
@@ -204,12 +204,12 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
 		
 		curNodeID<-as.character(i+1)
         #extract info from dataframe
-		parent<-df[i,"parent"]
+		parent<-as.character(df[i,"parent"])
         #get parent ID
         parentID <- .getNodeID(g, parent)
-        
-		curPop<-df[i,"alias"]
-		curPopName<-df[i,"pop"]
+#        browser()
+		curPop<-as.character(df[i,"alias"])
+		curPopName<-as.character(df[i,"pop"])
         #create pop object
 		curNode<-new("gtPopulation" 
                       , id = as.numeric(curNodeID)
@@ -219,18 +219,33 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
                       )
 					
         #create gating method object
+        cur_method <- as.character(df[i, "method"])
+        cur_args <- as.character(df[i, "args"])
+        cur_dims <- as.character(df[i, "dims"])
+        
+        #do not parse args for refGate-like gate since they might break 
+        #the current parse due to the +/- | &,! symbols
+        if(cur_method%in%c("boolGate","polyfunctions","refGate")){
+          cur_args <- list(cur_args)
+        }else{
+          cur_args <- .argParser(cur_args)
+        }
+#          browser()
+          
 		gm<-new("gtMethod"
-				, name = df[i, "method"]
-				, dims = df[i, "dims"]
-				, args = .argParser(df[i, "args"])
+				, name = cur_method
+				, dims = cur_dims
+				, args = cur_args
 				)
 		#specialize gtMethod as needed		
-		if(names(gm) == "boolGate")
-			gm <- as(gm, "boolMethod")
-		else if(names(gm) == "polyFunctions")
-			gm <- as(gm, "polyFunctions")
-        else if(names(gm) == "refGate")
-            gm <- as(gm, "refGate")
+		if(names(gm) == "boolGate"){
+          gm <- as(gm, "boolMethod")
+        }else if(names(gm) == "polyFunctions"){
+          gm <- as(gm, "polyFunctions")
+        }else if(names(gm) == "refGate"){
+          gm <- as(gm, "refGate")
+        }
+           
           
 		cat("Adding population:", curPop, "\n")
         #add current node to graph
@@ -248,7 +263,7 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
           
           #get argument 
           args <- gm@args[[1]]
-          args <- deparse(args)
+#          args <- deparse(args)
           
           #parsing reference nodes
           if(class(gm) == "boolMethod"){

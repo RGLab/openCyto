@@ -1,0 +1,13 @@
+"alias","pop","parent","dims","method","args"
+"nonDebris","nonDebris+","root","FSC-A","flowClust","Neg=1,pos=2"
+"lymph","lymph","nonDebris","FSC-A,SSC-A","flowClust","K=2,quantile=0.8,target=c(1e5,5e4)"
+"cd3","cd3-","lymph","cd3","mindensity",
+"cd19","cd19+","cd3","cd19","mindensity",
+"cd20","cd20+","cd3","cd20","mindensity",
+"cd19&!cd20","cd19&!cd20","cd3",,"boolGate","cd19&!cd20"
+"cd19&cd20","cd19&cd20","cd3",,"boolGate","cd19&cd20"
+"plasmaB","cd27+cd38+","cd19&!cd20","cd27,cd38","flowClust",
+"transitional","transitional","cd19&cd20","cd38,cd24","flowClust","K=4,gate_type='axis',target=c(3.5e3,3.5e3),quantile=0.995,axis_translation=0.55"
+"cd27gate","cd27+","cd19&cd20","cd27","flowClust",
+"IgDgate","IgD+","cd27gate","IgD","flowClust",
+"*","IgD+/-cd27+/-","cd19&cd20","IgD,cd27","refGate","cd27gate:IgDgate"
