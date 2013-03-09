@@ -109,21 +109,31 @@ isPolyfunctional<-function(gm){
 }
 
 #gating arguments parser
-.argParser<-function(txt){
+.argParser<-function(txt,split=TRUE){
 	
 	#trim whitespaces at beginning and the end of string
 	txt<-gsub("^\\s*|\\s*$","",txt)
-	paired_args<-paste("c(",txt,")")
-	paired_args<-try(parse(text=paired_args),silent = TRUE)
-	if(class(paired_args)=="try-error")
-	{
-		errmsg<-attr(paired_args,"condition")
-		msg <- conditionMessage(errmsg)
-		stop("invalid gating argument:\n",msg)
-	}
-	paired_args<-as.list(as.list(paired_args)[[1]])[-1]
+    if(split){
+    	paired_args<-paste("c(",txt,")")
+    	paired_args<-try(parse(text=paired_args),silent = TRUE)
+    	if(class(paired_args)=="try-error")
+    	{
+    		errmsg<-attr(paired_args,"condition")
+    		msg <- conditionMessage(errmsg)
+    		stop("invalid gating argument:\n",msg)
+    	}
+        
+        paired_args<-as.list(as.list(paired_args)[[1]])[-1]
+        names(paired_args)<-tolower(names(paired_args))  
+    }else
+    {
+      
+#      browser()
+      paired_args<-as.symbol(txt)
+      
+      paired_args<-list(paired_args)
+    }
 	
-	names(paired_args)<-tolower(names(paired_args))
 	paired_args
 }
 #search for node ID by node name with gating template tree 
@@ -226,10 +236,11 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
         #do not parse args for refGate-like gate since they might break 
         #the current parse due to the +/- | &,! symbols
         if(cur_method%in%c("boolGate","polyfunctions","refGate")){
-          cur_args <- list(cur_args)
+          split_args <- FALSE
         }else{
-          cur_args <- .argParser(cur_args)
+          split_args <- TRUE
         }
+        cur_args <- .argParser(cur_args,split_args)
 #          browser()
           
 		gm<-new("gtMethod"
@@ -263,7 +274,7 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
           
           #get argument 
           args <- gm@args[[1]]
-#          args <- deparse(args)
+          args <- deparse(args)
           
           #parsing reference nodes
           if(class(gm) == "boolMethod"){
