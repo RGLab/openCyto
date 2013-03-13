@@ -477,9 +477,28 @@ setMethod("gating", signature = c("refGate", "GatingSet")
       fr<-getData(y[[1]])
       
       flist <- flowWorkspace::lapply(y, function(gh){
-  #          browser()
+#            browser()
           #extract gates from reference nodes  
-          glist<-lapply(refNodes,function(refNode)getGate(gh,refNode))
+          glist<-lapply(refNodes,function(refNode){
+#                browser()
+              #TODO: to add searching by path capability to flowWorkspace
+                node_names <- getNodes(gh)
+                node_ind <- match(refNode, node_names)
+                if(is.na(node_ind)){
+                  #match to path
+                  node_paths <-getNodes(gh,isPath=T)
+                  toMatch <- gsub("\\+","\\\\+",refNode)
+                  toMatch <- paste(toMatch, "$",sep="")
+                  node_ind <- grep(toMatch,node_paths)
+                  if(length(node_ind) == 0){
+                   stop(refNode," not found in gating set!") 
+                  }else if(length(node_ind) > 1){
+                    stop("Multiple " ,refNode ," found in gating set!")
+                  }
+                }
+                getGate(gh,node_ind)                  
+                
+              })
           #standardize the names for the gate parameters and dims 
           gate_params <- unlist(lapply(glist, function(g){
                                             cur_param <- parameters(g)

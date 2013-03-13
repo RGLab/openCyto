@@ -136,9 +136,25 @@ isPolyfunctional<-function(gm){
 	
 	paired_args
 }
-#search for node ID by node name with gating template tree 
-#and add the edge
-.getNodeID<-function(g, node_name){
+
+#match node ID by name with the subset
+.getNodeID <- function(g, subset, this_node){
+  node_id_ind <- which(unlist(lapply(subset,function(this_node_id){
+                alias(getNodes(g,this_node_id)) == this_node
+              })))
+  
+  
+  if(length(node_id_ind) == 0){
+    stop("Population '", this_node, "' not found under the current parent:", alias(getNodes(g,getParent(g,subset[2]))))
+  }else if(length(node_id_ind) > 1){
+    stop("Population '", this_node, "' not unique under the current parent:", alias(getNodes(g,getParent(g,subset[2]))))
+  }else{
+    node_id <- subset[node_id_ind]
+  }
+  node_id
+}
+#search for node ID by path with gating template tree and add the edge
+.searchNode<-function(g, node_name){
 #browser()
   if(node_name == "root"){
     node_id <- "1"
@@ -147,27 +163,15 @@ isPolyfunctional<-function(gm){
     discovered<-dfs(g)[["discovered"]]
     #split by "/" for each reference node
       
-    node_name<-flowWorkspace:::trimWhiteSpace(node_name)
+    node_name <- flowWorkspace:::trimWhiteSpace(node_name)
     tokens<-strsplit(node_name,"/")[[1]]
     
     ##locate the first token in traversed node list 
     firstToken<-tokens[1]
     tokens<-tokens[-1]
-    node_id<-NULL
-    for(this_node_id in discovered)
-    {
-#                                       browser()
-      if(alias(getNodes(g,this_node_id))==firstToken)
-      {
-        node_id<-this_node_id
-        
-      }
-      
-    }
-    if(is.null(node_id)){
-      
-      stop("Population '", firstToken, "' not found")
-    }
+
+#    browser()
+    node_id <- .getNodeID(g, subset = discovered, this_node =firstToken)
       
     #start from matchedID to match the rest of tokens in the path
     while(length(tokens)>0)
@@ -176,23 +180,7 @@ isPolyfunctional<-function(gm){
       tokens<-tokens[-1]
       #find the id within the edges sourced from current ancester
       dests<-edges(g,node_id)[[1]]
-      node_id<-NULL
-      for(this_node_id in dests)
-      {
-#                                       browser()
-        if(alias(getNodes(g,this_node_id))==curToken)
-        {
-          node_id<-this_node_id
-          
-        }
-        
-      }
-      if(is.null(node_id)){
-#        browser()
-        stop("Population '",curToken,"' not found")
-        
-      }
-        
+      node_id <- .getNodeID(g, subset = dests, this_node =curToken)        
     }
     
   }
@@ -223,7 +211,7 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
         #extract info from dataframe
 		parent<-as.character(df[i,"parent"])
         #get parent ID
-        parentID <- .getNodeID(g, parent)
+        parentID <- .searchNode(g, parent)
 #        browser()
 		curPop<-as.character(df[i,"alias"])
 		curPopName<-as.character(df[i,"pop"])
@@ -306,7 +294,7 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
           {
             #get node id for reference node
             #(using the old graph object since the new graph has unconnected new node
-            ref_id <- .getNodeID(g, ref_node)
+            ref_id <- .searchNode(g, ref_node)
              #add the edge from it 
             g_updated<-addEdge(ref_id, curNodeID, g_updated)
             #append the gm object to the edge

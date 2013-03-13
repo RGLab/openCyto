@@ -1,33 +1,59 @@
 #check the uniqueness of alias
 #prepend the parent if needed
-update_alias <-function(new_df,alias, this_parent){
-#              browser()
-  #get current alias and parent
-#  alias <- this_row[1,"alias"]
-#  this_parent <- this_row[1, "parent"]
-  while(alias%in%new_df[,"alias"]){
-    #if already exist in the new data frame
-    #then try to prepend the parent to make it unique
-#    browser()
-    if(this_parent == "root"){
-      stop("Not able to to find unique name for ", alias)
-    }else{
-      alias <- paste(this_parent,alias,sep = "/")
-      
-      #prepare next ancester for the further prepending
-      ind <- match(this_parent,new_df["alias"])
-      
-      if(length(ind) == 0){
-        stop("parent", this_parent, " not found in 'new_df'!")
-      }else if(length(ind) > 1){
-        stop("parent", this_parent, " is not unique!")
-      }else{
-        this_parent <- new_df[ind, "parent"]  
+#.update_alias <-function(new_df,alias, this_parent){
+##              browser()
+#  #get current alias and parent
+##  alias <- this_row[1,"alias"]
+##  this_parent <- this_row[1, "parent"]
+#  while(alias%in%new_df[,"alias"]){
+#    #if already exist in the new data frame
+#    #then try to prepend the parent to make it unique
+##    browser()
+#    if(this_parent == "root"){
+#      stop("Not able to to find unique name for ", alias)
+#    }else{
+#      alias <- paste(this_parent,alias,sep = "/")
+#      
+#      #prepare next ancester for the further prepending
+#      ind <- match(this_parent,new_df["alias"])
+#      
+#      if(length(ind) == 0){
+#        stop("parent", this_parent, " not found in 'new_df'!")
+#      }else if(length(ind) > 1){
+#        stop("parent", this_parent, " is not unique!")
+#      }else{
+#        this_parent <- new_df[ind, "parent"]  
+#      }
+#    }
+#  }
+#  #return the prepended alias
+#  alias
+#}
+.update_ref_node <-function(ref_node, new_df, this_parent){
+  
+      ind <- match(ref_node,new_df[,"alias"])
+      if(!is.na(ind)){
+        if(this_parent == "root"){
+          stop("Not able to to find unique reference for ", ref_node)
+        }else{
+
+          #assuming this_parent is uniquely identifiable
+          ref_node <- paste(this_parent,ref_node,sep = "/")
+        }   
       }
+    ref_node
+}
+
+#make sure the alias is unique under one parent
+.check_alias <-function(new_df,alias, this_parent){
+#              browser()
+  
+  siblings <- subset(new_df,parent == this_parent)[,"alias"]
+  matched_sibs <- match(alias, siblings)
+  
+  if(length(matched_sibs)>=2){
+        stop(alias, " is not unique within ", this_parent)
     }
-  }
-  #return the prepended alias
-  alias
 }
 .preprocess_csv <- function(x){
   
@@ -51,7 +77,7 @@ update_alias <-function(new_df,alias, this_parent){
           if(!dim_count%in%c(1,2)){
             if(!(dim_count == 0&&gm%in%c("polyFunctions","boolGate","refGate"))){
 #              browser()
-              stop("invalid number of dimensions: ", dim_count)
+              stop(popName, " has invalid number of dimensions: ", dim_count)
             } 
               
           }
@@ -81,8 +107,7 @@ update_alias <-function(new_df,alias, this_parent){
                 this_row[1,"method"] <- "flowClust.2d"
               }
             }
-            #update alias to make it unique
-            this_row[1, "alias"] <- update_alias (new_df, this_row[1, "alias"], this_row[1, "parent"])
+            
             res <- this_row
               
           }else if(grepl(paste("^", two_pop_pat, "$",sep="") ,popName)){
@@ -100,9 +125,7 @@ update_alias <-function(new_df,alias, this_parent){
             cur_dim <- sub(two_pop_token,"", popName)
             new_pops <- paste(cur_dim, c("+","-"), sep = "")
             res <- do.call(rbind, lapply(new_pops, function(new_pop){
-                                  this_parent <- this_row[1, "parent"]
-                                  new_alias <- update_alias (new_df, new_pop, this_parent)
-                                c(alias=new_alias, pop=new_pop, parent = this_parent , dims, this_row[1,"method"], this_row["args"]) 
+                                c(alias=new_pop, pop=new_pop, parent = this_row[1, "parent"] , dims, this_row[1,"method"], this_row["args"]) 
                               })
                             )
             
@@ -111,7 +134,6 @@ update_alias <-function(new_df,alias, this_parent){
 
               if(gm == "refGate"){
                 #no expansion
-                this_row[1, "alias"] <- update_alias (new_df, this_row[1, "alias"], this_row[1, "parent"])
                 res <- this_row
                 
               }else{
@@ -129,11 +151,12 @@ update_alias <-function(new_df,alias, this_parent){
                   split_terms <- .splitTerms(pop_pat=one_pop_pat,two_pop_token,popName)              
                   
                   #create 1d gate for each dim
-                  res_1d <- .gen_1dgate(split_terms$terms,this_row,one_pop_token,two_pop_token, new_df=new_df)
+                  res_1d <- .gen_1dgate(split_terms$terms,this_row,one_pop_token,two_pop_token, new_df)
 #                  browser()
+                   
                   res_ref <- .gen_refGate(split_terms$splitted_terms
                                           , this_row
-                                          , ref_args = res_1d[,"alias"]
+                                          , ref_nodes = res_1d[,"alias"]
                                           , alias = this_row["alias"]
                                           , new_df=new_df)
                   res<-rbind(res_1d, res_ref)
@@ -146,7 +169,7 @@ update_alias <-function(new_df,alias, this_parent){
               split_terms <- .splitTerms(pop_pat=pop_stat,two_pop_token,popName)
 #              browser()
               if(gm == "refGate"){
-                res <- .gen_refGate(split_terms$splitted_terms, this_row, ref_args = this_row["args"], new_df=new_df)
+                res <- .gen_refGate(split_terms$splitted_terms, this_row = this_row, new_df=new_df)
               }else{
                 
                 if(gm=="flowClust"){
@@ -160,10 +183,10 @@ update_alias <-function(new_df,alias, this_parent){
                 } 
                 
                 #create 1d gate for each dim
-                res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, two_pop_token, new_df=new_df)
+                res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, two_pop_token, new_df)
                 res_ref <- .gen_refGate(split_terms$splitted_terms
                                         , this_row
-                                        , ref_args = res_1d[,"alias"]
+                                        , ref_nodes = res_1d[,"alias"]
                                         , new_df=new_df)
                 res<-rbind(res_1d, res_ref)
               }
@@ -223,9 +246,9 @@ update_alias <-function(new_df,alias, this_parent){
                           cur_dim <- sub(toReplace,"", cur_term)
                           new_pop_name <- paste(cur_dim, "+", sep = "")
                           this_parent <- this_row[1, "parent"] 
-                          new_alias <- update_alias (new_df, new_pop_name, this_parent)
+                          .check_alias (new_df, new_pop_name, this_parent)
                           
-                          c(alias=new_alias
+                          c(alias=new_pop_name
                             , pop=new_pop_name
                             , parent = this_parent
                             , dims=cur_dim
@@ -236,17 +259,26 @@ update_alias <-function(new_df,alias, this_parent){
    rownames(res) <- NULL
    res
 }
-.gen_refGate <- function(splitted_terms, this_row,ref_args = NULL,alias = NULL, new_df){
-  #                   #TODO: May need to prepend parent 
-  #                    #and to make sure reference node is uniquely identifiable
+.gen_refGate <- function(splitted_terms, this_row,ref_nodes = NULL,alias = NULL, new_df){
 #  browser()
-  if(is.null(ref_args)){
-    ref_args <- paste(splitted_terms[[1]][1]
-        ,splitted_terms[[2]][1]
-        ,sep=":")  
-  }else if(length(ref_args) > 1){
-    ref_args <- paste(ref_args, collapse=":")
+  this_parent <- this_row[1, "parent"]
+  
+  if(is.null(ref_nodes)){
+    #simply copy ref args from the row
+    ref_args <- this_row[1, "args"]  
+  }else{
+    #use the new generated 1d pops to construct ref args
+    
+    #prepend the path to ref_nodes if needed
+    ref_nodes <- lapply(ref_nodes, .update_ref_node, new_df = new_df, this_parent = this_parent)
+    ref_args <- paste(ref_nodes, collapse=":")
+    
   }
+    
+  
+  
+  
+    
   new_pops <- as.character(outer(splitted_terms[[1]],splitted_terms[[2]], paste, sep = ""))
   
   if(is.null(alias)){
@@ -255,9 +287,9 @@ update_alias <-function(new_df,alias, this_parent){
 #  browser()
   #create ref gate for each new_pop                 )
   do.call(rbind, mapply(new_pops,alias, FUN = function(new_pop,cur_alias){
-                                  this_parent <- this_row[1, "parent"] 
-                                  new_alias <- update_alias (new_df, cur_alias, this_parent)
-                                  c(alias = new_alias
+                                   
+                                  .check_alias (new_df, cur_alias, this_parent)
+                                  c(alias = cur_alias
                                       , pop = new_pop
                                       , parent = this_parent
                                       , this_row["dims"]
