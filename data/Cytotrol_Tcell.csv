@@ -1,0 +1,9 @@
+"alias","pop","parent","dims","method","args"
+"nonDebris","nonDebris","root","FSC-A","flowClust","Neg=1,pos=1"
+"lymph","lymph","nonDebris","FSC-A,SSC-A","flowClust","K=2,target=c(1e5,5e4)"
+"cd3","cd3","lymph","CD3","mindensity",
+"*","cd4-/+cd8+/-","cd3","cd4,cd8","flowClust",
+"activated cd4","CD38+HLA+","cd4+cd8-","CD38,HLA","flowClust",
+"activated cd8","CD38+HLA+","cd4-cd8+","CD38,HLA","flowClust",
+"*","CCR7+/-CD45RA+/-","cd4+cd8-","CCR7,CD45RA","flowClust",
+"*","CCR7+/-CD45RA+/-","cd4-cd8+","CCR7,CD45RA","flowClust",

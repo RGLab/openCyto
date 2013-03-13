@@ -164,8 +164,11 @@ isPolyfunctional<-function(gm){
       }
       
     }
-    if(is.null(node_id))
-      stop("Population '",firstToken,"' not found")
+    if(is.null(node_id)){
+      
+      stop("Population '", firstToken, "' not found")
+    }
+      
     #start from matchedID to match the rest of tokens in the path
     while(length(tokens)>0)
     {
@@ -184,8 +187,12 @@ isPolyfunctional<-function(gm){
         }
         
       }
-      if(is.null(node_id))
+      if(is.null(node_id)){
+#        browser()
         stop("Population '",curToken,"' not found")
+        
+      }
+        
     }
     
   }

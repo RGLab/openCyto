@@ -34,7 +34,7 @@ path<-"/home/wjiang2/rglab/workspace/openCyto"
 ##ICS
 ###############
 load(file.path(path,"data/065_fs.rda"))
-
+gt<-gatingTemplate(file.path(path,"data/ICS_expanded.csv"),"ICS")
 gt<-gatingTemplate(file.path(path,"data/ICS.csv"),"ICS")
 gt
 #getNodes(gt,"14")
@@ -57,6 +57,7 @@ gating(gt,gs,env1, prior_group='VISITNO')
 plot(gs[[1]])
 plot(gs[[1]],bool=T)
 getNodes(gs[[1]])
+plotGate(gs[[1]],xbin=64,margin=T)
 plotGate(gs[[1]],c(11,16),xbin=128,margin=T)
 
 
@@ -75,8 +76,8 @@ plot(env1$fct,"TNFa",posteriors=T)
 ###############
 
 load(file.path(path,"data/fs_tcell.rda"))
-
-gt1<-gatingTemplate(file.path(path,"data/Cytotrol_Tcell_GatingTemplate.csv"),"Tcell")
+gt1<-gatingTemplate(file.path(path,"data/Cytotrol_Tcell_expanded.csv"),"Tcell")
+gt1<-gatingTemplate(file.path(path,"data/Cytotrol_Tcell.csv"),"Tcell")
 plot(gt1)
 
 fs_tcell[[1]]
