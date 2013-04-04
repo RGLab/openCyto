@@ -223,7 +223,6 @@ prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10,
 prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
                          pct = 0.1, ...) {
   
-
   # For each randomly selected sample in the flow_set, we apply K-means with to
   # find K clusters and retain additional summary statistics to elicit the prior
   # parameters for flowClust.
@@ -232,15 +231,15 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
   kmeans_summary <- lapply(seq_len(num_samples), function(i) {
     # Grabs the channel data for the ith sample and randomly selects the
     # specified percentage of cells to which we apply 'kmeans'
-    x <- exprs(flow_set[[i]])[, channels]
-    x <- x[sample(seq_len(nrow(x)), pct * nrow(x)), ]
-    kmeans_out <- kmeans(x = x, centers = K, nstart = nstart) #, ...)
+    x <- as.matrix(exprs(flow_set[[i]])[, channels])
+    x <- as.matrix(x[sample(seq_len(nrow(x)), pct * nrow(x)), ])
+    kmeans_out <- kmeans(x = x, centers = K, nstart = nstart, ...)
 
     cluster_centroids <- kmeans_out$centers
     cluster_sizes <- kmeans_out$size
 
     cluster_covs <- tapply(seq_len(nrow(x)), kmeans_out$cluster, function(i) {
-      cov(x[i, ])
+      cov(as.matrix(x[i, ]))
     })
 
     list(centroids = cluster_centroids, sizes = cluster_sizes, covs = cluster_covs)
@@ -251,7 +250,11 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
   ref_sample <- sample.int(length(kmeans_summary), 1)
   kmeans_ref_sample <- kmeans_summary[[ref_sample]]
   kmeans_ref_sample$covs <- unname(kmeans_ref_sample$covs)
-  kmeans_ref_sample$covs <- aperm(simplify2array(kmeans_ref_sample$covs), c(3, 1, 2))
+  if (!is.vector(kmeans_ref_sample$covs)) {
+    kmeans_ref_sample$covs <- aperm(simplify2array(kmeans_ref_sample$covs), c(3, 1, 2))
+  } else {
+    kmeans_ref_sample$covs <- with(kmeans_ref_sample, array(covs, dim = c(length(covs), 1, 1)))
+  }
   ref_centroids <- kmeans_ref_sample$centroids
 
   # Because the cluster labels returned from 'kmeans' are arbitrary, we align the
@@ -273,7 +276,11 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
     kmeans_sample$covs <- unname(kmeans_sample$covs[align_idx])
 
     # Converts covariance matrices to a 3D array (K x p x p)
-    kmeans_sample$covs <- aperm(simplify2array(kmeans_sample$covs), c(3, 1, 2))
+    if (!is.vector(kmeans_sample$covs)) {
+      kmeans_sample$covs <- aperm(simplify2array(kmeans_sample$covs), c(3, 1, 2))
+    } else {
+      kmeans_sample$covs <- with(kmeans_sample, array(covs, dim = c(length(covs), 1, 1)))
+    }
 
     kmeans_sample
   }, kmeans_summary, ref_indices, SIMPLIFY = FALSE)
