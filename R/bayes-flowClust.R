@@ -227,6 +227,9 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
   # find K clusters and retain additional summary statistics to elicit the prior
   # parameters for flowClust.
   num_samples <- length(flow_set)
+
+  # The number of features, corresponding to the number of 'channels'
+  p <- length(channels)
   
   kmeans_summary <- lapply(seq_len(num_samples), function(i) {
     # Grabs the channel data for the ith sample and randomly selects the
@@ -249,11 +252,15 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
   # sample.
   ref_sample <- sample.int(length(kmeans_summary), 1)
   kmeans_ref_sample <- kmeans_summary[[ref_sample]]
-  kmeans_ref_sample$covs <- unname(kmeans_ref_sample$covs)
-  if (!is.vector(kmeans_ref_sample$covs)) {
-    kmeans_ref_sample$covs <- aperm(simplify2array(kmeans_ref_sample$covs), c(3, 1, 2))
+  kmeans_ref_sample$covs <- simplify2array(unname(kmeans_ref_sample$covs))
+
+  # Converts covariance matrices to a 3D array (K x p x p)
+  # We must treat the case of 1 channel as a special case to ensure the
+  # dimensions of the 3-dimensional array is correct.
+  if (p > 1) {
+    kmeans_ref_sample$covs <- aperm(kmeans_ref_sample$covs, c(3, 1, 2))
   } else {
-    kmeans_ref_sample$covs <- with(kmeans_ref_sample, array(covs, dim = c(length(covs), 1, 1)))
+    kmeans_ref_sample$covs <- array(kmeans_ref_sample$covs, dim = c(p, 1, 1))
   }
   ref_centroids <- kmeans_ref_sample$centroids
 
@@ -275,11 +282,14 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
     kmeans_sample$sizes <- kmeans_sample$sizes[align_idx]
     kmeans_sample$covs <- unname(kmeans_sample$covs[align_idx])
 
-    # Converts covariance matrices to a 3D array (K x p x p)
-    if (!is.vector(kmeans_sample$covs)) {
-      kmeans_sample$covs <- aperm(simplify2array(kmeans_sample$covs), c(3, 1, 2))
+    # Converts covariance matrices to a 3D array (K x p x p) As above,
+    # we must treat the case of 1 channel as a special case to ensure
+    # the dimensions of the 3-dimensional array is correct.
+    kmeans_sample$covs <- simplify2array(kmeans_sample$covs)
+    if (p > 1) {
+      kmeans_sample$covs <- aperm(kmeans_sample$covs, c(3, 1, 2))
     } else {
-      kmeans_sample$covs <- with(kmeans_sample, array(covs, dim = c(length(covs), 1, 1)))
+      kmeans_sample$covs <- array(kmeans_sample$covs, dim = c(p, 1, 1))
     }
 
     kmeans_sample
@@ -290,9 +300,7 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
 
   # Mu0 dimensions: K x p
   # Prior Mean
-  # p is the number of features, corresponding to the number of 'channels'
   # We average each of the cluster centroids across all samples to elicit Mu0.
-  p <- length(channels)
   Mu0 <- Reduce("+", lapply(kmeans_summary, function(x) x$centroids)) / num_samples
   Mu0 <- matrix(Mu0, K, p)
 
