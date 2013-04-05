@@ -430,11 +430,22 @@ find_peaks <- function(x, order_peaks = FALSE, ...) {
   second_deriv <- diff(sign(diff(dens$y)))
   which_maxima <- which(second_deriv == -2) + 1
 
+  # The 'density' function can consider observations outside the observed range.
+  # In rare cases, this can actually yield peaks outside this range.  We remove
+  # any such peaks.
+  which_maxima <- which_maxima[findInterval(dens$x[which_maxima], range(x)) == 1]
+
   if (order_peaks) {
     which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
   }
 
-  dens$x[which_maxima]
+  # Returns the local minima. If there are none, we return 'NA' instead.
+  if (length(which_maxima) > 0) {
+    peaks <- dens$x[which_maxima]
+  } else {
+    peaks <- NA
+  }
+  peaks  
 }
 
 #' Finds the local minima (valleys) in the given vector after smoothing the data
@@ -469,11 +480,22 @@ find_valleys <- function(x, order_valleys = FALSE, ...) {
   second_deriv <- diff(sign(diff(dens$y)))
   which_minima <- which(second_deriv == 2) + 1
 
+  # The 'density' function can consider observations outside the observed range.
+  # In rare cases, this can actually yield valleys outside this range. We remove
+  # any such peaks.
+  which_minima <- which_minima[findInterval(dens$x[which_minima], range(x)) == 1]
+
   if (order_valleys) {
     which_minima <- which_minima[order(dens$y[which_minima], decreasing = FALSE)]
   }
 
-  dens$x[which_minima]
+  # Returns the local minima. If there are none, we return 'NA' instead.
+  if (length(which_minima) > 0) {
+    valleys <- dens$x[which_minima]
+  } else {
+    valleys <- NA
+  }
+  valleys
 }
 
 quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
@@ -510,27 +532,77 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
 #' line to the right of the cutpoint. Otherwise, the gate is the entire real
 #' line to the left of the cutpoint. (Default: \code{TRUE})
-#' @param gate_min TODO: For now, this is the minimum value allowed for the
-#' gate. If the constructed gate is less than this value, the minimum value
-#' (or maybe min(x)) is returned.
-#' @param ... Additional arguments pased on to the \code{find_peaks} function.
+#' @param num_peaks a numeric value that, if given, orders the peaks returned
+#' from \code{\link{find_peaks}} and sets the cutpoint based on the largest
+#' \code{num_peaks} of them. This can alleviate artifactual peaks that can be
+#' introduced from smoothing. By default, all of the peaks are considered.
+#' @param peaks_between a numeric vector of length two, specifiying the two
+#' peaks that we will look between to identify the cutpoint
+#' @param max_cutpoint the maximum value allowed for the cutpoint. If this value
+#' is not \code{NULL} and if the constructed gate is larger than this value, the
+#' gate's cutpoint is set to this value. (Default: \code{NULL})
+#' @param min a numeric value that sets the lower boundary for data filtering
+#' @param max a numeric value that sets the upper boundary for data filtering
+#' @param adjust the smoothing value passed on to \code{\link{density}}
+#' @param ... Additional arguments passed on to the \code{find_peaks} function
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
-                       gate_min = NULL, ...) {
+                       num_peaks = NULL, peaks_between = c(1, 2),
+                       max_cutpoint = NULL, min = NULL, max = NULL,
+                       adjust = 1.25, ...) {
   
   if (missing(channel) || length(channel) != 1) {
     stop("A single channel must be specified.")
   }
+
+  peaks_between <- sort(as.numeric(peaks_between))
+  if (length(peaks_between) != 2) {
+    stop("The 'peaks_between' must be a vector of length 2.")
+  }
+  
   # Grabs the data matrix that is being gated.
   x <- exprs(flow_frame)[, channel]
 
-  # Find the minimum density between the two highest peaks and set the cutpoint
-  # there.
-  largest_peaks <- find_peaks(x, order_peaks = TRUE, ...)[1:2]
-  x_between <- x[findInterval(x, sort(largest_peaks)) == 1]
+  # Filter out values less than the minimum and above the maximum, if they are
+  # given.
+  if (!is.null(min)) {
+    min <- as.numeric(min)
+    x <- x[x >= min]
+  }
 
-  # The cutpoint is the deepest valley between the two largest peaks
-  cutpoint <- find_valleys(x_between, order_valleys = TRUE)[1]
+  if (!is.null(max)) {
+    max <- as.numeric(max)
+    x <- x[x <= max]
+  }
+
+  # Determines the peaks in 'x'. If a number of peaks is specified, then we
+  # select the largest 'num_peaks' of them.
+  if (is.null(num_peaks)) {
+    peaks <- sort(find_peaks(x, ...))
+  } else {
+    peaks <- sort(find_peaks(x, order_peaks = TRUE, ...)[seq_len(num_peaks)])
+  }
+  # Find the minimum density between the two peaks specified and set the
+  # cutpoint there.
+  peaks <- peaks[peaks_between]
+  x_between <- x[findInterval(x, peaks) == 1]
+
+  # The cutpoint is the deepest valley between the two largest peaks.  In the
+  # case that there are no valleys (i.e., if 'x_between' is empty or if cutpoint
+  # is 'NA'), we are conservative and set the cutpoint as the minimum value if
+  # 'positive' is TRUE, and the maximum value otherwise.
+  if (length(x_between) == 0) {
+    cutpoint <- ifelse(positive, peaks[1], peaks[2])
+  } else {
+    cutpoint <- find_valleys(x_between, order_valleys = TRUE)[1]
+    if (is.na(cutpoint)) {
+      cutpoint <- ifelse(positive, peaks[1], peaks[2])
+    }
+  }
+
+  if (!is.null(max_cutpoint) && cutpoint > max_cutpoint) {
+    cutpoint <- max_cutpoint
+  }
 
   # After the 1D cutpoint is set, we set the gate coordinates used in the
   # rectangleGate that is returned. If the `positive` argument is set to TRUE,
