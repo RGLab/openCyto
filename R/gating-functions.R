@@ -24,7 +24,9 @@
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
 #' (cluster-speciﬁc estimation). NOTE: For the Bayesian version of
 #' \code{flowClust}, this value cannot be 2.
-#' @param positive TODO
+#' @param positive If \code{TRUE}, then the gate consists of the entire real
+#' line to the right of the cutpoint. Otherwise, the gate is the entire real
+#' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param cutpoint_method How should the cutpoint be chosen from the fitted
 #' \code{flowClust} model? See Details.
 #' @param neg_cluster integer. The index of the negative cluster. The cutpoint
@@ -396,18 +398,21 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 }
 
 
-#' Finds a specified number of peaks in the given vector after smoothing the data
+#' Finds the local maxima (peaks) in the given vector after smoothing the data
 #' with a kernel density estimator.
 #'
 #' First, we smooth the data using kernel density estimation (KDE) with the
-#' \code{density} function. Then, we find every local maxima such that the
-#' density is concave (downward). We choose the \code{peaks} largest local maxima
-#' as the peaks.
+#' \code{\link{density}} function. Then, we find every local maxima such that the
+#' density is concave (downward).
+#'
+#' Effectively, we find the local maxima with a discrete analogue to a second
+#' derivative applied to the KDE. For details, see this StackOverflow post:
+#' \url{http://bit.ly/Zbl7LV}.
 #'
 #' @param x numeric vector
-#' @param peaks the number of peaks to find. By default, this value is
-#' \code{NULL}, in which case all peaks are returned.
-#' @param ... additional arguments passed to the \code{density} function.
+#' @param order_peaks logical value. If \code{TRUE}, the peaks will be sorted by
+#' the height of the peaks in decreasing order. (Default: \code{FALSE})
+#' @param ... additional arguments passed to the \code{\link{density}} function
 #' @return the values where the peaks are attained.
 #' @examples
 #' library(flowClust)
@@ -415,35 +420,60 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 #' # 2 peaks with a minor hump
 #' y <- SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
 #' plot(density(y))
-#' peaks <- find_peaks(y, peaks = 2)
+#' peaks <- find_peaks(y, adjust = 1.5)
 #' abline(v = peaks, col = "red")
-find_peaks <- function(x, peaks = NULL, ...) {
+find_peaks <- function(x, order_peaks = FALSE, ...) {
   x <- as.vector(x)
+  dens <- density(x, ...)
 
-  if (!is.null(peaks) && peaks > length(x)) {
-    warning("There are not enough observations to find the specified number of peaks.")
-    largest_peaks <- x
-  } else {
-    dens <- density(x, ...)
+  # Discrete analogue to a second derivative applied to the KDE. See details.
+  second_deriv <- diff(sign(diff(dens$y)))
+  which_maxima <- which(second_deriv == -2) + 1
 
-    # Effectively, we find the local minima and local maxima with a discrete
-    # analogue to a second derivative applied to the KDE.
-    # For details, see this StackOverflow post:
-    # http://bit.ly/Zbl7LV
-    second_deriv <- diff(sign(diff(dens$y)))
-    local_maxima <- dens$x[which(second_deriv == -2) + 1]
-    local_minima <- dens$x[which(second_deriv == 2) + 1]
-    
-    # In the case (default) that 'peaks' is NULL, we return all of the local
-    # maxima.
-    if (is.null(peaks)) {
-      peaks <- length(local_maxima)
-    }
-    peaks_order <- order(dens$y[local_maxima], decreasing = TRUE)[seq_len(peaks)]
-    largest_peaks <- local_maxima[peaks_order]
-    largest_peaks <- dens$x[largest_peaks]
+  if (order_peaks) {
+    which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
   }
-  sort(largest_peaks, na.last = TRUE)
+
+  dens$x[which_maxima]
+}
+
+#' Finds the local minima (valleys) in the given vector after smoothing the data
+#' with a kernel density estimator.
+#'
+#' First, we smooth the data using kernel density estimation (KDE) with the
+#' \code{\link{density}} function. Then, we find every local minima such that the
+#' density is concave (downward).
+#'
+#' Effectively, we find the local minima with a discrete analogue to a second
+#' derivative applied to the KDE. For details, see this StackOverflow post:
+#' \url{http://bit.ly/Zbl7LV}.
+#'
+#' @param x numeric vector
+#' @param order_valleys logical value. If \code{TRUE}, the valleys will be sorted by
+#' the height of the valleys in increasing order. (Default: \code{FALSE})
+#' @param ... additional arguments passed to the \code{\link{density}} function
+#' @return the values where the valleys are attained.
+#' @examples
+#' library(flowClust)
+#' set.seed(42)
+#' # 3 peaks and 2 valleys
+#' y <- SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
+#' plot(density(y))
+#' valleys <- find_valleys(y, adjust = 1.5)
+#' abline(v = valleys, col = "red")
+find_valleys <- function(x, order_valleys = FALSE, ...) {
+  x <- as.vector(x)
+  dens <- density(x, ...)
+
+  # Discrete analogue to a second derivative applied to the KDE. See details.
+  second_deriv <- diff(sign(diff(dens$y)))
+  which_minima <- which(second_deriv == 2) + 1
+
+  if (order_valleys) {
+    which_minima <- which_minima[order(dens$y[which_minima], decreasing = FALSE)]
+  }
+
+  dens$x[which_minima]
 }
 
 quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
@@ -477,13 +507,17 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 #' @param flow_frame a \code{flowFrame} object
 #' @param channel TODO
 #' @param filter_id TODO
-#' @param positive If \code{TRUE}, then the gate consists of the entire real line
-#' to the right of the cut point. Otherwise, the gate is the entire real line to
-#' the left of the cut point. (Default: \code{TRUE})
+#' @param positive If \code{TRUE}, then the gate consists of the entire real
+#' line to the right of the cutpoint. Otherwise, the gate is the entire real
+#' line to the left of the cutpoint. (Default: \code{TRUE})
+#' @param gate_min TODO: For now, this is the minimum value allowed for the
+#' gate. If the constructed gate is less than this value, the minimum value
+#' (or maybe min(x)) is returned.
 #' @param ... Additional arguments pased on to the \code{find_peaks} function.
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
-                       ...) {
+                       gate_min = NULL, ...) {
+  
   if (missing(channel) || length(channel) != 1) {
     stop("A single channel must be specified.")
   }
@@ -492,16 +526,11 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 
   # Find the minimum density between the two highest peaks and set the cutpoint
   # there.
-  peaks <- find_peaks(x, peaks = 2, ...)
-  density_x <- density(x, ...)
+  largest_peaks <- find_peaks(x, order_peaks = TRUE, ...)[1:2]
+  x_between <- x[findInterval(x, sort(largest_peaks)) == 1]
 
-  # Extract the indices of the observations between the peaks
-  idx_between <- which(peaks[1] <= density_x$x & density_x$x <= peaks[2])
-
-  x <- density_x$x[idx_between]
-  y <- density_x$y[idx_between]
-
-  cutpoint <- x[which.min(y)]
+  # The cutpoint is the deepest valley between the two largest peaks
+  cutpoint <- find_valleys(x_between, order_valleys = TRUE)[1]
 
   # After the 1D cutpoint is set, we set the gate coordinates used in the
   # rectangleGate that is returned. If the `positive` argument is set to TRUE,
