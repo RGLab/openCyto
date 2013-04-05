@@ -412,6 +412,8 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 #' @param x numeric vector
 #' @param order_peaks logical value. If \code{TRUE}, the peaks will be sorted by
 #' the height of the peaks in decreasing order. (Default: \code{FALSE})
+#' @param adjust the bandwidth to use in the kernel density estimation. See
+#' \code{\link{density}} for more information.
 #' @param ... additional arguments passed to the \code{\link{density}} function
 #' @return the values where the peaks are attained.
 #' @examples
@@ -420,11 +422,16 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 #' # 2 peaks with a minor hump
 #' y <- SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
 #' plot(density(y))
-#' peaks <- find_peaks(y, adjust = 1.5)
+#' peaks <- find_peaks(y)
 #' abline(v = peaks, col = "red")
-find_peaks <- function(x, order_peaks = FALSE, ...) {
+find_peaks <- function(x, order_peaks = FALSE, adjust = 2, ...) {
   x <- as.vector(x)
-  dens <- density(x, ...)
+
+  if (length(x) < 2) {
+    stop("At least 2 observations must be given in 'x' to find peaks.")
+  }
+  
+  dens <- density(x, adjust = adjust, ...)
 
   # Discrete analogue to a second derivative applied to the KDE. See details.
   second_deriv <- diff(sign(diff(dens$y)))
@@ -462,6 +469,8 @@ find_peaks <- function(x, order_peaks = FALSE, ...) {
 #' @param x numeric vector
 #' @param order_valleys logical value. If \code{TRUE}, the valleys will be sorted by
 #' the height of the valleys in increasing order. (Default: \code{FALSE})
+#' @param adjust the bandwidth to use in the kernel density estimation. See
+#' \code{\link{density}} for more information.
 #' @param ... additional arguments passed to the \code{\link{density}} function
 #' @return the values where the valleys are attained.
 #' @examples
@@ -470,11 +479,16 @@ find_peaks <- function(x, order_peaks = FALSE, ...) {
 #' # 3 peaks and 2 valleys
 #' y <- SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
 #' plot(density(y))
-#' valleys <- find_valleys(y, adjust = 1.5)
+#' valleys <- find_valleys(y)
 #' abline(v = valleys, col = "red")
-find_valleys <- function(x, order_valleys = FALSE, ...) {
+find_valleys <- function(x, order_valleys = FALSE, adjust = 2, ...) {
   x <- as.vector(x)
-  dens <- density(x, ...)
+
+  if (length(x) < 2) {
+    stop("At least 2 observations must be given in 'x' to find valleys.")
+  }
+  
+  dens <- density(x, adjust = adjust, ...)
 
   # Discrete analogue to a second derivative applied to the KDE. See details.
   second_deriv <- diff(sign(diff(dens$y)))
@@ -524,7 +538,19 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 #'
 #' We fit a kernel density estimator to the cells in the \code{flowFrame} and
 #' identify the two largest peaks using the \code{find_peaks} function. We then
-#' select as the cutpoint the value at which the minimum density is attained.
+#' select as the cutpoint the value at which the minimum density is attained
+#' between the two peaks of interest.
+#'
+#' In the default case, the two peaks of interest are the two largest peaks
+#' obtained from the \code{link{\density}} function. However, if \code{pivot} is
+#' \code{TRUE}, we choose the largest peak and its neighboring peak as the two
+#' peaks of interest. In this case, the neighboring peak is the peak immediately
+#' to the left of the largest peak if \code{positive} is \code{TRUE}. Otherwise,
+#' the neighboring peak is selected as the peak to the right.
+#'
+#' In the special case that there is only one peak, we are conservative and set
+#' the cutpoint as the \code{min(x)} if \code{positive} is \code{TRUE}, and the
+#' \code{max(x)} otherwise.
 #'
 #' @param flow_frame a \code{flowFrame} object
 #' @param channel TODO
@@ -532,34 +558,19 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
 #' line to the right of the cutpoint. Otherwise, the gate is the entire real
 #' line to the left of the cutpoint. (Default: \code{TRUE})
-#' @param num_peaks a numeric value that, if given, orders the peaks returned
-#' from \code{\link{find_peaks}} and sets the cutpoint based on the largest
-#' \code{num_peaks} of them. This can alleviate artifactual peaks that can be
-#' introduced from smoothing. By default, all of the peaks are considered.
-#' @param peaks_between a numeric vector of length two, specifiying the two
-#' peaks that we will look between to identify the cutpoint
-#' @param max_cutpoint the maximum value allowed for the cutpoint. If this value
-#' is not \code{NULL} and if the constructed gate is larger than this value, the
-#' gate's cutpoint is set to this value. (Default: \code{NULL})
+#' @param pivot logical value. If \code{TRUE}, we choose as the two peaks the
+#' largest peak and its neighboring peak. See details.
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
-#' @param adjust the smoothing value passed on to \code{\link{density}}
 #' @param ... Additional arguments passed on to the \code{find_peaks} function
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
-                       num_peaks = NULL, peaks_between = c(1, 2),
-                       max_cutpoint = NULL, min = NULL, max = NULL,
-                       adjust = 1.25, ...) {
+                       pivot = FALSE, min = NULL, max = NULL, ...) {
   
   if (missing(channel) || length(channel) != 1) {
     stop("A single channel must be specified.")
   }
 
-  peaks_between <- sort(as.numeric(peaks_between))
-  if (length(peaks_between) != 2) {
-    stop("The 'peaks_between' must be a vector of length 2.")
-  }
-  
   # Grabs the data matrix that is being gated.
   x <- exprs(flow_frame)[, channel]
 
@@ -575,35 +586,46 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
     x <- x[x <= max]
   }
 
-  # Determines the peaks in 'x'. If a number of peaks is specified, then we
-  # select the largest 'num_peaks' of them.
-  if (is.null(num_peaks)) {
-    peaks <- sort(find_peaks(x, ...))
-  } else {
-    peaks <- sort(find_peaks(x, order_peaks = TRUE, ...)[seq_len(num_peaks)])
-  }
-  # Find the minimum density between the two peaks specified and set the
-  # cutpoint there.
-  peaks <- peaks[peaks_between]
-  x_between <- x[findInterval(x, peaks) == 1]
+  peaks <- find_peaks(x, order_peaks = TRUE, ...)
 
-  # The cutpoint is the deepest valley between the two largest peaks.  In the
-  # case that there are no valleys (i.e., if 'x_between' is empty or if cutpoint
-  # is 'NA'), we are conservative and set the cutpoint as the minimum value if
-  # 'positive' is TRUE, and the maximum value otherwise.
-  if (length(x_between) == 0) {
-    cutpoint <- ifelse(positive, peaks[1], peaks[2])
+  if (pivot) {
+    # If 'pivot' is selected, we choose the largest peak and its neighbor, which
+    # is chosen based on the current value of 'positive'
+    largest_peak <- peaks[1]
+    peaks <- sort(peaks)
+    which_largest <- which(peaks == largest_peak)
+    if (positive) {
+      peaks <- peaks[c(which_largest - 1, which_largest)]
+    } else {
+      peaks <- peaks[c(which_largest, which_largest + 1)]
+    }
+    peaks <- peaks[!is.na(peaks)]
   } else {
-    cutpoint <- find_valleys(x_between, order_valleys = TRUE)[1]
-    if (is.na(cutpoint)) {
+    # Otherwise, we choose the two largest peaks and sort them
+    peaks <- sort(peaks[1:2])
+  }
+
+  # In the special case that there is only one peak, we are conservative and set
+  # the cutpoint as the min(x) if 'positive' is TRUE, and the max(x) otherwise.
+  # value otherwise.
+  if (length(peaks) == 1) {
+    cutpoint <- ifelse(positive, min(x), max(x))
+  } else {
+    # Find the minimum density between the two peaks selected and set the
+    # cutpoint there.
+    x_between <- x[findInterval(x, peaks) == 1]
+
+    # The cutpoint is the deepest valley between the two peaks selected. In the
+    # case that there are no valleys (i.e., if 'x_between' has an insufficient
+    # number of observations), we are conservative and set the cutpoint as the
+    # minimum value if 'positive' is TRUE, and the maximum value otherwise.
+    cutpoint <- try(find_valleys(x_between, order_valleys = TRUE)[1],
+                    silent = TRUE)
+
+    if (class(cutpoint) == "try-error" || is.na(cutpoint)) {
       cutpoint <- ifelse(positive, peaks[1], peaks[2])
     }
   }
-
-  if (!is.null(max_cutpoint) && cutpoint > max_cutpoint) {
-    cutpoint <- max_cutpoint
-  }
-
   # After the 1D cutpoint is set, we set the gate coordinates used in the
   # rectangleGate that is returned. If the `positive` argument is set to TRUE,
   # then the gate consists of the entire real line to the right of the cut point.
