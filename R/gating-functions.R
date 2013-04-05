@@ -399,13 +399,14 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 #' Finds a specified number of peaks in the given vector after smoothing the data
 #' with a kernel density estimator.
 #'
-#' First, we smooth the data using kernel density estimation with the
+#' First, we smooth the data using kernel density estimation (KDE) with the
 #' \code{density} function. Then, we find every local maxima such that the
 #' density is concave (downward). We choose the \code{peaks} largest local maxima
 #' as the peaks.
 #'
 #' @param x numeric vector
-#' @param peaks the number of peaks to find
+#' @param peaks the number of peaks to find. By default, this value is
+#' \code{NULL}, in which case all peaks are returned.
 #' @param ... additional arguments passed to the \code{density} function.
 #' @return the values where the peaks are attained.
 #' @examples
@@ -416,23 +417,28 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 #' plot(density(y))
 #' peaks <- find_peaks(y, peaks = 2)
 #' abline(v = peaks, col = "red")
-find_peaks <- function(x, peaks = 2, ...) {
+find_peaks <- function(x, peaks = NULL, ...) {
   x <- as.vector(x)
 
-  if (peaks > length(x)) {
+  if (!is.null(peaks) && peaks > length(x)) {
     warning("There are not enough observations to find the specified number of peaks.")
-    largest_peaks <- c(x, rep(NA, peaks - length(x)))
+    largest_peaks <- x
   } else {
     dens <- density(x, ...)
 
-    # The 'embed' function with dim = 3 generated an N x 3 matrix,
-    # where the columns correspond to observations x[i-1], x[i], and x[i+1],
-    # which allows us to look at the before and after density value to see if a
-    # local maxima is achieved.
-    local_maxima <- apply(embed(dens$y, dim = 3), 1, function(z) {
-      z[2] > z[1] & z[2] > z[3]
-    })
-    local_maxima <- which(local_maxima) + 1
+    # Effectively, we find the local minima and local maxima with a discrete
+    # analogue to a second derivative applied to the KDE.
+    # For details, see this StackOverflow post:
+    # http://bit.ly/Zbl7LV
+    second_deriv <- diff(sign(diff(dens$y)))
+    local_maxima <- dens$x[which(second_deriv == -2) + 1]
+    local_minima <- dens$x[which(second_deriv == 2) + 1]
+    
+    # In the case (default) that 'peaks' is NULL, we return all of the local
+    # maxima.
+    if (is.null(peaks)) {
+      peaks <- length(local_maxima)
+    }
     peaks_order <- order(dens$y[local_maxima], decreasing = TRUE)[seq_len(peaks)]
     largest_peaks <- local_maxima[peaks_order]
     largest_peaks <- dens$x[largest_peaks]
@@ -461,8 +467,8 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
   rectangleGate(gate_coordinates, filterId = filterId)
 }
 
-#' Applies a kernel density esti flowClust to 1 feature to determine a cutpoint
-#' between the minimum cluster and all other clusters.
+#' Determines a cutpoint as the minimum point of a kernel density estimate
+#' between two peaks
 #'
 #' We fit a kernel density estimator to the cells in the \code{flowFrame} and
 #' identify the two largest peaks using the \code{find_peaks} function. We then
@@ -479,7 +485,7 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
                        ...) {
   if (missing(channel) || length(channel) != 1) {
-    stop("A singlet channel must be specified.")
+    stop("A single channel must be specified.")
   }
   # Grabs the data matrix that is being gated.
   x <- exprs(flow_frame)[, channel]

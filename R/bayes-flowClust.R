@@ -141,8 +141,9 @@ prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10,
   if (estimator == "huber") {
     # In the case that the majority of the samples have a peak with NA (i.e., K
     # is overspecified for these samples), the 'huber' function can throw the
-    # following error. "Cannot estimate scale: MAD is zero for this sample."
-    # In this case, we throw a warning and use vague priors for the problematic peaks.
+    # following error. "Cannot estimate scale: MAD is zero for this sample."  In
+    # this case, we throw a warning and use vague priors for the problematic
+    # peaks.
     huber_out <- try(apply(peaks, 2, huber), silent = TRUE)
     if (class(huber_out) == "try-error") {
       warning("The number of peaks is overspecified. Using vague priors.")
@@ -163,7 +164,8 @@ prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10,
     Mu0 <- colMeans(peaks, na.rm = TRUE)
     Omega0 <- apply(peaks, 2, var, na.rm = TRUE)
     Lambda0 <- mean(variances, na.rm = TRUE)
-    # If any of the variances in Omega0 are NA, we keep them vague by setting them to the value in Lambda0
+    # If any of the variances in Omega0 are NA, we keep them vague by setting
+    # them to the value in Lambda0
     Omega0[is.na(Omega0)] <- Lambda0
   }
 
