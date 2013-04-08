@@ -130,8 +130,9 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' @param max a numeric value that sets the upper boundary for data filtering
 #' @return list of prior parameters
 prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
-                              hclust_method = "complete", nu0 = 4, w0 = 10,
-                              adjust = 2, min = NULL, max = NULL) {
+                              hclust_method = "complete", artificial = NULL,
+                              nu0 = 4, w0 = 10, adjust = 2, min = NULL,
+                              max = NULL) {
 
   channel <- as.character(channel)
   if (length(channel) != 1) {

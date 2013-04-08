@@ -15,73 +15,102 @@
 #' @param params TODO
 #' @param filterId TODO
 #' @param K the number of clusters to find
-#' @param usePrior Should we use the Bayesian version of \code{flowClust}?
-#' Answers are "yes", "no", or "vague". The answer is passed along to
-#' \code{flowClust}.
-#' @param prior_list list of prior parameters for the Bayesian \code{flowClust}.
-#' If \code{usePrior} is set to 'no', then the list is unused.
 #' @param trans numeric indicating whether the Box-Cox transformation parameter
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
 #' (cluster-speciﬁc estimation). NOTE: For the Bayesian version of
-#' \code{flowClust}, this value cannot be 2.
+#' \code{\link{flowClust}}, this value cannot be 2.
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
 #' line to the right of the cutpoint. Otherwise, the gate is the entire real
 #' line to the left of the cutpoint. (Default: \code{TRUE})
+#' @param prior list of prior parameters for the Bayesian
+#' \code{\link{flowClust}}. If \code{NULL}, no prior is used.
+#' @param criterion a character string stating the criterion used to choose the
+#' best model. May take either "BIC" or "ICL". This argument is only relevant
+#' when \code{K} is \code{NULL} or if \code{length(K) > 1}. The value selected
+#' is passed to \code{\link{flowClust}}.
 #' @param cutpoint_method How should the cutpoint be chosen from the fitted
-#' \code{flowClust} model? See Details.
+#' \code{\link{flowClust}} model? See Details.
 #' @param neg_cluster integer. The index of the negative cluster. The cutpoint
 #' is computed between clusters \code{neg_cluster} and \code{neg_cluster + 1}.
-#' @param truncate_min Truncate observations less than this minimum value. By
-#' default, this value is \code{NULL} and is ignored.
-#' @param truncate_max Truncate observations greater than this maximum value. By
-#' default, this value is \code{NULL} and is ignored.
+#' @param cutpoint_min numeric value that sets a minimum thresold for the
+#' cutpoint. If a value is provided, any cutpoint below this value will be set
+#' to the given minimum value. If \code{NULL} (default), there is no minimum
+#' cutpoint value.
+#' @param cutpoint_max numeric value that sets a maximum thresold for the
+#' cutpoint. If a value is provided, any cutpoint above this value will be set
+#' to the given maximum value. If \code{NULL} (default), there is no maximum
+#' cutpoint value.
+#' @param min a numeric value that sets the lower boundary for data filtering
+#' @param max a numeric value that sets the upper boundary for data filtering
 #' @param quantile the quantile for which we will find the cutpoint using
 #' the quantile \code{cutpoint_method}. If the \code{cutpoint_method} is not set
 #' to \code{quantile}, this argument is ignored.
-#' @param quantile_interval a vector of length 2 containing the end-points of the
-#' interval of values to find the quantile cutpoint. If the
-#' \code{cutpoint_method} is not setto \code{quantile}, this argument is ignored.
-#' @param ... additional arguments that are passed to \code{flowClust}
-#' @return a \code{rectangleGate} object ranging consisting of all values greater
-#' than the cutpoint determined
-flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 0,
-                         positive = TRUE, plot = FALSE, usePrior = 'no', prior = NULL,
-                         cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean"),
-                         neg_cluster = 1, truncate_min = NULL, truncate_max = NULL,
-                         quantile = 0.99, quantile_interval = c(0, 10),...) {
+#' @param quantile_interval a vector of length 2 containing the end-points of
+#' the interval of values to find the quantile cutpoint. If the
+#' \code{cutpoint_method} is not set to \code{quantile}, this argument is
+#' ignored.
+#' @param plot logical value indicating that the fitted \code{\link{flowClust}}
+#' model should be plotted along with the cutpoint
+#' @param ... additional arguments that are passed to \code{\link{flowClust}}
+#' @return a \code{rectangleGate} object consisting of all values beyond the
+#' cutpoint calculated
+flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
+                         positive = TRUE, prior = NULL,
+                         criterion = c("BIC", "ICL"),
+                         cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean"),                         
+                         neg_cluster = 1, cutpoint_min = NULL,
+                         cutpoint_max = NULL, min = NULL, max = NULL,
+                         quantile = 0.99, quantile_interval = c(0, 10),
+                         plot = FALSE, ...) {
 
   cutpoint_method <- match.arg(cutpoint_method)
 
-  # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
-  if (usePrior == "yes" && is.null(prior)) {
-    prior <- prior_flowClust1d(fr = fr, channel = params[1], K = K, adjust = adjust)
+  # TODO: Determine if Bayesian flowClust works when 'K' is specified and has a
+  # different length than the number of components given in 'prior'.
+  # If not, add GitHub issue and then fix.
+
+  # If 'K' is NULL, then 'K' is autoselected using either 'BIC' or 'ICL'.
+  # The candidate values for 'K' range from 1 to the number of mixture components
+  # given in the 'prior' list.
+  if (is.null(K)) {
+    criterion <- match.arg(criterion)
+
+    if (!is.null(prior)) {
+      K <- seq_along(prior$Mu0)
+    } else {
+      stop("Values for 'K' must be provided if no 'prior' is given.")
+    }
   }
 
+  usePrior <- ifelse(is.null(prior), "no", "yes")
+
   # HACK: Circumvents a bug in flowClust.
-  if (missing(prior) || is.null(prior)) {
+  # TODO: Add an issue to the Github for flowClust to allow prior to be NULL.
+  if (is.null(prior)) {
     prior <- list(NA)
   }
 
   # Filter out values less than the minimum and above the maximum, if they are
   # given. NOTE: These observations are removed from the 'flowFrame' locally and
   # are gated out only for the determining the gate.
-  fr <- truncate_flowframe(fr, channel = params[1], min = min,
-                                     max = max)
+  fr <- truncate_flowframe(fr, channel = params[1], min = min, max = max)
 
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the
-  # elements in the list `prior_list`.
-  filter1 <- tmixFilter(filterId, params[1], K = K, trans = trans,
-                        usePrior = usePrior, prior = prior, ...)
-  tmixRes1 <- filter(fr, filter1)
+  # elements in the `prior` list.
+  
+  tmix_filter <- tmixFilter(filterId, params[1], K = K, trans = trans,
+                            usePrior = usePrior, prior = prior,
+                            criterion = criterion, ...)
+  tmix_results <- filter(fr, tmix_filter)
   
   # To determine the cutpoint, we first sort the centroids so that we can determine
   # the second largest centroid.
-  centroids_sorted <- sort(getEstimates(tmixRes1)$locations)
+  centroids_sorted <- sort(getEstimates(tmix_results)$locations)
 
   # Also, because the cluster labels are arbitrary, we determine the cluster
   # the cluster labels, sorted by the ordering of the cluster means.
-  labels_sorted <- order(getEstimates(tmixRes1)$locations)
+  labels_sorted <- order(getEstimates(tmix_results)$locations)
 
   # Grabs the data matrix that is being gated.
   x <- exprs(fr)[, params[1]]
@@ -92,7 +121,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
     # First, we sort the data.
     order_x <- order(x)
     x_sorted <- x[order_x]
-    labels <- flowClust::Map(tmixRes1, rm.outliers = FALSE)[order_x]
+    labels <- flowClust::Map(tmix_results, rm.outliers = FALSE)[order_x]
 
     # Determine which observations are between the first two centroids and their
     # corresponding cluster labels.
@@ -120,15 +149,29 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
     # Determine the minimum density value of the observations between clusters 1 and 2.
     # Sets the cutpoint at the observation that attained this minimum density.
     x_between <- x[centroids_sorted[neg_cluster] < x & x < centroids_sorted[neg_cluster + 1]]
-    x_dens <- dmvtmix(x = as.matrix(x_between), object = tmixRes1)
+    x_dens <- dmvtmix(x = as.matrix(x_between), object = tmix_results)
     cutpoint <- x_between[which.min(x_dens)]
   } else if (cutpoint_method == "quantile") {
-    cutpoint <- quantile_flowClust(p = quantile, object = tmixRes1, interval = quantile_interval)
+    cutpoint <- quantile_flowClust(p = quantile, object = tmix_results,
+                                   interval = quantile_interval)
   } else { # cutpoint_method == "posterior_mean"
     cutpoint <- centroids_sorted[neg_cluster]
   }
 
-  
+  # In some cases, we wish that a gating cutpoint not exceed some threshold, in
+  # which case we allow the user to specify a minimum and/or maximum value for
+  # the cutpoint. For instance, when constructing a debris gate for samples from
+  # various batches, some samples may have had a debris gate applied already
+  # while other samples have debris that should be removed. For the former, the
+  # user may wish to avoid gating, in which case, we provide the option to
+  # threshold the gate cutpoint.
+  if (!is.null(cutpoint_min) && cutpoint < cutpoint_min) {
+    cutpoint <- cutpoint_min
+  }
+  if (!is.null(cutpoint_max) && cutpoint > cutpoint_max) {
+    cutpoint <- cutpoint_max
+  }
+
   # After the 1D cutpoint is set, we set the gate coordinates used in the
   # rectangleGate that is returned. If the `positive` argument is set to TRUE,
   # then the gate consists of the entire real line to the right of the cut point.
@@ -145,8 +188,8 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 
   # Saves posterior point estimates
   postList <- list()
-  posteriors <- list(mu = tmixRes1@mu, lamdda = tmixRes1@lambda,
-                     sigma = tmixRes1@sigma, nu = tmixRes1@nu, min = min(x),
+  posteriors <- list(mu = tmix_results@mu, lamdda = tmix_results@lambda,
+                     sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x),
                      max = max(x))
   postList[[params[1]]] <- posteriors
 
@@ -157,7 +200,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
   if (plot) {
     gate_pct <- round(100 * mean(x > cutpoint), 3)
     plot_title <- paste0(filterId, " (", gate_pct, "%)")
-    plot(fr, tmixRes1, main = plot_title, labels = FALSE)
+    plot(fr, tmix_results, main = plot_title, labels = FALSE)
     abline(v = centroids_sorted, col = rainbow(K))
     abline(v = cutpoint, col = "black", lwd = 3, lty = 2)
 
@@ -171,10 +214,10 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
         # transformation parameters. Because these can either be of length 1 or
         # of length K, we grab the appropriate posterior estimates for the
         # current mixture component.
-        nu <- ifelse(length(tmixRes1@nu) == 1, tmixRes1@nu, tmixRes1@nu[k])
-        lambda <- ifelse(length(tmixRes1@lambda) == 1, tmixRes1@lambda, tmixRes1@lambda[k])        
-        posterior_density <- dmvt(x_dens, mu = tmixRes1@mu[k,],
-                                  sigma = tmixRes1@sigma[k,,], nu = nu,
+        nu <- ifelse(length(tmix_results@nu) == 1, tmix_results@nu, tmix_results@nu[k])
+        lambda <- ifelse(length(tmix_results@lambda) == 1, tmix_results@lambda, tmix_results@lambda[k])        
+        posterior_density <- dmvt(x_dens, mu = tmix_results@mu[k,],
+                                  sigma = tmix_results@sigma[k,,], nu = nu,
                                   lambda = lambda)$value
         lines(x_dens, prior_density, col = rainbow(K)[k], lty = 2, lwd = 1)
         lines(x_dens, posterior_density, col = rainbow(K)[k], lwd = 1)
@@ -206,23 +249,24 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 #' @param yChannel TODO
 #' @param filterId TODO
 #' @param K the number of clusters to find
-#' @param usePrior Should we use the Bayesian version of \code{flowClust}?
-#' Answers are "yes", "no", or "vague". The answer is passed along to
-#' \code{flowClust}.
-#' @param prior list of prior parameters for the Bayesian \code{flowClust}.
-#' If \code{usePrior} is set to 'no', then the list is unused.
+#' @param usePrior Should we use the Bayesian version of
+#' \code{\link{flowClust}}?  Answers are "yes", "no", or "vague". The answer is
+#' passed along to \code{\link{flowClust}}.
+#' @param prior list of prior parameters for the Bayesian
+#' \code{\link{flowClust}}.  If \code{usePrior} is set to 'no', then the list is
+#' unused.
 #' @param trans numeric indicating whether the Box-Cox transformation parameter
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
 #' (cluster-speciﬁc estimation). NOTE: For the Bayesian version of
-#' \code{flowClust}, this value cannot be 2.
+#' \code{\link{flowClust}}, this value cannot be 2.
 #' @param plot a logical value indicating if the fitted mixture model should be
 #' plotted. By default, no.
 #' @param target a numeric vector of length \code{K} containing the location of
 #' the cluster of interest. See details.
 #' @param gate_type character value specifying the type of gate to construct from
-#' the \code{flowClust} fit
+#' the \code{\link{flowClust}} fit
 #' @param quantile the contour level of the target cluster from the
-#' \code{flowClust} fit to construct the gate
+#' \code{\link{flowClust}} fit to construct the gate
 #' @param axis_translation a numeric value between 0 and 1 used to position the
 #' gate if \code{gate_type} is selected as \code{"axis"}. See details.
 #' @param min A vector of length 2. Truncate observations less than this minimum
@@ -233,7 +277,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 #' maximum value. The first value truncates the \code{xChannel}, and the second
 #' value truncates the \code{yChannel}. By default, this vector is \code{NULL}
 #' and is ignored.
-#' @param ... additional arguments that are passed to \code{flowClust}
+#' @param ... additional arguments that are passed to \code{\link{flowClust}}
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
@@ -265,30 +309,30 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the
   # elements in the list `prior`.
-  filter1 <- tmixFilter(filterId, c(xChannel, yChannel), K = K, trans = trans,
+  tmix_filter <- tmixFilter(filterId, c(xChannel, yChannel), K = K, trans = trans,
                         usePrior = usePrior, prior = prior, ...)
-  tmixRes1 <- filter(fr, filter1)
+  tmix_results <- filter(fr, tmix_filter)
 
   # Converts the tmixFilterResult object to a polygonGate.
   # We select the cluster with the minimum 'yChannel' to be the subpopulation from
   # which we obtain the contour (ellipse) to generate the polygon gate.
-  fitted_means <- getEstimates(tmixRes1)$locations
+  fitted_means <- getEstimates(tmix_results)$locations
   target_dist <- apply(fitted_means, 1, function(x) {
     dist(rbind(x, target))
   })
   cluster_selected <- which.min(target_dist)
 
   if (gate_type == "ellipse") {
-    contour_ellipse <- .getEllipse(filter = tmixRes1, include = cluster_selected,
+    contour_ellipse <- .getEllipse(filter = tmix_results, include = cluster_selected,
                                    quantile = quantile)
     flowClust_gate <- polygonGate(.gate = matrix(contour_ellipse, ncol = 2,
-                                    dimnames = list(NULL, tmixRes1@varNames)),
+                                    dimnames = list(NULL, tmix_results@varNames)),
                                   filterId = filterId)
   } else if (gate_type == "axis") {
     chisq_quantile <- qchisq(quantile, df = 2)
 
-    xbar <- tmixRes1@mu[cluster_selected, ]
-    Sigma <- tmixRes1@sigma[cluster_selected, , ]
+    xbar <- tmix_results@mu[cluster_selected, ]
+    Sigma <- tmix_results@sigma[cluster_selected, , ]
 
     Sigma_eigen <- eigen(Sigma, symmetric = TRUE)
     u1 <- Sigma_eigen$vectors[, 1]
@@ -360,11 +404,11 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   }
   
   # TODO: need to verify if this is the right way to grab posteriors from 2-D tmixRes
-  posteriors <- list(mu = tmixRes1@mu, lamdda = tmixRes1@lambda,
-                     sigma = tmixRes1@sigma, nu = tmixRes1@nu)
+  posteriors <- list(mu = tmix_results@mu, lamdda = tmix_results@lambda,
+                     sigma = tmix_results@sigma, nu = tmix_results@nu)
 
   if (plot) {
-    plot(fr, tmixRes1, main = filterId)
+    plot(fr, tmix_results, main = filterId)
 
     if (gate_type == "axis") {
       # The major and minor axes (eigenvectors) scaled by their respective
