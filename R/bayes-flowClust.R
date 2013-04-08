@@ -63,120 +63,149 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
   prior_list
 }
 
-
 #' Elicits data-driven priors from a flowSet object for a specified channel
 #'
 #' We elicit data-driven prior parameters from a \code{flowSet} object for a
 #' specified channel. For each sample in the \code{flowSet} object, we apply a
-#' kernel-density estimator (KDE) and obtain \code{K} peaks. We then aggregate
-#' these peaks to elicit a prior mean and variance for each of the \code{K}
-#' mixture components. We elicit a vague prior for the variance of each mixture
-#' component by computing the sample variance of each sample and then averaging
-#' these values.
+#' kernel-density estimator (KDE) and identify its local maxima (peaks) using
+#' \code{\link{find_peaks}}. We then aggregate these peaks to elicit a prior
+#' parameters for each of \code{K} mixture components.
 #'
-#' Some samples in the \code{flowSet} object may not have \code{K} distinct peaks
-#' apparent in the KDEs, in which case we will find less than the specified
-#' number with the remaining values being set to \code{NA}. For any sample that
-#' has less than \code{K} peaks, we align its peaks with those of the first
-#' sample that has \code{K} peaks.
+#' Here, we outline the approach used for prior elicitation. First, we apply a
+#' KDE to each sample and extract all of its peaks (local maxima). It is
+#' important to note that different samples may have a different number of
+#' peaks. Our goal then is to align the peaks before aggregating the information
+#' across all samples.  To do this, we utilize a technique similar to the peak
+#' probability contrasts (PPC) method from Tibshirani et al (2004). Effectively,
+#' we apply hierarchical clustering to the peaks from all samples to find
+#' clusters of peaks. We compute the sample mean and variance of the peaks
+#' within each cluster to elicit the prior means and its hyperprior variance,
+#' respectively, for a \code{\link{flowClust}} mixture component. We elicit the
+#' prior variance for each mixture component by first assigning the observations
+#' within each sample to the nearest prior mean. Then, we compute the variance
+#' of the observations within each cluster. Finally, we average the variances
+#' corresponding to each mixture component across all samples in the
+#' \code{flowSet} object.
 #'
-#' We recommend that the Huber estimators be used to aggregate the values. This
-#' option can be set in the \code{estimator} argument. Alternatively, the maximum
-#' likelihood estimators (MLE) under normality can be used.
+#' Following Tibshirani et al. (2004), we cluster the peaks from each sample
+#' using complete-linkage hierarchical clustering. The linkage type can be
+#' changed via the \code{hclust_method} argument. This argument is passed
+#' directly to \code{\link{hclust}}.
 #'
-#' In the case that the majority of the samples have a peak with NA (i.e., K is
-#' overspecified for these samples), the 'huber' function can throw the following
-#' error. "Cannot estimate scale: MAD is zero for this sample." In this case, we
-#' throw a warning and use vague priors for the problematic peaks.
+#' To cluster the peaks, we must cut the hierarchical tree by selecting either a
+#' value for \code{K} or by providing a height of the tree to cut. By default,
+#' we cut the tree using as the height the median of the distances between
+#' adjacent peaks within each sample. This value can be changed via the
+#' \code{hclust_height} argument and, if provided, will be passed to
+#' \code{\link{cutree}}. Also, by default, the number of mixture components
+#' \code{K} is \code{NULL} and is ignored.  However, if \code{K} is provided,
+#' then it has priority over \code{hclust_height} and is passed instead directly
+#' to \code{\link{cutree}}.
 #'
-#' To ensure that the KDEs are smooth, we recommend that the bandwidth set in the
-#' \code{adjust} argument be sufficiently large. We have defaulted this value to
-#' 1.25. If the bandwidth is not large enough, the KDE may contain numerous
-#' bumps, resulting in erroneous peaks.
+#' To ensure that the KDEs are smooth, we recommend that the bandwidth set in
+#' the \code{adjust} argument be sufficiently large. We have defaulted this
+#' value to 2. If the bandwidth is not large enough, the KDE may contain
+#' numerous bumps, resulting in erroneous peaks.
 #'
+#' @references Tibshirani, R et al. (2004), "Sample classification from protein
+#' mass spectrometry, by 'peak probability contrasts'," Bioinformatics, 20, 17,
+#' 3034-3044. \url{http://bioinformatics.oxfordjournals.org/content/20/17/3034}.
 #' @param flow_set a \code{flowSet} object
 #' @param channel the channel in the \code{flowSet} from which we elicit the
 #' prior parameters for the Student's t mixture
-#' @param K the number of mixture components to identify
+#' @param K the number of mixture components to identify. By default, this value
+#' is \code{NULL} and determined automatically
+#' @param hclust_height the height of the \code{\link{hclust}} tree of peaks,
+#' where the should be cut By default, we use the median of the distances
+#' between adjacent peaks. If a value is specified, we pass it directly to
+#' \code{\link{cutree}}.
+#' @param hclust_method the agglomeration method used in the hierarchical
+#' clustering. This value is passed directly to \code{\link{hclust}}. Default is
+#' complete linkage.
 #' @param nu0 prior degrees of freedom of the Student's t mixture components.
 #' @param w0 the number of prior pseudocounts of the Student's t mixture components.
 #' @param adjust the bandwidth to use in the kernel density estimation. See
 #' \code{\link{density}} for more information.
-#' @param estimator the method to aggregate the samples in the \code{flow_set}.
-#' See details.
-#' @return list of the necessary prior parameters
-prior_flowClust1d <- function(flow_set, channel, K = 2, nu0 = 4, w0 = 10,
-                              adjust = 1, estimator = c("huber", "mle")) {
+#' @param min a numeric value that sets the lower boundary for data filtering
+#' @param max a numeric value that sets the upper boundary for data filtering
+#' @return list of prior parameters
+prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
+                              hclust_method = "complete", nu0 = 4, w0 = 10,
+                              adjust = 2, min = NULL, max = NULL) {
 
-  estimator <- match.arg(estimator)
-
-  # For each sample in the flow_set, we find the K peaks after smoothing the
-  # data. We also compute the variance of the 
-  estimates <- lapply(seq_along(flow_set), function(i) {
-    # Grabs the channel data for the ith sample
-    x <- exprs(flow_set[[i]])[, channel]
-    peaks <- sort(find_peaks(x, peaks = K, adjust = adjust), na.last = TRUE)
-
-    if (estimator == "huber") {
-      # In the case that the MAD is 0, an error results, in which case we use the
-      # MLE instead.
-      variance <- try(huber(x)$s^2, silent = TRUE)
-      if (class(variance) == "try-error") {
-        variance <- var(x)
-      }
-    } else {
-      variance <- var(x)
-    }
-    
-    list(peaks = peaks, variance = variance)
-  })
-
-  peaks <- do.call(rbind, lapply(estimates, function(x) x$peaks))
-  variances <- sapply(estimates, function(x) x$variance)
-
-  # For each sample that has less than K peaks, we align its peaks with the peaks
-  # of the first sample having K peaks.
-  peaks <- align_peaks(peaks)
-
-  if (estimator == "huber") {
-    # In the case that the majority of the samples have a peak with NA (i.e., K
-    # is overspecified for these samples), the 'huber' function can throw the
-    # following error. "Cannot estimate scale: MAD is zero for this sample."  In
-    # this case, we throw a warning and use vague priors for the problematic
-    # peaks.
-    huber_out <- try(apply(peaks, 2, huber), silent = TRUE)
-    if (class(huber_out) == "try-error") {
-      warning("The number of peaks is overspecified. Using vague priors.")
-
-      huber_out <- lapply(seq_len(K), function(k) {
-        huber_peak <- try(huber(peaks[, k]), silent = TRUE)
-        if (class(huber_peak) == "try-error") {
-          huber_peak <- list(mu = mean(peaks[, k], na.rm = TRUE),
-               s = mean(variances))
-        }
-        huber_peak
-      })
-    }
-    Mu0 <- sapply(huber_out, function(x) x$mu)
-    Omega0 <- sapply(huber_out, function(x) x$s^2)
-    Lambda0 <- huber(variances)$mu
-  } else {
-    Mu0 <- colMeans(peaks, na.rm = TRUE)
-    Omega0 <- apply(peaks, 2, var, na.rm = TRUE)
-    Lambda0 <- mean(variances, na.rm = TRUE)
-    # If any of the variances in Omega0 are NA, we keep them vague by setting
-    # them to the value in Lambda0
-    Omega0[is.na(Omega0)] <- Lambda0
+  channel <- as.character(channel)
+  if (length(channel) != 1) {
+    stop("There can be only 1...channel.")
   }
 
+  # For each sample in 'flow_set', we identify the peaks after smoothing.
+  peaks <- fsApply(flow_set, function(flow_frame, adjust) {
+    flow_frame <- truncate_flowframe(flow_frame, channel = channel, min = min,
+                                     max = max)
+    x <- exprs(flow_frame)[, channel]
+    find_peaks(x, adjust = adjust, order = TRUE)
+  }, adjust = adjust, simplify = FALSE)
+  peaks_collapsed <- as.vector(do.call(c, peaks))
+
+  # For each sample, we sort the peaks and find the distance between the
+  # adjacent peaks.
+  peaks_dist <- lapply(peaks, function(x) {
+    diff(sort(x))
+  })
+  peaks_dist <- do.call(c, peaks_dist)
+
+  # Applies hierarchical clustering to the peaks.
+  hclust_out <- hclust(dist(peaks_collapsed), method = hclust_method)
+
+  # To cluster the peaks, we must cut the hierarchical tree. By default, we
+  # use the median of the distances between adjacent peaks.
+  # By default, 'K' is 'NULL' and is ignored by 'cutree'. If 'K' is provided,
+  # then it has priority over 'hclust_height'.
+  if (is.null(hclust_height)) {
+    hclust_height <- median(peaks_dist)
+  }
+  clust_labels <- factor(cutree(hclust_out, k = K, h = hclust_height))
+  K <- nlevels(clust_labels)
+
+  # For each cluster of peaks, we elicit the prior mean (Mu0) and its hyperprior
+  # variance (Omega0) by computing the mean and variance of each cluster,
+  # respectively.
+  prior_means <- as.numeric(tapply(peaks_collapsed, clust_labels, mean))
+  hyperprior_vars <- as.numeric(tapply(peaks_collapsed, clust_labels, var))
+
+  # Because the cluster labels assigned by the hierarchical clustering algorithm
+  # are arbitrary, the 'prior_means' are not necessarily sorted. Here, we sort
+  # them and then apply the new odering to the other prior parameters.
+  prior_order <- order(prior_means)
+  prior_means <- prior_means[prior_order]
+  hyperprior_vars <- hyperprior_vars[prior_order]
+
+  # Elicitation of prior variances for each mixture component:
+  # For each flowFrame in the original flowSet object, we cluster its
+  # observations by assigning them to the nearest mean in 'prior_means.' Then,
+  # we compute the variance of the observations within each cluster. Finally, we
+  # aggregate the variances across all of the flowFrame objects.
+  prior_vars <- fsApply(flow_set, function(flow_frame, prior_means) {
+    flow_frame <- truncate_flowframe(flow_frame, channel = channel, min = min,
+                                     max = max)
+    x <- exprs(flow_frame)[, channel]
+
+    # To determine the nearest mean, we find the midpoints of the peaks and then
+    # 'cut' the observations into the regions.
+    peak_midpoints <- rowMeans(embed(prior_means, 2))
+    labels <- cut(x, breaks = c(-Inf, peak_midpoints, Inf))
+    tapply(x, labels, var)
+  }, prior_means = prior_means)
+  prior_vars <- as.numeric(colMeans(prior_vars, na.rm = TRUE))
+
   # Mu0 dimensions: K x p (p is the number of features. Here, p = 1 for 1D)
-  Mu0 <- matrix(Mu0, K, 1)
+  Mu0 <- matrix(prior_means, K, 1)
 
   # Lambda0 dimensions: K x p x p
-  Lambda0 <- array(Lambda0, c(K, 1, 1))
+  Lambda0 <- array(prior_vars, c(K, 1, 1))
 
   # Omega0 dimensions: K x p x p
-  Omega0 <- array(Omega0, c(K, 1, 1))
+  Omega0 <- array(hyperprior_vars, c(K, 1, 1))
 
   # We assume that the degrees of freedom is the same for each mixture component.
   nu0 <- rep(nu0, K)
@@ -337,52 +366,116 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
   list(Mu0 = Mu0, Lambda0 = Lambda0, Omega0 = Omega0, nu0 = nu0, w0 = w0)
 }
 
-#' Peak alignment for prior elicitation
+#' Finds the local maxima (peaks) in the given vector after smoothing the data
+#' with a kernel density estimator.
 #'
-#' We elicit data-driven priors by applying a kernel-density estimator (KDE) to
-#' obtain \code{K} peaks for several samples. Some samples may not have \code{K}
-#' distinct peaks apparent in the KDEs, in which case we will find less than the
-#' specified number with the remaining values being set to \code{NA}. For any
-#' sample that has less than \code{K} peaks, we align its peaks with those of the
-#' first sample that has \code{K} peaks.
+#' First, we smooth the data using kernel density estimation (KDE) with the
+#' \code{\link{density}} function. Then, we find every local maxima such that the
+#' density is concave (downward).
 #'
-#' We apply the Hungarian algorithm implemented using the \code{solve_LSAP}
-#' function from the \code{clue} package.
+#' Effectively, we find the local maxima with a discrete analogue to a second
+#' derivative applied to the KDE. For details, see this StackOverflow post:
+#' \url{http://bit.ly/Zbl7LV}.
 #'
-#' @param peaks matrix. The rows corresponds to the samples, and the columns
-#' correspond to the peaks. A value of \code{NA} is used if no peak is present.
-#' @return matrix where the peaks are aligned
-align_peaks <- function(peaks) {
+#' @param x numeric vector
+#' @param order_peaks logical value. If \code{TRUE}, the peaks will be sorted by
+#' the height of the peaks in decreasing order. (Default: \code{FALSE})
+#' @param adjust the bandwidth to use in the kernel density estimation. See
+#' \code{\link{density}} for more information.
+#' @param ... additional arguments passed to the \code{\link{density}} function
+#' @return the values where the peaks are attained.
+#' @examples
+#' library(flowClust)
+#' set.seed(42)
+#' # 2 peaks with a minor hump
+#' y <- SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
+#' plot(density(y))
+#' peaks <- find_peaks(y)
+#' abline(v = peaks, col = "red")
+find_peaks <- function(x, order_peaks = FALSE, adjust = 2, ...) {
+  x <- as.vector(x)
+
+  if (length(x) < 2) {
+    stop("At least 2 observations must be given in 'x' to find peaks.")
+  }
   
-  K <- ncol(peaks)
-  
-  # For each sample that has less than K peaks, we align its peaks with the peaks
-  # of the first sample having K peaks.
-  num_peaks <- apply(peaks, 1, function(x) sum(!is.na(x)))
-  peaks_align <- peaks[min(which(num_peaks == K)), ]
+  dens <- density(x, adjust = adjust, ...)
 
-  aligned_peaks <- lapply(which(num_peaks < K), function(i) {
-    x <- peaks[i, ]
-    x <- x[!is.na(x)]
+  # Discrete analogue to a second derivative applied to the KDE. See details.
+  second_deriv <- diff(sign(diff(dens$y)))
+  which_maxima <- which(second_deriv == -2) + 1
 
-    dist_align <- as.matrix(dist(c(x, peaks_align)))
-    dist_align[is.na(dist_align)] <- 0
-    dist_align <- dist_align[seq_along(x), seq_len(K) + length(x)]
+  # The 'density' function can consider observations outside the observed range.
+  # In rare cases, this can actually yield peaks outside this range.  We remove
+  # any such peaks.
+  which_maxima <- which_maxima[findInterval(dens$x[which_maxima], range(x)) == 1]
 
-    # The 'solve_LSAP' function expects a matrix. In the case that only one peak
-    # is present, 'dist_align' is a vector. We coerce it to a matrix to prevent
-    # an error with 'solve_LSAP'.
-    if (is.vector(dist_align)) {
-      dist_align <- matrix(dist_align, nrow = 1)
-    }
+  if (order_peaks) {
+    which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
+  }
 
-    # We extract the indices of alignment and then return a vector with the
-    # aligned peaks
-    align_idx <- as.vector(solve_LSAP(dist_align))
-    replace(rep(NA, K), align_idx, x)
-  })
-  aligned_peaks <- do.call(rbind, aligned_peaks)
-  peaks[num_peaks < K] <- aligned_peaks
-  peaks
+  # Returns the local minima. If there are none, we return 'NA' instead.
+  if (length(which_maxima) > 0) {
+    peaks <- dens$x[which_maxima]
+  } else {
+    peaks <- NA
+  }
+  peaks  
 }
 
+#' Finds the local minima (valleys) in the given vector after smoothing the data
+#' with a kernel density estimator.
+#'
+#' First, we smooth the data using kernel density estimation (KDE) with the
+#' \code{\link{density}} function. Then, we find every local minima such that the
+#' density is concave (downward).
+#'
+#' Effectively, we find the local minima with a discrete analogue to a second
+#' derivative applied to the KDE. For details, see this StackOverflow post:
+#' \url{http://bit.ly/Zbl7LV}.
+#'
+#' @param x numeric vector
+#' @param order_valleys logical value. If \code{TRUE}, the valleys will be sorted by
+#' the height of the valleys in increasing order. (Default: \code{FALSE})
+#' @param adjust the bandwidth to use in the kernel density estimation. See
+#' \code{\link{density}} for more information.
+#' @param ... additional arguments passed to the \code{\link{density}} function
+#' @return the values where the valleys are attained.
+#' @examples
+#' library(flowClust)
+#' set.seed(42)
+#' # 3 peaks and 2 valleys
+#' y <- SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
+#' plot(density(y))
+#' valleys <- find_valleys(y)
+#' abline(v = valleys, col = "red")
+find_valleys <- function(x, order_valleys = FALSE, adjust = 2, ...) {
+  x <- as.vector(x)
+
+  if (length(x) < 2) {
+    stop("At least 2 observations must be given in 'x' to find valleys.")
+  }
+  
+  dens <- density(x, adjust = adjust, ...)
+
+  # Discrete analogue to a second derivative applied to the KDE. See details.
+  second_deriv <- diff(sign(diff(dens$y)))
+  which_minima <- which(second_deriv == 2) + 1
+
+  # The 'density' function can consider observations outside the observed range.
+  # In rare cases, this can actually yield valleys outside this range. We remove
+  # any such peaks.
+  which_minima <- which_minima[findInterval(dens$x[which_minima], range(x)) == 1]
+
+  if (order_valleys) {
+    which_minima <- which_minima[order(dens$y[which_minima], decreasing = FALSE)]
+  }
+
+  # Returns the local minima. If there are none, we return 'NA' instead.
+  if (length(which_minima) > 0) {
+    valleys <- dens$x[which_minima]
+  } else {
+    valleys <- NA
+  }
+  valleys
+}

@@ -62,14 +62,11 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
     prior <- list(NA)
   }
 
-  # If a truncation value is specified, we remove all observations less than
-  # (greater than) this value for the marker specified to construct the gate.
-  # NOTE: These observations are removed from the 'flowFrame' locally and are gated
-  # out only for the determining the gate.
-  if (!is.null(truncate_min) || !is.null(truncate_max)) {
-    fr <- truncate_flowframe(flow_frame = fr, channel = params[1],
-                             min = truncate_min, max = truncate_max)
-  }
+  # Filter out values less than the minimum and above the maximum, if they are
+  # given. NOTE: These observations are removed from the 'flowFrame' locally and
+  # are gated out only for the determining the gate.
+  fr <- truncate_flowframe(fr, channel = params[1], min = min,
+                                     max = max)
 
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the
@@ -228,14 +225,14 @@ flowClust.1d <- function(fr, params, filterId = "", K = 2,  adjust = 1, trans = 
 #' \code{flowClust} fit to construct the gate
 #' @param axis_translation a numeric value between 0 and 1 used to position the
 #' gate if \code{gate_type} is selected as \code{"axis"}. See details.
-#' @param truncate_min A vector of length 2. Truncate observations less than this
-#' minimum value. The first value truncates the \code{xChannel}, and the second
+#' @param min A vector of length 2. Truncate observations less than this minimum
+#' value. The first value truncates the \code{xChannel}, and the second value
+#' truncates the \code{yChannel}. By default, this vector is \code{NULL} and is
+#' ignored.
+#' @param max A vector of length 2. Truncate observations greater than this
+#' maximum value. The first value truncates the \code{xChannel}, and the second
 #' value truncates the \code{yChannel}. By default, this vector is \code{NULL}
 #' and is ignored.
-#' @param truncate_max A vector of length 2. Truncate observations greater than
-#' this maximum value. The first value truncates the \code{xChannel}, and the
-#' second value truncates the \code{yChannel}. By default, this vector is
-#' \code{NULL} and is ignored.
 #' @param ... additional arguments that are passed to \code{flowClust}
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
@@ -243,27 +240,19 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
                          plot = FALSE, target = rep(0, K),
                          gate_type = c("ellipse", "axis"), quantile = 0.9,
-                         axis_translation = 0.25, truncate_min = NULL,
-                         truncate_max = NULL, ...) {
+                         axis_translation = 0.25, min = NULL, max = NULL, ...) {
 
   if (length(target) != 2) {
     stop("The 'target' location must be a numeric vector of length 2.")
   }
   gate_type <- match.arg(gate_type)
 
-  # If a truncation value is specified, we remove all observations less than this
-  # value for the marker specified to construct the gate.
-  # NOTE: These observations are removed from the 'flowFrame' locally and are gated
-  # out only for the determining the gate.
-  if (!is.null(truncate_min)) {
-    exprs(fr) <- exprs(fr)[exprs(fr)[, xChannel] >= truncate_min[1], ]
-    exprs(fr) <- exprs(fr)[exprs(fr)[, yChannel] >= truncate_min[2], ]
-  }
-
-  if (!is.null(truncate_max)) {
-    exprs(fr) <- exprs(fr)[exprs(fr)[, xChannel] <= truncate_max[1], ]
-    exprs(fr) <- exprs(fr)[exprs(fr)[, yChannel] <= truncate_max[2], ]    
-  }
+  # If a truncation value is specified, we remove all observations less than
+  # this value for the marker specified to construct the gate. NOTE: These
+  # observations are removed from the 'flowFrame' locally and are gated out only
+  # for the determining the gate.
+  fr <- truncate_flowframe(fr, channel = xChannel, min = min[1], max = max[1])
+  fr <- truncate_flowframe(fr, channel = yChannel, min = min[2], max = max[2])
 
   x <- exprs(fr)[, xChannel]
   y <- exprs(fr)[, yChannel]
@@ -397,121 +386,6 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   fcPolygonGate(flowClust_gate, prior, posteriors)
 }
 
-
-#' Finds the local maxima (peaks) in the given vector after smoothing the data
-#' with a kernel density estimator.
-#'
-#' First, we smooth the data using kernel density estimation (KDE) with the
-#' \code{\link{density}} function. Then, we find every local maxima such that the
-#' density is concave (downward).
-#'
-#' Effectively, we find the local maxima with a discrete analogue to a second
-#' derivative applied to the KDE. For details, see this StackOverflow post:
-#' \url{http://bit.ly/Zbl7LV}.
-#'
-#' @param x numeric vector
-#' @param order_peaks logical value. If \code{TRUE}, the peaks will be sorted by
-#' the height of the peaks in decreasing order. (Default: \code{FALSE})
-#' @param adjust the bandwidth to use in the kernel density estimation. See
-#' \code{\link{density}} for more information.
-#' @param ... additional arguments passed to the \code{\link{density}} function
-#' @return the values where the peaks are attained.
-#' @examples
-#' library(flowClust)
-#' set.seed(42)
-#' # 2 peaks with a minor hump
-#' y <- SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
-#' plot(density(y))
-#' peaks <- find_peaks(y)
-#' abline(v = peaks, col = "red")
-find_peaks <- function(x, order_peaks = FALSE, adjust = 2, ...) {
-  x <- as.vector(x)
-
-  if (length(x) < 2) {
-    stop("At least 2 observations must be given in 'x' to find peaks.")
-  }
-  
-  dens <- density(x, adjust = adjust, ...)
-
-  # Discrete analogue to a second derivative applied to the KDE. See details.
-  second_deriv <- diff(sign(diff(dens$y)))
-  which_maxima <- which(second_deriv == -2) + 1
-
-  # The 'density' function can consider observations outside the observed range.
-  # In rare cases, this can actually yield peaks outside this range.  We remove
-  # any such peaks.
-  which_maxima <- which_maxima[findInterval(dens$x[which_maxima], range(x)) == 1]
-
-  if (order_peaks) {
-    which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
-  }
-
-  # Returns the local minima. If there are none, we return 'NA' instead.
-  if (length(which_maxima) > 0) {
-    peaks <- dens$x[which_maxima]
-  } else {
-    peaks <- NA
-  }
-  peaks  
-}
-
-#' Finds the local minima (valleys) in the given vector after smoothing the data
-#' with a kernel density estimator.
-#'
-#' First, we smooth the data using kernel density estimation (KDE) with the
-#' \code{\link{density}} function. Then, we find every local minima such that the
-#' density is concave (downward).
-#'
-#' Effectively, we find the local minima with a discrete analogue to a second
-#' derivative applied to the KDE. For details, see this StackOverflow post:
-#' \url{http://bit.ly/Zbl7LV}.
-#'
-#' @param x numeric vector
-#' @param order_valleys logical value. If \code{TRUE}, the valleys will be sorted by
-#' the height of the valleys in increasing order. (Default: \code{FALSE})
-#' @param adjust the bandwidth to use in the kernel density estimation. See
-#' \code{\link{density}} for more information.
-#' @param ... additional arguments passed to the \code{\link{density}} function
-#' @return the values where the valleys are attained.
-#' @examples
-#' library(flowClust)
-#' set.seed(42)
-#' # 3 peaks and 2 valleys
-#' y <- SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
-#' plot(density(y))
-#' valleys <- find_valleys(y)
-#' abline(v = valleys, col = "red")
-find_valleys <- function(x, order_valleys = FALSE, adjust = 2, ...) {
-  x <- as.vector(x)
-
-  if (length(x) < 2) {
-    stop("At least 2 observations must be given in 'x' to find valleys.")
-  }
-  
-  dens <- density(x, adjust = adjust, ...)
-
-  # Discrete analogue to a second derivative applied to the KDE. See details.
-  second_deriv <- diff(sign(diff(dens$y)))
-  which_minima <- which(second_deriv == 2) + 1
-
-  # The 'density' function can consider observations outside the observed range.
-  # In rare cases, this can actually yield valleys outside this range. We remove
-  # any such peaks.
-  which_minima <- which_minima[findInterval(dens$x[which_minima], range(x)) == 1]
-
-  if (order_valleys) {
-    which_minima <- which_minima[order(dens$y[which_minima], decreasing = FALSE)]
-  }
-
-  # Returns the local minima. If there are none, we return 'NA' instead.
-  if (length(which_minima) > 0) {
-    valleys <- dens$x[which_minima]
-  } else {
-    valleys <- NA
-  }
-  valleys
-}
-
 quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
                          filterId = "", ...) {
   x <- exprs(fr[, stain])
@@ -571,20 +445,13 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
     stop("A single channel must be specified.")
   }
 
-  # Grabs the data matrix that is being gated.
-  x <- exprs(flow_frame)[, channel]
-
   # Filter out values less than the minimum and above the maximum, if they are
   # given.
-  if (!is.null(min)) {
-    min <- as.numeric(min)
-    x <- x[x >= min]
-  }
+  flow_frame <- truncate_flowframe(flow_frame, channel = channel, min = min,
+                                     max = max)
 
-  if (!is.null(max)) {
-    max <- as.numeric(max)
-    x <- x[x <= max]
-  }
+  # Grabs the data matrix that is being gated.
+  x <- exprs(flow_frame)[, channel]
 
   peaks <- find_peaks(x, order_peaks = TRUE, ...)
 

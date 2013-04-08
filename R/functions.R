@@ -684,15 +684,21 @@ channels2markers <- function(flow_frame, channels) {
 #'
 #' The minimum/maximum values are ignored if \code{NULL}.
 #'
-#' @param flow_frame an object of type \code{flowFrame}
+#' @param flow_frame a \code{flowFrame} object
+#' @param min a numeric value that sets the lower boundary for data filtering
+#' @param max a numeric value that sets the upper boundary for data filtering
+#' @return a \code{flowFrame} object
 truncate_flowframe <- function(flow_frame, channel, min = NULL, max = NULL) {
-  if (is.null(min) && is.null(max)) {
-    warning("No truncation value was provided. Returning the original 'flow_frame'.")
+
+  channel <- as.character(channel)
+  if (length(channel) != 1) {
+    stop("Only one 'channel' may be truncated.")
   }
+  
   x_channel <- exprs(flow_frame)[, channel]
 
-  # For comparison purposes, we update the min and max values to -Inf and Inf, respectively,
-  # if one is NULL.
+  # For comparison purposes, we update the min and max values to -Inf and Inf,
+  # respectively, if one is NULL.
   min <- ifelse(is.null(min), -Inf, min)
   max <- ifelse(is.null(max), Inf, max)
 
