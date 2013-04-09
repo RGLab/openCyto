@@ -122,6 +122,10 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' @param hclust_method the agglomeration method used in the hierarchical
 #' clustering. This value is passed directly to \code{\link{hclust}}. Default is
 #' complete linkage.
+#' @param artificial a numeric vector containing prior means for artificial
+#' mixture components. The remaining prior parameters for the artificial
+#' components are copied directly from the most informative prior component
+#' elicited. If \code{NULL} (default), no artificial prior components are added.
 #' @param nu0 prior degrees of freedom of the Student's t mixture components.
 #' @param w0 the number of prior pseudocounts of the Student's t mixture components.
 #' @param adjust the bandwidth to use in the kernel density estimation. See
@@ -198,6 +202,28 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
     tapply(x, labels, var)
   }, prior_means = prior_means)
   prior_vars <- as.numeric(colMeans(prior_vars, na.rm = TRUE))
+
+  # Here, we add any 'artificial' prior components, if provided, and increment
+  # 'K' accordingly.
+  if (!is.null(artificial)) {
+    prior_df <- cbind.data.frame(Mu0 = prior_means, Omega0 = hyperprior_vars,
+                                 Lambda0 = prior_vars)
+
+    # For the remaining prior parameters for each artificial component, we select
+    # minimum values of Omega0 and Lambda0.
+    min_Omega0 <- min(prior_df$Omega0)
+    min_Lambda0 <- min(prior_df$Lambda0)
+    prior_df <- rbind(prior_df, cbind(Mu0 = artificial, Omega0 = min_Omega0,
+                                      Lambda0 = min_Lambda0))
+
+    prior_df <- prior_df[order(prior_df$Mu0), ]
+
+    prior_means <- prior_df$Mu0
+    hyperprior_vars <- prior_df$Omega0
+    prior_vars <- prior_df$Lambda0
+
+    K <- length(prior_means)
+  }
 
   # Mu0 dimensions: K x p (p is the number of features. Here, p = 1 for 1D)
   Mu0 <- matrix(prior_means, K, 1)
