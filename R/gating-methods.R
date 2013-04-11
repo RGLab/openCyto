@@ -106,9 +106,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     
     if (is_1d_gate) {
       if (grepl("-$", popName)) {
-        positive = FALSE
+        positive <- FALSE
       } else if (grepl("+$", popName)) {
-        positive = TRUE
+        positive <- TRUE
       } else {
         stop("invalid population name!Name should end with '+' or '-' symbol.")
       }
@@ -124,6 +124,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     if (grepl("^\\.flowClust\\.[12]d$", gm)) {
       local_prior_group <- args[["prior_group"]]
       args[["prior_group"]] <- NULL
+
       # overwrite the golbal one if the local is specified
       if (!is.null(local_prior_group)) 
         prior_group <- local_prior_group
@@ -138,27 +139,56 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       }
       
       if (gm == ".flowClust.1d") {
-        # get the value of neg and pos
-        
-        if (all(is.element(c("pos", "neg"), names(args)))) {
-          neg_cluster <- as.integer(args["neg"])
-          pos_cluster <- as.integer(args["pos"])
-          K <- neg_cluster + pos_cluster
-        } else {
-          message("Using default setting: neg = 1, pos = 1")
-          neg_cluster <- pos_cluster <- as.integer(1)
-          K <- 2
+        # If any of 'K, 'neg' or 'pos' are given, we extract them from the
+        # 'args' and coerce them as integers. Otherwise, they are defaulted to
+        # NULL.
+        K <- neg_cluster <- pos_cluster <- NULL
+
+        if ("K" %in% names(args)) {
+          K <- as.integer(args["K"])
         }
-        if (!is.na(xChannel)) 
+        if ("neg" %in% names(args)) {
+          neg_cluster <- as.integer(args["neg"])
+          args[["neg"]] <- NULL
+        }
+        if ("pos" %in% names(args)) {
+          pos_cluster <- as.integer(args["pos"])
+          args[["pos"]] <- NULL
+        }
+
+        # Examines the various cases of pos, neg and K.
+        # In the case that K is not given, we automatically select it.
+        # Exception: If both 'pos' and 'neg' are given, we set: K <- pos + neg
+        if (is.null(K)) {
+          if (!is.null(neg_cluster) || !is.null(pos_cluster)) {
+            K <- neg_cluster + pos_cluster
+          }
+        } else {
+          # If pos and neg are given, throw a warning and set: K <- pos + neg
+          # In the case that one of pos and neg are given and either exceeds K,
+          # we throw an error.         
+          if (!is.null(neg_cluster) || !is.null(pos_cluster)) {
+            warning("Values given for 'K', 'neg', and 'pos'. Setting K = neg + pos")
+            K <- neg_cluster + pos_cluster
+          } else if (!is.null(pos_cluster) && K < pos_cluster) {
+            stop("The number of positive clusters exceeds 'K'.")
+          } else if (!is.null(neg_cluster) && K < neg_cluster) {
+            stop("The number of negative clusters exceeds 'K'.")
+          }
+        }
+
+        args[["K"]] <- K
+        args[["neg_cluster"]] <- neg_cluster
+        args[["pos_cluster"]] <- pos_cluster        
+
+        if (!is.na(xChannel)) {
           prior_list[[xChannel]] <- .prior_flowClust(flow_set = prior_data, 
-          channels = xChannel, K = K, prior_group = prior_group, ...)
+            channels = xChannel, K = K, prior_group = prior_group, ...)
+        }
         
         prior_list[[yChannel]] <- .prior_flowClust(flow_set = prior_data, 
           channels = yChannel, K = K, prior_group = prior_group, ...)
         
-        
-        args[["K"]] <- K
-        args[["neg_cluster"]] <- neg_cluster
         args[["prior"]] <- prior_list
         
         # If the number of positive clusters is 0 and no cutpoint method has been
@@ -166,23 +196,12 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         if (pos_cluster == 0 && is.null(args[["cutpoint_method"]])) {
           args[["cutpoint_method"]] <- "quantile"
         }
-        
-        neg_ind <- match("neg", names(args))
-        if (!is.na(neg_ind)) 
-          args <- args[-neg_ind]
-        
-        pos_ind <- match("pos", names(args))
-        if (!is.na(pos_ind)) 
-          args <- args[-pos_ind]
-        
-        
-        
       } else {
         # get the value of neg and pos
         if (is.element(c("k"), names(args))) {
           K <- as.integer(args["k"])
         } else {
-          message("'K' argument is missing!Using default setting:K=2")
+          message("'K' argument is missing! Using default setting: K = 2")
           K <- 2
         }
         
@@ -198,8 +217,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       
     }
     # update arg_names
-    
-    for (arg in names(args)) thisCall[[arg]] <- args[[arg]]
+    for (arg in names(args)) {
+      thisCall[[arg]] <- args[[arg]]
+    }
     
     ## choose serial or parallel mode
     if (num_nodes > 1) {
@@ -224,13 +244,11 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       flist <- eval(thisCall)
     }
     
-    
     if (extends(class(flist[[1]]), "fcFilter")) {
       flist <- fcFilterList(flist)
     } else {
       flist <- filterList(flist)
     }
-    
     
     filterObj <- flist
     gs_node_id <- add(y, flist, parent = parent, name = popAlias)
@@ -502,7 +520,6 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
   
   sname <- sampleNames(fs)
   fr <- fs[[sname]]
-  
   flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel, usePrior = usePrior,
                prior = prior[[sname]], ...)
 }
