@@ -181,19 +181,30 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         args[["neg_cluster"]] <- neg_cluster
         args[["pos_cluster"]] <- pos_cluster        
 
-        if (!is.na(xChannel)) {
-          prior_list[[xChannel]] <- .prior_flowClust(flow_set = prior_data, 
-            channels = xChannel, K = K, prior_group = prior_group, ...)
+        # If 'min' and/or 'max' are given, we pass this value along to the
+        # prior-elicitation method as well as flowClust.
+        if ("min" %in% names(args)) {
+          min <- as.numeric(args["min"])
         }
-        
-        prior_list[[yChannel]] <- .prior_flowClust(flow_set = prior_data, 
-          channels = yChannel, K = K, prior_group = prior_group, ...)
-        
+        if ("max" %in% names(args)) {
+          max <- as.numeric(args["max"])
+        }                          
+
+        if (!is.na(xChannel)) {
+          prior_list[[xChannel]] <- .prior_flowClust(flow_set = prior_data,
+            channels = xChannel, K = K, prior_group = prior_group, min = min,
+            max = max, ...)
+        }
+
+        prior_list[[yChannel]] <- .prior_flowClust(flow_set = prior_data,
+          channels = yChannel, K = K, prior_group = prior_group, min = min,
+          max = max, ...)
+
         args[["prior"]] <- prior_list
         
         # If the number of positive clusters is 0 and no cutpoint method has been
         # specified, we use the quantile gate by default.
-        if (pos_cluster == 0 && is.null(args[["cutpoint_method"]])) {
+        if (!is.null(pos_cluster) && pos_cluster == 0 && is.null(args[["cutpoint_method"]])) {
           args[["cutpoint_method"]] <- "quantile"
         }
       } else {
@@ -495,7 +506,7 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
 }
 
 .flowClust.1d <- function(fs, xChannel = NA, yChannel, tol = 1e-5, prior = NULL,
-                          filterId = "", usePrior = "yes", split = TRUE, ...) {
+                          filterId = "", split = TRUE, ...) {
 
   sname <- sampleNames(fs)
   fr <- fs[[sname]]
@@ -505,7 +516,7 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
   if (is.na(xChannel)) {
     # 1d gate
     flowClust.1d(fr = fr, params = yChannel, tol = tol, filterId = filterId, 
-      prior = priorList[[yChannel]], usePrior = usePrior, ...)
+      prior = priorList[[yChannel]], ...)
   } else {
     stop("flowClust1d does not support 2d gate!")
   }

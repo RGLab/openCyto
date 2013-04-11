@@ -76,7 +76,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
     criterion <- match.arg(criterion)
 
     if (!is.null(prior)) {
-      K <- seq_along(prior$Mu0)
+      K <- length(as.vector(prior$Mu0))
     } else {
       stop("Values for 'K' must be provided if no 'prior' is given.")
     }
