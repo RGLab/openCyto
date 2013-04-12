@@ -148,7 +148,14 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
     flow_frame <- truncate_flowframe(flow_frame, channel = channel, min = min,
                                      max = max)
     x <- exprs(flow_frame)[, channel]
-    find_peaks(x, adjust = adjust, order = TRUE)
+    peaks_found <- find_peaks(x, adjust = adjust, order = TRUE)
+
+    # If K is specified and is smaller than the number of peaks found,
+    # we keep only the K largest peaks from the sample.
+    if (!is.null(K) && length(peaks_found) > K) {
+      peaks_found <- peaks_found[seq_len(K)]
+    }
+    peaks_found
   }, adjust = adjust, simplify = FALSE)
   peaks_collapsed <- as.vector(do.call(c, peaks))
 
