@@ -142,10 +142,11 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         # If any of 'K, 'neg' or 'pos' are given, we extract them from the
         # 'args' and coerce them as integers. Otherwise, they are defaulted to
         # NULL.
+        # NOTE: the named elements within 'args' are coerced to lowercase.
         K <- neg_cluster <- pos_cluster <- NULL
 
-        if ("K" %in% names(args)) {
-          K <- as.integer(args["K"])
+        if ("k" %in% names(args)) {
+          K <- as.integer(args["k"])
         }
         if ("neg" %in% names(args)) {
           neg_cluster <- as.integer(args["neg"])
@@ -177,28 +178,32 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
           }
         }
 
-        args[["K"]] <- K
         args[["neg_cluster"]] <- neg_cluster
-        args[["pos_cluster"]] <- pos_cluster        
+        args[["pos_cluster"]] <- pos_cluster
+
+        args[["k"]] <- NULL
+        args[["K"]] <- K
 
         # If 'min' and/or 'max' are given, we pass this value along to the
-        # prior-elicitation method as well as flowClust.
+        # prior-elicitation method as well as flowClust. Otherwise, these values
+        # are set to NULL.
+        min_values <- max_values <- NULL
         if ("min" %in% names(args)) {
-          min <- as.numeric(args["min"])
+          min_values <- as.numeric(args["min"])
         }
         if ("max" %in% names(args)) {
-          max <- as.numeric(args["max"])
+          max_values <- as.numeric(args["max"])
         }                          
 
         if (!is.na(xChannel)) {
           prior_list[[xChannel]] <- .prior_flowClust(flow_set = prior_data,
-            channels = xChannel, K = K, prior_group = prior_group, min = min,
-            max = max, ...)
+            channels = xChannel, K = K, prior_group = prior_group,
+            min = min_values, max = max_values, ...)
         }
 
         prior_list[[yChannel]] <- .prior_flowClust(flow_set = prior_data,
-          channels = yChannel, K = K, prior_group = prior_group, min = min,
-          max = max, ...)
+          channels = yChannel, K = K, prior_group = prior_group,
+          min = min_values, max = max_values, ...)
 
         args[["prior"]] <- prior_list
         
