@@ -161,14 +161,14 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         # In the case that K is not given, we automatically select it.
         # Exception: If both 'pos' and 'neg' are given, we set: K <- pos + neg
         if (is.null(K)) {
-          if (!is.null(neg_cluster) || !is.null(pos_cluster)) {
+          if (!is.null(neg_cluster) && !is.null(pos_cluster)) {
             K <- neg_cluster + pos_cluster
           }
         } else {
           # If pos and neg are given, throw a warning and set: K <- pos + neg
           # In the case that one of pos and neg are given and either exceeds K,
           # we throw an error.         
-          if (!is.null(neg_cluster) || !is.null(pos_cluster)) {
+          if (!is.null(neg_cluster) && !is.null(pos_cluster)) {
             warning("Values given for 'K', 'neg', and 'pos'. Setting K = neg + pos")
             K <- neg_cluster + pos_cluster
           } else if (!is.null(pos_cluster) && K < pos_cluster) {
