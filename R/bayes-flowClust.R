@@ -119,6 +119,9 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' where the should be cut By default, we use the median of the distances
 #' between adjacent peaks. If a value is specified, we pass it directly to
 #' \code{\link{cutree}}.
+#' @param clust_method the method used to cluster peaks together when for prior
+#' elicitation. By default, \code{kmeans} is used. However, if \code{K} is not
+#' specified, \code{hclust} will be used instead.
 #' @param hclust_method the agglomeration method used in the hierarchical
 #' clustering. This value is passed directly to \code{\link{hclust}}. Default is
 #' complete linkage.
@@ -134,11 +137,13 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' @param max a numeric value that sets the upper boundary for data filtering
 #' @return list of prior parameters
 prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
+                              clust_method = c("kmeans", "hclust"),
                               hclust_method = "complete", artificial = NULL,
                               nu0 = 4, w0 = 10, adjust = 2, min = NULL,
                               max = NULL) {
 
   channel <- as.character(channel)
+  clust_method <- match.arg(clust_method)
   if (length(channel) != 1) {
     stop("There can be only 1...channel.")
   }
@@ -166,17 +171,22 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
   })
   peaks_dist <- do.call(c, peaks_dist)
 
-  # Applies hierarchical clustering to the peaks.
-  hclust_out <- hclust(dist(peaks_collapsed), method = hclust_method)
+  if (is.null(K) || clust_method == "hclust") {
+    # Applies hierarchical clustering to the peaks.
+    hclust_out <- hclust(dist(peaks_collapsed), method = hclust_method)
 
-  # To cluster the peaks, we must cut the hierarchical tree. By default, we
-  # use the median of the distances between adjacent peaks.
-  # By default, 'K' is 'NULL' and is ignored by 'cutree'. If 'K' is provided,
-  # then it has priority over 'hclust_height'.
-  if (is.null(hclust_height)) {
-    hclust_height <- median(peaks_dist)
+    # To cluster the peaks, we must cut the hierarchical tree. By default, we
+    # use the median of the distances between adjacent peaks.
+    # By default, 'K' is 'NULL' and is ignored by 'cutree'. If 'K' is provided,
+    # then it has priority over 'hclust_height'.
+    if (is.null(hclust_height)) {
+      hclust_height <- median(peaks_dist)
+    }
+    clust_labels <- factor(cutree(hclust_out, k = K, h = hclust_height))
+  } else if (clust_method == "kmeans") {
+    # Applies kmeans clustering to the peaks.
+    clust_labels <- factor(kmeans(x = peaks_collapsed, centers = K, nstart = 10)$cluster)
   }
-  clust_labels <- factor(cutree(hclust_out, k = K, h = hclust_height))
   K <- nlevels(clust_labels)
 
   # For each cluster of peaks, we elicit the prior mean (Mu0) and its hyperprior
