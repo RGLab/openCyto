@@ -57,7 +57,7 @@
 flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          positive = TRUE, prior = NULL,
                          criterion = c("BIC", "ICL"),
-                         cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean"),                         
+                         cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean", "prior_density"),
                          neg_cluster = 1, cutpoint_min = NULL,
                          cutpoint_max = NULL, min = NULL, max = NULL,
                          quantile = 0.99, quantile_interval = c(0, 10),
@@ -95,6 +95,10 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   # are gated out only for the determining the gate.
   fr <- truncate_flowframe(fr, channel = params[1], min = min, max = max)
 
+  if (nrow(fr) < 2) {
+    warning("Less than two observations are present in the given flowFrame. Constructing gate from prior...")
+  }
+
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the
   # elements in the `prior` list.
@@ -102,18 +106,26 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   tmix_filter <- tmixFilter(filterId, params[1], K = K, trans = trans,
                             usePrior = usePrior, prior = prior,
                             criterion = criterion, ...)
-  tmix_results <- filter(fr, tmix_filter)
+
+  tmix_results <- try(filter(fr, tmix_filter), silent = TRUE)
   
-  # To determine the cutpoint, we first sort the centroids so that we can determine
-  # the second largest centroid.
-  centroids_sorted <- sort(getEstimates(tmix_results)$locations)
+  # In the case an error occurs when applying 'flowClust', the gate is
+  # constructed from the density of the prior distributions. This error
+  # typically occurs when there are less than 2 observations in the flow frame.
+  if (class(tmix_results) != "try-error") {
+    # To determine the cutpoint, we first sort the centroids so that we can
+    # determine the second largest centroid.
+    centroids_sorted <- sort(getEstimates(tmix_results)$locations)
 
-  # Also, because the cluster labels are arbitrary, we determine the cluster
-  # the cluster labels, sorted by the ordering of the cluster means.
-  labels_sorted <- order(getEstimates(tmix_results)$locations)
+    # Also, because the cluster labels are arbitrary, we determine the cluster
+    # the cluster labels, sorted by the ordering of the cluster means.
+    labels_sorted <- order(getEstimates(tmix_results)$locations)
 
-  # Grabs the data matrix that is being gated.
-  x <- exprs(fr)[, params[1]]
+    # Grabs the data matrix that is being gated.
+    x <- exprs(fr)[, params[1]]
+  } else {
+    cutpoint_method <- "prior_density"
+  }
 
   # Determines the cutpoint between clusters 1 and 2.
   if (cutpoint_method == "boundary") {
@@ -154,8 +166,26 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   } else if (cutpoint_method == "quantile") {
     cutpoint <- quantile_flowClust(p = quantile, object = tmix_results,
                                    interval = quantile_interval)
-  } else { # cutpoint_method == "posterior_mean"
+  } else if (cutpoint_method == "posterior_mean") {
     cutpoint <- centroids_sorted[neg_cluster]
+  } else { # cutpoint_method == "prior_density"
+    # The prior_density cutpoint is determined as the point at which the density
+    # of the negative cluster becomes smaller than the density of its adjacent
+    # cluster.
+    prior_x <- as.matrix(seq(prior$Mu0[neg_cluster], prior$Mu0[neg_cluster + 1], length = 1000))
+    
+    prior_proportions <- with(prior, w0 / sum(w0))
+    prior_y <- lapply(c(neg_cluster, neg_cluster + 1), function(k) {
+      prior_density <- flowClust::dmvt(x = prior_x, mu = prior$Mu0[k],
+                                       sigma = prior$Omega0[k], nu = 4)$value
+      prior_proportions[k] * prior_density
+    })
+    prior_y <- do.call(cbind, prior_y)
+
+    # For the two prior densities, we determine the cutpoint as the first value
+    # where the second density is larger than the first.
+    diff_densities <- apply(prior_y, 1, diff)
+    cutpoint <- prior_x[which(diff_densities > 0)[1]]
   }
 
   # In some cases, we wish that a gating cutpoint not exceed some threshold, in
@@ -187,10 +217,18 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   fres <- rectangleGate(gate_coordinates, filterId = filterId)
 
   # Saves posterior point estimates
+  # In the case that an error is thrown, the posterior is set to the prior
+  # because no prior updating was performed.
   postList <- list()
-  posteriors <- list(mu = tmix_results@mu, lamdda = tmix_results@lambda,
-                     sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x),
-                     max = max(x))
+  if (class(tmix_results) != "try-error") {
+    posteriors <- list(mu = tmix_results@mu, lamdda = tmix_results@lambda,
+                       sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x),
+                       max = max(x))
+  } else {
+    posteriors <- prior
+    posteriors$min <- min(x)
+    posteriors$max <- max(x)
+  }
   postList[[params[1]]] <- posteriors
 
   # Saves prior point estimates

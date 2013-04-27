@@ -164,6 +164,9 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
   }, adjust = adjust, simplify = FALSE)
   peaks_collapsed <- as.vector(do.call(c, peaks))
 
+  # Remove any NAs that may have resulted in the peaks.
+  peaks_collapsed <- peaks_collapsed[!is.na(peaks_collapsed)]
+
   # For each sample, we sort the peaks and find the distance between the
   # adjacent peaks.
   peaks_dist <- lapply(peaks, function(x) {
@@ -183,16 +186,17 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
       hclust_height <- median(peaks_dist)
     }
     clust_labels <- factor(cutree(hclust_out, k = K, h = hclust_height))
+    prior_means <- as.numeric(tapply(peaks_collapsed, clust_labels, mean))
   } else if (clust_method == "kmeans") {
     # Applies kmeans clustering to the peaks.
-    clust_labels <- factor(kmeans(x = peaks_collapsed, centers = K, nstart = 10)$cluster)
+    kmeans_out <- kmeans(x = peaks_collapsed, centers = K, nstart = 10)
+    clust_labels <- factor(kmeans_out$cluster)
+    prior_means <- as.vector(kmeans_out$centers)
   }
   K <- nlevels(clust_labels)
 
-  # For each cluster of peaks, we elicit the prior mean (Mu0) and its hyperprior
-  # variance (Omega0) by computing the mean and variance of each cluster,
-  # respectively.
-  prior_means <- as.numeric(tapply(peaks_collapsed, clust_labels, mean))
+  # For each cluster of peaks, we elicit the hyperprior variance (Omega0) for
+  # the prior mean Mu0 by computing the variance of each cluster.
   hyperprior_vars <- as.numeric(tapply(peaks_collapsed, clust_labels, var))
 
   # Because the cluster labels assigned by the hierarchical clustering algorithm
@@ -440,29 +444,30 @@ find_peaks <- function(x, order_peaks = FALSE, adjust = 2, ...) {
   x <- as.vector(x)
 
   if (length(x) < 2) {
-    stop("At least 2 observations must be given in 'x' to find peaks.")
-  }
-  
-  dens <- density(x, adjust = adjust, ...)
-
-  # Discrete analogue to a second derivative applied to the KDE. See details.
-  second_deriv <- diff(sign(diff(dens$y)))
-  which_maxima <- which(second_deriv == -2) + 1
-
-  # The 'density' function can consider observations outside the observed range.
-  # In rare cases, this can actually yield peaks outside this range.  We remove
-  # any such peaks.
-  which_maxima <- which_maxima[findInterval(dens$x[which_maxima], range(x)) == 1]
-
-  if (order_peaks) {
-    which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
-  }
-
-  # Returns the local minima. If there are none, we return 'NA' instead.
-  if (length(which_maxima) > 0) {
-    peaks <- dens$x[which_maxima]
-  } else {
+    warning("At least 2 observations must be given in 'x' to find peaks.")
     peaks <- NA
+  } else {
+    dens <- density(x, adjust = adjust, ...)
+
+    # Discrete analogue to a second derivative applied to the KDE. See details.
+    second_deriv <- diff(sign(diff(dens$y)))
+    which_maxima <- which(second_deriv == -2) + 1
+
+    # The 'density' function can consider observations outside the observed range.
+    # In rare cases, this can actually yield peaks outside this range.  We remove
+    # any such peaks.
+    which_maxima <- which_maxima[findInterval(dens$x[which_maxima], range(x)) == 1]
+
+    if (order_peaks) {
+      which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
+    }
+
+    # Returns the local minima. If there are none, we return 'NA' instead.
+    if (length(which_maxima) > 0) {
+      peaks <- dens$x[which_maxima]
+    } else {
+      peaks <- NA
+    }
   }
   peaks  
 }

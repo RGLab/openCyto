@@ -60,7 +60,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"), defini
 })
 
 setMethod("gating", signature = c("gtMethod", "GatingSet"),
-          definition = function(x, y, gtPop, parent, num_nodes = 1,
+          definition = function(x, y, gtPop, parent, num_cores = 1,
             parallel_type = c("multicore", "sock"), plot = FALSE, xbin = 128,
             prior_group = NULL, ...) {
   
@@ -238,15 +238,15 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     }
     
     ## choose serial or parallel mode
-    if (num_nodes > 1) {
-      message("Running in parallel mode with ", num_nodes, " nodes.")
+    if (num_cores > 1) {
+      message("Running in parallel mode with ", num_cores, " cores.")
       if (parallel_type == "multicore") {
         thisCall[[1]] <- quote(mclapply)
-        thisCall[["mc.cores"]] <- num_nodes
+        thisCall[["mc.cores"]] <- num_cores
         flist <- eval(thisCall)
         
       } else {
-        cl <- makeCluster(num_nodes, type = "SOCK")
+        cl <- makeCluster(num_cores, type = "SOCK")
         thisCall[[1]] <- quote(parLapply)
         thisCall[["cl"]] <- cl
         # replace FUN with fun for parLapply

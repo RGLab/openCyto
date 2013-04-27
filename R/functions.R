@@ -546,7 +546,11 @@ truncate_flowframe <- function(flow_frame, channel, min = NULL, max = NULL) {
   
   # Removes any observation that has an observation outside of the min and max
   # values specified.
-  exprs(flow_frame) <- exprs(flow_frame)[min < x_channel & x_channel < max, ]
+  exprs_truncated <- exprs(flow_frame)[min < x_channel & x_channel < max, ]
+  if (is.vector(exprs_truncated)) {
+    exprs_truncated <- t(as.matrix(exprs_truncated))
+  }
+  exprs(flow_frame) <- exprs_truncated
   
   flow_frame
 }
