@@ -75,7 +75,7 @@ setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definit
 		
 setMethod("gating", signature = c("gtMethod", "GatingSet")
 		, definition = function(x, y,gtPop, parent
-				,num_nodes = 1, parallel_type = c("multicore", "sock")
+				,num_nodes = 1, parallel_type = c("multicore", "SOCK","MPI")
 				,plot = FALSE, xbin = 128,prior_group=NULL,...) 
 		{
 			
@@ -246,7 +246,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSet")
 						
 					}else 
 					{
-						cl <- makeCluster(num_nodes, type = "SOCK")
+						cl <- makeCluster(num_nodes, type = parallel_type)
+                        
 						thisCall[[1]]<-quote(parLapply)
 						thisCall[["cl"]]<-cl
 						#replace FUN with fun for parLapply
@@ -607,7 +608,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 }
 ## wrappers for the different gating routines
 .singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H", prediction_level = 0.99, ...) {
-
+  require(openCyto)
   # Creates a list of polygon gates based on the prediction bands at the minimum and maximum
   # x_channel observation using a robust linear model trained by flowStats.
   singletGate(fs[[1]], area = xChannel, height = yChannel,
@@ -618,7 +619,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 						,usePrior="yes",split=TRUE,...)
 {
 	
-	
+  require(openCyto)
 	sname <- sampleNames(fs)
 	fr <- fs[[sname]]
     priorList<-list()
@@ -752,6 +753,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 
 
 .mindensity <- function(fs, yChannel = "FSC-A", filterId = "", ...) {
+  require(openCyto)
   mindensity(flow_frame = fs[[1]], channel = yChannel, filter_id = filterId, ...)
 
 }
@@ -760,7 +762,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 
 
 .flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", prior = NULL, ...) {
-
+  require(openCyto)
   sname <- sampleNames(fs)
   fr <- fs[[sname]]
   
@@ -770,7 +772,7 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 
 .rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE,
                        filterId = "", ...) {
-
+  require(openCyto)
   fr <- fs[[1]]
   rangeGate(x = fr, stain = yChannel, inBetween = TRUE, absolute = absolute,
             filterId = filterId, ...)
@@ -778,12 +780,13 @@ setMethod("gating", signature = c("refGate", "GatingSet")
 
 .quantileGate <- function(fs, xChannel = NA, yChannel, probs = 0.999,
                           filterId = "", ...) {
+  require(openCyto)                        
   fr <- fs[[1]]
   quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)
 }
 
 .quadrantGate <- function(fs, xChannel = NA, yChannel, ...) {
-
+  require(openCyto)
   fr<-fs[[1]]
   
   qfilter<-quadrantGate(fr, stain = c(xChannel,yChannel), absolute = FALSE, inBetween = TRUE, ...)

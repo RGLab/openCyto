@@ -286,8 +286,10 @@ setMethod("gatingTemplate",signature(x="character"),function(x,name){
            gm@refNodes <- refNodes                
             
           #specialize the node type for polyfunctions
-          if(class(gm)=="polyFunctions")
+          if(class(gm)=="polyFunctions"){
             curNode<-as(curNode,"gtSubsets")
+          }
+            
           
           #add edges from reference nodes
           for(ref_node in refNodes)
