@@ -17,3 +17,4 @@
 "IL2","IL2+","cd8","IL2","flowClust","cutpoint_method='quantile',quantile=0.995"
 "IL2|IFNg","cd4:IL2|IFNg","cd4",,"boolGate","cd4/IL2|cd4/IFNg"
 "cd8 subsets","cd8 subsets","cd8",,"polyFunctions","cd8/IFNg:cd8/IL2:cd8/TNFa"
+"IFNg0.998","IFNg+","cd8","IFNg","flowClust","cutpoint_method='quantile',quantile=0.998"

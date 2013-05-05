@@ -1,4 +1,5 @@
-setMethod("getNodes", signature = c("gatingTemplate"), definition = function(x, y) {
+setMethod("getNodes", signature = c("gatingTemplate"),
+          definition = function(x, y) {
   if (missing(y)) 
     nodeData(x, attr = "pop") else nodeData(x, y, "pop")[[1]]
 })
@@ -18,14 +19,16 @@ setMethod("getGate", signature = c("gatingTemplate", "character"),
   edgeData(obj, from = y, to = z, attr = "gtMethod")[[1]]
 })
 
-setMethod("show", signature = c("gatingTemplate"), definition = function(object) {
+setMethod("show", signature = c("gatingTemplate"),
+          definition = function(object) {
   cat("--- Gating Template: ")
   cat(object@name)
   cat("\n")
   cat("\twith ", length(object@nodes), " populations defined\n")
 })
 
-setMethod("plot", signature = c("gatingTemplate"), definition = function(x, y = missing) {
+setMethod("plot", signature = c("gatingTemplate"),
+          definition = function(x, y = missing) {
   # get gating method name attr from edges
   gm.names <- unlist(lapply(edgeData(x, attr = "gtMethod"), names))
   gm.types <- unique(gm.names)

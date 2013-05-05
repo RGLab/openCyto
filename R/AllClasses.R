@@ -147,10 +147,10 @@ isPolyfunctional <- function(gm) {
 }
 
 setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
+
 # constructor from csv
 setMethod("gatingTemplate", signature(x = "character"), function(x, name) {
   df <- .preprocess_csv(x)
-
   # create graph with root node
   g <- graphNEL(nodes = "1", edgemode = "directed")
   g <- as(g, "gatingTemplate")
@@ -235,8 +235,9 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name) {
       gm@refNodes <- refNodes
       
       # specialize the node type for polyfunctions
-      if (class(gm) == "polyFunctions") 
+      if (class(gm) == "polyFunctions") {
         curNode <- as(curNode, "gtSubsets")
+      }
       
       # add edges from reference nodes
       for (ref_node in refNodes) {
