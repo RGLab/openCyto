@@ -403,10 +403,13 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
         xterm <- substring(popName, pos, nchar(popName))
         yterm <- substring(popName, 1, pos - 1)
         toMatch <- paste(xterm, yterm, sep = "")
-      } else if (grepl(XY_pattern, popName)) 
+      } else if (grepl(XY_pattern, popName)) {
         toMatch <- popName  #keep as it is if XY
- else stop("X,Y axis do not match between 'dims'(", paste(dims, collapse = ","), 
+      }
+      else {
+        stop("X,Y axis do not match between 'dims'(", paste(dims, collapse = ","), 
         ") and 'pop'(", popName, ")")
+      }
       quadInd <- which(unlist(lapply(quadPatterns, grepl, toMatch)))
       
       # construct rectangleGate from reference cuts

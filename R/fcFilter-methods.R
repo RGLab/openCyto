@@ -1,10 +1,12 @@
-setMethod("show", sig = c("fcFilter"), definition = function(object) {
+setMethod("show", sig = c("fcFilter"),
+          definition = function(object) {
   cat("fcFilter:")
   callNextMethod(object)
 })
 
 setGeneric("posteriors", function(x, y, ...) standardGeneric("posteriors"))
-setMethod("posteriors", sig = c("fcFilter", "ANY"), definition = function(x, y = "missing") {
+setMethod("posteriors", sig = c("fcFilter", "ANY"),
+          definition = function(x, y = "missing") {
   x@posteriors
 })
 
@@ -22,11 +24,13 @@ setMethod("posteriors", sig = c("fcFilter", "character"),
 })
 
 setGeneric("priors", function(x, y, ...) standardGeneric("priors"))
-setMethod("priors", sig = c("fcFilter", "ANY"), definition = function(x, y = "missing") {
+setMethod("priors", sig = c("fcFilter", "ANY"),
+          definition = function(x, y = "missing") {
   x@priors
 })
 
-setMethod("priors", sig = c("fcFilter", "character"), definition = function(x, y) {
+setMethod("priors", sig = c("fcFilter", "character"),
+          definition = function(x, y) {
   prior <- priors(x)
   
   priorNames <- names(prior)
