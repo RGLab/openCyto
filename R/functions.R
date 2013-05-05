@@ -1,504 +1,371 @@
-#check the uniqueness of alias
-#prepend the parent if needed
-#.update_alias <-function(new_df,alias, this_parent){
-##              browser()
-#  #get current alias and parent
-##  alias <- this_row[1,"alias"]
-##  this_parent <- this_row[1, "parent"]
-#  while(alias%in%new_df[,"alias"]){
-#    #if already exist in the new data frame
-#    #then try to prepend the parent to make it unique
-##    browser()
-#    if(this_parent == "root"){
-#      stop("Not able to to find unique name for ", alias)
-#    }else{
-#      alias <- paste(this_parent,alias,sep = "/")
-#      
-#      #prepare next ancester for the further prepending
-#      ind <- match(this_parent,new_df["alias"])
-#      
-#      if(length(ind) == 0){
-#        stop("parent", this_parent, " not found in 'new_df'!")
-#      }else if(length(ind) > 1){
-#        stop("parent", this_parent, " is not unique!")
-#      }else{
-#        this_parent <- new_df[ind, "parent"]  
-#      }
-#    }
-#  }
-#  #return the prepended alias
-#  alias
-#}
-.update_ref_node <-function(ref_node, new_df, this_parent){
-  
-      ind <- match(ref_node,new_df[,"alias"])
-      if(!is.na(ind)){
-        if(this_parent == "root"){
-          stop("Not able to to find unique reference for ", ref_node)
-        }else{
-
-          #assuming this_parent is uniquely identifiable
-          ref_node <- paste(this_parent,ref_node,sep = "/")
-        }   
-      }
-    ref_node
+.update_ref_node <- function(ref_node, new_df, this_parent) {
+  ind <- match(ref_node, new_df[, "alias"])
+  if (!is.na(ind)) {
+    if (this_parent == "root") {
+      stop("Not able to to find unique reference for ", ref_node)
+    } else {
+      # assuming this_parent is uniquely identifiable
+      ref_node <- paste(this_parent, ref_node, sep = "/")
+    }
+  }
+  ref_node
 }
 
-#make sure the alias is unique under one parent
-.check_alias <-function(new_df,alias, this_parent){
-#              browser()
-  
-  siblings <- subset(new_df,parent == this_parent)[,"alias"]
+# make sure the alias is unique under one parent
+.check_alias <- function(new_df, alias, this_parent) {
+  siblings <- subset(new_df, parent == this_parent)[, "alias"]
   matched_sibs <- match(alias, siblings)
   
-  if(length(matched_sibs)>=2){
-        stop(alias, " is not unique within ", this_parent)
-    }
+  if (length(matched_sibs) >= 2) {
+    stop(alias, " is not unique within ", this_parent)
+  }
 }
-.preprocess_csv <- function(x){
-  
+
+.preprocess_csv <- function(x) {
   df <- read.csv(x, as.is = T)
-  new_df <- df[0,]
-  for(i in  1:nrow(df)){
-          this_row <- df[i, , drop = FALSE]
-
-          popName <- this_row[1,"pop"]
-          dims <- this_row[1,"dims"]
-          gm <- this_row[1,"method"]
-                  
-          
-#          cat("Preprocessing pop: ",popName,"\n")
-          
-          #assuming the positive population is selected by adding + if no +/- are defined in pop name
-          if(!grepl("[+-]",popName))popName <- paste(popName, "+", sep = "")
-            
-          
-          dim_count <- length(strsplit(split = ",", dims)[[1]])
-          if(!dim_count%in%c(1,2)){
-            if(!(dim_count == 0&&gm%in%c("polyFunctions","boolGate","refGate"))){
-#              browser()
-              stop(popName, " has invalid number of dimensions: ", dim_count)
-            } 
-              
-          }
-          ######################################################################
-          #validity check for pop and determine if expanded to multiple pops
-          #three different types of expansion
-          #1.expand quadGate defined by refGate
-          #2.expand quadGate defined by 1d gating method
-          #3.expand two pops defined by +/-
-          ######################################################################
-          one_pop_token <- "[\\+-]"
-          pop_name_pat <- "[^\\+-]+"
-          one_pop_pat <- paste(pop_name_pat,one_pop_token,sep="") 
-          
-          two_pop_token <- "(\\+/-)|(-/\\+)"
-          two_pop_pat <- paste(pop_name_pat,"(", two_pop_token, ")",sep="")
-  
-#          browser()
-        
-          if(grepl(paste("^", one_pop_pat, "$",sep=""),popName)){
-            #A+
-            #no expansion(simply update flowClust gm)
-            if(gm=="flowClust"){
-              if(dim_count == 1){
-                this_row[1,"method"] <- "flowClust.1d"
-              }else{
-                this_row[1,"method"] <- "flowClust.2d"
-              }
-            }
-            
-            res <- this_row
-              
-          }else if(grepl(paste("^", two_pop_pat, "$",sep="") ,popName)){
-            # A+/-
-            
-            if(gm=="flowClust"){
-              if(dim_count == 1){
-                this_row[1,"method"] <- "flowClust.1d"
-              }else{
-                this_row[1,"method"] <- "flowClust.2d"
-              }
-            }
-            #expand to two rows
-            cat("expanding pop: ",popName,"\n")
-            cur_dim <- sub(two_pop_token,"", popName)
-            new_pops <- paste(cur_dim, c("+","-"), sep = "")
-            res <- do.call(rbind, lapply(new_pops, function(new_pop){
-                                c(alias=new_pop, pop=new_pop, parent = this_row[1, "parent"] , dims, this_row[1,"method"], this_row["args"]) 
-                              })
-                            )
-            
-          }else if(grepl(paste("^(", one_pop_pat, "){2}$",sep=""),popName)){
-              #A+B+
-
-              if(gm == "refGate"){
-                #no expansion
-                res <- this_row
-                
-              }else{
-                
-                if(gm=="flowClust"){
-                    if(dim_count == 2){
-                      cat("expanding pop: ",popName,"\n")
-                      
-                      this_row[1,"method"] <- "flowClust.1d"
-                    }else{
-                      stop("dimensions '",dims,"' is not consistent with pop name '",popName,"'")
-                    }
-                  }
-                  #needs to be split into two 1d gates and one refgate
-                  split_terms <- .splitTerms(pop_pat=one_pop_pat,two_pop_token,popName)              
-                  
-                  #create 1d gate for each dim
-                  res_1d <- .gen_1dgate(split_terms$terms,this_row,one_pop_token,two_pop_token, new_df)
-#                  browser()
-                   
-                  res_ref <- .gen_refGate(split_terms$splitted_terms
-                                          , this_row
-                                          , ref_nodes = res_1d[,"alias"]
-                                          , alias = this_row["alias"]
-                                          , new_df=new_df)
-                  res<-rbind(res_1d, res_ref)
-                  
-              }
-            }else if(grepl(paste("^(", two_pop_pat, "){2}$",sep="") ,popName)||grepl(paste("^", two_pop_pat,one_pop_pat, "$",sep="") ,popName)||grepl(paste("^", one_pop_pat, two_pop_pat, "$",sep="") ,popName)){
-               #A+/-B+/-
-              cat("expanding pop: ",popName,"\n")
-              pop_stat <- paste("(", two_pop_pat, ")|(", one_pop_pat, ")", sep="")
-              split_terms <- .splitTerms(pop_pat=pop_stat,two_pop_token,popName)
-#              browser()
-              if(gm == "refGate"){
-                res <- .gen_refGate(split_terms$splitted_terms, this_row = this_row, new_df=new_df)
-              }else{
-                
-                if(gm=="flowClust"){
-                  if(dim_count == 2){
-                    this_row[1,"method"] <- "flowClust.1d"
-#                    browser()
-                    
-                  }else{
-                    stop("dimensions '",dims,"' is not consistent with pop name '",popName,"'")
-                  }
-                } 
-                
-                #create 1d gate for each dim
-                res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, two_pop_token, new_df)
-                res_ref <- .gen_refGate(split_terms$splitted_terms
-                                        , this_row
-                                        , ref_nodes = res_1d[,"alias"]
-                                        , new_df=new_df)
-                res<-rbind(res_1d, res_ref)
-              }
-               
-                 
-           }else{
-            stop("invalid population pattern '",popName,"'")
-           }
-           
-           
-#        browser()
-        if(is.matrix(res)){
-          colnames(res) <- names(this_row)  
-        }else{
-          names(res) <- names(this_row)
-        }
-                   
-        new_df <- rbind(new_df, res) 
+  new_df <- df[0, ]
+  for (i in 1:nrow(df)) {
+    this_row <- df[i, , drop = FALSE]
+    
+    popName <- this_row[1, "pop"]
+    dims <- this_row[1, "dims"]
+    gm <- this_row[1, "method"]
+    
+    if (!grepl("[+-]", popName)) {
+      popName <- paste0(popName, "+")
     }
-#    browser()
-    new_df     
-                  
+    
+    dim_count <- length(strsplit(split = ",", dims)[[1]])
+    if (!dim_count %in% c(1, 2)) {
+      if (!(dim_count == 0 && gm %in% c("polyFunctions", "boolGate", "refGate"))) {
+        stop(popName, " has invalid number of dimensions: ", dim_count)
+      }
+    }
+
+    ######################################################################
+    # validity check for pop and determine if expanded to multiple pops
+    # three different types of expansion
+    # 1.expand quadGate defined by refGate
+    # 2.expand quadGate defined by 1d gating method
+    # 3.expand two pops defined by +/-
+    ######################################################################
+
+    one_pop_token <- "[\\+-]"
+    pop_name_pat <- "[^\\+-]+"
+    one_pop_pat <- paste(pop_name_pat, one_pop_token, sep = "")
+    
+    two_pop_token <- "(\\+/-)|(-/\\+)"
+    two_pop_pat <- paste(pop_name_pat, "(", two_pop_token, ")", sep = "")
+    
+    if (grepl(paste0("^", one_pop_pat, "$"), popName)) {
+      # A+ no expansion(simply update flowClust gm)
+      if (gm == "flowClust") {
+        if (dim_count == 1) {
+          this_row[1, "method"] <- "flowClust.1d"
+        } else {
+          this_row[1, "method"] <- "flowClust.2d"
+        }
+      }
+      
+      res <- this_row
+      
+    } else if (grepl(paste("^", two_pop_pat, "$", sep = ""), popName)) {
+      # A+/-
+      
+      if (gm == "flowClust") {
+        if (dim_count == 1) {
+          this_row[1, "method"] <- "flowClust.1d"
+        } else {
+          this_row[1, "method"] <- "flowClust.2d"
+        }
+      }
+      # expand to two rows
+      cat("expanding pop: ", popName, "\n")
+      cur_dim <- sub(two_pop_token, "", popName)
+      new_pops <- paste(cur_dim, c("+", "-"), sep = "")
+      res <- do.call(rbind, lapply(new_pops, function(new_pop) {
+        c(alias = new_pop, pop = new_pop, parent = this_row[1, "parent"], 
+          dims, this_row[1, "method"], this_row["args"])
+      }))
+
+    } else if (grepl(paste("^(", one_pop_pat, "){2}$", sep = ""), popName)) {
+      # A+B+
+      
+      if (gm == "refGate") {
+        # no expansion
+        res <- this_row
+        
+      } else {
+        
+        if (gm == "flowClust") {
+          if (dim_count == 2) {
+          cat("expanding pop: ", popName, "\n")
+          
+          this_row[1, "method"] <- "flowClust.1d"
+          } else {
+          stop("dimensions '", dims, "' is not consistent with pop name '", 
+            popName, "'")
+          }
+        }
+        # needs to be split into two 1d gates and one refgate
+        split_terms <- .splitTerms(pop_pat = one_pop_pat, two_pop_token, 
+          popName)
+        
+        # create 1d gate for each dim
+        res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, 
+          two_pop_token, new_df)
+        
+        res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, 
+          "alias"], alias = this_row["alias"], new_df = new_df)
+        res <- rbind(res_1d, res_ref)
+        
+      }
+    } else if (grepl(paste0("^(", two_pop_pat, "){2}$"), popName) ||
+               grepl(paste0("^", two_pop_pat, one_pop_pat, "$"), popName) ||
+               grepl(paste0("^", one_pop_pat, two_pop_pat, "$"), popName)) {
+      # A+/-B+/-
+      cat("expanding pop: ", popName, "\n")
+      pop_stat <- paste0("(", two_pop_pat, ")|(", one_pop_pat, ")")
+      split_terms <- .splitTerms(pop_pat = pop_stat, two_pop_token, popName)
+      if (gm == "refGate") {
+        res <- .gen_refGate(split_terms$splitted_terms, this_row = this_row, 
+          new_df = new_df)
+      } else {
+        
+        if (gm == "flowClust") {
+          if (dim_count == 2) {
+          this_row[1, "method"] <- "flowClust.1d"
+          
+          } else {
+          stop("dimensions '", dims, "' is not consistent with pop name '", 
+            popName, "'")
+          }
+        }
+        
+        # create 1d gate for each dim
+        res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, 
+          two_pop_token, new_df)
+        res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, 
+          "alias"], new_df = new_df)
+        res <- rbind(res_1d, res_ref)
+      }
+      
+    } else {
+      stop("invalid population pattern '", popName, "'")
+    }
+    
+    if (is.matrix(res)) {
+      colnames(res) <- names(this_row)
+    } else {
+      names(res) <- names(this_row)
+    }
+    
+    new_df <- rbind(new_df, res)
+  }
+  new_df
+  
 }
 
-.splitTerms <- function(pop_pat,two_pop_token,popName){
+.splitTerms <- function(pop_pat, two_pop_token, popName) {
   term_pos <- gregexpr(pop_pat, popName)[[1]]
   x_term <- substr(popName, 1, term_pos[2] - 1)
-  y_term <- substr(popName, term_pos[2], nchar(popName))  
-  terms <- c(x_term,y_term)
+  y_term <- substr(popName, term_pos[2], nchar(popName))
+  terms <- c(x_term, y_term)
   
-#  browser()
-  splitted_terms <- lapply(terms,function(cur_term){
-        #                 browser()
-                          token_pos <- gregexpr(two_pop_token, cur_term)[[1]]
-                          if(token_pos >0){
-                            dim_name <- substr(cur_term, 1, token_pos - 1)
-                            splitted_term <- paste(dim_name, c("+","-"), sep = "")
-                            
-                          }else{
-                            splitted_term <- cur_term
-                          }
-                          splitted_term
-                        })
+  splitted_terms <- lapply(terms, function(cur_term) {
+    token_pos <- gregexpr(two_pop_token, cur_term)[[1]]
+    if (token_pos > 0) {
+      dim_name <- substr(cur_term, 1, token_pos - 1)
+      splitted_term <- paste(dim_name, c("+", "-"), sep = "")
+      
+    } else {
+      splitted_term <- cur_term
+    }
+    splitted_term
+  })
   list(terms = terms, splitted_terms = splitted_terms)
 }
 
-.gen_1dgate <- function(terms,this_row,one_pop_token,two_pop_token, new_df){
-#  browser()
-  res<-do.call(rbind, lapply(terms, function(cur_term){
-                          #                                browser()
-                          toReplace <- paste("("
-                              , two_pop_token
-                              , ")|("
-                              , one_pop_token
-                              , ")"
-                              , sep="")
-                          cur_dim <- sub(toReplace,"", cur_term)
-                          new_pop_name <- paste(cur_dim, "+", sep = "")
-                          this_parent <- this_row[1, "parent"] 
-                          .check_alias (new_df, new_pop_name, this_parent)
-                          
-                          c(alias=new_pop_name
-                            , pop=new_pop_name
-                            , parent = this_parent
-                            , dims=cur_dim
-                            , this_row["method"]
-                            , this_row["args"]) 
-                        })
-                )
-   rownames(res) <- NULL
-   res
+.gen_1dgate <- function(terms, this_row, one_pop_token, two_pop_token, new_df) {
+  res <- do.call(rbind, lapply(terms, function(cur_term) {
+    toReplace <- paste("(", two_pop_token, ")|(", one_pop_token, ")", sep = "")
+    cur_dim <- sub(toReplace, "", cur_term)
+    new_pop_name <- paste(cur_dim, "+", sep = "")
+    this_parent <- this_row[1, "parent"]
+    .check_alias(new_df, new_pop_name, this_parent)
+    
+    c(alias = new_pop_name, pop = new_pop_name, parent = this_parent, dims = cur_dim, 
+      this_row["method"], this_row["args"])
+  }))
+  rownames(res) <- NULL
+  res
 }
-.gen_refGate <- function(splitted_terms, this_row,ref_nodes = NULL,alias = NULL, new_df){
-#  browser()
+.gen_refGate <- function(splitted_terms, this_row, ref_nodes = NULL, alias = NULL, 
+  new_df) {
   this_parent <- this_row[1, "parent"]
   
-  if(is.null(ref_nodes)){
-    #simply copy ref args from the row
-    ref_args <- this_row[1, "args"]  
-  }else{
-    #use the new generated 1d pops to construct ref args
-    
-    #prepend the path to ref_nodes if needed
+  if (is.null(ref_nodes)) {
+    # simply copy ref args from the row
+    ref_args <- this_row[1, "args"]
+  } else {
+    # use the new generated 1d pops to construct ref args
+    # prepend the path to ref_nodes if needed
     ref_nodes <- lapply(ref_nodes, .update_ref_node, new_df = new_df, this_parent = this_parent)
-    ref_args <- paste(ref_nodes, collapse=":")
-    
+    ref_args <- paste(ref_nodes, collapse = ":")
   }
-    
   
+  new_pops <- as.character(outer(splitted_terms[[1]], splitted_terms[[2]], paste, 
+    sep = ""))
   
-  
-    
-  new_pops <- as.character(outer(splitted_terms[[1]],splitted_terms[[2]], paste, sep = ""))
-  
-  if(is.null(alias)){
+  if (is.null(alias)) {
     alias <- new_pops
   }
-#  browser()
-  #create ref gate for each new_pop                 )
-  do.call(rbind, mapply(new_pops,alias, FUN = function(new_pop,cur_alias){
-                                   
-                                  .check_alias (new_df, cur_alias, this_parent)
-                                  c(alias = cur_alias
-                                      , pop = new_pop
-                                      , parent = this_parent
-                                      , this_row["dims"]
-                                      , method = "refGate"
-                                      , args = ref_args
-                                   ) 
-                              },SIMPLIFY=FALSE)
-          )
+  # create ref gate for each new_pop )
+  do.call(rbind, mapply(new_pops, alias, FUN = function(new_pop, cur_alias) {
+    .check_alias(new_df, cur_alias, this_parent)
+    c(alias = cur_alias, pop = new_pop, parent = this_parent, this_row["dims"], 
+      method = "refGate", args = ref_args)
+  }, SIMPLIFY = FALSE))
+}
+
+read.FCS.csv <- function(file, stains = NA) {
+  mat <- as.matrix(read.csv(file, check.names = FALSE))
   
+  fr <- new("flowFrame", exprs = mat)
+  
+  pd <- pData(parameters(fr))
+  pd$desc <- as.character(pd$desc)
+  pd$name <- as.character(pd$name)
+
+  ## update the desc with marker name
+  if (!is.na(stains)) {
+    ind <- match(names(stains), pd$name)
+    pd[ind, ]$desc <- as.character(stains)
+
+    ## update SSC and FSC description with NA
+    ind <- grepl("[F|S]SC", pd$desc)
+    pd[ind, ]$desc <- NA
+  } else pd$desc <- NA
+  
+  ## update minRange with -111 for proper display of the data
+  pd$minRange[pd$minRange < (-111)] <- -111
+  pData(parameters(fr)) <- pd
+  fr
 }
 
-read.FCS.csv<-function(file,stains=NA){
-	mat<-as.matrix(read.csv(file,check.names=FALSE))
-	
-	fr<-new("flowFrame",exprs=mat)
-	
-	pd<-pData(parameters(fr))
-	pd$desc<-as.character(pd$desc)
-	pd$name<-as.character(pd$name)
-#	browser()
-	##update the desc with marker name
-	if(!is.na(stains))
-	{
-		ind<-match(names(stains),pd$name)
-		pd[ind,]$desc<-as.character(stains)
-		##update SSC and FSC description with NA
-		ind<-grepl("[F|S]SC",pd$desc)
-		pd[ind,]$desc<-NA
-	}else
-		pd$desc<-NA
-#	{
-#		#when statins is NA,indicates that marker name is concatenated with channel name
-#		#then we strip marker name from colnames
-#		lapply(pd$name[1],function(x){
-#					browser()
-#					substr(x)
-#				})
-#	}
-	
-	
-	
-	##update minRange with -111 for proper display of the data
-#	browser()
-	pd$minRange[pd$minRange<(-111)]<--111
-	pData(parameters(fr))<-pd
-	fr
+read.flowSet.csv <- function(files, ...) {
+  fs <- flowSet(lapply(files, read.FCS.csv, ...))
+  sampleNames(fs) <- basename(files)
+  fs
 }
 
-read.flowSet.csv<-function(files,...){
-#	browser()
-	fs<-flowSet(lapply(files,read.FCS.csv,...))
-	sampleNames(fs)<-basename(files)
-	fs
-}
-spillover1<-function(x, unstained=NULL, cols=NULL, fsc="FSC-A",
-				ssc="SSC-A", method="median", useNormFilt=FALSE,isOrdered=FALSE)
-		{
-			
-			if(is.null(unstained)) {
-				stop("Sorry, we don't yet support unstained cells blended ",
-						"with stained cells", call.=FALSE)
-			} else {
-				## We often only want spillover for a subset of the columns 
-				allcols <- colnames(x)
-#				cols <- if(is.null(patt)) allcols else grep(patt, allcols,
-#									value=TRUE)
-				
-				## Ignore these guys if they somehow got into cols.
-				## cols <- cols[-match(c(fsc,ssc),cols)]
-				cols <- cols[!(cols %in% c(fsc,ssc))]
-				
-				## There has got to be a better way of doing this...
-				if(!is.numeric(unstained)) {
-					unstained <- match(unstained,sampleNames(x))
-					if(is.na(unstained))
-						stop("Baseline not in this set.", call.=FALSE)
-				}
-				## Check to see if the unstained sample is in the list of
-				## stains. If not, we need to add it, making it the first
-				## row and adjust the unstained index accordingly.
-				## If it is there we adjust to the appropriate index.
-#				browser()
-				## pdh: you shouldn't use the nor2Filter as a default without telling people!
-				if(useNormFilt){
-					if(is.numeric(fsc)) fsc <- allcols[fsc]
-					if(is.numeric(ssc)) ssc <- allcols[ssc]
-					
-					if(is.na(match(fsc,allcols)))
-						stop("Could not find forward scatter parameter. ",
-								"Please set the fsc parameter", call.=FALSE)
-					if(is.na(match(ssc,allcols)))
-						stop("Could not find side scatter parameter. ",
-								"Please set the ssc parameter", call.=FALSE)
-					n2f <- norm2Filter(fsc, ssc, scale.factor=1.5)
-					x <- Subset(x,n2f)
-				}
-#				browser()
-		
-				#select positive population on its stained channel
-				newX<-fsApply(x[-unstained],function(curFr){
+spillover1 <- function(x, unstained = NULL, cols = NULL, fsc = "FSC-A", ssc = "SSC-A", 
+  method = "median", useNormFilt = FALSE, isOrdered = FALSE) {
+  
+  if (is.null(unstained)) {
+    stop("Sorry, we don't yet support unstained cells blended ", "with stained cells", 
+      call. = FALSE)
+  } else {
+    ## We often only want spillover for a subset of the columns
+    allcols <- colnames(x)
+    
+    ## Ignore these guys if they somehow got into cols.  cols <-
+    ## cols[-match(c(fsc,ssc),cols)]
+    cols <- cols[!(cols %in% c(fsc, ssc))]
+    
+    ## There has got to be a better way of doing this...
+    if (!is.numeric(unstained)) {
+      unstained <- match(unstained, sampleNames(x))
+      if (is.na(unstained)) 
+        stop("Baseline not in this set.", call. = FALSE)
+    }
+    ## Check to see if the unstained sample is in the list of stains. If not, we
+    ## need to add it, making it the first row and adjust the unstained index
+    ## accordingly.  If it is there we adjust to the appropriate index.  pdh: you
+    ## shouldn't use the nor2Filter as a default without telling people!
+    if (useNormFilt) {
+      if (is.numeric(fsc)) {
+        fsc <- allcols[fsc]
+      }
+      if (is.numeric(ssc)) {
+        ssc <- allcols[ssc]
+      }
+      
+      if (is.na(match(fsc, allcols))) {
+        stop("Could not find forward scatter parameter. ", "Please set the fsc parameter", 
+          call. = FALSE)
+      }
+      if (is.na(match(ssc, allcols))) {
+        stop("Could not find side scatter parameter. ", "Please set the ssc parameter", 
+          call. = FALSE)
+      }
+      n2f <- norm2Filter(fsc, ssc, scale.factor = 1.5)
+      x <- Subset(x, n2f)
+    }
+    
+    # select positive population on its stained channel
+    newX <- fsApply(x[-unstained], function(curFr) {
+      
+      filName <- basename(keyword(curFr)$FIL)
+      
+      ## validity check by matching channels with filenames
+      ind <- which(unlist(lapply(cols, function(y) {
+        # strip the -X from the end
+        y <- substr(y, 1, nchar(y) - 2)
+        y <- paste(y, "")  #append space at the end
+        grepl(y, filName)
+      })))
+      if (length(ind) == 0) 
+        stop(filName, "does not match any of the channels!")
+      if (length(ind) > 1) 
+        stop(filName, "matches more than one channels!")
+      curChannel <- cols[ind]
+      ## rangeGate to select positive pop
+      fres <- rangeGate(curFr, stain = curChannel, inBetween = T, borderQuant = 0, 
+        absolute = F)
+      newFr <- Subset(curFr, fres)
+      
+      newFr
+    })
+    newX <- rbind2(newX, x[unstained])
+    
+    if (method == "mode") {
+      inten <- fsApply(newX, function(curFr) {
+        modes <- sapply(cols, function(curStain) {
+          sig <- exprs(curFr)[, curStain]
+          
+          
+          res <- density(sig)
+          curMode <- res$x[which.max(res$y)]
+          
+          curMode
+          
+        }, USE.NAMES = T)
+        modes
+      })
+      
+    } else {
+      inten <- fsApply(newX, each_col, method)[, cols]
+    }
+    
+    # background correction
+    inten <- pmax(sweep(inten[-unstained, ], 2, inten[unstained, ]), 0)
 
-							filName<-basename(keyword(curFr)$FIL)
-							##validity check by matching channels with filenames
-#							
-							
-							ind<-which(unlist(lapply(cols,function(y){
-#														browser()
-														#strip the -X from the end
-														y<-substr(y,1,nchar(y)-2)
-														y<-paste(y,"")#append space at the end
-														grepl(y,filName)
-													})
-												)
-										)
-							if(length(ind)==0)
-								stop(filName,"does not match any of the channels!")
-							if(length(ind)>1)
-								stop(filName,"matches more than one channels!")
-							curChannel<-cols[ind]
-#							browser()
-							##rangeGate to select positive pop
-							fres<-rangeGate(curFr,stain=curChannel
-										,inBetween=T
-#										,plot=T
-										,borderQuant=0
-										,absolute=F
-										)
-#							browser()										
-							newFr<-Subset(curFr,fres)
-							
-#							densityplot(~.,newFr)
-#							densityplot(~.,curFr)
-#							median(exprs(newFr)[,curChannel])
-							
-							newFr
-						})
-				newX<-rbind2(newX,x[unstained])
-#				browser()
-#				lgcl_cont<-estimateLogicle(newX[[3]],channels=channels)
-#				xyplot(`PerCP-Cy5-5-A`~`FITC-A`,transform(x[[3]],lgcl_cont),smooth=F,xbin=128)
-#				xyplot(`SSC-A`~`FSC-A`,x,smooth=F,xbin=128)
-#				CairoX11()
-				
-				
-#				grid.arrange(
-#						densityplot(~.,transform(x[[unstained]],lgcl_cont))
-#						,densityplot(~.,transform(newX[[3]],lgcl_cont))
-#				##							,xyplot(`APC-Cy7-A`~`APC-A`,transform(x[[1]],lgcl_1),smooth=F,xbin=128)
-##						
-#				)
-				
-				if(method=="mode")
-				{
-					inten<-fsApply(newX,function(curFr){
-	#								browser()
-									modes<-sapply(cols,function(curStain){
-	#											browser()
-												sig<-exprs(curFr)[, curStain]
-												
-												
-	#											fres<-filter(curFr,curv1Filter(curStain,bwFac=1.2))
-	#											bnds <- flowStats:::curvPeaks(fres,sig,borderQuant=0)
-	#											curMode<-as.numeric(bnds$peaks[which.max(bnds$peaks[,"y"]),"x"])
-												
-												res<-density(sig)
-												curMode<-res$x[which.max(res$y)]
-												
-	#											print(densityplot(as.formula(paste("~`",curStain,"`",sep="")),curFr,refline=curMode))
-	#											hist(sig,breaks=1000)
-	#											abline(v=curMode,col="red")
-												curMode
-	
-											},USE.NAMES=T)
-	#								filterList<-sapply(names(modes),function(x){
-	#											g<-rectangleGate(list(x=c(modes[x],Inf)))
-	#											parameters(g)<-x
-	#											g
-	#										})
-									modes
-								})
-					
-						
-				}else
-				{
-					inten <- fsApply(newX, each_col,method)[, cols]	
-				}
-				
-				#background correction
-				inten <- pmax(sweep(inten[-unstained,], 2,inten[unstained,]), 0)
-				#normalize by max of each row
-				inten <- sweep(inten, 1,apply(inten, 1, max), "/")
-#				browser()
-				#if the files is already ordered by channels
-				#which means we know which channel is stained for each control file
-				#we don't need to guess it by pmax 
-				if(isOrdered)
-				{
-					row.names(inten) <- channels
-				}else
-				{
-					#guessing row names by picking the colname which has maximun value  
-					row.names(inten) <- colnames(inten)[apply(inten ,1,which.max)]	
-					
-				}
-				
-				
-				inten[colnames(inten),]
-			}
-		}
+    # normalize by max of each row
+    inten <- sweep(inten, 1, apply(inten, 1, max), "/")
+
+    # if the files is already ordered by channels which means we know which channel
+    # is stained for each control file we don't need to guess it by pmax
+    if (isOrdered) {
+      row.names(inten) <- channels
+    } else {
+      # guessing row names by picking the colname which has maximun value
+      row.names(inten) <- colnames(inten)[apply(inten, 1, which.max)]
+    }
+    
+    inten[colnames(inten), ]
+  }
+}
 
 #' Creates a matrix of points on an ellipse from a fitted flowClust model.
 #'
@@ -517,9 +384,9 @@ spillover1<-function(x, unstained=NULL, cols=NULL, fsc="FSC-A",
 #' @param npoints the number of points on the ellipse
 #' @param subset the dimensions of the mixture component to return
 #' @return matrix containing the points of the ellipse from the flowClust contour
-.getEllipse <- function(filter = NULL, include = seq_len(filter@K), ecol = 1,
-                        elty = 1, quantile = NULL, npoints = 501, subset = c(1, 2)) {
-
+.getEllipse <- function(filter = NULL, include = seq_len(filter@K), ecol = 1, elty = 1, 
+  quantile = NULL, npoints = 501, subset = c(1, 2)) {
+  
   # Sets the quantile of the ellipse.
   if (is.null(quantile)) {
     quantile <- filter@ruleOutliers[2]
@@ -528,117 +395,93 @@ spillover1<-function(x, unstained=NULL, cols=NULL, fsc="FSC-A",
       stop("The 'quantile' must be a numeric value between 0 and 1.")
     }
   }
-
+  
   # py is the degrees of freedom?
   py <- 2
   ecol <- matrix(ecol, length(include))
   elty <- matrix(elty, length(include))
-
+  
   if (all(filter@nu != Inf)) {
-    if (filter@ruleOutliers[1] == 0) { # 0 means quantile
+    if (filter@ruleOutliers[1] == 0) {
+      # 0 means quantile
       cc <- py * qf(p = quantile, py, filter@nu)
-    } else { # 1 means u.cutoff
-      cc <- ((filter@nu + py) / quantile - filter@nu)
+    } else {
+      # 1 means u.cutoff
+      cc <- ((filter@nu + py)/quantile - filter@nu)
     }
   } else {
     cc <- qchisq(p = quantile, py)
   }
-	
-	j <- 0
-	if (length(filter@lambda) > 0) {
+  
+  j <- 0
+  if (length(filter@lambda) > 0) {
     lambda <- rep(filter@lambda, length.out = filter@K)
-  }
-	else {
+  } else {
     lambda <- numeric(0)
   }
-	cc <- rep(cc, length.out = filter@K)
+  cc <- rep(cc, length.out = filter@K)
   for (i in include) {
     eigenPair <- eigen(filter@sigma[i, subset, subset])
     l1 <- sqrt(eigenPair$values[1]) * sqrt(cc)
     l2 <- sqrt(eigenPair$values[2]) * sqrt(cc)
-    angle <- atan(eigenPair$vectors[2, 1] / eigenPair$vectors[1, 1]) * 180 / pi
-
+    angle <- atan(eigenPair$vectors[2, 1]/eigenPair$vectors[1, 1]) * 180/pi
+    
     if (length(lambda) > 0) {
-      res <- rbox(flowClust:::.ellipsePoints(a = l1[i], b = l2[i], alpha = angle,
-                                             loc = filter@mu[i, subset],
-                                             n = npoints),
-                  lambda[i])
+      res <- rbox(flowClust:::.ellipsePoints(a = l1[i], b = l2[i], alpha = angle, 
+        loc = filter@mu[i, subset], n = npoints), lambda[i])
     } else {
-      res <- flowClust:::.ellipsePoints(a = l1[i], b = l2[i], alpha = angle,
-                                        loc = filter@mu[i, subset], n = npoints)
+      res <- flowClust:::.ellipsePoints(a = l1[i], b = l2[i], alpha = angle, 
+        loc = filter@mu[i, subset], n = npoints)
     }
   }
   res
 }
 
-#getChannelMarker <- function(frm, name, fix = FALSE) {
-#  #try stain name
-#  
-#  pd<-pData(parameters(frm))
-#  pname<-paste(name,"([ ]|$)",sep="")
-#  if (fix) {
-#    ind <- which(toupper(pd$name) %in% toupper(name))
-#  } else {
-#    ind <- which(grepl(pname, pd$name, ignore.case = TRUE))
-#  }
-#}
-.flowParamMatch<-function(pd,name,fix=FALSE,partial=FALSE){
-	if(partial)
-		pname<-name
-	else
-		pname<-paste(name,"([ ]|$)",sep="") #try to compelete word match by following with a space or the end of string 
-	
-	if(fix)
-		ind<-which(toupper(pd$name)%in%toupper(name))
-	else
-		ind<-which(grepl(pname,pd$name,ignore.case=T))
-	
-	
-	
-	
-	if(length(ind)==0)
-	{
-		#try marker name
-		ind<-which(unlist(lapply(pd$des,function(x){
-									#split by white space and then match each individual string
-			#									browser()
-												if(fix)
-													any(unlist(lapply(strsplit(x," "),function(y)toupper(y)%in%toupper(name))))
-												else
-													grepl(pattern=pname,x,ignore.case=T)
-											})
-						)
-				)
-	
-	}
-	ind
-	
+.flowParamMatch <- function(pd, name, fix = FALSE, partial = FALSE) {
+  # try to compelete word match by following with a space or the end of string
+  if (partial) 
+    pname <- name else pname <- paste0(name, "([ ]|$)")
+  
+  if (fix) {
+    ind <- which(toupper(pd$name) %in% toupper(name))
+  } else {
+    ind <- which(grepl(pname, pd$name, ignore.case = T))
+  }
+  
+  if (length(ind) == 0) {
+    # try marker name
+    ind <- which(unlist(lapply(pd$des, function(x) {
+      # split by white space and then match each individual string
+      if (fix) {
+        any(unlist(lapply(strsplit(x, " "), function(y) toupper(y) %in% toupper(name))))
+      } else {
+        grepl(pattern = pname, x, ignore.case = T)
+      }
+    })))
+  }
+  ind
 }
-getChannelMarker<-function(frm,name,...)
-{
-	#try stain name
-	pd<-pData(parameters(frm))
-	#try complete match first
-	ind<-.flowParamMatch(pd,name,...)
-	if(length(ind)>1)
-		stop("multiple markers matched: ",name)
-	
-	if(length(ind)==0)
-	{
-		#if no match then give a second try to patial match
-		ind<-.flowParamMatch(pd,name,partial=TRUE,...)
-		if(length(ind)==0)
-			stop("can't find ",name)
-		else if(length(ind)>1)
-			stop("multiple markers matched: ",name)
-		else
-			warning(name," is partially matched with ",pd[ind,c("name","desc")])
-	}
-		
-	
-	
-	pd[ind,c("name","desc")]
 
+getChannelMarker <- function(frm, name, ...) {
+  # try stain name
+  pd <- pData(parameters(frm))
+
+  # try complete match first
+  ind <- .flowParamMatch(pd, name, ...)
+
+  if (length(ind) > 1) {
+    stop("multiple markers matched: ", name)
+  }
+  
+  if (length(ind) == 0) {
+    # if no match then give a second try to patial match
+    ind <- .flowParamMatch(pd, name, partial = TRUE, ...)
+    if (length(ind) == 0) 
+      stop("can't find ", name) else if (length(ind) > 1) 
+      stop("multiple markers matched: ", name) else warning(name, " is partially matched with ", pd[ind, c("name", "desc")])
+  }
+  
+  pd[ind, c("name", "desc")]
 }
 
 #' For the given workflow, we look up the given markers and return the
@@ -654,14 +497,13 @@ markers2channels <- function(flow_frame, markers) {
     marker <- with(marker_name_desc, ifelse(is.na(desc), name, desc))
     cbind(channel, marker = unname(marker))
   })
-  channel_markers <- data.frame(do.call(rbind, channel_markers),
-                                stringsAsFactors = FALSE)
-
+  channel_markers <- data.frame(do.call(rbind, channel_markers), stringsAsFactors = FALSE)
+  
   # Now, we query the channels for the specified markers.
   channels <- sapply(markers, function(marker) {
     channel_markers$channel[grepl(marker, channel_markers$marker)]
   })
-
+  
   as.vector(channels)
 }
 
@@ -690,21 +532,21 @@ truncate_flowframe <- function(flow_frame, channel, min = NULL, max = NULL) {
     warning("No truncation value was provided. Returning the original 'flow_frame'.")
   }
   x_channel <- exprs(flow_frame)[, channel]
-
-  # For comparison purposes, we update the min and max values to -Inf and Inf, respectively,
-  # if one is NULL.
+  
+  # For comparison purposes, we update the min and max values to -Inf and Inf,
+  # respectively, if one is NULL.
   min <- ifelse(is.null(min), -Inf, min)
   max <- ifelse(is.null(max), Inf, max)
-
+  
   # Removes any observation that has an observation outside of the min and max
   # values specified.
   exprs(flow_frame) <- exprs(flow_frame)[min < x_channel & x_channel < max, ]
-
+  
   flow_frame
 }
 
 #' Computes the quantile from flowClust for a given vector of probabilties
-#' 
+#'
 #' We estimate the quantile from a \code{flowClust} fit with a combination of
 #' numerical integration and a root-finding method. We are effectively
 #' estimating the cumulative distribution function (CDF) of the mixture density
@@ -724,15 +566,16 @@ quantile_flowClust <- function(p, object, interval, ...) {
   cdf_target <- function(x, p, object) {
     cdf_values <- sapply(seq_len(object@K), function(k) {
       nu <- ifelse(length(object@nu) == 1, object@nu, object@nu[k])
-      lambda <- ifelse(length(object@lambda) == 1, object@lambda, object@lambda[k])        
-
-      # TODO: Incorporate the Box-Cox transformation (i.e., box(qt(...), lambda = lambda)) into quantile
-      # The case of 'lambda = 1' may be not be trivial -- this case is largely ignored in flowClust.
-      pt((x - object@mu[k]) / sqrt(object@sigma[k]), df = nu)
+      lambda <- ifelse(length(object@lambda) == 1, object@lambda, object@lambda[k])
+      
+      # TODO: Incorporate the Box-Cox transformation (i.e., box(qt(...), lambda =
+      # lambda)) into quantile The case of 'lambda = 1' may be not be trivial -- this
+      # case is largely ignored in flowClust.
+      pt((x - object@mu[k])/sqrt(object@sigma[k]), df = nu)
     })
     weighted.mean(cdf_values, w = object@w) - p
   }
-
+  
   uniroot(cdf_target, interval = interval, p = p, object = object, ...)$root
 }
 
@@ -740,7 +583,7 @@ quantile_flowClust <- function(p, object, interval, ...) {
 #'
 #' The quadrants are numbered in a clockwise manner with the top-left quadrant
 #' numbered 1, the top-right quadrant numbered 2, and so on.
-#' 
+#'
 #' @param quad_gate a \code{quadGate} object
 #' @param markers character vector of the marker names for the x- and y-axes
 #' @param channels character vector of the channel names for the x- and y-axes
@@ -749,29 +592,29 @@ quantile_flowClust <- function(p, object, interval, ...) {
 quadGate2rectangleGates <- function(quad_gate, markers, channels, quadrants = 1:4) {
   x_gate <- quad_gate@boundary[1]
   y_gate <- quad_gate@boundary[2]
-
+  
   gates_list <- list()
   
   # Top-left quadrant
   gates <- list(c(-Inf, x_gate), c(y_gate, Inf))
   names(gates) <- channels
   gates_list[[paste0(markers[1], "-", markers[2], "+")]] <- rectangleGate(gates)
-
+  
   # Top-right quadrant
   gates <- list(c(x_gate, Inf), c(y_gate, Inf))
   names(gates) <- channels
   gates_list[[paste0(markers[1], "+", markers[2], "+")]] <- rectangleGate(gates)
-
+  
   # Lower-right quadrant
   gates <- list(c(x_gate, Inf), c(-Inf, y_gate))
   names(gates) <- channels
   gates_list[[paste0(markers[1], "+", markers[2], "-")]] <- rectangleGate(gates)
-
+  
   # Lower-left quadrant
   gates <- list(c(-Inf, x_gate), c(-Inf, y_gate))
   names(gates) <- channels
   gates_list[[paste0(markers[1], "-", markers[2], "-")]] <- rectangleGate(gates)
-
+  
   filters(gates_list[quadrants])
 }
 
@@ -781,16 +624,15 @@ quadGate2rectangleGates <- function(quad_gate, markers, channels, quadrants = 1:
 #' @param markers character vector of marker names
 #' @return vector containing all combinations of the markers
 #' @examples
-#' polyfunction_nodes(c("IFNg", "IL2", "TNFa", "GzB", "CD57"))
+#' polyfunction_nodes(c('IFNg', 'IL2', 'TNFa', 'GzB', 'CD57'))
 polyfunction_nodes <- function(markers) {
   
   markers <- paste0(markers, "+")
   num_markers <- length(markers)
   and_list <- as.vector(permutations(n = 1, r = num_markers - 1, c("&"), repeats = TRUE))
-  isnot_list <- permutations(n = 2, r = num_markers, c("!", ""),
-                             repeats = TRUE)
+  isnot_list <- permutations(n = 2, r = num_markers, c("!", ""), repeats = TRUE)
   apply(isnot_list, 1, function(isnot_row) {
     isnot_row[-1] <- paste0(and_list, isnot_row[-1])
     paste(paste0(isnot_row, markers), collapse = "")
   })
-}
+} 

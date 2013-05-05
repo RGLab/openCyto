@@ -1,822 +1,561 @@
+setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
 
-setGeneric("gating", function(x,y,...) standardGeneric("gating"))
-setMethod("gating", signature = c("gatingTemplate","GatingSetInternal"), definition = function(x,y,env_fct=NULL, ...) {
-			gt<-x
-#			browser()
-			if(!is.null(env_fct))
-			{
-				#use the fcTree if already exists 
-				if(exists("fct",env_fct))
-				{
-					fct<-get("fct",env_fct)
-				}else
-				{
-					#create one from gt if not
-					fct<-fcTree(gt)
-					assign("fct",fct,env_fct)		
-				}
-				
-			}
-			
-            #gate each node by the topological order
-			gt_node_ids<-tsort(gt)
-            
-            #maintain the mapping between template node ID and gating set node ID
-            #in order to refer gating set node ID back to the template ID and find the parent gs node ID
-			node_ids<-cbind(gt=gt_node_ids,gs=NA)
-			node_ids[1,"gs"]<-1#fill out default gsid for root node
-            
-			for(i in 2:nrow(node_ids))
-			{
-
-				#get parent node to gate
-				gt_node_id<-node_ids[i,"gt"]
-				gt_node_pop<-getNodes(gt,gt_node_id)
-                #parent node in graph is used as reference node
-				gt_ref_ids<-getParent(gt,gt_node_id)
-                #the parent to be used in gs is from parent slot of pop object
-                gt_parent_id <- as.character(gt_node_pop@parentID)
-                
-				#extract gate method from one edge(since multiple edge to the same node is redudant)
-                this_gate <- getGate(gt,gt_ref_ids[1],gt_node_id)
-
-                parentInd <- match(gt_parent_id, node_ids[, "gt"])
-                if(is.na(parentInd))
-                  stop("parent node '", names(getNodes(gt,gt_parent_id)),"' not gated yet!")
-                gs_parent_id<-node_ids[parentInd,"gs"]
-				#pass the pops and gate to gating routine
-				res<-gating(x=this_gate
-							,y
-							,parent=as.integer(gs_parent_id)
-							,gtPop=gt_node_pop
-							,...
-							)
-#                browser()
-				gs_node_id <- res[["gs_node_id"]]										
-                filterObj <- res[["filterObj"]]													
-
-				#upodate gs node ids
-                if(!is.null(gs_node_id))node_ids[i, "gs"] <- gs_node_id
-				#update fct
-				if(!is.null(env_fct)&&!is.null(filterObj)){
-						nodeData(env_fct$fct,gt_node_id,"fList")[[1]]<-filterObj
-					
-				}	
-				
-				
-				
-			}	
-			
-			
-			message("finished.")
-			
-		})
-
-		
-setMethod("gating", signature = c("gtMethod", "GatingSet")
-		, definition = function(x, y,gtPop, parent
-				,num_nodes = 1, parallel_type = c("multicore", "SOCK","MPI")
-				,plot = FALSE, xbin = 128,prior_group=NULL,...) 
-		{
-			
-			require('parallel')
-			
-			
-			args<-parameters(x)
-			gm<-paste(".",names(x),sep="")
-			
-			dims<-dims(x)
-			xChannel<-unname(dims["xChannel"])
-			yChannel<-unname(dims["yChannel"])
-			is_1d_gate <- any(is.na(dims))
-            
-			popAlias<-alias(gtPop)
-			popName<-names(gtPop)
-			popId<-gtPop@id
-			gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
-			
-
-#			browser()
-			
-			if (length(gs_nodes)==0||!popAlias%in%gs_nodes)
-			{
-				message("Population '",popAlias,"'")
-				
-				parent_data <- getData(y, parent)
-				parallel_type <- match.arg(parallel_type)
-				##get the accurate channel name by matching to the fr
-				if(!is.na(xChannel))
-				{
-					xParam <- getChannelMarker(parent_data[[1]], xChannel)
-					xChannel<-as.character(xParam$name)
-				}
-				yParam <- getChannelMarker(parent_data[[1]], yChannel)
-				yChannel<-as.character(yParam$name)
-				# Splits the flow set into a list, where each element in the list is a
-				# flowSet containg one flow frame.
-				# Below, we access manually the individual flow frame with current_frame[[1]].
-				fslist <- split(parent_data, sampleNames(parent_data))
-				
-				#construct method call
-				thisCall<-substitute(f1())
-				thisCall[["X"]]<-quote(fslist)#set data
-				thisCall[["FUN"]]<-as.symbol(gm)#set gating method
-				thisCall[["xChannel"]]<-xChannel#set x,y channel
-				thisCall[["yChannel"]]<-yChannel
-				
-#                browser()
-				#parse the +.- from pop name
-                if(is_1d_gate){
-                  if(grepl("-$",popName)){
-                    positive=FALSE
-                  }else if(grepl("+$", popName))
-                    positive=TRUE
-                  else
-                    stop("invalid population name!Name should end with '+' or '-' symbol.")
-                  
-                  thisCall[["positive"]]<-positive
-                }
-
-			
-				prior_list<- list()
-				#prior estimation is done separately from flowClust routine 
-				#because piror_flowClust1d requires the entire parent flowSet yet flowClust only takes one flowFrame
-				#####################################################################
-				if(grepl("^\\.flowClust\\.[12]d$",gm))
-				{
-#				    browser()
-                    #parse the local prior_group
-                    local_prior_group <- args[["prior_group"]]
-                    args[["prior_group"]] <- NULL
-                    #overwrite the golbal one if the local is specified 
-                    if(!is.null(local_prior_group))prior_group <- local_prior_group
-                    
-                    prior_source <- args[["prior_source"]]
-                    args[["prior_source"]] <- NULL
-                    
-                    if(is.null(prior_source)){
-                      prior_data <- parent_data
-                    }else{
-                      prior_data <- getData(y, prior_source)
-                    }
-                      
-                      
-                    
-					if(gm==".flowClust.1d")
-					{
-						#get the value of neg and pos
-						
-						if(all(is.element(c("pos","neg"),names(args))))
-						{
-							neg_cluster <- as.integer(args["neg"])
-							pos_cluster <- as.integer(args["pos"])
-							K <- neg_cluster + pos_cluster
-						}else
-						{
-							message("Using default setting: neg = 1, pos = 1")
-							neg_cluster <- pos_cluster <- as.integer(1)
-							K <- 2
-						}
-#						browser()
-						# Elicitation of priors for flowClust
-						if(!is.na(xChannel))
-							prior_list[[xChannel]] <- .prior_flowClust(flow_set = prior_data, channels = xChannel, K = K, prior_group=prior_group, ...)
-
-                        prior_list[[yChannel]] <- .prior_flowClust(flow_set = prior_data, channels = yChannel, K = K, prior_group=prior_group, ...)
-
- 									
-#						browser()
-						#replace neg and pos and convert the named vector back to string
-						args[["K"]]<-K
-						args[["neg_cluster"]]<-neg_cluster
-						args[["prior"]]<-prior_list
-						
-						# If the number of positive clusters is 0 and no cutpoint method has
-						# been specified, we use the quantile gate by default.
-						if (pos_cluster == 0 && is.null(args[["cutpoint_method"]])) {
-							args[["cutpoint_method"]] <- "quantile"
-						}
-						
-						neg_ind<-match("neg",names(args))
-						if(!is.na(neg_ind))args<-args[-neg_ind]
-												
-						pos_ind<-match("pos",names(args))
-						if(!is.na(pos_ind))args<-args[-pos_ind]
-						
-						
-						
-					}else
-					{
-						#get the value of neg and pos
-						if(is.element(c("k"),names(args)))
-						{
-							K<-as.integer(args["k"])			
-						}else
-						{
-							message("'K' argument is missing!Using default setting:K=2")
-							K<-2
-						}
-						
-						args[["k"]]<-K						
-						names(args)[match("k",names(args))]<-"K"#restore K to capital letter
-						
-#	browser()
-						# Elicitation of priors for flowClust
-						prior_list <- .prior_flowClust(flow_set = prior_data,
-														channels = c(xChannel, yChannel)
-														, K = K, prior_group=prior_group, ...)
-						args[["prior"]]<-prior_list
-#						thisCall[["positive"]]<-NULL #remove positive arg since 2D gate doesn't understand it
-					}
-									
-				}
-				#update arg_names
-				
-				for(arg in names(args))thisCall[[arg]]<-args[[arg]]
-				
-				##choose serial or parallel mode
-				if (num_nodes > 1) 
-				{
-					message("Running in parallel mode with ", num_nodes, " nodes.")
-					if (parallel_type == "multicore") 
-					{
-						thisCall[[1]]<-quote(mclapply)
-						thisCall[["mc.cores"]]<-num_nodes
-						flist<-eval(thisCall)
-						
-					}else 
-					{
-						cl <- makeCluster(num_nodes, type = parallel_type)
-                        
-						thisCall[[1]]<-quote(parLapply)
-						thisCall[["cl"]]<-cl
-						#replace FUN with fun for parLapply
-						thisCall["fun"]<-thisCall["FUN"]
-						thisCall["FUN"]<-NULL
-						flist<-eval(thisCall)
-						stopCluster(cl)
-					}
-				}else
-				{
-					thisCall[[1]]<-quote(lapply)#select loop mode
-#					browser()
-					flist<-eval(thisCall)
-				}
-				
-				#we expect a filter/filters from gm
-#				browser()
-#				if(class(flist[[1]])=="filters")#reconstruct filterlist out of filterslist
-#				{
-#					#right now we consider quadgate as the only use case for filters
-#					gs_node_id<-NULL
-##					browser()
-#					#clock-wise starting from top-left quadrant(assuming X followed by Y channel)											
-#					quadPatterns<-c(".+-.+\\+$"   #top left  -+
-#									,".+\\+.+\\+$" #top right ++
-#									,".+\\+.+-$"  #bottom right +-
-#									,".+-.+-$")   #bottom left	--									
-#					
-#
-#					curAlias<-popAlias
-#					curPop<-popName
-#					curPopId<-popId
-#					#check if popname is give as Y[*]X[*]
-#					YX_pattern<-paste(dims["yChannel"],".+", dims["xChannel"],".+",sep="")
-#					XY_pattern<-paste(dims["xChannel"],".+", dims["yChannel"],".+",sep="")
-#					#do the flipping if YX
-#					if(grepl(YX_pattern,curPop))
-#					{
-#						pos<-regexpr(dims["xChannel"],curPop)
-#						xterm<-substring(curPop,pos,nchar(curPop))
-#						yterm<-substring(curPop,1,pos-1)
-#						toMatch<-paste(xterm,yterm,sep="")
-#					}else if(grepl(XY_pattern,curPop))
-#						toMatch<-curPop #keep as it is if XY
-#					else
-#						stop("X,Y axis do not match between 'dims'(",dims,") and 'pop'(",curPop,")")
-#					
-#					quadInd<-which(unlist(lapply(quadPatterns,grepl,toMatch)))
-#					#fetch appropriate filter based on the quadrant ind
-#					curFlist <- lapply(flist, function(curFilters) {
-#								curFilters[[quadInd]]
-#							})
-#					
-#					if(extends(class(curFlist[[1]]),"fcFilter"))
-#					{
-#                      filterObj <- fcFilterList(curFlist)
-#					}else{
-#                      filterObj <- filterList(curFlist)
-#                    }
-#                      
-#                      
-#                      
-#					
-#					cur_gs_node_id <- add(y, curFlist, parent = parent,name=curAlias)	
-#					recompute(y, cur_gs_node_id)
-#					gs_node_id<-c(gs_node_id,cur_gs_node_id)
-#						
-#					
-#					
-#					
-#					
-#				}else
-#				{
-#				browser()
-					if(extends(class(flist[[1]]),"fcFilter")){
-                      flist <- fcFilterList(flist)
-                    }else{
-                      flist <-filterList(flist)
-                    }
-                      
-                    
-                    filterObj<-flist
-					gs_node_id <- add(y, flist, parent = parent,name=popAlias)
-					recompute(y, gs_node_id)
-					
-#				}
-				
-				message("done.")
-				
-			}else
-			{
-				message("Skip gating!Population '",paste(popAlias,collapse=","),"' already exists.")
-#			browser()
-				gs_node_id<-getChildren(y[[1]],parent)
-				#select the corresponding gs node id by matching the node names
-				gs_node_name<-getNodes(y[[1]])[gs_node_id]
-				gs_node_id<-gs_node_id[match(popAlias,gs_node_name)]
-                filterObj <- NULL
-			}
-			
-			if (plot) {
-				print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
-			}
-			
-
-			list(gs_node_id=gs_node_id
-				 ,filterObj=filterObj
-		 		)
-			
-			
-			
-		})
-		
-setMethod("gating", signature = c("boolMethod", "GatingSet")
-		, definition = function(x, y,gtPop, parent, ...) 
-{
-	
-	args<-parameters(x)[[1]]
-#	browser()
-	gm<-paste(".",names(x),sep="")
-    popAlias<-alias(gtPop)
-    popName<-names(gtPop)
-    popId<-gtPop@id
+setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
+          definition = function(x, y, env_fct = NULL, ...) {
+  gt <- x
+  if (!is.null(env_fct)) {
+    # use the fcTree if already exists
+    if (exists("fct", env_fct)) {
+      fct <- get("fct", env_fct)
+    } else {
+      # create one from gt if not
+      fct <- fcTree(gt)
+      assign("fct", fct, env_fct)
+    }
     
-	gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
-	
-
-	tNodes <-deparse(args)
-	if (!(tNodes %in% gs_nodes)) {
-		message(tNodes, " gating...")
-		bf <- eval(substitute(booleanFilter(x), list(x = args)))
-		bf@filterId <- tNodes
-		invisible(gs_node_id <- add(y, bf, parent = parent))
-		invisible(recompute(y, gs_node_id))
-		message("done.")
-	}else
-	{
-#		browser()
-		message("Skip gating!Population '",tNodes,"' already exists.")
-		gs_node_id<-getChildren(y[[1]],parent)
-		#select the corresponding gs node id by matching the node names
-		gs_node_name<-getNodes(y[[1]])[gs_node_id]
-		gs_node_id<-gs_node_id[match(tNodes,gs_node_name)]	
-	}
-	
-	
-	
-#	gs_node_id
-	list("gs_node_id"=gs_node_id)
-})		
-
-setMethod("gating", signature = c("polyFunctions", "GatingSet")
-				, definition = function(x, y,gtPop, parent, ...) 
-{
-#	browser()
-
-    refNodes<-x@refNodes
-	gm<-paste(".",names(x),sep="")
-    popAlias<-alias(gtPop)
-    popName<-names(gtPop)
-	
-	gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
-	
-	
-	message("Population '",paste(popAlias,collapse=","),"'")
-	
-	
-#	refNodes<-strsplit(args,split=":")[[1]]
-	
-	nMarkers <- length(refNodes)
-	## all the comibnations of A & B & C
-	opList <- permutations(n = 1, r = nMarkers - 1, c("&"), repeats = TRUE)
-	isNotList <- permutations(n = 2, r = nMarkers, c("!", ""), repeats = TRUE)
-	polyExprsList <- apply(opList, 1, function(curOps) {
-				apply(isNotList, 1, function(curIsNot) {
-							polyExprs <- curIsNot
-							polyExprs[-1] <- paste0(curOps, curIsNot[-1])
-							
-							paste(paste0(polyExprs, refNodes), collapse = "")
-						})
-			})
-	polyExprsList <- as.vector(polyExprsList)
-	
-	#actual gating
-	lapply(polyExprsList, function(polyExpr) {
-#				browser()
-				bgt<-new("boolMethod",name=polyExpr,args=list(as.symbol(polyExpr)))
-				gating(bgt,y,parent=parent,gtPop=gtPop,...)
-			})					
-	
-	
-	
-	message("done.")
-		
-	
-	
-	list()
-})
-setMethod("gating", signature = c("refGate", "GatingSet")
-    , definition = function(x, y,gtPop, parent, plot = FALSE, xbin = 128, ...) 
-  {
-    
-#    browser()
-    refNodes<-x@refNodes
-    gm<-paste(".",names(x),sep="")
-    popAlias<-alias(gtPop)
-    popName<-names(gtPop)
-#    popId<-gtPop@id
-    dims <- dims(x)
-    xChannel<-dims[["xChannel"]]
-    yChannel<-dims[["yChannel"]]
-
-    
-    gs_nodes<-getChildren(y[[1]],getNodes(y[[1]],parent))
-    
-    
-           
-    
-    if (length(gs_nodes)==0||!popAlias%in%gs_nodes)
-    {
-      
-      message("Population '",paste(popAlias,collapse=","),"'")
-      if(length(refNodes) > 2)
-      {
-        stop("Not sure how to construct gate from more than 2 reference nodes!")
-      }
+  }
   
-      fr<-getData(y[[1]])
-      
-      flist <- flowWorkspace::lapply(y, function(gh){
-#            browser()
-          #extract gates from reference nodes  
-          glist<-lapply(refNodes,function(refNode){
-#                browser()
-              #TODO: to add searching by path capability to flowWorkspace
-                node_names <- getNodes(gh)
-                node_ind <- match(refNode, node_names)
-                if(is.na(node_ind)){
-                  #match to path
-                  node_paths <-getNodes(gh,isPath=T)
-                  toMatch <- gsub("\\+","\\\\+",refNode)
-                  toMatch <- paste(toMatch, "$",sep="")
-                  node_ind <- grep(toMatch,node_paths)
-                  if(length(node_ind) == 0){
-                   stop(refNode," not found in gating set!") 
-                  }else if(length(node_ind) > 1){
-                    stop("Multiple " ,refNode ," found in gating set!")
-                  }
-                }
-                getGate(gh,node_ind)                  
-                
-              })
-          #standardize the names for the gate parameters and dims 
-          gate_params <- unlist(lapply(glist, function(g){
-                                            cur_param <- parameters(g)
-                                          getChannelMarker(fr,cur_param)["name"]
-                                }))
-          
-          dim_params <- unlist(lapply(dims,function(dim){
-                                        getChannelMarker(fr,dim)["name"]
-                                        }))
-          #match the gate param to dims to find gates for x, y dimensions                              
-          x_g <- glist[[match(dim_params[1],gate_params)]]                      
-          y_g <- glist[[match(dim_params[2],gate_params)]]
-          #pick the non-infinite coordinate as the cut points
-          x_coord <- c(x_g@min,x_g@max)
-          y_coord <- c(y_g@min,y_g@max)
-          cut.x <- x_coord[!is.infinite(x_coord)] 
-          cut.y <- y_coord[!is.infinite(y_coord)]
-        
-          
-                                                     
-          quadPatterns<-c(".+-.+\\+$"   #top left  -+
-              ,".+\\+.+\\+$" #top right ++
-              ,".+\\+.+-$"  #bottom right +-
-              ,".+-.+-$")   #bottom left  --                                  
-          
-          #check if popname is give as Y[*]X[*]
-          YX_pattern<-paste(dims["yChannel"],".+", dims["xChannel"],".+",sep="")
-          XY_pattern<-paste(dims["xChannel"],".+", dims["yChannel"],".+",sep="")
-          #do the flipping if YX
-          if(grepl(YX_pattern,popName))
-          {
-            pos<-regexpr(dims["xChannel"],popName)
-            xterm<-substring(popName,pos,nchar(popName))
-            yterm<-substring(popName,1,pos-1)
-            toMatch<-paste(xterm,yterm,sep="")
-          }else if(grepl(XY_pattern,popName))
-            toMatch<-popName #keep as it is if XY
-          else
-            stop("X,Y axis do not match between 'dims'(",paste(dims, collapse=","),") and 'pop'(",popName,")")
-  #        browser()
-          quadInd<-which(unlist(lapply(quadPatterns,grepl,toMatch)))
-          
-          #construct rectangleGate from reference cuts
-          if(quadInd == 1){
-              coord <- list(c(-Inf, cut.x), c(cut.y, Inf))  
-          }else if(quadInd == 2){
-              coord <- list(c(cut.x,Inf), c(cut.y, Inf))
-          }else if(quadInd == 3){
-              coord <- list(c(cut.x,Inf), c(-Inf,cut.y))
-          }else if(quadInd == 4){
-              coord <- list(c(-Inf, cut.x), c(-Inf,cut.y))
-          }else
-            stop("Pop names does not match to any quadrant pattern!")
-         
-#          browser()
-          names(coord) <- as.character(dim_params)
-          rectangleGate(coord)
-          
-        })
-      
-        flist<-filterList(flist)
-        gs_node_id <- add(y, flist, parent = parent,name=popAlias)
-        recompute(y, gs_node_id)
-        
-        if (plot) {
-          print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
-        }
-      }else{
-        
-        message("Skip gating!Population '",popAlias,"' already exists.")
-#           browser()
-        gs_node_id<-getChildren(y[[1]],parent)
-        #select the corresponding gs node id by matching the node names
-        gs_node_name<-getNodes(y[[1]])[gs_node_id]
-        gs_node_id<-gs_node_id[match(popAlias,gs_node_name)]
-        flist <- NULL
-        
+  # gate each node by the topological order
+  gt_node_ids <- tsort(gt)
+  
+  # maintain the mapping between template node ID and gating set node ID in order
+  # to refer gating set node ID back to the template ID and find the parent gs
+  # node ID
+  node_ids <- cbind(gt = gt_node_ids, gs = NA)
+  node_ids[1, "gs"] <- 1  #fill out default gsid for root node
+  
+  for (i in 2:nrow(node_ids)) {
+    
+    # get parent node to gate
+    gt_node_id <- node_ids[i, "gt"]
+    gt_node_pop <- getNodes(gt, gt_node_id)
+    # parent node in graph is used as reference node
+    gt_ref_ids <- getParent(gt, gt_node_id)
+    # the parent to be used in gs is from parent slot of pop object
+    gt_parent_id <- as.character(gt_node_pop@parentID)
+    
+    # extract gate method from one edge(since multiple edge to the same node is
+    # redudant)
+    this_gate <- getGate(gt, gt_ref_ids[1], gt_node_id)
+    
+    parentInd <- match(gt_parent_id, node_ids[, "gt"])
+    if (is.na(parentInd)) 
+      stop("parent node '", names(getNodes(gt, gt_parent_id)), "' not gated yet!")
+    gs_parent_id <- node_ids[parentInd, "gs"]
+    # pass the pops and gate to gating routine
+    res <- gating(x = this_gate, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, 
+      ...)
+    gs_node_id <- res[["gs_node_id"]]
+    filterObj <- res[["filterObj"]]
+    
+    # upodate gs node ids
+    if (!is.null(gs_node_id)) 
+      node_ids[i, "gs"] <- gs_node_id
+    # update fct
+    if (!is.null(env_fct) && !is.null(filterObj)) {
+      nodeData(env_fct$fct, gt_node_id, "fList")[[1]] <- filterObj
+    }
+  }
+  message("finished.")
+})
+
+setMethod("gating", signature = c("gtMethod", "GatingSet"),
+          definition = function(x, y, gtPop, parent, num_nodes = 1,
+            parallel_type = c("multicore", "SOCK", "MPI"), plot = FALSE,
+            xbin = 128, prior_group = NULL, ...) {
+  
+  require("parallel")
+  
+  args <- parameters(x)
+  gm <- paste0(".", names(x))
+  
+  dims <- dims(x)
+  xChannel <- unname(dims["xChannel"])
+  yChannel <- unname(dims["yChannel"])
+  is_1d_gate <- any(is.na(dims))
+  
+  popAlias <- alias(gtPop)
+  popName <- names(gtPop)
+  popId <- gtPop@id
+  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
+  
+  if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
+    message("Population '", popAlias, "'")
+    
+    parent_data <- getData(y, parent)
+    parallel_type <- match.arg(parallel_type)
+    ## get the accurate channel name by matching to the fr
+    if (!is.na(xChannel)) {
+      xParam <- getChannelMarker(parent_data[[1]], xChannel)
+      xChannel <- as.character(xParam$name)
+    }
+    yParam <- getChannelMarker(parent_data[[1]], yChannel)
+    yChannel <- as.character(yParam$name)
+
+    # Splits the flow set into a list, where each element in the list is a
+    # flowSet containg one flow frame.  Below, we access manually the individual
+    # flow frame with current_frame[[1]].
+    fslist <- split(parent_data, sampleNames(parent_data))
+    
+    # construct method call
+    thisCall <- substitute(f1())
+    thisCall[["X"]] <- quote(fslist)  #set data
+    thisCall[["FUN"]] <- as.symbol(gm)  #set gating method
+    thisCall[["xChannel"]] <- xChannel  #set x,y channel
+    thisCall[["yChannel"]] <- yChannel
+    
+    if (is_1d_gate) {
+      if (grepl("-$", popName)) {
+        positive = FALSE
+      } else if (grepl("+$", popName)) {
+        positive = TRUE
+      } else {
+        stop("invalid population name!Name should end with '+' or '-' symbol.")
       }
-      message("done.")
-      list(gs_node_id=gs_node_id
-          ,filterObj=flist
-      )
+      
+      thisCall[["positive"]] <- positive
+    }
     
+    prior_list <- list()
+
+    # prior estimation is done separately from flowClust routine because
+    # prior_flowClust1d requires the entire parent flowSet yet flowClust only
+    # takes one flowFrame
+    if (grepl("^\\.flowClust\\.[12]d$", gm)) {
+      local_prior_group <- args[["prior_group"]]
+      args[["prior_group"]] <- NULL
+      # overwrite the golbal one if the local is specified
+      if (!is.null(local_prior_group)) 
+        prior_group <- local_prior_group
+      
+      prior_source <- args[["prior_source"]]
+      args[["prior_source"]] <- NULL
+      
+      if (is.null(prior_source)) {
+        prior_data <- parent_data
+      } else {
+        prior_data <- getData(y, prior_source)
+      }
+      
+      if (gm == ".flowClust.1d") {
+        # get the value of neg and pos
+        
+        if (all(is.element(c("pos", "neg"), names(args)))) {
+          neg_cluster <- as.integer(args["neg"])
+          pos_cluster <- as.integer(args["pos"])
+          K <- neg_cluster + pos_cluster
+        } else {
+          message("Using default setting: neg = 1, pos = 1")
+          neg_cluster <- pos_cluster <- as.integer(1)
+          K <- 2
+        }
+        if (!is.na(xChannel)) 
+          prior_list[[xChannel]] <- .prior_flowClust(flow_set = prior_data, 
+          channels = xChannel, K = K, prior_group = prior_group, ...)
+        
+        prior_list[[yChannel]] <- .prior_flowClust(flow_set = prior_data, 
+          channels = yChannel, K = K, prior_group = prior_group, ...)
+        
+        
+        args[["K"]] <- K
+        args[["neg_cluster"]] <- neg_cluster
+        args[["prior"]] <- prior_list
+        
+        # If the number of positive clusters is 0 and no cutpoint method has been
+        # specified, we use the quantile gate by default.
+        if (pos_cluster == 0 && is.null(args[["cutpoint_method"]])) {
+          args[["cutpoint_method"]] <- "quantile"
+        }
+        
+        neg_ind <- match("neg", names(args))
+        if (!is.na(neg_ind)) 
+          args <- args[-neg_ind]
+        
+        pos_ind <- match("pos", names(args))
+        if (!is.na(pos_ind)) 
+          args <- args[-pos_ind]
+        
+        
+        
+      } else {
+        # get the value of neg and pos
+        if (is.element(c("k"), names(args))) {
+          K <- as.integer(args["k"])
+        } else {
+          message("'K' argument is missing!Using default setting:K=2")
+          K <- 2
+        }
+        
+        args[["k"]] <- K
+        names(args)[match("k", names(args))] <- "K"  #restore K to capital letter
+        
+        prior_list <- .prior_flowClust(flow_set = prior_data, channels = c(xChannel, 
+          yChannel), K = K, prior_group = prior_group, ...)
+        args[["prior"]] <- prior_list
+        # thisCall[['positive']]<-NULL #remove positive arg since 2D gate doesn't
+        # understand it
+      }
+      
+    }
+    # update arg_names
+    
+    for (arg in names(args)) thisCall[[arg]] <- args[[arg]]
+    
+    ## choose serial or parallel mode
+    if (num_nodes > 1) {
+      message("Running in parallel mode with ", num_nodes, " nodes.")
+      if (parallel_type == "multicore") {
+        thisCall[[1]] <- quote(mclapply)
+        thisCall[["mc.cores"]] <- num_nodes
+        flist <- eval(thisCall)
+        
+      } else {
+        cl <- makeCluster(num_nodes, type = parallel_type)
+        thisCall[[1]] <- quote(parLapply)
+        thisCall[["cl"]] <- cl
+        # replace FUN with fun for parLapply
+        thisCall["fun"] <- thisCall["FUN"]
+        thisCall["FUN"] <- NULL
+        flist <- eval(thisCall)
+        stopCluster(cl)
+      }
+    } else {
+      thisCall[[1]] <- quote(lapply)  #select loop mode
+      flist <- eval(thisCall)
+    }
+    
+    
+    if (extends(class(flist[[1]]), "fcFilter")) {
+      flist <- fcFilterList(flist)
+    } else {
+      flist <- filterList(flist)
+    }
+    
+    
+    filterObj <- flist
+    gs_node_id <- add(y, flist, parent = parent, name = popAlias)
+    recompute(y, gs_node_id)
+    
+    message("done.")
+    
+  } else {
+    message("Skip gating!Population '", paste(popAlias, collapse = ","), "' already exists.")
+    gs_node_id <- getChildren(y[[1]], parent)
+    # select the corresponding gs node id by matching the node names
+    gs_node_name <- getNodes(y[[1]])[gs_node_id]
+    gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
+    filterObj <- NULL
+  }
+  
+  if (plot) {
+    print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
+  }
+  
+  list(gs_node_id = gs_node_id, filterObj = filterObj)
+})
+
+setMethod("gating", signature = c("boolMethod", "GatingSet"),
+          definition = function(x, y, gtPop, parent, ...) {
+  
+  args <- parameters(x)[[1]]
+  gm <- paste0(".", names(x))
+  popAlias <- alias(gtPop)
+  popName <- names(gtPop)
+  popId <- gtPop@id
+  
+  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
+  
+  tNodes <- deparse(args)
+  if (!(tNodes %in% gs_nodes)) {
+    message(tNodes, " gating...")
+    bf <- eval(substitute(booleanFilter(x), list(x = args)))
+    bf@filterId <- tNodes
+    invisible(gs_node_id <- add(y, bf, parent = parent))
+    invisible(recompute(y, gs_node_id))
+    message("done.")
+  } else {
+    message("Skip gating!Population '", tNodes, "' already exists.")
+    gs_node_id <- getChildren(y[[1]], parent)
+
+    # select the corresponding gs node id by matching the node names
+    gs_node_name <- getNodes(y[[1]])[gs_node_id]
+    gs_node_id <- gs_node_id[match(tNodes, gs_node_name)]
+  }
+  
+  # gs_node_id
+  list(gs_node_id = gs_node_id)
+})
+
+setMethod("gating", signature = c("polyFunctions", "GatingSet"),
+          definition = function(x, y, gtPop, parent, ...) {
+  
+  refNodes <- x@refNodes
+  gm <- paste0(".", names(x))
+  popAlias <- alias(gtPop)
+  popName <- names(gtPop)
+  
+  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
+  
+  message("Population '", paste(popAlias, collapse = ","), "'")
+  
+  nMarkers <- length(refNodes)
+
+  ## all the comibnations of A & B & C
+  opList <- permutations(n = 1, r = nMarkers - 1, c("&"), repeats = TRUE)
+  isNotList <- permutations(n = 2, r = nMarkers, c("!", ""), repeats = TRUE)
+  polyExprsList <- apply(opList, 1, function(curOps) {
+    apply(isNotList, 1, function(curIsNot) {
+      polyExprs <- curIsNot
+      polyExprs[-1] <- paste0(curOps, curIsNot[-1])
+      
+      paste(paste0(polyExprs, refNodes), collapse = "")
+    })
   })
-#wrapper for prior_flowClust to return sample-specific priors 
-.prior_flowClust <- function(flow_set, prior_group=NULL, ...){
-#  browser()
-  if(is.null(prior_group))
-  {
-    prior_list<-  prior_flowClust(flow_set, ...)
-    #replicate the prior for each sample
-    sapply(sampleNames(flow_set),function(i)prior_list,simplify=FALSE)
-  }else
-  {
+  polyExprsList <- as.vector(polyExprsList)
+  
+  # actual gating
+  lapply(polyExprsList, function(polyExpr) {
+    bgt <- new("boolMethod", name = polyExpr, args = list(as.symbol(polyExpr)))
+    gating(bgt, y, parent = parent, gtPop = gtPop, ...)
+  })
+  
+  message("done.")
+  
+  list()
+})
+
+setMethod("gating", signature = c("refGate", "GatingSet"),
+          definition = function(x, y, gtPop, parent, plot = FALSE, xbin = 128,
+            ...) {
+  
+  refNodes <- x@refNodes
+  gm <- paste0(".", names(x))
+  popAlias <- alias(gtPop)
+  popName <- names(gtPop)
+  dims <- dims(x)
+  xChannel <- dims[["xChannel"]]
+  yChannel <- dims[["yChannel"]]
+  
+  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
+  
+  if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     
-    splitBy1<-factor(pData(flow_set)[,prior_group])
-    fs_list<-split(flow_set,splitBy1)
-    names(fs_list)<-NULL #strip group name
-    plist<-lapply(fs_list,function(fs){
-          prior_list<-prior_flowClust(fs, ...)
-          #replicate the prior for each sample within this prior group
-          sapply(sampleNames(fs),function(i)prior_list,simplify=FALSE)
-          })
-    unlist(plist,recursive=FALSE)
+    message("Population '", paste(popAlias, collapse = ","), "'")
+    if (length(refNodes) > 2) {
+      stop("Not sure how to construct gate from more than 2 reference nodes!")
+    }
+    
+    fr <- getData(y[[1]])
+    
+    flist <- flowWorkspace::lapply(y, function(gh) {
+      glist <- lapply(refNodes, function(refNode) {
+        node_names <- getNodes(gh)
+        node_ind <- match(refNode, node_names)
+        if (is.na(node_ind)) {
+          # match to path
+          node_paths <- getNodes(gh, isPath = T)
+          toMatch <- gsub("\\+", "\\\\+", refNode)
+          toMatch <- paste(toMatch, "$", sep = "")
+          node_ind <- grep(toMatch, node_paths)
+          if (length(node_ind) == 0) {
+          stop(refNode, " not found in gating set!")
+          } else if (length(node_ind) > 1) {
+          stop("Multiple ", refNode, " found in gating set!")
+          }
+        }
+        getGate(gh, node_ind)
+      })
+
+      # standardize the names for the gate parameters and dims
+      gate_params <- unlist(lapply(glist, function(g) {
+        cur_param <- parameters(g)
+        getChannelMarker(fr, cur_param)["name"]
+      }))
+      
+      dim_params <- unlist(lapply(dims, function(dim) {
+        getChannelMarker(fr, dim)["name"]
+      }))
+
+      # match the gate param to dims to find gates for x, y dimensions
+      x_g <- glist[[match(dim_params[1], gate_params)]]
+      y_g <- glist[[match(dim_params[2], gate_params)]]
+
+      # pick the non-infinite coordinate as the cut points
+      x_coord <- c(x_g@min, x_g@max)
+      y_coord <- c(y_g@min, y_g@max)
+      cut.x <- x_coord[!is.infinite(x_coord)]
+      cut.y <- y_coord[!is.infinite(y_coord)]
+      
+      # In order, the following vector has the patterns:
+      # 1. top left (-+)
+      # 2. top right (++)
+      # 3. bottom right (+-)
+      # 4. bottom left (--)
+      quadPatterns <- c(".+-.+\\+$", ".+\\+.+\\+$", ".+\\+.+-$", ".+-.+-$")
+      
+      # check if popname is give as Y[*]X[*]
+      YX_pattern <- paste0(dims["yChannel"], ".+", dims["xChannel"], ".+")
+      XY_pattern <- paste0(dims["xChannel"], ".+", dims["yChannel"], ".+")
+
+      # do the flipping if YX
+      if (grepl(YX_pattern, popName)) {
+        pos <- regexpr(dims["xChannel"], popName)
+        xterm <- substring(popName, pos, nchar(popName))
+        yterm <- substring(popName, 1, pos - 1)
+        toMatch <- paste(xterm, yterm, sep = "")
+      } else if (grepl(XY_pattern, popName)) 
+        toMatch <- popName  #keep as it is if XY
+ else stop("X,Y axis do not match between 'dims'(", paste(dims, collapse = ","), 
+        ") and 'pop'(", popName, ")")
+      quadInd <- which(unlist(lapply(quadPatterns, grepl, toMatch)))
+      
+      # construct rectangleGate from reference cuts
+      if (quadInd == 1) {
+        coord <- list(c(-Inf, cut.x), c(cut.y, Inf))
+      } else if (quadInd == 2) {
+        coord <- list(c(cut.x, Inf), c(cut.y, Inf))
+      } else if (quadInd == 3) {
+        coord <- list(c(cut.x, Inf), c(-Inf, cut.y))
+      } else if (quadInd == 4) {
+        coord <- list(c(-Inf, cut.x), c(-Inf, cut.y))
+      } else stop("Pop names does not match to any quadrant pattern!")
+      
+      names(coord) <- as.character(dim_params)
+      rectangleGate(coord)
+    })
+    
+    flist <- filterList(flist)
+    gs_node_id <- add(y, flist, parent = parent, name = popAlias)
+    recompute(y, gs_node_id)
+    
+    if (plot) {
+      print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
+    }
+  } else {
+    message("Skip gating!Population '", popAlias, "' already exists.")
+    gs_node_id <- getChildren(y[[1]], parent)
+
+    # select the corresponding gs node id by matching the node names
+    gs_node_name <- getNodes(y[[1]])[gs_node_id]
+    gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
+    flist <- NULL
+  }
+
+  message("done.")
+  list(gs_node_id = gs_node_id, filterObj = flist)
+})
+
+# wrapper for prior_flowClust to return sample-specific priors
+.prior_flowClust <- function(flow_set, prior_group = NULL, ...) {
+  if (is.null(prior_group)) {
+    prior_list <- prior_flowClust(flow_set, ...)
+    # replicate the prior for each sample
+    sapply(sampleNames(flow_set), function(i) prior_list, simplify = FALSE)
+  } else {
+    splitBy1 <- factor(pData(flow_set)[, prior_group])
+    fs_list <- split(flow_set, splitBy1)
+    names(fs_list) <- NULL  #strip group name
+    plist <- lapply(fs_list, function(fs) {
+      prior_list <- prior_flowClust(fs, ...)
+
+      # replicate the prior for each sample within this prior group
+      sapply(sampleNames(fs), function(i) prior_list, simplify = FALSE)
+    })
+    unlist(plist, recursive = FALSE)
   }
 }
+
 ## wrappers for the different gating routines
-.singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H", prediction_level = 0.99, ...) {
+.singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H",
+                         prediction_level = 0.99, ...) {
   require(openCyto)
-  # Creates a list of polygon gates based on the prediction bands at the minimum and maximum
-  # x_channel observation using a robust linear model trained by flowStats.
+  # Creates a list of polygon gates based on the prediction bands at the minimum
+  # and maximum x_channel observation using a robust linear model trained by
+  # flowStats.
   singletGate(fs[[1]], area = xChannel, height = yChannel,
               prediction_level = prediction_level)
 }
 
-.flowClust.1d<-function(fs, xChannel = NA,yChannel,tol=1e-3,prior=NULL,filterId=""
-						,usePrior="yes",split=TRUE,...)
-{
-	
+.flowClust.1d <- function(fs, xChannel = NA, yChannel, tol = 1e-5, prior = NULL,
+                          filterId = "", usePrior = "yes", split = TRUE, ...) {
   require(openCyto)
-	sname <- sampleNames(fs)
-	fr <- fs[[sname]]
-    priorList<-list()
-    priorList[[yChannel]]<-prior[[yChannel]][[sname]]
-    
-#		browser()			
-	if(is.na(xChannel)){
-      #1d gate           
-      flowClust.1d(fr = fr
-          ,params = yChannel
-          ,tol = tol
-          ,filterId = filterId
-          ,prior = priorList[[yChannel]]
-          ,usePrior=usePrior
-          ,...) 
-    }else
-      stop("flowClust1d does not support 2d gate!")
-#	else#quadgate 
-#	{
-#        priorList[[xChannel]]<-prior[[xChannel]][[sname]]
-#        
-#		xParam <- getChannelMarker(fr, xChannel)
-#		yParam <- getChannelMarker(fr, yChannel)
-#		xChannel<-xParam$name
-#		xStain<-xParam$desc
-#		yChannel<-yParam$name
-#		yStain<-yParam$desc
-##			browser()
-#		filter1 <- flowClust.1d(fr = fr
-#								, params = xChannel, tol = tol
-#								,filterId = as.character(xStain)
-#								,prior = priorList[[xChannel]]
-#								,usePrior=usePrior
-#								, ...)
-#		
-#		################################      
-#		#flowClust on xParam
-#		################################
-#		
-#		cut.x <- filter1@min
-#		
-#		if (split) {
-#			################################################################
-#			## split the data for the further gating
-#			################################################################
-#			newFrList <- flowCore::split(fr, filter1)
-#			
-#			negFr <- newFrList[[paste0(xStain, "-")]]
-#			posFr <- newFrList[[paste0(xStain, "+")]]
-##			browser()
-#			filter2 <- flowClust.1d(negFr, params = yChannel,
-#									usePrior = usePrior
-#									,filterId = as.character(yStain)
-#									,prior = priorList[[yChannel]]
-#									, ...)
-#			cut.y.l <- filter2@min
-#			
-#			filter3 <- flowClust.1d(posFr, params = yChannel,
-#									usePrior = usePrior
-#									,filterId = as.character(yStain)
-#									,prior = priorList[[yChannel]]
-#									, ...)
-#			cut.y.r <- filter3@min
-#		} else {
-#			filter2 <- flowClust.1d(fr, params = yChannel,
-#									usePrior = usePrior
-#									,filterId = as.character(yStain)
-#									,prior = priorList[[yChannel]]
-#									, ...)
-#
-#			cut.y.l <- cut.y.r <- filter2@min
-#		}
-#		
-#		###############################################################     
-#		#construct rectangleGates based on the cuts and popNames,clock-wise
-#		###############################################################
-#		gateList <- list()
-#		
-#		chnls<-c(xChannel, yChannel)
-#		markers<-c(xStain,yStain)
-##		browser()
-#		##cut.x,cut.y.l (1st,4th quad)
-#		postX<-posteriors(filter1)
-#		postY<-posteriors(filter2)
-#		postList<-c(postX,postY)
-#		
-#		coord <- list(c(-Inf, cut.x), c(cut.y.l, Inf))
-#		names(coord) <- as.character(chnls)
-#		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
-#                                      , priorList
-#                                      , postList)
-#		gateList[[paste(paste0(markers, c("-", "+")), collapse="")]] <-thisFcFilter 
-#		
-#		coord <- list(c(-Inf, cut.x), c(-Inf, cut.y.l))
-#		names(coord) <- as.character(chnls)
-#		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
-#                                      , priorList
-#                                      , postList)
-#		gateList[[paste(paste0(markers, c("-", "-")), collapse="")]] <- thisFcFilter
-#		
-#
-#		##cut.x,cut.y.r(2nd,3rd quad)
-#		postX<-posteriors(filter1)
-#		if(split)
-#			postY<-	posteriors(filter3)
-#		else
-#			postY<-posteriors(filter2)
-#		postList<-c(postX,postY)
-#		
-#		coord <- list(c(cut.x, Inf), c(cut.y.r, Inf))
-#		names(coord) <- as.character(chnls)
-#		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
-#                                      , priorList
-#                                      , postList)
-#		gateList[[paste(paste0(markers, c("+", "+")), collapse="")]] <- thisFcFilter
-#		
-#		coord <- list(c(cut.x, Inf), c(-Inf, cut.y.r))
-#		names(coord) <- as.character(chnls)
-#		thisFcFilter<-fcRectangleGate(rectangleGate(coord)
-#                                      , priorList
-#                                      , postList)
-#		gateList[[paste(paste0(markers, c("+", "-")), collapse="")]] <- thisFcFilter
-#		
-#		
-#		
-#		as(gateList[c(1,3,4,2)],"filters")#return the 4 quadrants in clock-wise order 
-#	}
-	
-}	
-	
-
+  sname <- sampleNames(fs)
+  fr <- fs[[sname]]
+  priorList <- list()
+  priorList[[yChannel]] <- prior[[yChannel]][[sname]]
+  
+  if (is.na(xChannel)) {
+    # 1d gate
+    flowClust.1d(fr = fr, params = yChannel, tol = tol, filterId = filterId, 
+      prior = priorList[[yChannel]], usePrior = usePrior, ...)
+  } else {
+    stop("flowClust1d does not support 2d gate!")
+  }
+}
 
 .mindensity <- function(fs, yChannel = "FSC-A", filterId = "", ...) {
   require(openCyto)
   mindensity(flow_frame = fs[[1]], channel = yChannel, filter_id = filterId, ...)
-
 }
 
-
-
-
-.flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", prior = NULL, ...) {
+.flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", prior = NULL,
+                          ...) {
   require(openCyto)
   sname <- sampleNames(fs)
   fr <- fs[[sname]]
   
-  flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel,
-               usePrior = usePrior, prior = prior[[sname]], ...)
+  flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel, usePrior = usePrior,
+               prior = prior[[sname]], ...)
 }
 
-.rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE,
-                       filterId = "", ...) {
+.rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE, filterId = "", 
+                       ...) {
   require(openCyto)
   fr <- fs[[1]]
   rangeGate(x = fr, stain = yChannel, inBetween = TRUE, absolute = absolute,
             filterId = filterId, ...)
 }
 
-.quantileGate <- function(fs, xChannel = NA, yChannel, probs = 0.999,
-                          filterId = "", ...) {
-  require(openCyto)                        
+.quantileGate <- function(fs, xChannel = NA, yChannel, probs = 0.999, filterId = "",
+                          ...) {
+  require(openCyto)
   fr <- fs[[1]]
   quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)
 }
 
 .quadrantGate <- function(fs, xChannel = NA, yChannel, ...) {
   require(openCyto)
-  fr<-fs[[1]]
+  fr <- fs[[1]]
   
-  qfilter<-quadrantGate(fr, stain = c(xChannel,yChannel), absolute = FALSE, inBetween = TRUE, ...)
+  qfilter <- quadrantGate(fr, stain = c(xChannel, yChannel), absolute = FALSE, 
+    inBetween = TRUE, ...)
   
   ###############################################################     
   #construct rectangleGates based on the cuts and popNames,clock-wise
   ###############################################################
-  cut.x<-qfilter@boundary[xChannel]
-  cut.y<-qfilter@boundary[yChannel]
+  cut.x <- qfilter@boundary[xChannel]
+  cut.y <- qfilter@boundary[yChannel]
   gateList <- new("filters")
   
-  chnls<-c(xChannel, yChannel)
-  markers<-chnls
+  chnls <- c(xChannel, yChannel)
+  markers <- chnls
   
   coord <- list(c(-Inf, cut.x), c(cut.y, Inf))
   names(coord) <- as.character(chnls)
-  gateList[[paste(paste0(markers, c("-", "+")), collapse="")]] <- rectangleGate(coord)
+  gateList[[paste(paste0(markers, c("-", "+")), collapse = "")]] <- rectangleGate(coord)
   
   coord <- list(c(cut.x, Inf), c(cut.y, Inf))
   names(coord) <- as.character(chnls)
-  gateList[[paste(paste0(markers, c("+", "+")), collapse="")]] <- rectangleGate(coord)
+  gateList[[paste(paste0(markers, c("+", "+")), collapse = "")]] <- rectangleGate(coord)
   
   coord <- list(c(cut.x, Inf), c(-Inf, cut.y))
   names(coord) <- as.character(chnls)
-  gateList[[paste(paste0(markers, c("+", "-")), collapse="")]] <- rectangleGate(coord)
+  gateList[[paste(paste0(markers, c("+", "-")), collapse = "")]] <- rectangleGate(coord)
   
   coord <- list(c(-Inf, cut.x), c(-Inf, cut.y))
   names(coord) <- as.character(chnls)
-  gateList[[paste(paste0(markers, c("-", "-")), collapse="")]] <- rectangleGate(coord)
+  gateList[[paste(paste0(markers, c("-", "-")), collapse = "")]] <- rectangleGate(coord)
   
   gateList
 }
-
+ 
