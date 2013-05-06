@@ -1,0 +1,185 @@
+#' Constructs cytokine gates from the derivative of a kernel density estimate
+#' after standardizing and collapsing flowFrames
+#'
+#' @param flow_set a \code{flowSet} object
+#' @param channel the channel from which the cytokine gate is constructed
+#' @param filter_id the name of the filter
+#' @param tol the tolerance value used to construct the cytokine gate from the
+#' derivative of the kernel density estimate
+#' @param ... additional arguments passed to \code{\link{cytokine_cutpoint}}
+#' @return a \code{filterList} containing the gates (cutpoints) for each sample
+cytokine <- function(flow_set, channel, filter_id = "", tol = 1e-2, ...) {
+  # Standardizes the flowFrame's for a given channel using the mode of the kernel
+  # density estimate and the Huber estimator of the standard deviation
+  standardize_out <- standardize_flowset(flow_set, channel = channel)
+
+  # Coerces the standardized flowSet into a single flowFrame from which a single
+  # cutpoint is calculated using the first derivative of the kernel density
+  # estimate. 
+  cutpoint <- cytokine_cutpoint(flow_frame = as(standardize_out$flow_set, "flowFrame"),
+                                channel = channel, tol = tol, ...)
+
+  # Backtransforms the cutpoint with respect to each sample to place
+  # them on the scales of the original samples
+  cutpoints <- lapply(standardize_out$transformation, function(transf_i) {
+    with(transf_i, center + scale * cutpoint)
+  })
+
+  # Creates a list of filters for each set of cutpoints.
+  # Note that the gate consists of the entire real line to the right of the
+  # cutpoint.
+  cytokine_gates <- lapply(cutpoints, function(cutpoint) {
+    gate_coordinates <- list(c(cutpoint, Inf))
+    names(gate_coordinates) <- channel
+    rectangleGate(gate_coordinates, filterId = filter_id)
+  })
+  
+  filterList(cytokine_gates)
+}
+
+#' Standardizes a channel within a \code{flowSet} object using the mode of the
+#' kernel density estimate and the Huber estimator of the standard deviation
+#' 
+#' @param flow_set a \code{flowSet} object
+#' @param channel the channel to standardize
+#' @return list containing the transformed \code{flowSet} object along with the
+#' \code{transformation} list, where each element contains the transformation
+#' parameters for each \code{flowFrame}
+standardize_flowset <- function(flow_set, channel = "FSC-A") {
+  transform_out <- fsApply(flow_set, function(flow_frame) {
+    x <- exprs(flow_frame)[, channel]
+
+    # First, centers the values by the mode of the kernel density estimate.
+    x <- center_mode(x)
+    mode <- attr(x, "mode")
+  
+    # Scales the marker cells by the Huber estimator of the standard deviation.
+    x <- scale_huber(x, center = FALSE)
+    sd_huber <- attr(x, "scale")
+
+    exprs(flow_frame)[, channel] <- x
+
+    list(flow_frame = flow_frame, center = mode, scale = sd_huber)
+  })
+
+  # Creates a flowSet object from the transformed flowFrame objects
+  flow_set <- flowSet(lapply(transform_out, function(x) x$flow_frame))
+
+  # Extracts the transformation parameters
+  transformation <- lapply(transform_out, function(x) {
+    x$flow_frame <- NULL
+    x
+  })
+
+  list(flow_set = flow_set, transformation = transformation)
+}
+
+#' Constructs a cutpoint by using the first derivative of the kernel density
+#' estimate to establish a cutpoint
+#'
+#' We compute the first derivative of the kernel density estimate from the
+#' channel specified within the given \code{flow_frame}. Next, we determine the
+#' lowest valley from the derivative, which corresponds to the density's mode for
+#' cytokines. We then contruct a gating cutpoint as the value less than the
+#' tolerance value \code{tol} in magnitude and is also greater than the lowest
+#' valley.
+#'
+#' @param flow_frame a \code{flowFrame} object
+#' @param channel the channel name
+#' @param tol the tolerance value
+#' @param adjust the scaling adjustment applied to the bandwidth used in the
+#' first derivative of the kernel density estimate
+#' @param ... additional arguments passed to \code{\link{deriv_density}}
+#' @return the cutpoint along the x-axis
+cytokine_cutpoint <- function(flow_frame, channel, tol = 1e-2, adjust = 3, ...) {
+  deriv_out <- deriv_density(x = exprs(flow_frame)[, channel], adjust = adjust, ...)
+  lowest_valley <- with(deriv_out, x[which.min(y)])
+  cutpoint <- with(deriv_out, x[which(x > lowest_valley & abs(y) < tol)[1]])
+  cutpoint
+}
+
+#' Constructs the derivative specified of the kernel density estimate of a
+#' numeric vector
+#'
+#' For guidance on selecting the bandwidth, see this CrossValidated post:
+#' \url{http://bit.ly/12LkJWz}
+#' 
+#' @param x numeric vector
+#' @param deriv a numeric value specifying which derivative should be calculated.
+#' By default, the first derivative is computed.
+#' @param bandwidth the bandwidth to use in the kernel density estimate. If
+#' \code{NULL} (default), the bandwidth is estimated using the plug-in estimate
+#' from \code{\link[ks]{hpi}}.
+#' @param adjust a numeric weight on the automatic bandwidth, analogous to the
+#' \code{adjust} parameter in \code{\link{density}}
+#' @param ... additional arguments passed to \code{\link[{density}}
+#' @return data.frame with the cytokine densities for each stimulation group
+deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1) {
+  require('feature')
+  require('ks')
+  if (is.null(bandwidth)) {
+    # TODO: Ensure that 'deriv.order' does what I think it does. Previously, I
+    # was using the default of deriv.order = 0, which is not a derivative.
+    bandwidth <- hpi(x, deriv.order = deriv)
+  }
+  deriv_x <- drvkde(x = x, drv = deriv, bandwidth = adjust * bandwidth)
+  list(x = deriv_x$x.grid[[1]], y = deriv_x$est)
+}
+
+
+#' Centers a vector of data using the mode of the kernel density estimate
+#'
+#' @param x numeric vector
+#' @param ... additional arguments passed to \code{\link{density}}
+#' @return numeric vector containing the centered data
+center_mode <- function(x, ...) {
+  x <- as.vector(x)
+  density_x <- density(x, ...)
+  mode <- density_x$x[which.max(density_x$y)]
+
+  x <- as.vector(scale(x, center = mode, scale = FALSE))
+  attributes(x) <- list(`mode` = mode)
+  x
+}
+
+#' Scales a vector of data using the Huber robust estimator for mean and
+#' standard deviation
+#'
+#' This function is an analog to \code{\link{scale}} but using Huber robust
+#' estimators instead of the usual sample mean and standard deviation.
+#'
+#' @param x numeric vector
+#' @param center logical value. Should \code{x} be centered?
+#' @param scale logical value. Should \code{x} be scaled?
+#' @return numeric vector containing the scaled data
+scale_huber <- function(x, center = TRUE, scale = TRUE) {
+  require('MASS')
+
+  x <- as.vector(x)
+  huber_x <- huber(x)
+
+  # If 'center' is set to TRUE, we center 'x' by the Huber robust location
+  # estimator.
+  center_x <- FALSE
+  if (center) {
+    center_x <- huber_x$mu
+  }
+
+  # If 'scale' is set to TRUE, we scale 'x' by the Huber robust standard
+  # deviation estimator.
+  scale_x <- FALSE
+  if (scale) {
+    scale_x <- huber_x$s
+  }
+
+  x <- as.vector(base:::scale(x, center = center_x, scale = scale_x))
+
+  if (!center) {
+    center_x <- NULL
+  }
+  if (!scale) {
+    scale_x <- NULL
+  }
+  attributes(x) <- list(center = center_x, scale = scale_x)
+  x
+}

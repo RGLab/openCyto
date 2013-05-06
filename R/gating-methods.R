@@ -110,7 +110,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       } else if (grepl("+$", popName)) {
         positive <- TRUE
       } else {
-        stop("invalid population name!Name should end with '+' or '-' symbol.")
+        stop("Invalid population name! Name should end with '+' or '-' symbol.")
       }
       
       thisCall[["positive"]] <- positive
@@ -273,7 +273,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     message("done.")
     
   } else {
-    message("Skip gating!Population '", paste(popAlias, collapse = ","), "' already exists.")
+    message("Skip gating! Population '", paste(popAlias, collapse = ","), "' already exists.")
     gs_node_id <- getChildren(y[[1]], parent)
     # select the corresponding gs node id by matching the node names
     gs_node_name <- getNodes(y[[1]])[gs_node_id]
@@ -308,7 +308,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
     invisible(recompute(y, gs_node_id))
     message("done.")
   } else {
-    message("Skip gating!Population '", tNodes, "' already exists.")
+    message("Skip gating! Population '", tNodes, "' already exists.")
     gs_node_id <- getChildren(y[[1]], parent)
 
     # select the corresponding gs node id by matching the node names
@@ -469,7 +469,7 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
       print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
     }
   } else {
-    message("Skip gating!Population '", popAlias, "' already exists.")
+    message("Skip gating! Population '", popAlias, "' already exists.")
     gs_node_id <- getChildren(y[[1]], parent)
 
     # select the corresponding gs node id by matching the node names
@@ -529,6 +529,11 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
   } else {
     stop("flowClust1d does not support 2d gate!")
   }
+}
+
+.cytokine <- function(fs, yChannel = "FSC-A", filterId = "", ...) {
+  require(openCyto)
+  cytokine(flow_set = fs, channel = yChannel, filter_id = filterId, ...)
 }
 
 .mindensity <- function(fs, yChannel = "FSC-A", filterId = "", ...) {
