@@ -92,10 +92,23 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     yParam <- getChannelMarker(parent_data[[1]], yChannel)
     yChannel <- as.character(yParam$name)
 
-    # Splits the flow set into a list, where each element in the list is a
-    # flowSet containg one flow frame.  Below, we access manually the individual
-    # flow frame with current_frame[[1]].
-    fslist <- split(parent_data, sampleNames(parent_data))
+    # Splits the flow set into a list.
+    # By default, each element in the list is a flowSet containg one flow frame,
+    # corresponding to the invidual sample names.
+    # If 'split' is given, we split using the unique combinations within pData.
+    # In this case 'split' is specified with column names of the pData.
+    # For example, "PTID:VISITNO"
+    if ("split" %in% names(args)) {
+      split_by <- as.character(args["split"])
+      split_by <- strsplit(split_by, ":")[[1]]
+      split_by <- apply(pData(parent_data)[, split_by], 1, paste, collapse = ":")
+      split_by <- as.character(split_by)
+      args[["split"]] <- NULL
+    } else {
+      split_by <- sampleNames(parent_data)
+    }
+
+    fslist <- split(parent_data, split_by)
     
     # construct method call
     thisCall <- substitute(f1())
@@ -258,6 +271,16 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     } else {
       thisCall[[1]] <- quote(lapply)  #select loop mode
       flist <- eval(thisCall)
+    }
+
+    # Handles the case that 'flist' is a list of lists.
+    #   The outer lists correspond to the split by pData factors.
+    #   The inner lists contain the actual gates.
+    #     The order do not necessarily match up with sampleNames()
+    # Unforunately, we cannot simply use 'unlist' because the list element names
+    # are mangled.
+    if (all(split_by != sampleNames(parent_data))) {
+      flist <- do.call(c, unname(flist))
     }
     
     if (extends(class(flist[[1]]), "fcFilter")) {
@@ -531,19 +554,24 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
   }
 }
 
-.cytokine <- function(fs, yChannel = "FSC-A", filterId = "", ...) {
+.cytokine <- function(fs, xChannel = NA, yChannel = "FSC-A", filterId = "",
+                      ...) {
   require(openCyto)
   cytokine(flow_set = fs, channel = yChannel, filter_id = filterId, ...)
 }
 
 .mindensity <- function(fs, yChannel = "FSC-A", filterId = "", ...) {
   require(openCyto)
+  # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
+  # contain more than one flowFrame if 'split' is specified in the CSV file.
   mindensity(flow_frame = fs[[1]], channel = yChannel, filter_id = filterId, ...)
 }
 
 .flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", prior = NULL,
                           ...) {
   require(openCyto)
+  # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
+  # contain more than one flowFrame if 'split' is specified in the CSV file.
   sname <- sampleNames(fs)
   fr <- fs[[sname]]
   flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel, usePrior = usePrior,
@@ -553,6 +581,8 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
 .rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE, filterId = "", 
                        ...) {
   require(openCyto)
+  # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
+  # contain more than one flowFrame if 'split' is specified in the CSV file.
   fr <- fs[[1]]
   rangeGate(x = fr, stain = yChannel, inBetween = TRUE, absolute = absolute,
             filterId = filterId, ...)
@@ -561,12 +591,16 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
 .quantileGate <- function(fs, xChannel = NA, yChannel, probs = 0.999, filterId = "",
                           ...) {
   require(openCyto)
+  # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
+  # contain more than one flowFrame if 'split' is specified in the CSV file.
   fr <- fs[[1]]
   quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)
 }
 
 .quadrantGate <- function(fs, xChannel = NA, yChannel, ...) {
   require(openCyto)
+  # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
+  # contain more than one flowFrame if 'split' is specified in the CSV file.
   fr <- fs[[1]]
   
   qfilter <- quadrantGate(fr, stain = c(xChannel, yChannel), absolute = FALSE, 

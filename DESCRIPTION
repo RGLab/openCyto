@@ -11,6 +11,7 @@ LazyLoad: yes
 Collate: 	AllClasses.R
 			bayes-flowClust.R
 			functions.R
+			gating-cytokines.R 
 			gating-methods.R 
 			gating-functions.R
 			gatingTemplate-methods.R

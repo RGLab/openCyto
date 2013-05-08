@@ -6,9 +6,13 @@
 #' @param filter_id the name of the filter
 #' @param tol the tolerance value used to construct the cytokine gate from the
 #' derivative of the kernel density estimate
+#' @param positive If \code{TRUE}, then the gate consists of the entire real
+#' line to the right of the cutpoint. Otherwise, the gate is the entire real
+#' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param ... additional arguments passed to \code{\link{cytokine_cutpoint}}
 #' @return a \code{filterList} containing the gates (cutpoints) for each sample
-cytokine <- function(flow_set, channel, filter_id = "", tol = 1e-2, ...) {
+cytokine <- function(flow_set, channel, filter_id = "", tol = 1e-2,
+                     positive = TRUE, ...) {
   # Standardizes the flowFrame's for a given channel using the mode of the kernel
   # density estimate and the Huber estimator of the standard deviation
   standardize_out <- standardize_flowset(flow_set, channel = channel)
@@ -25,16 +29,38 @@ cytokine <- function(flow_set, channel, filter_id = "", tol = 1e-2, ...) {
     with(transf_i, center + scale * cutpoint)
   })
 
+  # If a sample has no more than 1 observation when the 'cytokine' gate is
+  # attempted, the 'center' and/or 'scale' will result be NA, in which case we
+  # replace the resulting NA cutpoints with the average of the remaining
+  # cutpoints. If all of the cutpoints are NA, we set the mean to 0, so that
+  # all of the cutpoints are 0.
+  cutpoints_unlisted <- unlist(cutpoints)
+  if (sum(!is.na(cutpoints_unlisted)) > 0) {
+    mean_cutpoints <- mean(cutpoints_unlisted, na.rm = TRUE)
+  } else {
+    mean_cutpoints <- 0
+  }
+  cutpoints <- as.list(replace(cutpoints_unlisted, is.na(cutpoints_unlisted),
+                               mean_cutpoints))
+
   # Creates a list of filters for each set of cutpoints.
   # Note that the gate consists of the entire real line to the right of the
   # cutpoint.
   cytokine_gates <- lapply(cutpoints, function(cutpoint) {
-    gate_coordinates <- list(c(cutpoint, Inf))
+    # After the 1D cutpoint is set, we set the gate coordinates used in the
+    # rectangleGate that is returned. If the `positive` argument is set to TRUE,
+    # then the gate consists of the entire real line to the right of the cut point.
+    # Otherwise, the gate is the entire real line to the left of the cut point.
+    if (positive) {
+      gate_coordinates <- list(c(cutpoint, Inf))
+    } else {
+      gate_coordinates <- list(c(-Inf, cutpoint))
+    }
     names(gate_coordinates) <- channel
     rectangleGate(gate_coordinates, filterId = filter_id)
   })
   
-  filterList(cytokine_gates)
+  cytokine_gates
 }
 
 #' Standardizes a channel within a \code{flowSet} object using the mode of the
@@ -49,15 +75,20 @@ standardize_flowset <- function(flow_set, channel = "FSC-A") {
   transform_out <- fsApply(flow_set, function(flow_frame) {
     x <- exprs(flow_frame)[, channel]
 
-    # First, centers the values by the mode of the kernel density estimate.
-    x <- center_mode(x)
-    mode <- attr(x, "mode")
+    if (length(x) >= 2) {
+      # First, centers the values by the mode of the kernel density estimate.
+      x <- center_mode(x)
+      mode <- attr(x, "mode")
   
-    # Scales the marker cells by the Huber estimator of the standard deviation.
-    x <- scale_huber(x, center = FALSE)
-    sd_huber <- attr(x, "scale")
+      # Scales the marker cells by the Huber estimator of the standard deviation.
+      x <- scale_huber(x, center = FALSE)
+      sd_huber <- attr(x, "scale")
 
-    exprs(flow_frame)[, channel] <- x
+      exprs(flow_frame)[, channel] <- x
+    } else {
+      mode <- NA
+      sd_huber <- NA
+    }
 
     list(flow_frame = flow_frame, center = mode, scale = sd_huber)
   })
