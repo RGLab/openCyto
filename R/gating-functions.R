@@ -83,10 +83,10 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   }
 
   usePrior <- ifelse(is.null(prior), "no", "yes")
+  L<-list(...)
   if(exists("usePrior",list(...))){
-	usePrior<-get("usePrior",list(...))
-	L<-list(...)
-	L$usePrior<-NULL
+	  usePrior<-get("usePrior",list(...))
+  	L$usePrior<-NULL
   }
 
   # HACK: Circumvents a bug in flowClust.
