@@ -4,7 +4,7 @@
 ###############################################################################
 unloadNamespace("openCyto")
 library(openCyto)
-
+library(flowIncubator)
 library(flowWorkspace)
 library(flowClust)
 library(flowStats)
@@ -109,7 +109,7 @@ load(file.path(path,"data/fs_bcell.rda"))
 gs2<-GatingSet(fs_bcell)
 env1<-new.env(parent=emptyenv())
 gating(gt2,gs2,env1)
-
+getGate(gs2,4)
 plot(gs2[[1]],bool=T)
 plotGate(gs2[[1]],bool=T,xbin=64)
 
@@ -119,4 +119,18 @@ plot(env1$fct,"cd19",post=T)
 plot(env1$fct,"IgD-cd27+",channel="<G780-A>",post=T)
 plot(env1$fct,"IgD-cd27+",post=T,channel="<V545-A>")
 
+###debug
+library(openCyto)
+gs_HVTN065 <- load_gs("/loc/no-backup/ramey/HVTN/065/gating-results")
+gating_template <- gatingTemplate("/home/jramey/rglab/papers/paper-opencyto/gt-HVTN065.csv", "HVTN065")
+Rm("cd4", gs_HVTN065)
+Rm("cd8", gs_HVTN065)
+gs <- clone(gs_HVTN065[1:12])
+getData(gs)
+Rm("cd4", gs)
+Rm("cd8", gs)
+
+gating(gating_template, gs, prior_group = 'Stim'
+    , num_cores = 6, parallel_type = "MPI"
+)
 
