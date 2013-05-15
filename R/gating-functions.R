@@ -83,6 +83,11 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   }
 
   usePrior <- ifelse(is.null(prior), "no", "yes")
+  L<-list(...)
+  if(exists("useprior",list(...))){
+	  usePrior<-get("useprior",list(...))
+  	L$useprior<-NULL
+  }
 
   # HACK: Circumvents a bug in flowClust.
   # TODO: Add an issue to the Github for flowClust to allow prior to be NULL.
@@ -102,10 +107,15 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the
   # elements in the `prior` list.
-  
-  tmix_filter <- tmixFilter(filterId, params[1], K = K, trans = trans,
-                            usePrior = usePrior, prior = prior,
-                            criterion = criterion, ...)
+  # call via do.call. L contains the rest of the pairlist, after extracting the passed value of usePrior
+  	tmix_filter<-do.call(tmixFilter,c(filterId=filterId,params[1],K=K,
+                                      trans=trans,usePrior=usePrior,
+                                      prior=list(prior),criterion=list(criterion),
+                                      L))
+ 
+#  tmix_filter <- tmixFilter(filterId, params[1], K = K, trans = trans,
+#                            usePrior = usePrior, prior = prior,
+#                            criterion = criterion, ...)
 
   tmix_results <- try(filter(fr, tmix_filter), silent = TRUE)
   

@@ -88,7 +88,7 @@ isPolyfunctional <- function(gm) {
     }
     
     paired_args <- as.list(as.list(paired_args)[[1]])[-1]
-    names(paired_args) <- tolower(names(paired_args))
+    names(paired_args) <- tolower(names(paired_args)) 
   } else {
     paired_args <- as.symbol(txt)
     paired_args <- list(paired_args)

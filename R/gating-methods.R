@@ -236,6 +236,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         
         args[["k"]] <- K
         names(args)[match("k", names(args))] <- "K"  #restore K to capital letter
+        names(args)[match("useprior",names(args))]<-"usePrior"
         
         prior_list <- .prior_flowClust(flow_set = prior_data, channels = c(xChannel, 
           yChannel), K = K, prior_group = prior_group, ...)
