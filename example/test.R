@@ -113,7 +113,7 @@ getGate(gs2,4)
 plot(gs2[[1]],bool=T)
 plotGate(gs2[[1]],bool=T,xbin=64)
 
-
+getGate(env1$fct,"nonDebris")
 plot(env1$fct,"nonDebris",post=T)
 plot(env1$fct,"cd19",post=T)
 plot(env1$fct,"IgD-cd27+",channel="<G780-A>",post=T)

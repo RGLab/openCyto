@@ -9,26 +9,31 @@ setMethod("getNodes", signature = c("fcTree"), definition = function(x, y) {
 setMethod("getGate", sig = c("fcTree", "character"),
     definition = function(obj, y,  ...) {
       # get filterList
-      nodes <- getNodes(obj)
-      
-      allAlias <- lapply(nodes, function(curNode) alias(curNode$pop))
-      ind <- which(allAlias %in% y)
-      if (length(ind) > 1) {
-        stop("Population '", y, "' is ambiguous!")
-      } else if (length(ind) == 0) {
-        stop("Population '", y, "' is not found!")
-      } else {
-        matchedNode <- nodes[[ind]]
-      }
-      
+      matchedNode <-.getNode(obj,y,...)
       flist <- matchedNode[["fList"]]
       flist
     })
 
+.getNode<-function(x,y,..){
+  nodes <- getNodes(x)
+  
+  allAlias <- lapply(nodes, function(curNode) alias(curNode$pop))
+  ind <- which(allAlias %in% y)
+  if (length(ind) > 1) {
+    stop("Population '", y, "' is ambiguous!")
+  } else if (length(ind) == 0) {
+    stop("Population '", y, "' is not found!")
+  } else {
+    matchedNode <- nodes[[ind]]
+  }
+  matchedNode
+}
 setMethod("plot", sig = c("fcTree", "character"),
           definition = function(x, y, channel = NULL, ...) {
   # get filterList
-    flist <- getGate(x,y,...)
+#      browser()
+    flist <- getGate(x,y)
+    matchedNode <-.getNode(x,y)
   plot(x = flist, y = channel, main = matchedNode$pop@name, ...)
 })
 
