@@ -7,7 +7,7 @@ setMethod("getNodes", signature = c("fcTree"), definition = function(x, y) {
 })
 
 setMethod("getGate", sig = c("fcTree", "character"),
-    definition = function(x, y,  ...) {
+    definition = function(obj, y,  ...) {
       # get filterList
       nodes <- getNodes(x)
       
