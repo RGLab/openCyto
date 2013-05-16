@@ -9,7 +9,7 @@ setMethod("getNodes", signature = c("fcTree"), definition = function(x, y) {
 setMethod("getGate", sig = c("fcTree", "character"),
     definition = function(obj, y,  ...) {
       # get filterList
-      nodes <- getNodes(x)
+      nodes <- getNodes(obj)
       
       allAlias <- lapply(nodes, function(curNode) alias(curNode$pop))
       ind <- which(allAlias %in% y)

@@ -192,7 +192,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         }
 
         args[["neg_cluster"]] <- neg_cluster
-        args[["pos_cluster"]] <- pos_cluster
+#        args[["pos_cluster"]] <- pos_cluster
 
         args[["k"]] <- NULL
         args[["K"]] <- K
