@@ -149,7 +149,7 @@ isPolyfunctional <- function(gm) {
 setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
 
 # constructor from csv
-setMethod("gatingTemplate", signature(x = "character"), function(x, name) {
+setMethod("gatingTemplate", signature(x = "character"), function(x, name="default") {
   df <- .preprocess_csv(x)
   # create graph with root node
   g <- graphNEL(nodes = "1", edgemode = "directed")
