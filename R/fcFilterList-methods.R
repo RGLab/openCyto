@@ -1,5 +1,5 @@
 setMethod("plot", sig = c("fcFilterList", "ANY"),
-          definition = function(x, y, samples = NULL, posteriors = FALSE, ...) {
+          definition = function(x, y, samples = NULL, posteriors = FALSE, xlim = NULL, ylim = NULL, ...) {
   prior1 <- priors(x[[1]], y)
   
   if (is.null(y)) {
@@ -25,8 +25,13 @@ setMethod("plot", sig = c("fcFilterList", "ANY"),
     sd = sqrt(prior1$Omega0[k])))
   minY <- min(unlist(lapply(prior_density, min)))
   maxY <- max(unlist(lapply(prior_density, max)))
-  
-  plot(x = NULL, type = "n", xlim = c(minX, maxX), ylim = c(minY, maxY), xlab = y, 
+  if(is.null(xlim)){
+    xlim <- c(minX, maxX)
+  }
+  if(is.null(ylim)){
+    ylim <- c(minY, maxY)
+  }
+  plot(x = NULL, type = "n", xlim = xlim, ylim = ylim, xlab = y, 
     ylab = "", ...)
   
   # plot post
@@ -46,7 +51,7 @@ setMethod("plot", sig = c("fcFilterList", "ANY"),
       for (k in seq_len(K)) {
         lines(x_dens, prior_density[[k]], col = rainbow(K)[k], lty = 2, lwd = 1)
         
-        posterior_density <- dmvt(x_dens, mu = curPost$mu[k, ], sigma = curPost$sigma[k, 
+        posterior_density <- flowClust::dmvt(x_dens, mu = curPost$mu[k, ], sigma = curPost$sigma[k, 
           , ], nu = curPost$nu, lambda = curPost$lamdda)$value
         lines(x_dens, posterior_density, col = rainbow(K)[k], lwd = 1)
 
