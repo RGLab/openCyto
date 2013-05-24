@@ -582,7 +582,7 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
                     silent = TRUE)
 
     if (class(cutpoint) == "try-error" || is.na(cutpoint)) {
-      cutpoint <- ifelse(positive, peaks[1], peaks[2])
+      cutpoint <- min(x_between)
     }
   }
   # After the 1D cutpoint is set, we set the gate coordinates used in the
