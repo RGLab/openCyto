@@ -509,7 +509,7 @@ find_valleys <- function(x, order_valleys = FALSE, adjust = 2, found_peaks=NULL,
 
   #If we passed in the peaks, we'll restrict the search to the area between them
   if(!is.null(found_peaks)){
-	interval<-findInterval(dens$x,peaks)==1	
+	interval<-findInterval(dens$x,found_peaks)==1	
 	dens$x<-dens$x[interval]
         dens$y<-dens$y[interval]
   }
