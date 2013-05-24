@@ -498,7 +498,7 @@ find_peaks <- function(x, order_peaks = FALSE, adjust = 2, ...) {
 #' plot(density(y))
 #' valleys <- find_valleys(y)
 #' abline(v = valleys, col = "red")
-find_valleys <- function(x, order_valleys = FALSE, adjust = 2, ...) {
+find_valleys <- function(x, order_valleys = FALSE, adjust = 2, found_peaks=NULL,...) {
   x <- as.vector(x)
 
   if (length(x) < 2) {
@@ -507,6 +507,12 @@ find_valleys <- function(x, order_valleys = FALSE, adjust = 2, ...) {
   
   dens <- density(x, adjust = adjust, ...)
 
+  #If we passed in the peaks, we'll restrict the search to the area between them
+  if(!is.null(found_peaks)){
+	interval<-findInterval(dens$x,peaks)==1	
+	dens$x<-dens$x[interval]
+        dens$y<-dens$y[interval]
+  }
   # Discrete analogue to a second derivative applied to the KDE. See details.
   second_deriv <- diff(sign(diff(dens$y)))
   which_minima <- which(second_deriv == 2) + 1

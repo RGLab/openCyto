@@ -578,7 +578,7 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
     # case that there are no valleys (i.e., if 'x_between' has an insufficient
     # number of observations), we are conservative and set the cutpoint as the
     # minimum value if 'positive' is TRUE, and the maximum value otherwise.
-    cutpoint <- try(find_valleys(x_between, order_valleys = TRUE)[1],
+    cutpoint <- try(find_valleys(x, order_valleys = TRUE,found_peaks=peaks)[1],
                     silent = TRUE)
 
     if (class(cutpoint) == "try-error" || is.na(cutpoint)) {
