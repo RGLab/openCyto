@@ -1,7 +1,6 @@
 setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
 
-setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
-          definition = function(x, y, env_fct = NULL, ...) {
+.gating_gatingTemplate <- function(x, y, env_fct = NULL, ...) {
   gt <- x
   if (!is.null(env_fct)) {
     # use the fcTree if already exists
@@ -57,10 +56,19 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
     }
   }
   message("finished.")
-})
+}
+
+setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
+    definition = function(x, y, env_fct = NULL, ...) {
+      .gating_gatingTemplate(x,y,env_fct,...)
+    })
 
 setMethod("gating", signature = c("gtMethod", "GatingSet"),
-          definition = function(x, y, gtPop, parent, num_cores = 1,
+    definition = function(x, y, ...) {
+      .gating_gtMethod(x,y,...)
+    })
+
+.gating_gtMethod <- function(x, y, gtPop, parent, num_cores = 1,
             parallel_type = c("multicore", "SOCK", "MPI"), plot = FALSE,
             xbin = 128, prior_group = NULL, ...) {
   
@@ -310,7 +318,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
   }
   
   list(gs_node_id = gs_node_id, filterObj = filterObj)
-})
+}
 
 setMethod("gating", signature = c("boolMethod", "GatingSet"),
           definition = function(x, y, gtPop, parent, ...) {
@@ -381,9 +389,11 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet"),
   
   list()
 })
-
 setMethod("gating", signature = c("refGate", "GatingSet"),
-          definition = function(x, y, gtPop, parent, plot = FALSE, xbin = 128,
+    definition = function(x, y, ...) {
+      .gating_refGate(x, y, ...)
+    })
+.gating_refGate <- function(x, y, gtPop, parent, plot = FALSE, xbin = 128,
             ...) {
   
   refNodes <- x@refNodes
@@ -406,83 +416,115 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
     fr <- getData(y[[1]])
     
     flist <- flowWorkspace::lapply(y, function(gh) {
-      glist <- lapply(refNodes, function(refNode) {
-        node_names <- getNodes(gh)
-        node_ind <- match(refNode, node_names)
-        if (is.na(node_ind)) {
-          # match to path
-          node_paths <- getNodes(gh, isPath = T)
-          toMatch <- gsub("\\+", "\\\\+", refNode)
-          toMatch <- paste(toMatch, "$", sep = "")
-          node_ind <- grep(toMatch, node_paths)
-          if (length(node_ind) == 0) {
-          stop(refNode, " not found in gating set!")
-          } else if (length(node_ind) > 1) {
-          stop("Multiple ", refNode, " found in gating set!")
+          
+       glist <- lapply(refNodes, function(refNode) {
+          node_names <- getNodes(gh)
+          node_ind <- match(refNode, node_names)
+         if (is.na(node_ind)) {
+            # match to path
+            node_paths <- getNodes(gh, isPath = T)
+            toMatch <- gsub("\\+", "\\\\+", refNode)
+            toMatch <- paste(toMatch, "$", sep = "")
+            node_ind <- grep(toMatch, node_paths)
+            if (length(node_ind) == 0) {
+            stop(refNode, " not found in gating set!")
+            } else if (length(node_ind) > 1) {
+            stop("Multiple ", refNode, " found in gating set!")
+            }
           }
-        }
-        getGate(gh, node_ind)
-      })
+          getGate(gh, node_ind)
+        })
 
       # standardize the names for the gate parameters and dims
       gate_params <- unlist(lapply(glist, function(g) {
         cur_param <- parameters(g)
         getChannelMarker(fr, cur_param)["name"]
       }))
-      
-      dim_params <- unlist(lapply(dims, function(dim) {
-        getChannelMarker(fr, dim)["name"]
-      }))
 
-      # match the gate param to dims to find gates for x, y dimensions
-      x_g <- glist[[match(dim_params[1], gate_params)]]
-      y_g <- glist[[match(dim_params[2], gate_params)]]
-
-      # pick the non-infinite coordinate as the cut points
-      x_coord <- c(x_g@min, x_g@max)
-      y_coord <- c(y_g@min, y_g@max)
-      cut.x <- x_coord[!is.infinite(x_coord)]
-      cut.y <- y_coord[!is.infinite(y_coord)]
-      
-      # In order, the following vector has the patterns:
-      # 1. top left (-+)
-      # 2. top right (++)
-      # 3. bottom right (+-)
-      # 4. bottom left (--)
-      quadPatterns <- c(".+-.+\\+$", ".+\\+.+\\+$", ".+\\+.+-$", ".+-.+-$")
-      
-      # check if popname is give as Y[*]X[*]
-      YX_pattern <- paste0(dims["yChannel"], ".+", dims["xChannel"], ".+")
-      XY_pattern <- paste0(dims["xChannel"], ".+", dims["yChannel"], ".+")
-
-      # do the flipping if YX
-      if (grepl(YX_pattern, popName)) {
-        pos <- regexpr(dims["xChannel"], popName)
-        xterm <- substring(popName, pos, nchar(popName))
-        yterm <- substring(popName, 1, pos - 1)
-        toMatch <- paste(xterm, yterm, sep = "")
-      } else if (grepl(XY_pattern, popName)) {
-        toMatch <- popName  #keep as it is if XY
+      if(length(glist)==1){
+        #1d ref gate
+        dims <- dims[!is.na(dims)]
+        nDims <- length(dims)
+        if(nDims!=1){
+          stop("Can't do 1d gating on ",nDims, " dimensions!")
+        }
+        dim_params <-  getChannelMarker(fr, dims)["name"]
+        y_g <- glist[[1]]               
+        y_coord <- c(y_g@min, y_g@max)
+        cut.y <- y_coord[!is.infinite(y_coord)]
+        
+        pos_token <- "[\\+]"
+        neg_token <- "[\\-]"
+        pop_name_pat <- "[^\\+-]+"
+        pos_pop_pat <- paste(pop_name_pat, pos_token, sep = "")
+        neg_pop_pat <- paste(pop_name_pat, neg_token, sep = "")
+        if (grepl(pos_pop_pat,popName)) {
+          gate_coordinates <- list(c(cut.y, Inf))
+        } else if(grepl(neg_pop_pat,popName)){
+          gate_coordinates <- list(c(-Inf, cut.y))
+        }else{
+          stop("unknown population pattern, ",popName)
+        }
+        names(gate_coordinates) <- as.character(dim_params)
+        
+        rectangleGate(gate_coordinates)
+      }else{
+          #2d quad gate
+          dim_params <- unlist(lapply(dims, function(dim) {
+                    getChannelMarker(fr, dim)["name"]
+                  }))
+          
+          # match the gate param to dims to find gates for x, y dimensions
+          x_g <- glist[[match(dim_params[1], gate_params)]]
+          y_g <- glist[[match(dim_params[2], gate_params)]]
+          
+          # pick the non-infinite coordinate as the cut points
+          x_coord <- c(x_g@min, x_g@max)
+          y_coord <- c(y_g@min, y_g@max)
+          cut.x <- x_coord[!is.infinite(x_coord)]
+          cut.y <- y_coord[!is.infinite(y_coord)]
+          
+          # In order, the following vector has the patterns:
+          # 1. top left (-+)
+          # 2. top right (++)
+          # 3. bottom right (+-)
+          # 4. bottom left (--)
+          quadPatterns <- c(".+-.+\\+$", ".+\\+.+\\+$", ".+\\+.+-$", ".+-.+-$")
+          
+          # check if popname is give as Y[*]X[*]
+          YX_pattern <- paste0(dims["yChannel"], ".+", dims["xChannel"], ".+")
+          XY_pattern <- paste0(dims["xChannel"], ".+", dims["yChannel"], ".+")
+          
+          # do the flipping if YX
+          if (grepl(YX_pattern, popName)) {
+            pos <- regexpr(dims["xChannel"], popName)
+            xterm <- substring(popName, pos, nchar(popName))
+            yterm <- substring(popName, 1, pos - 1)
+            toMatch <- paste(xterm, yterm, sep = "")
+          } else if (grepl(XY_pattern, popName)) {
+            toMatch <- popName  #keep as it is if XY
+          }
+          else {
+            stop("X,Y axis do not match between 'dims'(", paste(dims, collapse = ","), 
+                ") and 'pop'(", popName, ")")
+          }
+          quadInd <- which(unlist(lapply(quadPatterns, grepl, toMatch)))
+          
+          # construct rectangleGate from reference cuts
+          if (quadInd == 1) {
+            coord <- list(c(-Inf, cut.x), c(cut.y, Inf))
+          } else if (quadInd == 2) {
+            coord <- list(c(cut.x, Inf), c(cut.y, Inf))
+          } else if (quadInd == 3) {
+            coord <- list(c(cut.x, Inf), c(-Inf, cut.y))
+          } else if (quadInd == 4) {
+            coord <- list(c(-Inf, cut.x), c(-Inf, cut.y))
+          } else stop("Pop names does not match to any quadrant pattern!")
+          
+          names(coord) <- as.character(dim_params)
+          rectangleGate(coord)
       }
-      else {
-        stop("X,Y axis do not match between 'dims'(", paste(dims, collapse = ","), 
-        ") and 'pop'(", popName, ")")
-      }
-      quadInd <- which(unlist(lapply(quadPatterns, grepl, toMatch)))
       
-      # construct rectangleGate from reference cuts
-      if (quadInd == 1) {
-        coord <- list(c(-Inf, cut.x), c(cut.y, Inf))
-      } else if (quadInd == 2) {
-        coord <- list(c(cut.x, Inf), c(cut.y, Inf))
-      } else if (quadInd == 3) {
-        coord <- list(c(cut.x, Inf), c(-Inf, cut.y))
-      } else if (quadInd == 4) {
-        coord <- list(c(-Inf, cut.x), c(-Inf, cut.y))
-      } else stop("Pop names does not match to any quadrant pattern!")
-      
-      names(coord) <- as.character(dim_params)
-      rectangleGate(coord)
     })
     
     flist <- filterList(flist)
@@ -504,7 +546,7 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
 
   message("done.")
   list(gs_node_id = gs_node_id, filterObj = flist)
-})
+}
 
 # wrapper for prior_flowClust to return sample-specific priors
 .prior_flowClust <- function(flow_set, prior_group = NULL, ...) {

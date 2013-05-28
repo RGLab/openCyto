@@ -83,10 +83,14 @@
       cat("expanding pop: ", popName, "\n")
       cur_dim <- sub(two_pop_token, "", popName)
       new_pops <- paste(cur_dim, c("+", "-"), sep = "")
-      res <- do.call(rbind, lapply(new_pops, function(new_pop) {
-        c(alias = new_pop, pop = new_pop, parent = this_row[1, "parent"], 
-          dims, this_row[1, "method"], this_row["args"])
-      }))
+      
+      # create 1d gate
+      res_1d <- c(alias = new_pops[1], pop = new_pops[1], parent = this_row[1, "parent"], 
+                    dims, this_row[1, "method"], this_row["args"])
+      # create ref gate
+      res_ref <- c(alias = new_pops[2], pop = new_pops[2], parent = this_row[1, "parent"], 
+                        dims, "refGate", file.path(this_row[1, "parent"],new_pops[1]))
+      res <- rbind(res_1d, res_ref)
 
     } else if (grepl(paste("^(", one_pop_pat, "){2}$", sep = ""), popName)) {
       # A+B+

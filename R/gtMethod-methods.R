@@ -5,7 +5,7 @@ setMethod("show", signature = c("gtMethod"), definition = function(object) {
   chnls <- dims(object)
   cat(paste(paste(names(chnls), chnls, sep = "="), collapse = ","))
   cat(") \n")
-  cat(parameters(object))
+#  cat(parameters(object))
 })
 
 setMethod("show", signature = c("boolMethod"), definition = function(object) {
