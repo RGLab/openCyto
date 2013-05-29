@@ -330,7 +330,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' gating.
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
-                         plot = FALSE, target = rep(0, K),
+                         plot = FALSE, target = rep(0, 2),
                          gate_type = c("ellipse", "axis"), quantile = 0.9,
                          axis_translation = 0.25, min = NULL, max = NULL, ...) {
 
@@ -582,7 +582,10 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
                     silent = TRUE)
 
     if (class(cutpoint) == "try-error" || is.na(cutpoint)) {
-      cutpoint <- min(x_between)
+    #FIXME:currently it is still returning the first peak,
+    #we want to pass density instead of x_between to 'min'
+    #because x_between is the signal values 
+      cutpoint <- min(x_between) 
     }
   }
   # After the 1D cutpoint is set, we set the gate coordinates used in the

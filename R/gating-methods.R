@@ -106,11 +106,26 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     # If 'split' is given, we split using the unique combinations within pData.
     # In this case 'split' is specified with column names of the pData.
     # For example, "PTID:VISITNO"
+    # when split is numeric, do the grouping by every N samples
     if ("split" %in% names(args)) {
+      
       split_by <- as.character(args["split"])
-      split_by <- strsplit(split_by, ":")[[1]]
-      split_by <- apply(pData(parent_data)[, split_by], 1, paste, collapse = ":")
-      split_by <- as.character(split_by)
+      split_by_num <- as.numeric(split_by)
+      #split by every N samples
+      if(!is.na(split_by_num)){
+            nSamples <- length(parent_data)
+            if(nSamples==1){
+              split_by <- 1
+            }else{
+              split_by <-  sample(rep(1:nSamples, each = split_by_num, length.out= nSamples))  
+            }
+            
+      }else{
+        #split by study variables
+        split_by <- strsplit(split_by, ":")[[1]]
+        split_by <- apply(pData(parent_data)[, split_by], 1, paste, collapse = ":")
+        split_by <- as.character(split_by)
+      }
       args[["split"]] <- NULL
     } else {
       split_by <- sampleNames(parent_data)
