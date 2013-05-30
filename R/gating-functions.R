@@ -236,8 +236,8 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                        max = max(x))
   } else {
     posteriors <- prior
-    posteriors$min <- min(x)
-    posteriors$max <- max(x)
+    posteriors$min <- NA
+    posteriors$max <- NA
   }
   postList[[params[1]]] <- posteriors
 

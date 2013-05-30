@@ -299,7 +299,7 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
 #' than 0 and less than or equal to 1.
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
-prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
+prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
                          pct = 0.1, ...) {
   
   # For each randomly selected sample in the flow_set, we apply K-means with to
@@ -315,17 +315,35 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 1,
     # specified percentage of cells to which we apply 'kmeans'
     x <- as.matrix(exprs(flow_set[[i]])[, channels])
     x <- as.matrix(x[sample(seq_len(nrow(x)), pct * nrow(x)), ])
+
+    # If there are too few rows in 'x', 'kmeans' will throw an error.
+    # Instead, we do not elicit summary statistics from this sample and return NA.
+    if (K >= nrow(x)) {
+      warning("The number of clusters 'K' exceeds the number of subsampled rows. Try increasing the subsample 'pct'.")
+      return(NA)
+    }
+    
     kmeans_out <- kmeans(x = x, centers = K, nstart = nstart, ...)
 
     cluster_centroids <- kmeans_out$centers
     cluster_sizes <- kmeans_out$size
 
     cluster_covs <- tapply(seq_len(nrow(x)), kmeans_out$cluster, function(i) {
-      cov(as.matrix(x[i, ]))
+      # In the case that a singleton cluster results, a vague covariance matrix
+      # is reported: the covariance matrix of the entire data set.
+      if (length(i) >= 2) {
+        cov(as.matrix(x[i, ]))
+      } else {
+        warning("A singleton cluster resulted. Using vague covariance matrix. Try increasing the subsample 'pct'.")
+        cov(x)
+      }
     })
 
     list(centroids = cluster_centroids, sizes = cluster_sizes, covs = cluster_covs)
   })
+
+  # Removes samples marked with NA that had too few observations.
+  kmeans_summary <- kmeans_summary[!is.na(kmeans_summary)]
 
   # We randomly select one of the flowFrame's within the flow_set as a reference
   # sample.
