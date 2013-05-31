@@ -345,9 +345,10 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
   # Removes samples marked with NA that had too few observations.
   kmeans_summary <- kmeans_summary[!is.na(kmeans_summary)]
 
-  # We randomly select one of the flowFrame's within the flow_set as a reference
-  # sample.
-  ref_sample <- sample.int(length(kmeans_summary), 1)
+  # We select the flowFrame with the largest number of observations as the
+  # reference sample.
+  sample_sizes <- sapply(kmeans_summary, function(x) sum(x$sizes))
+  ref_sample <- which.max(sample_sizes)
   kmeans_ref_sample <- kmeans_summary[[ref_sample]]
   kmeans_ref_sample$covs <- simplify2array(unname(kmeans_ref_sample$covs))
 
@@ -364,7 +365,7 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
   # Because the cluster labels returned from 'kmeans' are arbitrary, we align the
   # clusters based on the centroids that are closest to the reference sample.
   kmeans_summary <- kmeans_summary[-ref_sample]
-  kmeans_centroids <- lapply(kmeans_summary, function(x) x$centroids)
+  kmeans_centroids <- lapply(kmeans_summary, "[[", "centroids")
   
   # For each sample, we obtain the alignment indices.
   ref_indices <- lapply(kmeans_centroids, function(centroids) {
@@ -395,32 +396,48 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
   # Appends the reference sample to the 'kmeans' summary list.
   kmeans_summary <- c(kmeans_summary, list(kmeans_ref_sample))
 
+  # Calculates the total number of observations assigned to each cluster across
+  # all samples.
+  kmeans_sizes <- do.call(rbind, lapply(kmeans_summary, "[[", "sizes"))
+  kmeans_sizes_sum <- colSums(kmeans_sizes)
+
+  # For each cluster after alignment, we extract a matrix of the centroids from
+  # each sample.
+  kmeans_centroids <- lapply(kmeans_summary, "[[", "centroids")
+  centroids_split <- lapply(kmeans_centroids, split, f = seq_len(K))
+  centroids_split <- lapply(seq_len(K), function(k) {
+    do.call(rbind, lapply(centroids_split, function(x) x[[k]]))
+  })
+
+  # Next, for each cluster, we compute summary statistics of the centroids from
+  # each sample. The statistics are weighted by the number of samples. This is
+  # especially imporant when the number of samples is small and some of them
+  # have few observations.
+  weighted_stats <- lapply(centroids_split, cov.wt, wt = sample_sizes,
+                           method = "ML")
+
   # Mu0 dimensions: K x p
   # Prior Mean
-  # We average each of the cluster centroids across all samples to elicit Mu0.
-  Mu0 <- Reduce("+", lapply(kmeans_summary, function(x) x$centroids)) / num_samples
+  # We aggregate the cluster centroids across all samples weighted by the
+  # cluster sample sizes to elicit Mu0.
+  centroids_aggregate <- lapply(weighted_stats, "[[", "center")
+  Mu0 <- do.call(rbind, centroids_aggregate)
   Mu0 <- matrix(Mu0, K, p)
+
+  # Omega0 dimensions: K x p x p
+  # Hyperprior covariance matrix for the prior mean Mu0
+  # For each cluster we calculate the weighted covariance matrix of the cluster
+  # centroids across all samples to elicit Omega0.
+  Omega0 <- lapply(weighted_stats, "[[", "cov")
+  Omega0 <- array(do.call(rbind, lapply(Omega0, as.vector)), dim = c(K, p, p))
 
   # Lambda0 dimensions: K x p x p
   # Prior Covariance Matrix
   # For each cluster, we pool the covariance matrices from all samples to elicit
   # Lambda0.
-  kmeans_sizes <- do.call(rbind,lapply(kmeans_summary, function(x) x$sizes))
-  kmeans_sizes_sum <- colSums(kmeans_sizes)
   kmeans_scatter <- lapply(kmeans_summary, function(x) x$sizes * x$covs)
   Lambda0 <- Reduce("+", kmeans_scatter) / kmeans_sizes_sum
   Lambda0 <- array(Lambda0, c(K, p, p))
-
-  # Omega0 dimensions: K x p x p
-  # Hyperprior covariance matrix for the prior mean Mu0
-  # For each cluster we calculate the covariance matrix of the cluster centroids
-  # across all samples to elicit Omega0.
-  kmeans_centroids <- lapply(kmeans_summary, function(x) x$centroids)
-  centroids_split <- lapply(kmeans_centroids, split, f = seq_len(K))
-  Omega0 <- lapply(seq_len(K), function(k) {
-    cov(do.call(rbind, lapply(centroids_split, function(x) x[[k]])))
-  })
-  Omega0 <- array(do.call(rbind, lapply(Omega0, as.vector)), dim = c(K, p, p))
 
   # We assume that the degrees of freedom is the same for each mixture component.
   nu0 <- rep(nu0, K)
