@@ -276,33 +276,37 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   fcRectangleGate(fres, priorList, postList)
 }
 
-#' Applies flowClust to two features in a flowFrame
+#' Automatic identification of a population of interest via flowClust based on
+#' two markers
 #'
 #' We cluster the observations in \code{fr} into \code{K} clusters. We set the
 #' cutpoint to be the point at which the density between the first and second
 #' smallest cluster centroids is minimum.
 #'
-#' The cluster for the population of interest is selected as the one with cluster
-#' centroid nearest the \code{target} in Euclidean distance.
+#' The cluster for the population of interest is selected as the one with
+#' cluster centroid nearest the \code{target} in Euclidean distance. By default,
+#' the largest cluster (i.e., the cluster with the largest proportion of
+#' observations) is selected as the population of interest.
 #'
-#' When constructing the axis gate, we translate the gate from the cluster
-#' centroid of along the eigenvector with positive slope from the bottom-left
-#' corner to top-right corner. The \code{axis_translation} argument scales the
-#' translation shift as a function of the appropriate chi-squared coefficient.
-#' The larger \code{axis_translation} is, the more gate is shifted in a positive
-#' direction.
+#' We also provide the option of constructing a \code{transitional} gate from
+#' the selected population of interest. The location of the gate can be
+#' controlled with the \code{translation} argument, which translates the gate
+#' along the major axis of the targest cluster as a function of the appropriate
+#' chi-squared coefficient. The larger \code{translation} is, the more gate is
+#' shifted in a positive direction. Furthermore, the width of the
+#' \code{transitional} gate can be controlled with the \code{quantile} argument.
 #'
 #' @param fr a \code{flowFrame} object
 #' @param xChannel TODO
 #' @param yChannel TODO
 #' @param filterId TODO
 #' @param K the number of clusters to find
-#' @param usePrior Should we use the Bayesian version of
-#' \code{\link{flowClust}}?  Answers are "yes", "no", or "vague". The answer is
-#' passed along to \code{\link{flowClust}}.
-#' @param prior list of prior parameters for the Bayesian
-#' \code{\link{flowClust}}.  If \code{usePrior} is set to 'no', then the list is
-#' unused.
+#' @param usePrior Should we use the Bayesian version of \code{\link{flowClust}}?
+#' Answers are "yes", "no", or "vague". The answer is passed along to
+#' \code{\link{flowClust}}.
+#' @param prior list of prior parameters for the Bayesian version of
+#' \code{\link{flowClust}}. If \code{usePrior} is set to \code{no}, then the
+#' list is unused.
 #' @param trans numeric indicating whether the Box-Cox transformation parameter
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
 #' (cluster-speciﬁc estimation). NOTE: For the Bayesian version of
@@ -311,12 +315,13 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' plotted. By default, no.
 #' @param target a numeric vector of length \code{K} containing the location of
 #' the cluster of interest. See details.
-#' @param gate_type character value specifying the type of gate to construct from
-#' the \code{\link{flowClust}} fit
+#' @param transitional logical value indicating if a transitional gate should be
+#' constructed from the target \code{\link{flowClust}} cluster. By default, no.
 #' @param quantile the contour level of the target cluster from the
 #' \code{\link{flowClust}} fit to construct the gate
-#' @param axis_translation a numeric value between 0 and 1 used to position the
-#' gate if \code{gate_type} is selected as \code{"axis"}. See details.
+#' @param translation a numeric value between 0 and 1 used to position a
+#' transitional gate if \code{transitional = TRUE}. This argument is ignored if
+#' \code{transitional = FALSE}. See details
 #' @param min A vector of length 2. Truncate observations less than this minimum
 #' value. The first value truncates the \code{xChannel}, and the second value
 #' truncates the \code{yChannel}. By default, this vector is \code{NULL} and is
@@ -330,14 +335,18 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' gating.
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
-                         plot = FALSE, target = rep(0, 2),
-                         gate_type = c("ellipse", "axis"), quantile = 0.9,
-                         axis_translation = 0.25, min = NULL, max = NULL, ...) {
+                         plot = FALSE, target = NULL, transitional = FALSE,
+                         quantile = 0.9, translation = 0.25, min = NULL,
+                         max = NULL, ...) {
 
-  if (length(target) != 2) {
-    stop("The 'target' location must be a numeric vector of length 2.")
+  if (!is.null(target)) {
+    target <- as.numeric(target)
+    if (length(target) != 2) {
+      warning("The 'target' location must be a numeric vector of length 2.
+               Using largest cluster instead...")
+      target <- NULL
+    }    
   }
-  gate_type <- match.arg(gate_type)
 
   # If a truncation value is specified, we remove all observations less than
   # this value for the marker specified to construct the gate. NOTE: These
@@ -345,9 +354,6 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # for the determining the gate.
   fr <- truncate_flowframe(fr, channel = xChannel, min = min[1], max = max[1])
   fr <- truncate_flowframe(fr, channel = yChannel, min = min[2], max = max[2])
-
-  x <- exprs(fr)[, xChannel]
-  y <- exprs(fr)[, yChannel]
 
   # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
   if (usePrior == "yes" && identical(prior, list(NA))) {
@@ -365,18 +371,25 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # We select the cluster with the minimum 'yChannel' to be the subpopulation from
   # which we obtain the contour (ellipse) to generate the polygon gate.
   fitted_means <- getEstimates(tmix_results)$locations
-  target_dist <- apply(fitted_means, 1, function(x) {
-    dist(rbind(x, target))
-  })
-  cluster_selected <- which.min(target_dist)
 
-  if (gate_type == "ellipse") {
+  # By default, the cluster with the largest number of observations is
+  # selected. Otherwise, the cluster centroid nearest to the 'target' is
+  # selected.
+  if (is.null(target)) {
+    cluster_selected <- which.max(tmix_results@w)
+  } else {
+    target_dist <- as.matrix(dist(rbind(fitted_means, target)))
+    target_dist <- tail(target_dist, n = 1)[seq_len(K)]
+    cluster_selected <- which.min(target_dist)
+  }
+
+  if (!transitional) {
     contour_ellipse <- .getEllipse(filter = tmix_results, include = cluster_selected,
                                    quantile = quantile)
     flowClust_gate <- polygonGate(.gate = matrix(contour_ellipse, ncol = 2,
                                     dimnames = list(NULL, tmix_results@varNames)),
                                   filterId = filterId)
-  } else if (gate_type == "axis") {
+  } else {
     chisq_quantile <- qchisq(quantile, df = 2)
 
     xbar <- tmix_results@mu[cluster_selected, ]
@@ -426,7 +439,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     # then the frame of reference is the cross-section along the eigenvector
     # from top-left to bottom-right. We translate this reference as a function
     # of the appropriate chi-squared coefficient.
-    gate_location <- xbar + axis_translation * axis
+    gate_location <- xbar + translation * axis
 
     # To construct the gate, we have effectively shifted the eigenvector with the
     # negative slope. We then extend the gate both horizontally and vertically
@@ -435,6 +448,9 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     # observed to mimic a gate that extends without limit in the positive
     # directions. However, because flowCore cannot handle such a shape, we force
     # the gate to have the same shape for the observed data.
+    x <- exprs(fr)[, xChannel]
+    y <- exprs(fr)[, yChannel]
+
     x_max <- max(x) + sd(x)
     y_max <- max(y) + sd(y)
     gate_x <- c(x_max, (gate_location + axis_perp)[2])
@@ -451,14 +467,14 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     flowClust_gate <- polygonGate(filterId = filterId, boundaries = polygon_gate)
   }
   
-  # TODO: need to verify if this is the right way to grab posteriors from 2-D tmixRes
+  # List of posterior point estimates
   posteriors <- list(mu = tmix_results@mu, lamdda = tmix_results@lambda,
                      sigma = tmix_results@sigma, nu = tmix_results@nu)
 
   if (plot) {
     plot(fr, tmix_results, main = filterId)
 
-    if (gate_type == "axis") {
+    if (transitional) {
       # The major and minor axes (eigenvectors) scaled by their respective
       # eigenvalues and the chi-squared quantile.
       lines(rbind(xbar, xbar + sqrt(lambda1 * chisq_quantile) * u1), col = "darkgreen")
