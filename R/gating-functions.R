@@ -476,11 +476,9 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 
     if (transitional) {
       # The major and minor axes (eigenvectors) scaled by their respective
-      # eigenvalues and the chi-squared quantile.
-      lines(rbind(xbar, xbar + sqrt(lambda1 * chisq_quantile) * u1), col = "darkgreen")
-      lines(rbind(xbar, xbar - sqrt(lambda1 * chisq_quantile) * u1), col = "darkgreen")
-      lines(rbind(xbar, xbar + sqrt(lambda2 * chisq_quantile) * u2), col = "darkgreen")
-      lines(rbind(xbar, xbar - sqrt(lambda2 * chisq_quantile) * u2), col = "darkgreen")
+      # eigenvalues and the chi-squared quantile.    
+      lines(rbind(xbar - axis, xbar + axis), col = "darkgreen")
+      lines(rbind(xbar - axis_perp, xbar + axis_perp), col = "darkgreen")
 
       # Draws the polygon gate.
       lines(polygon_gate, col = "red")
