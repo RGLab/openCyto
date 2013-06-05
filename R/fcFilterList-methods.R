@@ -1,5 +1,7 @@
 setMethod("plot", sig = c("fcFilterList", "ANY"),
-          definition = function(x, y, samples = NULL, posteriors = FALSE, xlim = NULL, ylim = NULL, ...) {
+          definition = function(x, y, samples = NULL, posteriors = FALSE
+        , xlim = NULL, ylim = NULL, node = NULL, data = NULL, breaks = 20, lwd = 1, ...) {
+#            browser()
   prior1 <- priors(x[[1]], y)
   
   if (is.null(y)) {
@@ -40,20 +42,25 @@ setMethod("plot", sig = c("fcFilterList", "ANY"),
       samples <- names(x)
     for (samp in samples) {
       curFilter <- x[[samp]]
-      
+#      browser()
+      if(!is.null(data)){
+        fr <- getData(data[[samp]],node)
+        thisChnl <- priorNames
+        hist(exprs(fr)[,thisChnl],add=T,prob=T,breaks=breaks)  
+      }
       curPost <- posteriors(x = curFilter, y = y)
       
       curPrior <- priors(x = curFilter, y = y)
       K <- nrow(curPrior$Mu0)
       prior_density <- lapply(seq_len(K), function(k) dnorm(x_dens, mean = curPrior$Mu0[k], 
         sd = sqrt(curPrior$Omega0[k])))
-      
+#      browser()
       for (k in seq_len(K)) {
-        lines(x_dens, prior_density[[k]], col = rainbow(K)[k], lty = 2, lwd = 1)
+        lines(x_dens, prior_density[[k]], col = rainbow(K)[k], lty = 2, lwd = lwd)
         
-        posterior_density <- flowClust::dmvt(x_dens, mu = curPost$mu[k, ], sigma = curPost$sigma[k, 
+        posterior_density <- curPost$w[k]*flowClust::dmvt(x_dens, mu = curPost$mu[k, ], sigma = curPost$sigma[k, 
           , ], nu = curPost$nu, lambda = curPost$lamdda)$value
-        lines(x_dens, posterior_density, col = rainbow(K)[k], lwd = 1)
+        lines(x_dens, posterior_density, col = rainbow(K)[k], lwd = lwd)
 
         # plot gate
         g <- c(curFilter@min[y], curFilter@max[y])
@@ -62,6 +69,8 @@ setMethod("plot", sig = c("fcFilterList", "ANY"),
       }
     }
   }
+  
+  
   
 })
 setMethod("plot", sig = c("filterList", "ANY"),

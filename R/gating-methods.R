@@ -628,12 +628,19 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
 .flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", prior = NULL,
                           ...) {
   require(openCyto)
-  # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
-  # contain more than one flowFrame if 'split' is specified in the CSV file.
+  
   sname <- sampleNames(fs)
-  fr <- fs[[sname]]
-  flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel, usePrior = usePrior,
-               prior = prior[[sname]], ...)
+  #collapse if necessary
+  if(length(sname)>1){
+    fr <- as(fs,"flowFrame")
+  }else{
+    fr <- fs[[sname]]  
+  }
+  
+  flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel, usePrior = usePrior
+#               ,prior = prior[[sname]]
+                ,prior = prior[[1]] #TODO:this is a hack to get collapsed gating work.
+                , ...)
 }
 
 .rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE, filterId = "", 

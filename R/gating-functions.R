@@ -232,8 +232,9 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   postList <- list()
   if (class(tmix_results) != "try-error") {
     posteriors <- list(mu = tmix_results@mu, lamdda = tmix_results@lambda,
-                       sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x),
-                       max = max(x))
+                       sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x)
+                      ,w = tmix_results@w
+                    , max = max(x))
   } else {
     posteriors <- prior
     posteriors$min <- NA

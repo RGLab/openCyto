@@ -29,12 +29,14 @@ setMethod("getGate", sig = c("fcTree", "character"),
   matchedNode
 }
 setMethod("plot", sig = c("fcTree", "character"),
-          definition = function(x, y, channel = NULL, ...) {
+          definition = function(x, y, channel = NULL, data = NULL,...) {
   # get filterList
 #      browser()
     flist <- getGate(x,y)
     matchedNode <-.getNode(x,y)
-  plot(x = flist, y = channel, main = matchedNode$pop@name, ...)
+    if(!is.null(data))
+      parentNode <- getParent(data[[1]],y)
+  plot(x = flist, y = channel, main = matchedNode$pop@name, node =parentNode, data = data, ...)
 })
 
 #setMethod("plot", sig = c("fcTree", "numeric"),
