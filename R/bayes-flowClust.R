@@ -153,7 +153,7 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
     flow_frame <- truncate_flowframe(flow_frame, channel = channel, min = min,
                                      max = max)
     x <- exprs(flow_frame)[, channel]
-    peaks_found <- find_peaks(x, adjust = adjust, order = TRUE)
+    peaks_found <- find_peaks(x, adjust = adjust)
 
     # If K is specified and is smaller than the number of peaks found,
     # we keep only the K largest peaks from the sample.
@@ -456,17 +456,24 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
 #' \code{\link{density}} function. Then, we find every local maxima such that the
 #' density is concave (downward).
 #'
+#' The \code{num_peaks} argument returns only the largest peaks. If
+#' \code{num_peaks} is greater than the number of peaks found, then all the peaks
+#' are returned, and a warning is issued.
+#'
 #' Effectively, we find the local maxima with a discrete analogue to a second
 #' derivative applied to the KDE. For details, see this StackOverflow post:
 #' \url{http://bit.ly/Zbl7LV}.
 #'
 #' @param x numeric vector
-#' @param order_peaks logical value. If \code{TRUE}, the peaks will be sorted by
-#' the height of the peaks in decreasing order. (Default: \code{FALSE})
+#' @param y numeric vector. If given, it is treated as the density values for
+#' \code{x}. The length of \code{y} must equal that of \code{x}.
+#' @param num_peaks the number of peaks to find. By default, all peaks are
+#' returned. See details.
 #' @param adjust the bandwidth to use in the kernel density estimation. See
 #' \code{\link{density}} for more information.
 #' @param ... additional arguments passed to the \code{\link{density}} function
-#' @return the values where the peaks are attained.
+#' @return the values where the peaks are attained. The peaks are sorted in
+#' descending order based on the density heights.
 #' @examples
 #' library(flowClust)
 #' set.seed(42)
@@ -475,35 +482,47 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
 #' plot(density(y))
 #' peaks <- find_peaks(y)
 #' abline(v = peaks, col = "red")
-find_peaks <- function(x, order_peaks = FALSE, adjust = 2, ...) {
+find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, ...) {
   x <- as.vector(x)
 
   if (length(x) < 2) {
     warning("At least 2 observations must be given in 'x' to find peaks.")
-    peaks <- NA
-  } else {
-    dens <- density(x, adjust = adjust, ...)
-
-    # Discrete analogue to a second derivative applied to the KDE. See details.
-    second_deriv <- diff(sign(diff(dens$y)))
-    which_maxima <- which(second_deriv == -2) + 1
-
-    # The 'density' function can consider observations outside the observed range.
-    # In rare cases, this can actually yield peaks outside this range.  We remove
-    # any such peaks.
-    which_maxima <- which_maxima[findInterval(dens$x[which_maxima], range(x)) == 1]
-
-    if (order_peaks) {
-      which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
-    }
-
-    # Returns the local minima. If there are none, we return 'NA' instead.
-    if (length(which_maxima) > 0) {
-      peaks <- dens$x[which_maxima]
-    } else {
-      peaks <- NA
-    }
+    return(NA)
   }
+
+  if (is.null(y)) {
+    dens <- density(x, adjust = adjust, ...)
+  } else {
+    y <- as.vector(y)
+    if (length(x) != length(y)) {
+      stop("The lengths of 'x' and 'y' must be equal.")
+    }
+    dens <- list(x = x, y = y)
+  }
+
+  # Discrete analogue to a second derivative applied to the KDE. See details.
+  second_deriv <- diff(sign(diff(dens$y)))
+  which_maxima <- which(second_deriv == -2) + 1
+
+  # The 'density' function can consider observations outside the observed range.
+  # In rare cases, this can actually yield peaks outside this range.  We remove
+  # any such peaks.
+  which_maxima <- which_maxima[findInterval(dens$x[which_maxima], range(x)) == 1]
+
+  # Next, we sort the peaks in descending order based on the density heights.
+  which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
+
+  # Returns the local maxima. If there are none, we return 'NA' instead.
+  if (length(which_maxima) > 0) {
+    peaks <- dens$x[which_maxima]
+    if (is.null(num_peaks) || num_peaks > length(peaks)) {
+      num_peaks <- length(peaks)
+    }
+    peaks <- peaks[seq_len(num_peaks)]
+  } else {
+    peaks <- NA
+  }
+
   peaks  
 }
 
@@ -519,8 +538,10 @@ find_peaks <- function(x, order_peaks = FALSE, adjust = 2, ...) {
 #' \url{http://bit.ly/Zbl7LV}.
 #'
 #' @param x numeric vector
-#' @param order_valleys logical value. If \code{TRUE}, the valleys will be sorted by
-#' the height of the valleys in increasing order. (Default: \code{FALSE})
+#' @param y numeric vector. If given, it is treated as the density values for
+#' \code{x}. The length of \code{y} must equal that of \code{x}.
+#' @param num_valleys the number of valleys to find. By default, all valleys are
+#' returned. See details.
 #' @param adjust the bandwidth to use in the kernel density estimation. See
 #' \code{\link{density}} for more information.
 #' @param ... additional arguments passed to the \code{\link{density}} function
@@ -533,37 +554,44 @@ find_peaks <- function(x, order_peaks = FALSE, adjust = 2, ...) {
 #' plot(density(y))
 #' valleys <- find_valleys(y)
 #' abline(v = valleys, col = "red")
-find_valleys <- function(x, order_valleys = FALSE, adjust = 2, found_peaks=NULL,...) {
+find_valleys <- function(x, y = NULL, num_valleys = NULL, adjust = 2, ...) {
+
   x <- as.vector(x)
 
   if (length(x) < 2) {
-    stop("At least 2 observations must be given in 'x' to find valleys.")
+    warning("At least 2 observations must be given in 'x' to find valleys.")
+    return(NA)
   }
   
-  dens <- density(x, adjust = adjust, ...)
-
-  #If we passed in the peaks, we'll restrict the search to the area between them
-  if(!is.null(found_peaks)){
-	interval<-findInterval(dens$x,found_peaks)==1	
-	dens$x<-dens$x[interval]
-        dens$y<-dens$y[interval]
+  if (is.null(y)) {
+    dens <- density(x, adjust = adjust, ...)
+  } else {
+    y <- as.vector(y)
+    if (length(x) != length(y)) {
+      stop("The lengths of 'x' and 'y' must be equal.")
+    }
+    dens <- list(x = x, y = y)
   }
+
   # Discrete analogue to a second derivative applied to the KDE. See details.
   second_deriv <- diff(sign(diff(dens$y)))
   which_minima <- which(second_deriv == 2) + 1
 
   # The 'density' function can consider observations outside the observed range.
   # In rare cases, this can actually yield valleys outside this range. We remove
-  # any such peaks.
+  # any such valleys.
   which_minima <- which_minima[findInterval(dens$x[which_minima], range(x)) == 1]
 
-  if (order_valleys) {
-    which_minima <- which_minima[order(dens$y[which_minima], decreasing = FALSE)]
-  }
+  # Next, we sort the valleys in descending order based on the density heights.
+  which_minima <- which_minima[order(dens$y[which_minima], decreasing = FALSE)]
 
   # Returns the local minima. If there are none, we return 'NA' instead.
   if (length(which_minima) > 0) {
     valleys <- dens$x[which_minima]
+    if (is.null(num_valleys) || num_valleys > length(valleys)) {
+      num_valleys <- length(valleys)
+    }
+    valleys <- valleys[seq_len(num_valleys)]
   } else {
     valleys <- NA
   }

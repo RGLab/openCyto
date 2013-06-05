@@ -303,7 +303,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     #     The order do not necessarily match up with sampleNames()
     # Unforunately, we cannot simply use 'unlist' because the list element names
     # are mangled.
-    if (all(split_by != sampleNames(parent_data))) {
+    if (all(sapply(flist, is.list))) {
       flist <- do.call(c, unname(flist))
     }
     
