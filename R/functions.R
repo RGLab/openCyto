@@ -542,3 +542,20 @@ polyfunction_nodes <- function(markers) {
     paste(paste0(isnot_row, markers), collapse = "")
   })
 } 
+
+#' Finds values of a vector in an interval
+#'
+#' @param x numeric vector
+#' @param interval numeric vector of length 2
+#' @return numeric vector containing the values of \code{x} between
+#' \code{interval}. If no values are found, \code{NA} is returned.
+#' @examples
+#' z <- seq.int(1, 9, by = 2)
+#' between_interval(z, interval = c(2, 8))
+between_interval <- function(x, interval) {
+  x <- x[findInterval(x, interval) == 1]
+  if (length(x) == 0) {
+    x <- NA
+  }
+  x
+}

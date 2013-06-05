@@ -559,7 +559,7 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   # Grabs the data matrix that is being gated.
   x <- exprs(flow_frame)[, channel]
 
-  peaks <- find_peaks(x, order_peaks = TRUE, ...)
+  peaks <- find_peaks(x, ...)
 
   if (pivot) {
     # If 'pivot' is selected, we choose the largest peak and its neighbor, which
@@ -584,18 +584,14 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   if (length(peaks) == 1) {
     cutpoint <- ifelse(positive, min(x), max(x))
   } else {
-    # Find the minimum density between the two peaks selected and set the
-    # cutpoint there.
-    x_between <- x[findInterval(x, peaks) == 1]
-
     # The cutpoint is the deepest valley between the two peaks selected. In the
     # case that there are no valleys (i.e., if 'x_between' has an insufficient
     # number of observations), we are conservative and set the cutpoint as the
     # minimum value if 'positive' is TRUE, and the maximum value otherwise.
-    cutpoint <- try(find_valleys(x, order_valleys = TRUE,found_peaks=peaks)[1],
-                    silent = TRUE)
+    valleys <- try(find_valleys(x), silent = TRUE)
+    cutpoint <- between_interval(x = valleys, interval = peaks)[1]
 
-    if (class(cutpoint) == "try-error" || is.na(cutpoint)) {
+    if (is.na(cutpoint)) {
     #FIXME:currently it is still returning the first peak,
     #we want to pass density instead of x_between to 'min'
     #because x_between is the signal values 
