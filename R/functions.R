@@ -263,114 +263,6 @@ read.flowSet.csv <- function(files, ...) {
   fs
 }
 
-spillover1 <- function(x, unstained = NULL, cols = NULL, fsc = "FSC-A", ssc = "SSC-A", 
-  method = "median", useNormFilt = FALSE, isOrdered = FALSE) {
-  
-  if (is.null(unstained)) {
-    stop("Sorry, we don't yet support unstained cells blended ", "with stained cells", 
-      call. = FALSE)
-  } else {
-    ## We often only want spillover for a subset of the columns
-    allcols <- colnames(x)
-    
-    ## Ignore these guys if they somehow got into cols.  cols <-
-    ## cols[-match(c(fsc,ssc),cols)]
-    cols <- cols[!(cols %in% c(fsc, ssc))]
-    
-    ## There has got to be a better way of doing this...
-    if (!is.numeric(unstained)) {
-      unstained <- match(unstained, sampleNames(x))
-      if (is.na(unstained)) 
-        stop("Baseline not in this set.", call. = FALSE)
-    }
-    ## Check to see if the unstained sample is in the list of stains. If not, we
-    ## need to add it, making it the first row and adjust the unstained index
-    ## accordingly.  If it is there we adjust to the appropriate index.  pdh: you
-    ## shouldn't use the nor2Filter as a default without telling people!
-    if (useNormFilt) {
-      if (is.numeric(fsc)) {
-        fsc <- allcols[fsc]
-      }
-      if (is.numeric(ssc)) {
-        ssc <- allcols[ssc]
-      }
-      
-      if (is.na(match(fsc, allcols))) {
-        stop("Could not find forward scatter parameter. ", "Please set the fsc parameter", 
-          call. = FALSE)
-      }
-      if (is.na(match(ssc, allcols))) {
-        stop("Could not find side scatter parameter. ", "Please set the ssc parameter", 
-          call. = FALSE)
-      }
-      n2f <- norm2Filter(fsc, ssc, scale.factor = 1.5)
-      x <- Subset(x, n2f)
-    }
-    
-    # select positive population on its stained channel
-    newX <- fsApply(x[-unstained], function(curFr) {
-      
-      filName <- basename(keyword(curFr)$FIL)
-      
-      ## validity check by matching channels with filenames
-      ind <- which(unlist(lapply(cols, function(y) {
-        # strip the -X from the end
-        y <- substr(y, 1, nchar(y) - 2)
-        y <- paste(y, "")  #append space at the end
-        grepl(y, filName)
-      })))
-      if (length(ind) == 0) 
-        stop(filName, "does not match any of the channels!")
-      if (length(ind) > 1) 
-        stop(filName, "matches more than one channels!")
-      curChannel <- cols[ind]
-      ## rangeGate to select positive pop
-      fres <- rangeGate(curFr, stain = curChannel, inBetween = T, borderQuant = 0, 
-        absolute = F)
-      newFr <- Subset(curFr, fres)
-      
-      newFr
-    })
-    newX <- rbind2(newX, x[unstained])
-    
-    if (method == "mode") {
-      inten <- fsApply(newX, function(curFr) {
-        modes <- sapply(cols, function(curStain) {
-          sig <- exprs(curFr)[, curStain]
-          
-          
-          res <- density(sig)
-          curMode <- res$x[which.max(res$y)]
-          
-          curMode
-          
-        }, USE.NAMES = T)
-        modes
-      })
-      
-    } else {
-      inten <- fsApply(newX, each_col, method)[, cols]
-    }
-    
-    # background correction
-    inten <- pmax(sweep(inten[-unstained, ], 2, inten[unstained, ]), 0)
-
-    # normalize by max of each row
-    inten <- sweep(inten, 1, apply(inten, 1, max), "/")
-
-    # if the files is already ordered by channels which means we know which channel
-    # is stained for each control file we don't need to guess it by pmax
-    if (isOrdered) {
-      row.names(inten) <- channels
-    } else {
-      # guessing row names by picking the colname which has maximun value
-      row.names(inten) <- colnames(inten)[apply(inten, 1, which.max)]
-    }
-    
-    inten[colnames(inten), ]
-  }
-}
-
 #' Creates a matrix of points on an ellipse from a fitted flowClust model.
 #'
 #' The ellipse is constructed from a contour from the fitted flowClust model.
@@ -650,3 +542,20 @@ polyfunction_nodes <- function(markers) {
     paste(paste0(isnot_row, markers), collapse = "")
   })
 } 
+
+#' Finds values of a vector in an interval
+#'
+#' @param x numeric vector
+#' @param interval numeric vector of length 2
+#' @return numeric vector containing the values of \code{x} between
+#' \code{interval}. If no values are found, \code{NA} is returned.
+#' @examples
+#' z <- seq.int(1, 9, by = 2)
+#' between_interval(z, interval = c(2, 8))
+between_interval <- function(x, interval) {
+  x <- x[findInterval(x, interval) == 1]
+  if (length(x) == 0) {
+    x <- NA
+  }
+  x
+}

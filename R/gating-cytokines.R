@@ -4,6 +4,10 @@
 #' @param flow_set a \code{flowSet} object
 #' @param channel the channel from which the cytokine gate is constructed
 #' @param filter_id the name of the filter
+#' @param num_peaks the number of peaks expected to see. This effectively removes
+#' any peaks that are artifacts of smoothing
+#' @param ref_peak After \code{num_peaks} are found, this argument provides the
+#' index of the reference population from which a gate will be obtained.
 #' @param tol the tolerance value used to construct the cytokine gate from the
 #' derivative of the kernel density estimate
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
@@ -11,8 +15,8 @@
 #' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param ... additional arguments passed to \code{\link{cytokine_cutpoint}}
 #' @return a \code{filterList} containing the gates (cutpoints) for each sample
-cytokine <- function(flow_set, channel, filter_id = "", tol = 1e-2,
-                     positive = TRUE, ...) {
+cytokine <- function(flow_set, channel, filter_id = "", num_peaks = 1,
+                     ref_peak = 1, tol = 1e-2, positive = TRUE, ...) {
   # Standardizes the flowFrame's for a given channel using the mode of the kernel
   # density estimate and the Huber estimator of the standard deviation
   standardize_out <- standardize_flowset(flow_set, channel = channel)
@@ -21,7 +25,8 @@ cytokine <- function(flow_set, channel, filter_id = "", tol = 1e-2,
   # cutpoint is calculated using the first derivative of the kernel density
   # estimate. 
   cutpoint <- cytokine_cutpoint(flow_frame = as(standardize_out$flow_set, "flowFrame"),
-                                channel = channel, tol = tol, ...)
+                                channel = channel, num_peaks = num_peaks,
+                                ref_peak = ref_peak, tol = tol, ...)
 
   # Backtransforms the cutpoint with respect to each sample to place
   # them on the scales of the original samples
@@ -105,32 +110,84 @@ standardize_flowset <- function(flow_set, channel = "FSC-A") {
   list(flow_set = flow_set, transformation = transformation)
 }
 
-#' Constructs a cutpoint by using the first derivative of the kernel density
-#' estimate to establish a cutpoint
+#' Constructs a cutpoint for a flowFrame by using a derivative of the kernel
+#' density estimate
 #'
-#' We compute the first derivative of the kernel density estimate from the
-#' channel specified within the given \code{flow_frame}. Next, we determine the
-#' lowest valley from the derivative, which corresponds to the density's mode for
-#' cytokines. We then contruct a gating cutpoint as the value less than the
-#' tolerance value \code{tol} in magnitude and is also greater than the lowest
-#' valley.
+#' We determine a gating cutpoint using either the first or second derivative of
+#' the kernel density estimate (KDE) of the \code{channel} specified within the
+#' \code{flow_frame}.
+#'
+#' By default, we compute the first derivative of the kernel density estimate
+#' from the channel specified within the given \code{flow_frame}. Next, we
+#' determine the lowest valley from the derivative, which corresponds to the
+#' density's mode for cytokines. We then contruct a gating cutpoint as the value
+#' less than the tolerance value \code{tol} in magnitude and is also greater
+#' than the lowest valley.
+#'
+#' Alternatively, if the \code{method} is selected as \code{second_deriv}, we
+#' select a cutpoint from the second derivative of the KDE. Specifically, we
+#' choose the cutpoint as the largest peak of the second derivative of the KDE
+#' density which is greater than the reference peak.
 #'
 #' @param flow_frame a \code{flowFrame} object
 #' @param channel the channel name
+#' @param num_peaks the number of peaks expected to see. This effectively removes
+#' any peaks that are artifacts of smoothing
+#' @param ref_peak After \code{num_peaks} are found, this argument provides the
+#' index of the reference population from which a gate will be obtained. By
+#' default, the peak farthest to the left is used.
+#' @param method the method used to select the cutpoint. See details.
 #' @param tol the tolerance value
 #' @param adjust the scaling adjustment applied to the bandwidth used in the
 #' first derivative of the kernel density estimate
 #' @param ... additional arguments passed to \code{\link{deriv_density}}
 #' @return the cutpoint along the x-axis
-cytokine_cutpoint <- function(flow_frame, channel, tol = 1e-2, adjust = 3, ...) {
-  deriv_out <- deriv_density(x = exprs(flow_frame)[, channel], adjust = adjust, ...)
-  lowest_valley <- with(deriv_out, x[which.min(y)])
-  cutpoint <- with(deriv_out, x[which(x > lowest_valley & abs(y) < tol)[1]])
+cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
+                              method = c("first_deriv", "second_deriv"),
+                              tol = 1e-2, adjust = 1, ...) {
+
+  method <- match.arg(method)
+
+  x <- as.vector(exprs(flow_frame)[, channel])
+  peaks <- sort(find_peaks(x, num_peaks = num_peaks, adjust = adjust))
+
+  if (ref_peak > num_peaks) {
+    warning("The reference peak is larger than the number of peaks found.",
+            "Setting the reference peak to 'num_peaks'...",
+            call. = FALSE)
+    ref_peak <- num_peaks
+  }
+
+  # TODO: Double-check that a cutpoint minimum found via 'first_deriv'
+  # passes the second-derivative test.
+
+  if (method == "first_deriv") {
+    # Finds the deepest valleys from the kernel density and sorts them.
+    # The number of valleys identified is determined by 'num_peaks'
+    deriv_out <- deriv_density(x = x, adjust = adjust, deriv = 1, ...)
+
+    deriv_valleys <- with(deriv_out, find_valleys(x = x, y = y, adjust = adjust))
+    deriv_valleys <- deriv_valleys[deriv_valleys > peaks[ref_peak]]
+    deriv_valleys <- sort(deriv_valleys)[1]
+    
+    cutpoint <- with(deriv_out, x[x > deriv_valleys & abs(y) < tol])
+    cutpoint <- cutpoint[1]
+  } else {
+    # The cutpoint is selected as the first peak from the second derivative
+    # density which is to the right of the reference peak.
+    deriv_out <- deriv_density(x = x, adjust = adjust, deriv = 2, ...)
+    deriv_peaks <- with(deriv_out, find_peaks(x, y, adjust = adjust))
+    deriv_peaks <- deriv_peaks[deriv_peaks > peaks[ref_peak]]
+    cutpoint <- sort(deriv_peaks)[1]
+  }
+  
   cutpoint
 }
 
 #' Constructs the derivative specified of the kernel density estimate of a
 #' numeric vector
+#'
+#' The derivative is computed with \code{\link[feature]{drvkde}}.
 #'
 #' For guidance on selecting the bandwidth, see this CrossValidated post:
 #' \url{http://bit.ly/12LkJWz}
@@ -143,17 +200,18 @@ cytokine_cutpoint <- function(flow_frame, channel, tol = 1e-2, adjust = 3, ...) 
 #' from \code{\link[ks]{hpi}}.
 #' @param adjust a numeric weight on the automatic bandwidth, analogous to the
 #' \code{adjust} parameter in \code{\link{density}}
-#' @param ... additional arguments passed to \code{\link[{density}}
-#' @return data.frame with the cytokine densities for each stimulation group
-deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1) {
+#' @param num_points the length of the derivative of the kernel density estimate
+#' @param ... additional arguments passed to \code{\link[feature]{drvkde}}
+#' @return list containing the derivative of the kernel density estimate
+deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1,
+                          num_points = 10000, ...) {
   require('feature')
   require('ks')
   if (is.null(bandwidth)) {
-    # TODO: Ensure that 'deriv.order' does what I think it does. Previously, I
-    # was using the default of deriv.order = 0, which is not a derivative.
     bandwidth <- hpi(x, deriv.order = deriv)
   }
-  deriv_x <- drvkde(x = x, drv = deriv, bandwidth = adjust * bandwidth)
+  deriv_x <- drvkde(x = x, drv = deriv, bandwidth = adjust * bandwidth,
+                    gridsize = num_points, ...)
   list(x = deriv_x$x.grid[[1]], y = deriv_x$est)
 }
 
