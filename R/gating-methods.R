@@ -41,6 +41,8 @@ setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
     if (is.na(parentInd)) 
       stop("parent node '", names(getNodes(gt, gt_parent_id)), "' not gated yet!")
     gs_parent_id <- node_ids[parentInd, "gs"]
+    if (is.na(gs_parent_id)) 
+      stop("parent node '", names(getNodes(gt, gt_parent_id)), "' not gated yet!")
     # pass the pops and gate to gating routine
     res <- gating(x = this_gate, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, 
       ...)
@@ -410,7 +412,7 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
     })
 .gating_refGate <- function(x, y, gtPop, parent, plot = FALSE, xbin = 128,
             ...) {
-  
+#  negated <- FALSE
   refNodes <- x@refNodes
   gm <- paste0(".", names(x))
   popAlias <- alias(gtPop)
@@ -460,29 +462,44 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
         #1d ref gate
         dims <- dims[!is.na(dims)]
         nDims <- length(dims)
-        if(nDims!=1){
-          stop("Can't do 1d gating on ",nDims, " dimensions!")
-        }
-        dim_params <-  getChannelMarker(fr, dims)["name"]
-        y_g <- glist[[1]]               
-        y_coord <- c(y_g@min, y_g@max)
-        cut.y <- y_coord[!is.infinite(y_coord)]
         
         pos_token <- "[\\+]"
         neg_token <- "[\\-]"
         pop_name_pat <- "[^\\+-]+"
         pos_pop_pat <- paste(pop_name_pat, pos_token, sep = "")
         neg_pop_pat <- paste(pop_name_pat, neg_token, sep = "")
-        if (grepl(pos_pop_pat,popName)) {
-          gate_coordinates <- list(c(cut.y, Inf))
-        } else if(grepl(neg_pop_pat,popName)){
-          gate_coordinates <- list(c(-Inf, cut.y))
-        }else{
-          stop("unknown population pattern, ",popName)
-        }
-        names(gate_coordinates) <- as.character(dim_params)
         
-        rectangleGate(gate_coordinates)
+        if(nDims==2){
+          #set negated flag of outer scope when necessary
+#          if (grepl(neg_pop_pat,popName)&&!negated) {
+#            negated <<- TRUE
+#          }
+          #before flowCore and flowViz support the negated filter
+          #we use refGate+boolGate in csv template as the workaround
+          if (grepl(neg_pop_pat,popName)) {
+            stop("negated 2d gate is not supported yet!")
+          }
+          #pass the gate as it is 
+          glist[[1]]
+        }else{
+          dim_params <-  getChannelMarker(fr, dims)["name"]
+          y_g <- glist[[1]]               
+          y_coord <- c(y_g@min, y_g@max)
+          cut.y <- y_coord[!is.infinite(y_coord)]
+          
+          
+          if (grepl(pos_pop_pat,popName)) {
+            gate_coordinates <- list(c(cut.y, Inf))
+          } else if(grepl(neg_pop_pat,popName)){
+            gate_coordinates <- list(c(-Inf, cut.y))
+          }else{
+            stop("unknown population pattern, ",popName)
+          }
+          names(gate_coordinates) <- as.character(dim_params)
+          
+          rectangleGate(gate_coordinates)  
+        }
+        
       }else{
           #2d quad gate
           dim_params <- unlist(lapply(dims, function(dim) {

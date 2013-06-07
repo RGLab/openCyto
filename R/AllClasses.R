@@ -200,6 +200,9 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
       gm <- as(gm, "polyFunctions")
     } else if (names(gm) == "refGate") {
       gm <- as(gm, "refGate")
+      if(nchar(cur_dims)==0){
+        stop("No dimensions defined for refGate!")
+      }
     }
     
     cat("Adding population:", curPop, "\n")
