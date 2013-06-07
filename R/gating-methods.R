@@ -336,9 +336,12 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
   
   list(gs_node_id = gs_node_id, filterObj = filterObj)
 }
-
 setMethod("gating", signature = c("boolMethod", "GatingSet"),
-          definition = function(x, y, gtPop, parent, ...) {
+    definition = function(x, y, ...) {
+      .gating_boolMethod(x,y,...)      
+    })
+
+.gating_boolMethod <- function(x, y, gtPop, parent, ...) {
   
   args <- parameters(x)[[1]]
   gm <- paste0(".", names(x))
@@ -353,7 +356,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
     message(tNodes, " gating...")
     bf <- eval(substitute(booleanFilter(x), list(x = args)))
     bf@filterId <- tNodes
-    invisible(gs_node_id <- add(y, bf, parent = parent))
+    invisible(gs_node_id <- add(y, bf, parent = parent, name = popAlias))
     invisible(recompute(y, gs_node_id))
     message("done.")
   } else {
@@ -367,10 +370,13 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
   
   # gs_node_id
   list(gs_node_id = gs_node_id)
-})
-
+}
 setMethod("gating", signature = c("polyFunctions", "GatingSet"),
-          definition = function(x, y, gtPop, parent, ...) {
+    definition = function(x, y, ...) {
+      .gating_polyFunctions(x,y,...)      
+    })
+
+.gating_polyFunctions <- function(x, y, gtPop, parent, ...) {
   
   refNodes <- x@refNodes
   gm <- paste0(".", names(x))
@@ -405,7 +411,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet"),
   message("done.")
   
   list()
-})
+}
 setMethod("gating", signature = c("refGate", "GatingSet"),
     definition = function(x, y, ...) {
       .gating_refGate(x, y, ...)
