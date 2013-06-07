@@ -14,9 +14,9 @@ setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
     
   }
   
-  # gate each node by the topological order
-  gt_node_ids <- tsort(gt)
-  
+  # gate each node 
+#  gt_node_ids <- tsort(gt)#by the topological order
+  gt_node_ids <- bfs(gt)#by the bfs order
   # maintain the mapping between template node ID and gating set node ID in order
   # to refer gating set node ID back to the template ID and find the parent gs
   # node ID
