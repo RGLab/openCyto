@@ -352,7 +352,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
   gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
   
   tNodes <- deparse(args)
-  if (!(tNodes %in% gs_nodes)) {
+  if (!(popAlias %in% gs_nodes)) {
     message(tNodes, " gating...")
     bf <- eval(substitute(booleanFilter(x), list(x = args)))
     bf@filterId <- tNodes
@@ -360,12 +360,12 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
     invisible(recompute(y, gs_node_id))
     message("done.")
   } else {
-    message("Skip gating! Population '", tNodes, "' already exists.")
+    message("Skip gating! Population '", popAlias, "' already exists.")
     gs_node_id <- getChildren(y[[1]], parent)
 
     # select the corresponding gs node id by matching the node names
     gs_node_name <- getNodes(y[[1]])[gs_node_id]
-    gs_node_id <- gs_node_id[match(tNodes, gs_node_name)]
+    gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
   }
   
   # gs_node_id
@@ -405,6 +405,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet"),
   # actual gating
   lapply(polyExprsList, function(polyExpr) {
     bgt <- new("boolMethod", name = polyExpr, args = list(as.symbol(polyExpr)))
+    alias(gtPop) <- polyExpr
     gating(bgt, y, parent = parent, gtPop = gtPop, ...)
   })
   
