@@ -1,4 +1,17 @@
 setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
+#' Applies gatingTemplate to 1 GatingSetInternal.
+#'
+#'
+#'
+#' @param x a \code{gatingTemplate} object
+#' @param y a \code{GatingSetInternal} object
+#' @param env_fct a \code{environment} that contains \code{fcTree} object named as 'fct'
+#' @param stop.at a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating prcoess will stop at.
+
+setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
+    definition = function(x, y, env_fct = NULL, ...) {
+      .gating_gatingTemplate(x,y,env_fct,...)
+    })
 
 .gating_gatingTemplate <- function(x, y, env_fct = NULL, stop.at = NULL, ...) {
   gt <- x
@@ -13,7 +26,11 @@ setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
     }
     
   }
-  
+  #validity check for stop.at argument
+  if(!is.null(stop.at)){
+    if(is.na(match(stop.at,sapply(getNodes(gt),alias))))
+      stop("Can't find stop point: ", stop.at)
+  }
   # gate each node 
 #  gt_node_ids <- tsort(gt)#by the topological order
   gt_node_ids <- bfs(gt)#by the bfs order
@@ -28,6 +45,16 @@ setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
     # get parent node to gate
     gt_node_id <- node_ids[i, "gt"]
     gt_node_pop <- getNodes(gt, gt_node_id)
+    if(!is.null(stop.at)){
+    
+      if(alias(gt_node_pop) == stop.at)
+      {
+        message("stop at: ",stop.at)
+        break
+      }
+        
+    }
+    
     # parent node in graph is used as reference node
     gt_ref_ids <- getParent(gt, gt_node_id)
     # the parent to be used in gs is from parent slot of pop object
@@ -60,10 +87,7 @@ setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
   message("finished.")
 }
 
-setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
-    definition = function(x, y, env_fct = NULL, ...) {
-      .gating_gatingTemplate(x,y,env_fct,...)
-    })
+
 
 setMethod("gating", signature = c("gtMethod", "GatingSet"),
     definition = function(x, y, ...) {
