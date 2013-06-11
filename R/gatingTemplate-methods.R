@@ -4,14 +4,14 @@ setMethod("getNodes", signature = c("gatingTemplate"),
                                   , only.names = FALSE) {
   
   if (missing(y)){
+    res <- nodeData(x, attr = "pop")
     order <- match.arg(order)
     if(order != "default"){
       nodeIds <- eval(substitute(f1(x),list(f1=as.symbol(order))))
       if(order == "dfs")
         nodeIds <- nodeIds$discovered
+      res <- res[nodeIds]
     }
-    res <- nodeData(x, attr = "pop")
-    res <- res[nodeIds]
   }else
   {
     res <- nodeData(x, y, "pop")
