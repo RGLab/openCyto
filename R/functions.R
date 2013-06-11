@@ -417,39 +417,89 @@ channels2markers <- function(flow_frame, channels) {
   unname(markers)
 }
 
-#' Removes any observation from the given flow frame that has values less than
-#' (greater than) the minimum (maxim) value.
+#' Removes any observation from the given flowFrame object that has values
+#' outside the given range for the specified channels
 #'
 #' The minimum/maximum values are ignored if \code{NULL}.
 #'
 #' @param flow_frame a \code{flowFrame} object
-#' @param min a numeric value that sets the lower boundary for data filtering
-#' @param max a numeric value that sets the upper boundary for data filtering
+#' @param min a numeric vector that sets the lower bounds for data filtering
+#' @param max a numeric vector that sets the upper bounds for data filtering
 #' @return a \code{flowFrame} object
-truncate_flowframe <- function(flow_frame, channel, min = NULL, max = NULL) {
+#' @examples
+#' library(flowClust)
+#' data(rituximab)
+#' # Consider the range of values for FSC.H and SSC.H
+#' summary(rituximab)
+#' 
+#' # Truncates any observations with FSC.H outside [100, 950]
+#' rituximab2 <- truncate_flowframe(rituximab, channels = "FSC.H", min = 100,
+#' max = 950)
+#' summary(rituximab2)
+#' # Next, truncates any observations with SSC.H outside [50, 1000]
+#' rituximab3 <- truncate_flowframe(rituximab2, channels = "SSC.H", min = 50,
+#' max = 1000)
+#' summary(rituximab3)
+#'
+#' # Instead, truncates both channels at the same time
+#' rituximab4 <- truncate_flowframe(rituximab, channels = c("FSC.H", "SSC.H"),
+#' min = c(100, 50), max = c(950, 1000))
+#' summary(rituximab4)
+truncate_flowframe <- function(flow_frame, channels, min = NULL, max = NULL) {
 
-  channel <- as.character(channel)
-  if (length(channel) != 1) {
-    stop("Only one 'channel' may be truncated.")
-  }
-  
-  x_channel <- exprs(flow_frame)[, channel]
+  channels <- as.character(channels)
+  num_channels <- length(channels)
 
   # For comparison purposes, we update the min and max values to -Inf and Inf,
-  # respectively, if one is NULL.
-  min <- ifelse(is.null(min), -Inf, min)
-  max <- ifelse(is.null(max), Inf, max)
-  
-  # Removes any observation that has an observation outside of the min and max
-  # values specified.
-  exprs_truncated <- exprs(flow_frame)[min < x_channel & x_channel < max, ]
-  if (is.vector(exprs_truncated)) {
-    exprs_truncated <- t(as.matrix(exprs_truncated))
+  # respectively, if NULL.
+  if (is.null(min)) {
+    min <- rep(-Inf, num_channels)
   }
-  exprs(flow_frame) <- exprs_truncated
+  if (is.null(max)) {
+    max <- rep(Inf, num_channels)
+  }
+
+  if (!(num_channels == length(min) && num_channels == length(max))) {
+    stop("The lengths of 'min' and 'max' must match the number of 'channels' given.")
+  }
+
+  x <- as.matrix(exprs(flow_frame)[, channels])
+
+  # Determines which observations are within the range given for each channel.
+  above_min <- sweep(x, 2, min, ">", check.margin = FALSE)
+  below_max <- sweep(x, 2, max, "<", check.margin = FALSE)
+  which_keep <- apply(above_min & below_max, 1, all)
+
+  # Keeps only those values witin the range for each channel.
+  # In the special case that only 1 observation is kept, the subsetting results
+  # in a vector. We correct this by applying 'as.matrix'.
+  x <- exprs(flow_frame)[which_keep, ]
+
+  if (is.vector(x)) {
+    x <- t(as.matrix(x))
+  }
+  exprs(flow_frame) <- x
   
   flow_frame
 }
+
+#' Removes any observation from each flowFrame object within the flowSet that has
+#' values outside the given range for the specified channels
+#'
+#' The minimum/maximum values are ignored if \code{NULL}.
+#'
+#' @param flow_set a \code{flowSet} object
+#' @param min a numeric vector that sets the lower bounds for data filtering
+#' @param max a numeric vector that sets the upper bounds for data filtering
+#' @return a \code{flowSet} object
+truncate_flowset <- function(flow_set, channels, min = NULL, max = NULL) {
+
+  channels <- as.character(channels)
+
+  fsApply(flow_set, truncate_flowframe, channels = channels, min = min,
+          max = max)
+}
+
 
 #' Computes the quantile from flowClust for a given vector of probabilties
 #'
@@ -559,3 +609,4 @@ between_interval <- function(x, interval) {
   }
   x
 }
+

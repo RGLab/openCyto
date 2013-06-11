@@ -133,8 +133,12 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' @param w0 the number of prior pseudocounts of the Student's t mixture components.
 #' @param adjust the bandwidth to use in the kernel density estimation. See
 #' \code{\link{density}} for more information.
-#' @param min a numeric value that sets the lower boundary for data filtering
-#' @param max a numeric value that sets the upper boundary for data filtering
+#' @param min a numeric value that sets the lower bound for data filtering. If
+#' \code{NULL} (default), no truncation is applied. See
+#' \code{\link{truncate_flowSet}} for more details.
+#' @param max a numeric value that sets the upper bound for data filtering. If
+#' \code{NULL} (default), no truncation is applied. See
+#' \code{\link{truncate_flowSet}} for more details.
 #' @return list of prior parameters
 prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
                               clust_method = c("kmeans", "hclust"),
@@ -148,10 +152,13 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
     stop("There can be only 1...channel.")
   }
 
+  # Truncates flow_set before eliciting priors. By default, no truncation is
+  # applied.
+  flow_set <- truncate_flowset(flow_set, channels = channel, min = min,
+                               max = max)
+
   # For each sample in 'flow_set', we identify the peaks after smoothing.
   peaks <- fsApply(flow_set, function(flow_frame, adjust) {
-    flow_frame <- truncate_flowframe(flow_frame, channel = channel, min = min,
-                                     max = max)
     x <- exprs(flow_frame)[, channel]
     peaks_found <- find_peaks(x, adjust = adjust)
 
@@ -212,8 +219,6 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
   # we compute the variance of the observations within each cluster. Finally, we
   # aggregate the variances across all of the flowFrame objects.
   prior_vars <- fsApply(flow_set, function(flow_frame, prior_means) {
-    flow_frame <- truncate_flowframe(flow_frame, channel = channel, min = min,
-                                     max = max)
     x <- exprs(flow_frame)[, channel]
 
     # To determine the nearest mean, we find the midpoints of the peaks and then
@@ -297,11 +302,24 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
 #' @param pct percentage of randomly selected cells in each \code{flowFrame}
 #' that is used to elicit the prior parameters. The value should must be greater
 #' than 0 and less than or equal to 1.
+#' @param min a numeric vector that sets the lower bounds for data filtering. If
+#' \code{NULL} (default), no truncation is applied. See
+#' \code{\link{truncate_flowSet}} for more details.
+#' @param max a numeric vector that sets the upper bounds for data filtering. If
+#' \code{NULL} (default), no truncation is applied. See
+#' \code{\link{truncate_flowSet}} for more details.
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
 prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
-                         pct = 0.1, ...) {
+                         pct = 0.1, min = NULL, max = NULL, ...) {
+
+  channels <- as.character(channels)
   
+  # Truncates flow_set before eliciting priors. By default, no truncation is
+  # applied.
+  flow_set <- truncate_flowset(flow_set, channels = channels, min = min,
+                               max = max)
+
   # For each randomly selected sample in the flow_set, we apply K-means with to
   # find K clusters and retain additional summary statistics to elicit the prior
   # parameters for flowClust.
@@ -319,7 +337,8 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
     # If there are too few rows in 'x', 'kmeans' will throw an error.
     # Instead, we do not elicit summary statistics from this sample and return NA.
     if (K >= nrow(x)) {
-      warning("The number of clusters 'K' exceeds the number of subsampled rows. Try increasing the subsample 'pct'.")
+      warning("The number of clusters 'K' exceeds the number of subsampled rows.",
+              "Try increasing the subsample 'pct'.")
       return(NA)
     }
     
@@ -334,7 +353,8 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
       if (length(i) >= 2) {
         cov(as.matrix(x[i, ]))
       } else {
-        warning("A singleton cluster resulted. Using vague covariance matrix. Try increasing the subsample 'pct'.")
+        warning("A singleton cluster resulted. Using vague covariance matrix.",
+                "Try increasing the subsample 'pct'.")
         cov(x)
       }
     })
