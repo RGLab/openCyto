@@ -1,6 +1,6 @@
 setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
 
-.gating_gatingTemplate <- function(x, y, env_fct = NULL, ...) {
+.gating_gatingTemplate <- function(x, y, env_fct = NULL, stop.at = NULL, ...) {
   gt <- x
   if (!is.null(env_fct)) {
     # use the fcTree if already exists

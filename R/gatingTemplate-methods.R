@@ -1,7 +1,27 @@
 setMethod("getNodes", signature = c("gatingTemplate"),
-          definition = function(x, y) {
-  if (missing(y)) 
-    nodeData(x, attr = "pop") else nodeData(x, y, "pop")[[1]]
+          definition = function(x, y
+                                  , order = c("default", "bfs", "dfs", "tsort")
+                                  , only.names = FALSE) {
+  
+  if (missing(y)){
+    order <- match.arg(order)
+    if(order != "default"){
+      nodeIds <- eval(substitute(f1(x),list(f1=as.symbol(order))))
+      if(order == "dfs")
+        nodeIds <- nodeIds$discovered
+    }
+    res <- nodeData(x, attr = "pop")
+    res <- res[nodeIds]
+  }else
+  {
+    res <- nodeData(x, y, "pop")
+  }
+  if(only.names){
+    res <- sapply(res,alias)
+  }
+  if(length(res) == 1 && class(res) == "list")
+      res <- res[[1]]
+   res
 })
 
 setMethod("getChildren", signature = c("gatingTemplate", "character"),
