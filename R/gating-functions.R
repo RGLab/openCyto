@@ -40,8 +40,12 @@
 #' cutpoint. If a value is provided, any cutpoint above this value will be set
 #' to the given maximum value. If \code{NULL} (default), there is no maximum
 #' cutpoint value.
-#' @param min a numeric value that sets the lower boundary for data filtering
-#' @param max a numeric value that sets the upper boundary for data filtering
+#' @param min a numeric value that sets the lower bound for data filtering. If
+#' \code{NULL} (default), no truncation is applied. See
+#' \code{\link{truncate_flowSet}} for more details.
+#' @param max a numeric value that sets the upper bound for data filtering. If
+#' \code{NULL} (default), no truncation is applied. See
+#' \code{\link{truncate_flowSet}} for more details.
 #' @param quantile the quantile for which we will find the cutpoint using
 #' the quantile \code{cutpoint_method}. If the \code{cutpoint_method} is not set
 #' to \code{quantile}, this argument is ignored.
@@ -57,7 +61,8 @@
 flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          positive = TRUE, prior = NULL,
                          criterion = c("BIC", "ICL"),
-                         cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean", "prior_density"),
+                         cutpoint_method = c("boundary", "min_density",
+                           "quantile", "posterior_mean", "prior_density"),
                          neg_cluster = 1, cutpoint_min = NULL,
                          cutpoint_max = NULL, min = NULL, max = NULL,
                          quantile = 0.99, quantile_interval = c(0, 10),
@@ -348,12 +353,11 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     }    
   }
 
-  # If a truncation value is specified, we remove all observations less than
-  # this value for the marker specified to construct the gate. NOTE: These
-  # observations are removed from the 'flowFrame' locally and are gated out only
-  # for the determining the gate.
-  fr <- truncate_flowframe(fr, channel = xChannel, min = min[1], max = max[1])
-  fr <- truncate_flowframe(fr, channel = yChannel, min = min[2], max = max[2])
+  # If specified, truncates all observations outside the 'min' and 'max' values.
+  # NOTE: These observations are removed from the 'flowFrame' locally and are
+  # gated out only for the determining the gate.
+  fr <- truncate_flowframe(fr, channels = c(xChannel, yChannel), min = min,
+                           max = max)
 
   # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
   if (usePrior == "yes" && identical(prior, list(NA))) {
