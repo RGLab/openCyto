@@ -318,8 +318,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         thisCall["fun"] <- thisCall["FUN"]
         thisCall["FUN"] <- NULL
         flist <- eval(thisCall)
-        stopCluster(cl)
-    }else {
+     }else {
       thisCall[[1]] <- quote(lapply)  #select loop mode
       flist <- eval(thisCall)
     }
