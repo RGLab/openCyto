@@ -11,16 +11,16 @@ LazyLoad: yes
 Collate: 	AllClasses.R
 			bayes-flowClust.R
 			functions.R
-			gating-cytokines.R 
-			gating-methods.R 
+			gating-cytokines.R
+			gating-methods.R
 			gating-functions.R
 			gatingTemplate-methods.R
 			gtMethod-methods.R
-			gtPopulation-methods.R 
-			median-logicle-transform.R 
+			gtPopulation-methods.R
 			fcFilterList-methods.R
 			fcTree-methods.R
 			fcFilter-methods.R
+			wrapper-functions.R
 Depends: methods,flowWorkspace
 Imports: gtools,flowStats,flowClust,MASS,clue,plyr			 
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
