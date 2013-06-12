@@ -94,8 +94,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       .gating_gtMethod(x,y,...)
     })
 
-.gating_gtMethod <- function(x, y, gtPop, parent, num_cores = 1,
-            parallel_type = c("multicore", "SOCK", "MPI"), plot = FALSE,
+.gating_gtMethod <- function(x, y, gtPop, parent, mc.cores = 1,
+            parallel_type = c("none", "multicore", "cluster"), cl = NULL, plot = FALSE,
             xbin = 128, prior_group = NULL, ...) {
   
   require("parallel")
@@ -301,15 +301,17 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     }
     
     ## choose serial or parallel mode
-    if (num_cores > 1) {
-      message("Running in parallel mode with ", num_cores, " cores.")
-      if (parallel_type == "multicore") {
-        thisCall[[1]] <- quote(mclapply)
-        thisCall[["mc.cores"]] <- num_cores
-        flist <- eval(thisCall)
-        
-      } else {
-        cl <- makeCluster(num_cores, type = parallel_type)
+    
+      
+    if (parallel_type == "multicore") {
+      message("Running in parallel mode with ", mc.cores, " cores.")
+      thisCall[[1]] <- quote(mclapply)
+      thisCall[["mc.cores"]] <- mc.cores
+      flist <- eval(thisCall)
+      
+    }else if(parallel_type == "cluster"){
+      if(is.null(cl))
+          stop("cluster object 'cl' is empty!")
         thisCall[[1]] <- quote(parLapply)
         thisCall[["cl"]] <- cl
         # replace FUN with fun for parLapply
@@ -317,8 +319,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         thisCall["FUN"] <- NULL
         flist <- eval(thisCall)
         stopCluster(cl)
-      }
-    } else {
+    }else {
       thisCall[[1]] <- quote(lapply)  #select loop mode
       flist <- eval(thisCall)
     }
