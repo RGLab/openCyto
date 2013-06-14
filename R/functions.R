@@ -446,7 +446,7 @@ channels2markers <- function(flow_frame, channels) {
 #' min = c(100, 50), max = c(950, 1000))
 #' summary(rituximab4)
 truncate_flowframe <- function(flow_frame, channels, min = NULL, max = NULL) {
-
+  .Defunct()
   channels <- as.character(channels)
   num_channels <- length(channels)
 
@@ -492,12 +492,12 @@ truncate_flowframe <- function(flow_frame, channels, min = NULL, max = NULL) {
 #' @param min a numeric vector that sets the lower bounds for data filtering
 #' @param max a numeric vector that sets the upper bounds for data filtering
 #' @return a \code{flowSet} object
-truncate_flowset <- function(flow_set, channels, min = NULL, max = NULL) {
-
+truncate_flowset <- function(flow_set, channels, min = -Inf, max = Inf) {
+  
   channels <- as.character(channels)
-
-  fsApply(flow_set, truncate_flowframe, channels = channels, min = min,
-          max = max)
+  gate_coordinates <- sapply(channels,function(thisChnl){list(c(min, max))})
+  thisFilter <- rectangleGate(gate_coordinates)
+  Subset(flow_set,thisFilter)  
 }
 
 
