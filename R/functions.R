@@ -445,7 +445,14 @@ channels2markers <- function(flow_frame, channels) {
 #' rituximab4 <- truncate_flowframe(rituximab, channels = c("FSC.H", "SSC.H"),
 #' min = c(100, 50), max = c(950, 1000))
 #' summary(rituximab4)
-truncate_flowframe <- function(flow_frame, channels, min = NULL, max = NULL) {
+truncate_flowframe <- function(flow_frame, channels, min = -Inf , max = Inf) {
+  channels <- as.character(channels)
+  gate_coordinates <- sapply(channels,function(thisChnl){list(c(min, max))})
+  thisFilter <- rectangleGate(gate_coordinates)
+  Subset(flow_frame,thisFilter)
+}
+
+truncate_flowframe_old <- function(flow_frame, channels, min = NULL, max = NULL) {
   .Defunct()
   channels <- as.character(channels)
   num_channels <- length(channels)

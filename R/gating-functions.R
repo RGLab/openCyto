@@ -64,7 +64,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          cutpoint_method = c("boundary", "min_density",
                            "quantile", "posterior_mean", "prior_density"),
                          neg_cluster = 1, cutpoint_min = NULL,
-                         cutpoint_max = NULL, min = NULL, max = NULL,
+                         cutpoint_max = NULL, min = -Inf, max = Inf,
                          quantile = 0.99, quantile_interval = c(0, 10),
                          plot = FALSE, ...) {
 
@@ -103,8 +103,9 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   # Filter out values less than the minimum and above the maximum, if they are
   # given. NOTE: These observations are removed from the 'flowFrame' locally and
   # are gated out only for the determining the gate.
-  fr <- truncate_flowframe(fr, channel = params[1], min = min, max = max)
-
+  if(!(is.infinite(min)&&is.infinite(max))){
+    fr <- truncate_flowframe(fr, channel = params[1], min = min, max = max)
+  }
   if (nrow(fr) < 2) {
     warning("Less than two observations are present in the given flowFrame. Constructing gate from prior...")
   }
@@ -342,8 +343,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
                          plot = FALSE, target = NULL, transitional = FALSE,
-                         quantile = 0.9, translation = 0.25, min = NULL,
-                         max = NULL, ...) {
+                         quantile = 0.9, translation = 0.25, min = -Inf, max = Inf, ...) {
 
   if (!is.null(target)) {
     target <- as.numeric(target)
@@ -357,9 +357,10 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # If specified, truncates all observations outside the 'min' and 'max' values.
   # NOTE: These observations are removed from the 'flowFrame' locally and are
   # gated out only for the determining the gate.
-  fr <- truncate_flowframe(fr, channels = c(xChannel, yChannel), min = min,
+  if(!(is.infinite(min)&&is.infinite(max))){
+    fr <- truncate_flowframe(fr, channels = c(xChannel, yChannel), min = min,
                            max = max)
-
+   }
   # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
   if (usePrior == "yes" && identical(prior, list(NA))) {
     prior <- prior_flowClust(fr = fr, channels = c(xChannel, yChannel), K = K)
@@ -550,7 +551,7 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 #' @param ... Additional arguments passed on to the \code{find_peaks} function
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
-                       pivot = FALSE, min = NULL, max = NULL, ...) {
+                       pivot = FALSE, min = -Inf, max = Inf, ...) {
   
   if (missing(channel) || length(channel) != 1) {
     stop("A single channel must be specified.")
@@ -558,9 +559,10 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 
   # Filter out values less than the minimum and above the maximum, if they are
   # given.
-  flow_frame <- truncate_flowframe(flow_frame, channel = channel, min = min,
+  if(!(is.infinite(min)&&is.infinite(max))){
+    flow_frame <- truncate_flowframe(flow_frame, channel = channel, min = min,
                                      max = max)
-
+   }
   # Grabs the data matrix that is being gated.
   x <- exprs(flow_frame)[, channel]
 

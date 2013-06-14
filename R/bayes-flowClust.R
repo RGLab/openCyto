@@ -143,8 +143,8 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
                               clust_method = c("kmeans", "hclust"),
                               hclust_method = "complete", artificial = NULL,
-                              nu0 = 4, w0 = 10, adjust = 2, min = NULL,
-                              max = NULL) {
+                              nu0 = 4, w0 = 10, adjust = 2, min = -Inf,
+                              max = Inf) {
 
   channel <- as.character(channel)
   clust_method <- match.arg(clust_method)
@@ -152,11 +152,10 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
     stop("There can be only 1...channel.")
   }
 
-  # Truncates flow_set before eliciting priors. By default, no truncation is
-  # applied.
-  flow_set <- truncate_flowset(flow_set, channels = channel, min = min,
-                               max = max)
-
+  if(!(is.infinite(min)&&is.infinite(max))){   
+    
+    flow_set <- truncate_flowset(flow_set, channels = channel, min = min, max = max)
+   }
   # For each sample in 'flow_set', we identify the peaks after smoothing.
   peaks <- fsApply(flow_set, function(flow_frame, adjust) {
     x <- exprs(flow_frame)[, channel]
@@ -311,15 +310,16 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
 prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
-                         pct = 0.1, min = NULL, max = NULL, ...) {
+                         pct = 0.1, min = -Inf, max = Inf, ...) {
 
   channels <- as.character(channels)
   
-  # Truncates flow_set before eliciting priors. By default, no truncation is
-  # applied.
-  flow_set <- truncate_flowset(flow_set, channels = channels, min = min,
+  # Truncates flow_set before eliciting priors when necessary 
+  if(!(is.infinite(min)&&is.infinite(max))){   
+    
+    flow_set <- truncate_flowset(flow_set, channels = channels, min = min,
                                max = max)
-
+  }
   # For each randomly selected sample in the flow_set, we apply K-means with to
   # find K clusters and retain additional summary statistics to elicit the prior
   # parameters for flowClust.
