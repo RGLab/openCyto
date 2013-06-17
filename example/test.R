@@ -2,7 +2,13 @@
 # ICS
 # 
 ###############################################################################
+unloadNamespace("flowIncubator")
 unloadNamespace("openCyto")
+unloadNamespace("QUALIFIER")
+unloadNamespace("flowStats")
+unloadNamespace("flowWorkspace")
+
+
 library(openCyto)
 library(flowIncubator)
 library(flowWorkspace)
@@ -23,7 +29,6 @@ source("/home/wjiang2/rglab/workspace/openCyto/R/fcTree-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/fcFilterList-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/fcFilter-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
-source("/home/wjiang2/rglab/workspace/openCyto/R/median-logicle-transform.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
 
 
