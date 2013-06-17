@@ -249,7 +249,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         # If 'min' and/or 'max' are given, we pass this value along to the
         # prior-elicitation method as well as flowClust. Otherwise, these values
         # are set to NULL.
-        min_values <- max_values <- NULL
+        min_values <- -Inf
+        max_values <- Inf
         if ("min" %in% names(args)) {
           min_values <- as.numeric(args["min"])
         }
