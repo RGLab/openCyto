@@ -151,6 +151,7 @@ setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
 # constructor from csv
 setMethod("gatingTemplate", signature(x = "character"), function(x, name="default") {
   df <- .preprocess_csv(x)
+#  browser()
   # create graph with root node
   g <- graphNEL(nodes = "1", edgemode = "directed")
   g <- as(g, "gatingTemplate")
@@ -179,8 +180,8 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
       alias = curPop, parentID = as.numeric(parentID))
     
     # create gating method object
-    cur_method <- as.character(df[i, "method"])
-    cur_args <- as.character(df[i, "args"])
+    cur_method <- as.character(df[i, "gating_method"])
+    cur_args <- as.character(df[i, "gating_args"])
     cur_dims <- as.character(df[i, "dims"])
     
     # do not parse args for refGate-like gate since they might break the current
@@ -200,7 +201,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
       gm <- as(gm, "polyFunctions")
     } else if (names(gm) == "refGate") {
       gm <- as(gm, "refGate")
-      if(nchar(cur_dims)==0){
+      if(is.na(cur_dims)){
         stop("No dimensions defined for refGate!")
       }
     }

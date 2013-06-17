@@ -105,6 +105,7 @@ gt2<-gatingTemplate(file.path(path,"data/Cytotrol_Bcell_expanded.csv"),"Bcell")
 gt2<-gatingTemplate(file.path(path,"data/Cytotrol_Bcell.csv"),"Bcell")
 plot(gt2)
 
+getNodes(gs2[[1]])
 load(file.path(path,"data/fs_bcell.rda"))
 gs2<-GatingSet(fs_bcell)
 env1<-new.env(parent=emptyenv())

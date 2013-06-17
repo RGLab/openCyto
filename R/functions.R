@@ -29,7 +29,7 @@
     
     popName <- this_row[1, "pop"]
     dims <- this_row[1, "dims"]
-    gm <- this_row[1, "method"]
+    gm <- this_row[1, "gating_method"]
     
     if (!grepl("[+-]", popName)) {
       popName <- paste0(popName, "+")
@@ -56,14 +56,14 @@
     
     two_pop_token <- "(\\+/-)|(-/\\+)"
     two_pop_pat <- paste(pop_name_pat, "(", two_pop_token, ")", sep = "")
-    
+#    browser()
     if (grepl(paste0("^", one_pop_pat, "$"), popName)) {
       # A+ no expansion(simply update flowClust gm)
       if (gm == "flowClust") {
         if (dim_count == 1) {
-          this_row[1, "method"] <- "flowClust.1d"
+          this_row[1, "gating_method"] <- "flowClust.1d"
         } else {
-          this_row[1, "method"] <- "flowClust.2d"
+          this_row[1, "gating_method"] <- "flowClust.2d"
         }
       }
       
@@ -74,9 +74,9 @@
       
       if (gm == "flowClust") {
         if (dim_count == 1) {
-          this_row[1, "method"] <- "flowClust.1d"
+          this_row[1, "gating_method"] <- "flowClust.1d"
         } else {
-          this_row[1, "method"] <- "flowClust.2d"
+          this_row[1, "gating_method"] <- "flowClust.2d"
         }
       }
       # expand to two rows
@@ -86,7 +86,7 @@
       
       # create 1d gate
       res_1d <- c(alias = new_pops[1], pop = new_pops[1], parent = this_row[1, "parent"], 
-                    dims, this_row[1, "method"], this_row["args"])
+                    dims, this_row[1, "gating_method"], this_row["gating_args"])
       # create ref gate
       res_ref <- c(alias = new_pops[2], pop = new_pops[2], parent = this_row[1, "parent"], 
                         dims, "refGate", file.path(this_row[1, "parent"],new_pops[1]))
@@ -105,7 +105,7 @@
           if (dim_count == 2) {
           cat("expanding pop: ", popName, "\n")
           
-          this_row[1, "method"] <- "flowClust.1d"
+          this_row[1, "gating_method"] <- "flowClust.1d"
           } else {
           stop("dimensions '", dims, "' is not consistent with pop name '", 
             popName, "'")
@@ -138,7 +138,7 @@
         
         if (gm == "flowClust") {
           if (dim_count == 2) {
-          this_row[1, "method"] <- "flowClust.1d"
+          this_row[1, "gating_method"] <- "flowClust.1d"
           
           } else {
           stop("dimensions '", dims, "' is not consistent with pop name '", 
@@ -157,7 +157,7 @@
     } else {
       stop("invalid population pattern '", popName, "'")
     }
-    
+#    browser()
     if (is.matrix(res)) {
       colnames(res) <- names(this_row)
     } else {
@@ -166,6 +166,8 @@
     
     new_df <- rbind(new_df, res)
   }
+#  browser()
+  new_df[new_df == ""] <- NA
   new_df
   
 }
@@ -189,7 +191,7 @@
   })
   list(terms = terms, splitted_terms = splitted_terms)
 }
-
+#convert to 1d gating based on the population pattern
 .gen_1dgate <- function(terms, this_row, one_pop_token, two_pop_token, new_df) {
   res <- do.call(rbind, lapply(terms, function(cur_term) {
     toReplace <- paste("(", two_pop_token, ")|(", one_pop_token, ")", sep = "")
@@ -199,7 +201,7 @@
     .check_alias(new_df, new_pop_name, this_parent)
     
     c(alias = new_pop_name, pop = new_pop_name, parent = this_parent, dims = cur_dim, 
-      this_row["method"], this_row["args"])
+      this_row["gating_method"], this_row["gating_args"], this_row["collapse"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
   }))
   rownames(res) <- NULL
   res
@@ -210,7 +212,7 @@
   
   if (is.null(ref_nodes)) {
     # simply copy ref args from the row
-    ref_args <- this_row[1, "args"]
+    ref_args <- this_row[1, "gating_args"]
   } else {
     # use the new generated 1d pops to construct ref args
     # prepend the path to ref_nodes if needed
@@ -228,7 +230,7 @@
   do.call(rbind, mapply(new_pops, alias, FUN = function(new_pop, cur_alias) {
     .check_alias(new_df, cur_alias, this_parent)
     c(alias = cur_alias, pop = new_pop, parent = this_parent, this_row["dims"], 
-      method = "refGate", args = ref_args)
+      method = "refGate", gating_args = ref_args, NA, NA, NA, NA)
   }, SIMPLIFY = FALSE))
 }
 
