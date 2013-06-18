@@ -21,6 +21,7 @@ library(gtools)
 
 source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/gating-cytokines.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gating-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gating-functions.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gtMethod-methods.R")
@@ -30,8 +31,8 @@ source("/home/wjiang2/rglab/workspace/openCyto/R/fcFilterList-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/fcFilter-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
-
-
+source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/wrapper-functions.R")
 
 path<-"/home/wjiang2/rglab/workspace/openCyto"
 

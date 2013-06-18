@@ -39,6 +39,12 @@ setMethod("getGate", signature = c("gatingTemplate", "character"),
   edgeData(obj, from = y, to = z, attr = "gtMethod")[[1]]
 })
 
+setGeneric("ppMethod", function(obj, y, ...) standardGeneric("ppMethod"))
+setMethod("ppMethod", signature = c("gatingTemplate", "character"),
+    definition = function(obj, y, z) {
+      edgeData(obj, from = y, to = z, attr = "ppMethod")[[1]]
+    })
+
 setMethod("show", signature = c("gatingTemplate"),
           definition = function(object) {
   cat("--- Gating Template: ")

@@ -56,7 +56,7 @@ fcTree <- function(gt) {
   res
 }
 setClass("gtMethod", representation(name = "character", dims = "character", args = "list"))
-
+setClass("ppMethod", contains = "gtMethod")
 setClass("refGate", contains = "gtMethod", representation(refNodes = "character"))
 
 setClass("boolMethod", contains = "refGate")
@@ -157,7 +157,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
   g <- as(g, "gatingTemplate")
   nodeDataDefaults(g, "pop") <- ""
   edgeDataDefaults(g, "gtMethod") <- ""
-
+  edgeDataDefaults(g, "ppMethod") <- ""
   # add default root
   nodeData(g, "1", "pop") <- new("gtPopulation", id = 1, name = "root", alias = "root")
 
@@ -166,23 +166,23 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
   edgs <- vector("list", nEdges)
   for (i in 1:nEdges) {
     curNodeID <- as.character(i + 1)
-
+    thisRow <- df[i,]
     # extract info from dataframe
-    parent <- as.character(df[i, "parent"])
+    parent <- thisRow[,"parent"][[1]]
 
     # get parent ID
     parentID <- .searchNode(g, parent)
-    curPop <- as.character(df[i, "alias"])
-    curPopName <- as.character(df[i, "pop"])
+    curPop <- thisRow[,"alias"][[1]]
+    curPopName <- thisRow[,"pop"][[1]]
 
     # create pop object
     curNode <- new("gtPopulation", id = as.numeric(curNodeID), name = curPopName, 
       alias = curPop, parentID = as.numeric(parentID))
     
     # create gating method object
-    cur_method <- as.character(df[i, "gating_method"])
-    cur_args <- as.character(df[i, "gating_args"])
-    cur_dims <- as.character(df[i, "dims"])
+    cur_method <- thisRow[,"gating_method"][[1]]
+    cur_args <- thisRow[,"gating_args"][[1]]
+    cur_dims <- thisRow[,"dims"][[1]]
     
     # do not parse args for refGate-like gate since they might break the current
     # parse due to the +/- | &,! symbols
@@ -205,6 +205,12 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
         stop("No dimensions defined for refGate!")
       }
     }
+
+    #preprocessing object
+    cur_pp_Method <- thisRow[,"preprocessing_method"][[1]]
+    cur_pp_args <- thisRow[,"preprocessing_args"][[1]]
+    cur_pp_args <- .argParser(cur_pp_args, TRUE)
+    ppm <- new("ppMethod", name = cur_pp_Method, dims = cur_dims, args = cur_pp_args)
     
     cat("Adding population:", curPop, "\n")
     # add current node to graph
@@ -215,6 +221,8 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
       g_updated <- addEdge(parentID, curNodeID, g_updated)
       # add the gm object to the edge
       edgeData(g_updated, parentID, curNodeID, "gtMethod") <- gm
+      #add preprcessing method to the edge
+      edgeData(g_updated, parentID, curNodeID, "ppMethod") <- ppm
     } else {
       ##########################################
       # refGate-like methods need extra parsing
@@ -254,8 +262,12 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
 
         # append the gm object to the edge
         edgeData(g_updated, ref_id, curNodeID, "gtMethod") <- gm
+        
+        #add preprcessing method to the edge
+        edgeData(g_updated, ref_id, curNodeID, "ppMethod") <- ppm
       }
     }
+    
     
     # add the current population object to the current node
     nodeData(g_updated, curNodeID, "pop") <- curNode

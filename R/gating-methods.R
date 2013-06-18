@@ -64,14 +64,23 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
     # redudant)
     this_gate <- getGate(gt, gt_ref_ids[1], gt_node_id)
     
+    #get preprocessing method
+    this_ppm <- ppMethod(gt, gt_ref_ids[1], gt_node_id)
+    
     parentInd <- match(gt_parent_id, node_ids[, "gt"])
     if (is.na(parentInd)) 
       stop("parent node '", names(getNodes(gt, gt_parent_id)), "' not gated yet!")
     gs_parent_id <- node_ids[parentInd, "gs"]
     if (is.na(gs_parent_id)) 
       stop("parent node '", names(getNodes(gt, gt_parent_id)), "' not gated yet!")
+    
+    #preprocessing
+    pp_res <- NULL
+    if(!is.na(names(this_ppm)))
+      pp_res <- preprocessing(x = this_ppm, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, ...)
+    
     # pass the pops and gate to gating routine
-    res <- gating(x = this_gate, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, 
+    res <- gating(x = this_gate, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, pp_res = pp_res, 
       ...)
     gs_node_id <- res[["gs_node_id"]]
     filterObj <- res[["filterObj"]]
@@ -99,7 +108,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
             xbin = 128, prior_group = NULL, ...) {
   
   require("parallel")
-  
+#  browser()
   args <- parameters(x)
   gm <- paste0(".", names(x))
   
@@ -296,10 +305,14 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       }
       
     }
+#    browser()
     # update arg_names
-    for (arg in names(args)) {
-      thisCall[[arg]] <- args[[arg]]
+    if(!(all(is.na(args)))){
+      for (arg in names(args)) {
+        thisCall[[arg]] <- args[[arg]]
+      }  
     }
+    
     
     ## choose serial or parallel mode
     
