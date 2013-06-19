@@ -29,4 +29,13 @@ setMethod("dims", signature = c("gtMethod"), definition = function(object) {
 setMethod("parameters", signature = c("gtMethod"), definition = function(object) {
   object@args
 })
- 
+
+setGeneric("isCollapse",function(object,...)standardGeneric("isCollapse"))
+setMethod("isCollapse", signature = c("gtMethod"), definition = function(object) {
+      object@collapse
+    })
+
+setGeneric("groupBy",function(object,...)standardGeneric("groupBy"))
+setMethod("groupBy", signature = c("gtMethod"), definition = function(object) {
+      object@groupBy
+    })

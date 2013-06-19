@@ -33,6 +33,7 @@ source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/functions.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/bayes-flowClust.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/wrapper-functions.R")
+source("/home/wjiang2/rglab/workspace/openCyto/R/preprocessing-method.R")
 
 path<-"/home/wjiang2/rglab/workspace/openCyto"
 
@@ -119,6 +120,9 @@ gating(gt2,gs2,env1)
 getGate(gs2,4)
 plot(gs2[[1]],bool=T)
 plotGate(gs2[[1]],bool=T,xbin=64)
+getData(gs2[[1]],"cd19&cd20")
+getNodes(gs2[[1]])
+densityplot(~`<G780-A>`,getData(gs2,"cd19&!cd20"))
 
 getGate(env1$fct,"nonDebris")
 plot(env1$fct,"nonDebris",post=T)

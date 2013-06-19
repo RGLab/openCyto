@@ -55,7 +55,7 @@ fcTree <- function(gt) {
   nodeDataDefaults(res, "fList") <- new("filterList")
   res
 }
-setClass("gtMethod", representation(name = "character", dims = "character", args = "list"))
+setClass("gtMethod", representation(name = "character", dims = "character", args = "list", groupBy = "character", collapse = "logical"))
 setClass("ppMethod", contains = "gtMethod")
 setClass("refGate", contains = "gtMethod", representation(refNodes = "character"))
 
@@ -184,6 +184,8 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
     cur_args <- thisRow[,"gating_args"][[1]]
     cur_dims <- thisRow[,"dims"][[1]]
     
+    cur_collapse <- thisRow[,"collapseDataForGating"][[1]]
+    cur_groupBy <- thisRow[,"groupBy"][[1]]
     # do not parse args for refGate-like gate since they might break the current
     # parse due to the +/- | &,! symbols
     if (cur_method %in% c("boolGate", "polyfunctions", "refGate")) {
@@ -193,7 +195,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
     }
     cur_args <- .argParser(cur_args, split_args)
     
-    gm <- new("gtMethod", name = cur_method, dims = cur_dims, args = cur_args)
+    gm <- new("gtMethod", name = cur_method, dims = cur_dims, args = cur_args, collapse = as.logical(cur_collapse), groupBy = cur_groupBy)
     # specialize gtMethod as needed
     if (names(gm) == "boolGate") {
       gm <- as(gm, "boolMethod")
@@ -201,7 +203,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
       gm <- as(gm, "polyFunctions")
     } else if (names(gm) == "refGate") {
       gm <- as(gm, "refGate")
-      if(is.na(cur_dims)){
+      if(nchar(cur_dims) == 0){
         stop("No dimensions defined for refGate!")
       }
     }
@@ -210,7 +212,9 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
     cur_pp_Method <- thisRow[,"preprocessing_method"][[1]]
     cur_pp_args <- thisRow[,"preprocessing_args"][[1]]
     cur_pp_args <- .argParser(cur_pp_args, TRUE)
-    ppm <- new("ppMethod", name = cur_pp_Method, dims = cur_dims, args = cur_pp_args)
+    
+    if(nchar(cur_pp_Method) > 0)
+      ppm <- new("ppMethod", name = cur_pp_Method, dims = cur_dims, args = cur_pp_args, collapse = as.logical(cur_collapse), groupBy = cur_groupBy)
     
     cat("Adding population:", curPop, "\n")
     # add current node to graph
@@ -222,7 +226,8 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
       # add the gm object to the edge
       edgeData(g_updated, parentID, curNodeID, "gtMethod") <- gm
       #add preprcessing method to the edge
-      edgeData(g_updated, parentID, curNodeID, "ppMethod") <- ppm
+      if(nchar(cur_pp_Method) > 0)
+        edgeData(g_updated, parentID, curNodeID, "ppMethod") <- ppm
     } else {
       ##########################################
       # refGate-like methods need extra parsing
@@ -264,7 +269,8 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
         edgeData(g_updated, ref_id, curNodeID, "gtMethod") <- gm
         
         #add preprcessing method to the edge
-        edgeData(g_updated, ref_id, curNodeID, "ppMethod") <- ppm
+        if(nchar(cur_pp_Method) > 0)
+          edgeData(g_updated, ref_id, curNodeID, "ppMethod") <- ppm
       }
     }
     

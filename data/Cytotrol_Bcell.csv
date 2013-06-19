@@ -1,6 +1,6 @@
-"alias","pop","parent","dims","gating_method","gating_args","collapse","groupBy","preprocessing_method","preprocessing_args"
-"nonDebris","nonDebris+","root","FSC-A","flowClust","Neg=1,pos=2",,,"prior_flowClust",
-"lymph","lymph","nonDebris","FSC-A,SSC-A","flowClust","K=2,quantile=0.8,target=c(1e5,5e4)",,,"prior_flowClust",
+"alias","pop","parent","dims","gating_method","gating_args","collapseDataForGating","groupBy","preprocessing_method","preprocessing_args"
+"nonDebris","nonDebris+","root","FSC-A","flowClust","Neg=1,pos=2",,,"prior_flowClustEx",
+"lymph","lymph","nonDebris","FSC-A,SSC-A","flowClust","K=2,quantile=0.8,target=c(1e5,5e4)",,,"prior_flowClustEx",
 "cd3","cd3-","lymph","cd3","mindensity",,,,,
 "cd19","cd19+","cd3","cd19","mindensity",,,,,
 "cd20","cd20+","cd3","cd20","mindensity",,,,,

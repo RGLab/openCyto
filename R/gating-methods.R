@@ -66,7 +66,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
     
     #get preprocessing method
     this_ppm <- ppMethod(gt, gt_ref_ids[1], gt_node_id)
-    
+#    browser()
     parentInd <- match(gt_parent_id, node_ids[, "gt"])
     if (is.na(parentInd)) 
       stop("parent node '", names(getNodes(gt, gt_parent_id)), "' not gated yet!")
@@ -77,11 +77,10 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
     #preprocessing
     pp_res <- NULL
     if(!is.na(names(this_ppm)))
-      pp_res <- preprocessing(x = this_ppm, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, ...)
-    
+      pp_res <- preprocessing(x = this_ppm, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, gm = this_gate, ...)
+    browser()
     # pass the pops and gate to gating routine
-    res <- gating(x = this_gate, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, pp_res = pp_res, 
-      ...)
+    res <- gating(x = this_gate, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, pp_res = pp_res, ...)
     gs_node_id <- res[["gs_node_id"]]
     filterObj <- res[["filterObj"]]
     
@@ -103,9 +102,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       .gating_gtMethod(x,y,...)
     })
 
-.gating_gtMethod <- function(x, y, gtPop, parent, mc.cores = 1,
-            parallel_type = c("none", "multicore", "cluster"), cl = NULL, plot = FALSE,
-            xbin = 128, prior_group = NULL, ...) {
+.gating_gtMethod <- function(x, y, gtPop, parent, pp_res 
+            , mc.cores = 1, parallel_type = c("none", "multicore", "cluster"), cl = NULL
+            , plot = FALSE, xbin = 128,  ...) {
   
   require("parallel")
 #  browser()
@@ -172,8 +171,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     thisCall <- substitute(f1())
     thisCall[["X"]] <- quote(fslist)  #set data
     thisCall[["FUN"]] <- as.symbol(gm)  #set gating method
-    thisCall[["xChannel"]] <- xChannel  #set x,y channel
-    thisCall[["yChannel"]] <- yChannel
+    
+    args[["xChannel"]] <- xChannel  #set x,y channel
+    args[["yChannel"]] <- yChannel
     
     if (is_1d_gate) {
       if (grepl("-$", popName)) {
@@ -184,32 +184,14 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         stop("Invalid population name! Name should end with '+' or '-' symbol.")
       }
       
-      thisCall[["positive"]] <- positive
+      args[["positive"]] <- positive
     }
-    
-    prior_list <- list()
 
     # prior estimation is done separately from flowClust routine because
     # prior_flowClust1d requires the entire parent flowSet yet flowClust only
     # takes one flowFrame
     if (grepl("^\\.flowClust\\.[12]d$", gm)) {
-      local_prior_group <- args[["prior_group"]]
-      args[["prior_group"]] <- NULL
-
-      # overwrite the golbal one if the local is specified
-      if (!is.null(local_prior_group)) 
-        prior_group <- local_prior_group
-      
-      prior_source <- args[["prior_source"]]
-      args[["prior_source"]] <- NULL
-      
-      if (is.null(prior_source)) {
-        prior_data <- parent_data
-      } else {
-        prior_data <- getData(y, prior_source)
-      }
-      
-      if (gm == ".flowClust.1d") {
+       if (gm == ".flowClust.1d") {
         # If any of 'K, 'neg' or 'pos' are given, we extract them from the
         # 'args' and coerce them as integers. Otherwise, they are defaulted to
         # NULL.
@@ -266,18 +248,6 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         if ("max" %in% names(args)) {
           max_values <- as.numeric(args["max"])
         }                          
-
-        if (!is.na(xChannel)) {
-          prior_list[[xChannel]] <- .prior_flowClust(flow_set = prior_data,
-            channels = xChannel, K = K, prior_group = prior_group,
-            min = min_values, max = max_values, ...)
-        }
-
-        prior_list[[yChannel]] <- .prior_flowClust(flow_set = prior_data,
-          channels = yChannel, K = K, prior_group = prior_group,
-          min = min_values, max = max_values, ...)
-
-        args[["prior"]] <- prior_list
         
         # If the number of positive clusters is 0 and no cutpoint method has been
         # specified, we use the quantile gate by default.
@@ -296,44 +266,36 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         args[["k"]] <- K
         names(args)[match("k", names(args))] <- "K"  #restore K to capital letter
         names(args)[match("useprior",names(args))]<-"usePrior"
-        
-        prior_list <- .prior_flowClust(flow_set = prior_data, channels = c(xChannel, 
-          yChannel), K = K, prior_group = prior_group, ...)
-        args[["prior"]] <- prior_list
-        # thisCall[['positive']]<-NULL #remove positive arg since 2D gate doesn't
-        # understand it
+
       }
       
     }
 #    browser()
     # update arg_names
-    if(!(all(is.na(args)))){
-      for (arg in names(args)) {
-        thisCall[[arg]] <- args[[arg]]
-      }  
-    }
-    
+#    if(!(all(is.na(args)))){
+#      for (arg in names(args)) {
+#        thisCall[[arg]] <- args[[arg]]
+#      }  
+#    }
+    thisCall[["MoreArgs"]] <- args
     
     ## choose serial or parallel mode
     
       
     if (parallel_type == "multicore") {
       message("Running in parallel mode with ", mc.cores, " cores.")
-      thisCall[[1]] <- quote(mclapply)
+      thisCall[[1]] <- quote(mcmapply)
       thisCall[["mc.cores"]] <- mc.cores
       flist <- eval(thisCall)
       
     }else if(parallel_type == "cluster"){
       if(is.null(cl))
           stop("cluster object 'cl' is empty!")
-        thisCall[[1]] <- quote(parLapply)
+        thisCall[[1]] <- quote(clusterMap)
         thisCall[["cl"]] <- cl
-        # replace FUN with fun for parLapply
-        thisCall["fun"] <- thisCall["FUN"]
-        thisCall["FUN"] <- NULL
         flist <- eval(thisCall)
      }else {
-      thisCall[[1]] <- quote(lapply)  #select loop mode
+      thisCall[[1]] <- quote(mapply)  #select loop mode
       flist <- eval(thisCall)
     }
 

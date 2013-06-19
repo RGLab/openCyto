@@ -167,8 +167,9 @@
     new_df <- rbind(new_df, res)
   }
 #  browser()
-  new_df[new_df == ""] <- NA
-  new_df
+
+   new_df[is.na(new_df)] <- ""
+   new_df
   
 }
 
@@ -201,7 +202,7 @@
     .check_alias(new_df, new_pop_name, this_parent)
     
     c(alias = new_pop_name, pop = new_pop_name, parent = this_parent, dims = cur_dim, 
-      this_row["gating_method"], this_row["gating_args"], this_row["collapse"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
+      this_row["gating_method"], this_row["gating_args"], this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
   }))
   rownames(res) <- NULL
   res
