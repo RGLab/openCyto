@@ -546,12 +546,17 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 #' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param pivot logical value. If \code{TRUE}, we choose as the two peaks the
 #' largest peak and its neighboring peak. See details.
+#' @param gate_range numeric vector of length 2. If given, this sets the bounds
+#' on the gate applied. If no gate is found within this range, we set the gate to
+#' the minimum value within this range if \code{positive} is \code{TRUE} and the
+#' maximum value of the range otherwise.
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
 #' @param ... Additional arguments passed on to the \code{find_peaks} function
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
-                       pivot = FALSE, min = -Inf, max = Inf, ...) {
+                       pivot = FALSE, gate_range = NULL, min = -Inf, max = Inf,
+                       ...) {
   
   if (missing(channel) || length(channel) != 1) {
     stop("A single channel must be specified.")
@@ -566,43 +571,44 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   # Grabs the data matrix that is being gated.
   x <- exprs(flow_frame)[, channel]
 
-  peaks <- find_peaks(x, ...)
-
-  if (pivot) {
-    # If 'pivot' is selected, we choose the largest peak and its neighbor, which
-    # is chosen based on the current value of 'positive'
-    largest_peak <- peaks[1]
-    peaks <- sort(peaks)
-    which_largest <- which(peaks == largest_peak)
-    if (positive) {
-      peaks <- peaks[c(which_largest - 1, which_largest)]
-    } else {
-      peaks <- peaks[c(which_largest, which_largest + 1)]
-    }
-    peaks <- peaks[!is.na(peaks)]
+  if (is.null(gate_range)) {
+    gate_range <- c(min(x), max(x))
   } else {
-    # Otherwise, we choose the two largest peaks and sort them
-    peaks <- sort(peaks[1:2])
+    gate_range <- sort(gate_range)
   }
 
+  peaks <- find_peaks(x, ...)
+
   # In the special case that there is only one peak, we are conservative and set
-  # the cutpoint as the min(x) if 'positive' is TRUE, and the max(x) otherwise.
-  # value otherwise.
+  # the cutpoint as min(x) if 'positive' is TRUE, and max(x) otherwise.
   if (length(peaks) == 1) {
-    cutpoint <- ifelse(positive, min(x), max(x))
+    cutpoint <- ifelse(positive, gate_range[1], gate_range[2])
   } else {
     # The cutpoint is the deepest valley between the two peaks selected. In the
     # case that there are no valleys (i.e., if 'x_between' has an insufficient
     # number of observations), we are conservative and set the cutpoint as the
     # minimum value if 'positive' is TRUE, and the maximum value otherwise.
-    valleys <- try(find_valleys(x), silent = TRUE)
-    cutpoint <- between_interval(x = valleys, interval = peaks)[1]
+    valleys <- try(find_valleys(x, ...), silent = TRUE)
+    valleys <- between_interval(x = valleys, interval = gate_range)
 
-    if (is.na(cutpoint)) {
+    if (any(is.na(valleys))) {
     #FIXME:currently it is still returning the first peak,
     #we want to pass density instead of x_between to 'min'
-    #because x_between is the signal values 
-      cutpoint <- min(x_between) 
+    #because x_between is the signal values
+      cutpoint <- ifelse(positive, gate_range[1], gate_range[2])
+    } else if (length(valleys) == 1) {
+      cutpoint <- as.vector(valleys)
+    } else if (length(valleys) > 1) {
+      # If there are multiple valleys, we determine the deepest valley between
+      # the two largest peaks.
+      peaks <- sort(peaks[1:2])
+      cutpoint <- between_interval(valleys, peaks)[1]
+
+      # If none of the valleys detected are between the two largest peaks, we
+      # select the deepest valley.
+      if (is.na(cutpoint)) {
+        cutpoint <- valleys[1]
+      }      
     }
   }
   # After the 1D cutpoint is set, we set the gate coordinates used in the
