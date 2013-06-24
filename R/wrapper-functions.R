@@ -1,10 +1,10 @@
 # This file contains all wrapper methods for dispatching data and arguments to
 # gating algorithms.
 
-#' the temporary wrapper that currently invokes .prior_flowClust
-#' TODO: to be merged into .prior_flowClust eventually
-.prior_flowClustEx <- function(fs, gs, gm, xChannel, yChannel
-                                , prior_group = NULL, prior_source = NULL
+#'  wrapper for prior_flowClust
+
+.prior_flowClust <- function(fs, gs, gm, xChannel, yChannel
+                                , prior_source = NULL
                                 , k, neg, pos
                                 , min, max, ...){
     prior_list <- list()
@@ -70,13 +70,13 @@
       }                          
       
       if (!is.na(xChannel)) {
-        prior_list[[xChannel]] <- .prior_flowClust(flow_set = prior_data,
-            channels = xChannel, K = K, prior_group = prior_group,
+        prior_list[[xChannel]] <- prior_flowClust(flow_set = prior_data,
+            channels = xChannel, K = K,
             min = min_values, max = max_values, ...)
       }
       
-      prior_list[[yChannel]] <- .prior_flowClust(flow_set = prior_data,
-          channels = yChannel, K = K, prior_group = prior_group,
+      prior_list[[yChannel]] <- prior_flowClust(flow_set = prior_data,
+          channels = yChannel, K = K,
           min = min_values, max = max_values, ...)
       
     } else {
@@ -88,31 +88,13 @@
         K <- 2
       }
       
-      prior_list <- .prior_flowClust(flow_set = prior_data, channels = c(xChannel, 
-              yChannel), K = K, prior_group = prior_group, ...)
+      prior_list <- prior_flowClust(flow_set = prior_data, channels = c(xChannel, 
+              yChannel), K = K,  ...)
     }
     
     prior_list
 }
-# wrapper for prior_flowClust to return sample-specific priors
-.prior_flowClust <- function(flow_set, prior_group = NULL, ...) {
-  if (is.null(prior_group)) {
-    prior_list <- prior_flowClust(flow_set, ...)
-    # replicate the prior for each sample
-    sapply(sampleNames(flow_set), function(i) prior_list, simplify = FALSE)
-  } else {
-    splitBy1 <- factor(pData(flow_set)[, prior_group])
-    fs_list <- split(flow_set, splitBy1)
-    names(fs_list) <- NULL  #strip group name
-    plist <- lapply(fs_list, function(fs) {
-      prior_list <- prior_flowClust(fs, ...)
 
-      # replicate the prior for each sample within this prior group
-      sapply(sampleNames(fs), function(i) prior_list, simplify = FALSE)
-    })
-    unlist(plist, recursive = FALSE)
-  }
-}
 
 ## wrappers for the different gating routines
 .singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H",
@@ -125,8 +107,8 @@
               prediction_level = prediction_level)
 }
 
-.flowClust.1d <- function(fs, xChannel = NA, yChannel, tol = 1e-5, pp_res = NULL,
-                          filterId = "", split = TRUE, ...) {
+.flowClust.1d <- function(fs, pp_res, xChannel = NA, yChannel, tol = 1e-5,
+                          filterId = "", ...) {
   require(openCyto)
   
   prior <- pp_res
@@ -134,31 +116,32 @@
   sname <- sampleNames(fs)
   fr <- fs[[sname]]
   priorList <- list()
-  priorList[[yChannel]] <- prior[[yChannel]][[sname]]
+  if(!is.null(prior))
+    prior <- prior[[yChannel]]
   
   if (is.na(xChannel)) {
     # 1d gate
     flowClust.1d(fr = fr, params = yChannel, tol = tol, filterId = filterId, 
-      prior = priorList[[yChannel]], ...)
+      prior = prior, ...)
   } else {
     stop("flowClust1d does not support 2d gate!")
   }
 }
 
-.cytokine <- function(fs, xChannel = NA, yChannel = "FSC-A", filterId = "", pp_res = NULL,
+.cytokine <- function(fs, pp_res, xChannel = NA, yChannel = "FSC-A", filterId = "", 
                       ...) {
   require(openCyto)
   cytokine(flow_set = fs, channel = yChannel, filter_id = filterId, ...)
 }
 
-.mindensity <- function(fs, yChannel = "FSC-A", filterId = "", pp_res = NULL, ...) {
+.mindensity <- function(fs, pp_res, yChannel = "FSC-A", filterId = "", ...) {
   require(openCyto)
   # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
   # contain more than one flowFrame if 'split' is specified in the CSV file.
   mindensity(flow_frame = fs[[1]], channel = yChannel, filter_id = filterId, ...)
 }
 
-.flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", pp_res = NULL,
+.flowClust.2d <- function(fs, pp_res, xChannel, yChannel, usePrior = "yes", 
                           ...) {
   require(openCyto)
   prior <- pp_res
@@ -176,7 +159,7 @@
                 , ...)
 }
 
-.rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE, filterId = "", pp_res = NULL,
+.rangeGate <- function(fs, pp_res, xChannel = NA, yChannel, absolute = FALSE, filterId = "",
                        ...) {
   require(openCyto)
   # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
@@ -186,7 +169,7 @@
             filterId = filterId, ...)
 }
 
-.quantileGate <- function(fs, xChannel = NA, yChannel, probs = 0.999, filterId = "", pp_res = NULL,
+.quantileGate <- function(fs, pp_res, xChannel = NA, yChannel, probs = 0.999, filterId = "",
                           ...) {
   require(openCyto)
   # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
@@ -195,7 +178,7 @@
   quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)
 }
 
-.quadrantGate <- function(fs, xChannel = NA, yChannel, pp_res = NULL, ...) {
+.quadrantGate <- function(fs, pp_res, xChannel = NA, yChannel, ...) {
   require(openCyto)
   # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
   # contain more than one flowFrame if 'split' is specified in the CSV file.

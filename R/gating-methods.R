@@ -54,7 +54,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
       }
         
     }
-    
+#    browser()
     # parent node in graph is used as reference node
     gt_ref_ids <- getParent(gt, gt_node_id)
     # the parent to be used in gs is from parent slot of pop object
@@ -66,7 +66,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
     
     #get preprocessing method
     this_ppm <- ppMethod(gt, gt_ref_ids[1], gt_node_id)
-#    browser()
+    
     parentInd <- match(gt_parent_id, node_ids[, "gt"])
     if (is.na(parentInd)) 
       stop("parent node '", names(getNodes(gt, gt_parent_id)), "' not gated yet!")
@@ -76,9 +76,10 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
     
     #preprocessing
     pp_res <- NULL
-    if(!is.na(names(this_ppm)))
+#    browser()
+    if(class(this_ppm) == "ppMethod")
       pp_res <- preprocessing(x = this_ppm, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, gm = this_gate, ...)
-    browser()
+    
     # pass the pops and gate to gating routine
     res <- gating(x = this_gate, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, pp_res = pp_res, ...)
     gs_node_id <- res[["gs_node_id"]]
@@ -167,9 +168,11 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
 
     fslist <- split(parent_data, split_by)
     
+    if(is.null(pp_res))
+      pp_res <- sapply(names(fslist),function(i)pp_res)
     # construct method call
-    thisCall <- substitute(f1())
-    thisCall[["X"]] <- quote(fslist)  #set data
+    thisCall <- substitute(f1(fslist,pp_res))
+    
     thisCall[["FUN"]] <- as.symbol(gm)  #set gating method
     
     args[["xChannel"]] <- xChannel  #set x,y channel
@@ -286,18 +289,17 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       message("Running in parallel mode with ", mc.cores, " cores.")
       thisCall[[1]] <- quote(mcmapply)
       thisCall[["mc.cores"]] <- mc.cores
-      flist <- eval(thisCall)
-      
     }else if(parallel_type == "cluster"){
       if(is.null(cl))
           stop("cluster object 'cl' is empty!")
         thisCall[[1]] <- quote(clusterMap)
         thisCall[["cl"]] <- cl
-        flist <- eval(thisCall)
      }else {
       thisCall[[1]] <- quote(mapply)  #select loop mode
-      flist <- eval(thisCall)
-    }
+  
+     }
+    
+    flist <- eval(thisCall)
 
     # Handles the case that 'flist' is a list of lists.
     #   The outer lists correspond to the split by pData factors.

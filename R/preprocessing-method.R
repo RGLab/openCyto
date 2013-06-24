@@ -84,7 +84,7 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
     thisCall[[1]] <- quote(lapply)  #select loop mode
     res <- eval(thisCall)
 #    browser()
-    res <- unlist(res, recursive = FALSE)
+#    res <- unlist(res, recursive = FALSE)
   } else {
     message("Skip preprocessing! Population '", paste(popAlias, collapse = ","), "' already exists.")
     res <- NULL
