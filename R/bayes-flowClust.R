@@ -144,7 +144,7 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
                               clust_method = c("kmeans", "hclust"),
                               hclust_method = "complete", artificial = NULL,
                               nu0 = 4, w0 = 10, adjust = 2, min = -Inf,
-                              max = Inf) {
+                              max = Inf, vague = TRUE) {
 
   channel <- as.character(channel)
   clust_method <- match.arg(clust_method)
@@ -152,10 +152,9 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
     stop("There can be only 1...channel.")
   }
 
-  if(!(is.infinite(min)&&is.infinite(max))){   
-    
+  if (!(is.infinite(min) && is.infinite(max))) {
     flow_set <- truncate_flowset(flow_set, channels = channel, min = min, max = max)
-   }
+  }
   # For each sample in 'flow_set', we identify the peaks after smoothing.
   peaks <- fsApply(flow_set, function(flow_frame, adjust) {
     x <- exprs(flow_frame)[, channel]
@@ -201,32 +200,49 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
   }
   K <- nlevels(clust_labels)
 
-  # For each cluster of peaks, we elicit the hyperprior variance (Omega0) for
-  # the prior mean Mu0 by computing the variance of each cluster.
-  hyperprior_vars <- as.numeric(tapply(peaks_collapsed, clust_labels, var))
+  if (vague) {
+    prior_means <- sort(prior_means)
 
-  # Because the cluster labels assigned by the hierarchical clustering algorithm
-  # are arbitrary, the 'prior_means' are not necessarily sorted. Here, we sort
-  # them and then apply the new odering to the other prior parameters.
-  prior_order <- order(prior_means)
-  prior_means <- prior_means[prior_order]
-  hyperprior_vars <- hyperprior_vars[prior_order]
+    # To elicit a vague prior, we first calculate the median of standard
+    # deviations from all flowFrames. Then, we divide the overall standard
+    # deviation by the number of groups to the scale the standard deviation. 
+    sd_x <- fsApply(flow_set, function(flow_frame) {
+      sd(exprs(flow_frame)[, channel])
+    })
+    sd_x <- median(sd_x, na.rm = TRUE) / K
+    var_x <- sd_x^2
 
-  # Elicitation of prior variances for each mixture component:
-  # For each flowFrame in the original flowSet object, we cluster its
-  # observations by assigning them to the nearest mean in 'prior_means.' Then,
-  # we compute the variance of the observations within each cluster. Finally, we
-  # aggregate the variances across all of the flowFrame objects.
-  prior_vars <- fsApply(flow_set, function(flow_frame, prior_means) {
-    x <- exprs(flow_frame)[, channel]
+    hyperprior_vars <- rep.int(var_x, K)
+    prior_vars <- rep.int(var_x, K)
+                   
+  } else {
+    # For each cluster of peaks, we elicit the hyperprior variance (Omega0) for
+    # the prior mean Mu0 by computing the variance of each cluster.
+    hyperprior_vars <- as.numeric(tapply(peaks_collapsed, clust_labels, var))
 
-    # To determine the nearest mean, we find the midpoints of the peaks and then
-    # 'cut' the observations into the regions.
-    peak_midpoints <- rowMeans(embed(prior_means, 2))
-    labels <- cut(x, breaks = c(-Inf, peak_midpoints, Inf))
-    tapply(x, labels, var)
-  }, prior_means = prior_means)
-  prior_vars <- as.numeric(colMeans(prior_vars, na.rm = TRUE))
+    # Because the cluster labels assigned by the hierarchical clustering algorithm
+    # are arbitrary, the 'prior_means' are not necessarily sorted. Here, we sort
+    # them and then apply the new odering to the other prior parameters.
+    prior_order <- order(prior_means)
+    prior_means <- prior_means[prior_order]
+    hyperprior_vars <- hyperprior_vars[prior_order]
+
+    # Elicitation of prior variances for each mixture component:
+    # For each flowFrame in the original flowSet object, we cluster its
+    # observations by assigning them to the nearest mean in 'prior_means.' Then,
+    # we compute the variance of the observations within each cluster. Finally, we
+    # aggregate the variances across all of the flowFrame objects.
+    prior_vars <- fsApply(flow_set, function(flow_frame, prior_means) {
+      x <- exprs(flow_frame)[, channel]
+
+      # To determine the nearest mean, we find the midpoints of the peaks and then
+      # 'cut' the observations into the regions.
+      peak_midpoints <- rowMeans(embed(prior_means, 2))
+      labels <- cut(x, breaks = c(-Inf, peak_midpoints, Inf))
+      tapply(x, labels, var)
+    }, prior_means = prior_means)
+    prior_vars <- as.numeric(colMeans(prior_vars, na.rm = TRUE))
+  }
 
   # Here, we add any 'artificial' prior components, if provided, and increment
   # 'K' accordingly.

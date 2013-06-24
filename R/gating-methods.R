@@ -101,6 +101,14 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
   require("parallel")
   
   args <- parameters(x)
+
+  # HOTFIX: This resolve an error when args is a named list with name NA and object NA.
+  # The resulting error occurs down below and is:
+  # Error in thisCall[[arg]] <- args[[arg]] : subscript out of bounds
+  if (!is.null(names(args))) {
+    args <- args[!is.na(names(args))]
+  }
+    
   gm <- paste0(".", names(x))
   
   dims <- dims(x)
@@ -149,7 +157,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       }else{
         #split by study variables
         split_by <- strsplit(split_by, ":")[[1]]
-        split_by <- apply(pData(parent_data)[, split_by], 1, paste, collapse = ":")
+        split_by <- apply(as.data.frame(pData(parent_data)[, split_by]), 1, paste, collapse = ":")
         split_by <- as.character(split_by)
       }
       args[["split"]] <- NULL
