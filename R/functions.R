@@ -617,3 +617,7 @@ between_interval <- function(x, interval) {
   x
 }
 
+#' Constructs a 2x2 rotation matrix for a given angle
+rotation_matrix <- function(theta) {
+  matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), nrow = 2)
+}
