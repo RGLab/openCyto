@@ -25,6 +25,7 @@
 .singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H",
                          prediction_level = 0.99, ...) {
   require(openCyto)
+  fs <- fs[, c(xChannel,yChannel)]
   # Creates a list of polygon gates based on the prediction bands at the minimum
   # and maximum x_channel observation using a robust linear model trained by
   # flowStats.
@@ -35,7 +36,7 @@
 .flowClust.1d <- function(fs, xChannel = NA, yChannel, tol = 1e-5, prior = NULL,
                           filterId = "", split = TRUE, ...) {
   require(openCyto)
-
+  fs <- fs[, yChannel]
   sname <- sampleNames(fs)
   fr <- fs[[sname]]
   priorList <- list()
@@ -53,11 +54,13 @@
 .cytokine <- function(fs, xChannel = NA, yChannel = "FSC-A", filterId = "",
                       ...) {
   require(openCyto)
+  fs <- fs[, yChannel]
   cytokine(flow_set = fs, channel = yChannel, filter_id = filterId, ...)
 }
 
 .mindensity <- function(fs, yChannel = "FSC-A", filterId = "", ...) {
   require(openCyto)
+  fs <- fs[, yChannel]
   # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
   # contain more than one flowFrame if 'split' is specified in the CSV file.
   mindensity(flow_frame = fs[[1]], channel = yChannel, filter_id = filterId, ...)
@@ -66,7 +69,7 @@
 .flowClust.2d <- function(fs, xChannel, yChannel, usePrior = "yes", prior = NULL,
                           ...) {
   require(openCyto)
-  
+  fs <- fs[,c(xChannel, yChannel)]
   sname <- sampleNames(fs)
   #collapse if necessary
   if(length(sname)>1){
@@ -84,6 +87,7 @@
 .rangeGate <- function(fs, xChannel = NA, yChannel, absolute = FALSE, filterId = "", 
                        ...) {
   require(openCyto)
+  fs <- fs[, yChannel]
   # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
   # contain more than one flowFrame if 'split' is specified in the CSV file.
   fr <- fs[[1]]
@@ -94,6 +98,7 @@
 .quantileGate <- function(fs, xChannel = NA, yChannel, probs = 0.999, filterId = "",
                           ...) {
   require(openCyto)
+  fs <- fs[, yChannel]
   # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
   # contain more than one flowFrame if 'split' is specified in the CSV file.
   fr <- fs[[1]]
@@ -102,6 +107,7 @@
 
 .quadrantGate <- function(fs, xChannel = NA, yChannel, ...) {
   require(openCyto)
+  fs <- fs[,c(xChannel, yChannel)]
   # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
   # contain more than one flowFrame if 'split' is specified in the CSV file.
   fr <- fs[[1]]
