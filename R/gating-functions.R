@@ -419,11 +419,38 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     lambda1 <- Sigma_eigen$values[1]
     lambda2 <- Sigma_eigen$values[2]
 
-    # Computes the angles of each eigenvector with the x-axis
-    # Because each vector has magnitude 1, the angle is merely the arccos of
-    # the dot product.
-    axis_origin <- c(1, 0)
-    eigen_angles <- as.vector(acos(crossprod(Sigma_eigen$vectors, axis_origin)))
+    # Computes the angles of each eigenvector with the x-axis in terms of polar
+    # coordinates. Note that each vector has magnitude 1, so the radius is 1.
+    u1_angle <- atan2(u1[2], u1[1])
+    if (u1_angle < 0) {
+      u1_angle <- u1_angle + 2 * pi
+    }
+    u2_angle <- atan2(u2[2], u2[1])
+    if (u2_angle < 0) {
+      u2_angle <- u2_angle + 2 * pi
+    }
+
+    # We ensure that each eigenvector is pointing vertically. That is, we ensure
+    # the angle between the x-axis and the eigenvector is between 0 and pi. If
+    # If they are not, we rotate them by pi (i.e., 180 degrees).
+    if (u1_angle > pi) {
+      R <- rotation_matrix(pi)
+      u1 <- as.vector(R %*% u1)
+    }
+    if (u2_angle > pi) {
+      R <- rotation_matrix(pi)
+      u2 <- as.vector(R %*% u2)
+    }
+
+    u1_angle <- atan2(u1[2], u1[1])
+    if (u1_angle < 0) {
+      u1_angle <- u1_angle + 2 * pi
+    }
+    u2_angle <- atan2(u2[2], u2[1])
+    if (u2_angle < 0) {
+      u2_angle <- u2_angle + 2 * pi
+    }
+    eigen_angles <- c(u1_angle, u2_angle)
 
     # If the transitional angle is not provided, we set it as the angle between
     # the x-axis as the eigenvector pointing towards the postive quadrant.
@@ -438,14 +465,6 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     # is pi/2 radians counterclockwise from 'axis', following the right-hand
     # rule.
     if (is.null(transitional_angle)) {
-      # If none of the eigenvectors is pointing towards the positive quadrant,
-      # we rotate them so that
-      if (!any(0 < eigen_angles & eigen_angles < pi/2)) {
-        R <- rotation_matrix(pi)
-        u1 <- as.vector(R %*% u1)
-        u2 <- as.vector(R %*% u2)
-        eigen_angles <- as.vector(acos(crossprod(cbind(u1, u2), axis_origin)))
-      }
 
       # Determines which eigenvector points towards the positive quadrant
       which_pos_quadrant <- which(0 < eigen_angles & eigen_angles < pi/2)
@@ -454,41 +473,25 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
       # eigenvector pointing toward the positive quadrant
       transitional_angle <- eigen_angles[which_pos_quadrant]
 
-      # We ensure the perpendicular axis is pi/2 radians counterclockwise from
-      # the axis (i.e., pointing towards the second quadrant).
       if (which_pos_quadrant == 1) {
-        if (abs(diff(c(diff(eigen_angles), pi/2))) > tol) {
-          u2 <- as.vector(rotation_matrix(pi) %*% u2)
-        }
-
         axis <- sqrt(lambda1 * chisq_quantile) * u1
         axis_perp <- sqrt(lambda2 * chisq_quantile) * u2
       } else {
-        eigen_angles <- rev(eigen_angles)
-        if (abs(diff(c(diff(eigen_angles), pi/2))) > tol) {
-          u1 <- as.vector(rotation_matrix(pi) %*% u1)
-        }
-
         axis <- sqrt(lambda2 * chisq_quantile) * u2
         axis_perp <- sqrt(lambda1 * chisq_quantile) * u1
       }
     } else {
       # Rotation angle
-      theta <- transitional_angle - eigen_angles[1]
+      theta_u1 <- transitional_angle - eigen_angles[1]
+      theta_u2 <- transitional_angle - (pi/2) - eigen_angles[2]
 
       # Rotation matrix
-      R <- rotation_matrix(theta)
+      R1 <- rotation_matrix(theta_u1)
+      R2 <- rotation_matrix(theta_u2)
 
       # Rotates the eigenvectors
-      u1 <- as.vector(R %*% u1)
-      u2 <- as.vector(R %*% u2)
-
-      eigen_angles <- as.vector(acos(crossprod(cbind(u1, u2), axis_origin)))
-
-      # We ensure that u2 is pi/2 radians counterclockwise from u1
-      if (abs(diff(c(diff(eigen_angles), pi/2))) > tol) {
-        u2 <- as.vector(rotation_matrix(pi) %*% u2)
-      }
+      u1 <- as.vector(R1 %*% u1)
+      u2 <- as.vector(R2 %*% u2)
 
       axis <- sqrt(lambda1 * chisq_quantile) * u1
       axis_perp <- -sqrt(lambda2 * chisq_quantile) * u2
@@ -547,7 +550,8 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                           second_vertex,
                           third_vertex,
                           fourth_vertex,
-                          fifth_vertex)    
+                          fifth_vertex,
+                          first_vertex)
     colnames(polygon_gate) <- c(xChannel, yChannel)
     flowClust_gate <- polygonGate(filterId = filterId, boundaries = polygon_gate)
   }
