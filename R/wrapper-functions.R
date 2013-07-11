@@ -33,6 +33,34 @@
               prediction_level = prediction_level)
 }
 
+.boundary <- function(fs, xChannel = NULL, yChannel, min = NULL, max = NULL,
+                      ...) {
+  require(flowCore)
+  if (is.na(xChannel)) {
+    xChannel <- NULL
+  }
+  channels <- c(xChannel, yChannel)
+  num_channels <- length(channels)
+
+  if (is.null(min)) {
+    min <- rep(-Inf, num_channels)
+  }
+  if (is.null(max)) {
+    max <- rep(Inf, num_channels)
+  }
+
+  if (!(num_channels == length(min) && num_channels == length(max))) {
+    stop("The lengths of 'min' and 'max' must match the number of 'channels' given.")
+  }
+ 
+  gate_coordinates <- lapply(seq_len(num_channels), function(i) {
+    c(min[i], max[i])
+  })
+  names(gate_coordinates) <- channels
+
+  rectangleGate(gate_coordinates)
+}
+
 .flowClust.1d <- function(fs, xChannel = NA, yChannel, tol = 1e-5, prior = NULL,
                           filterId = "", split = TRUE, ...) {
   require(openCyto)
