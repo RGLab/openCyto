@@ -30,7 +30,7 @@
   # and maximum x_channel observation using a robust linear model trained by
   # flowStats.
   singletGate(fs[[1]], area = xChannel, height = yChannel,
-              prediction_level = prediction_level)
+              prediction_level = prediction_level, ...)
 }
 
 .boundary <- function(fs, xChannel = NULL, yChannel, min = NULL, max = NULL,
