@@ -25,7 +25,7 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
   popName <- names(gtPop)
   popId <- gtPop@id
   gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
-  
+#  browser()
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     message("Preprocessing for '", popAlias, "'")
     

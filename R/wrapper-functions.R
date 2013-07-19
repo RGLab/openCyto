@@ -95,97 +95,179 @@
     prior_list
 }
 
-
+.gating_wrapper <- function(fs, pp_res, gFunc, ...){
+    #coercing
+  
+    fr <- as(fs,"flowFrame")
+    gFunc(fr,pp_res = pp_res, ...)
+}
 ## wrappers for the different gating routines
-.singletGate <- function(fs, xChannel = "FSC-A", yChannel = "FSC-H",
+.singletGate <- function(fr, xChannel = "FSC-A", yChannel = "FSC-H",
                          prediction_level = 0.99, pp_res = NULL, ...) {
   require(openCyto)
   # Creates a list of polygon gates based on the prediction bands at the minimum
   # and maximum x_channel observation using a robust linear model trained by
   # flowStats.
-  singletGate(fs[[1]], area = xChannel, height = yChannel,
+  singletGate(fr, area = xChannel, height = yChannel,
               prediction_level = prediction_level)
 }
 
-.flowClust.1d <- function(fs, pp_res, xChannel = NA, yChannel, tol = 1e-5,
-                          filterId = "", ...) {
+
+.flowClust.1d <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
   require(openCyto)
   
   prior <- pp_res
   
-  sname <- sampleNames(fs)
-  fr <- fs[[sname]]
+#  sname <- sampleNames(fs)
+#  fr <- fs[[sname]]
   priorList <- list()
   if(!is.null(prior))
     prior <- prior[[yChannel]]
   
+  args <- list(...)
+  # parse arguments for flowClust
+  
+  # If any of 'K, 'neg' or 'pos' are given, we extract them from the
+  # 'args' and coerce them as integers. Otherwise, they are defaulted to
+  # NULL.
+  # NOTE: the named elements within 'args' are coerced to lowercase.
+  K <- neg_cluster <- pos_cluster <- NULL
+  
+  if ("k" %in% names(args)) {
+    K <- as.integer(args["k"])
+  }
+  if ("neg" %in% names(args)) {
+    neg_cluster <- as.integer(args["neg"])
+    args[["neg"]] <- NULL
+  }
+  if ("pos" %in% names(args)) {
+    pos_cluster <- as.integer(args["pos"])
+    args[["pos"]] <- NULL
+  }
+  
+  # Examines the various cases of pos, neg and K.
+  # In the case that K is not given, we automatically select it.
+  # Exception: If both 'pos' and 'neg' are given, we set: K <- pos + neg
+  if (is.null(K)) {
+    if (!is.null(neg_cluster) && !is.null(pos_cluster)) {
+      K <- neg_cluster + pos_cluster
+    }
+  } else {
+    # If pos and neg are given, throw a warning and set: K <- pos + neg
+    # In the case that one of pos and neg are given and either exceeds K,
+    # we throw an error.         
+    if (!is.null(neg_cluster) && !is.null(pos_cluster)) {
+      warning("Values given for 'K', 'neg', and 'pos'. Setting K = neg + pos")
+      K <- neg_cluster + pos_cluster
+    } else if (!is.null(pos_cluster) && K < pos_cluster) {
+      stop("The number of positive clusters exceeds 'K'.")
+    } else if (!is.null(neg_cluster) && K < neg_cluster) {
+      stop("The number of negative clusters exceeds 'K'.")
+    }
+  }
+  
+  args[["neg_cluster"]] <- neg_cluster
+#        args[["pos_cluster"]] <- pos_cluster
+  
+  args[["k"]] <- NULL
+  args[["K"]] <- K
+  
+  # If 'min' and/or 'max' are given, we pass this value along to the
+  # prior-elicitation method as well as flowClust. Otherwise, these values
+  # are set to NULL.
+  min_values <- -Inf
+  max_values <- Inf
+  if ("min" %in% names(args)) {
+    min_values <- as.numeric(args["min"])
+  }
+  if ("max" %in% names(args)) {
+    max_values <- as.numeric(args["max"])
+  }                          
+  
+  # If the number of positive clusters is 0 and no cutpoint method has been
+  # specified, we use the quantile gate by default.
+  if (!is.null(pos_cluster) && pos_cluster == 0 && is.null(args[["cutpoint_method"]])) {
+    args[["cutpoint_method"]] <- "quantile"
+  }
+  
+  
   if (is.na(xChannel)) {
     # 1d gate
-    flowClust.1d(fr = fr, params = yChannel, tol = tol, filterId = filterId, 
-      prior = prior, ...)
+    do.call("flowClust.1d"
+            ,args = c(list(fr = fr
+                        ,params = yChannel
+                        ,prior = prior
+                        )
+                      ,args
+                    )
+           )
   } else {
     stop("flowClust1d does not support 2d gate!")
   }
 }
 
-.cytokine <- function(fs, pp_res, xChannel = NA, yChannel = "FSC-A", filterId = "", 
+.cytokine <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", filterId = "", 
                       ...) {
   require(openCyto)
-  cytokine(flow_set = fs, channel = yChannel, filter_id = filterId, ...)
+  #TODO:standardize data with pp_res
+  cytokine(fr, channel = yChannel, filter_id = filterId, ...)
 }
 
-.mindensity <- function(fs, pp_res, yChannel = "FSC-A", filterId = "", ...) {
+.mindensity <- function(fr, pp_res, yChannel = "FSC-A", filterId = "", ...) {
   require(openCyto)
-  # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
-  # contain more than one flowFrame if 'split' is specified in the CSV file.
-  mindensity(flow_frame = fs[[1]], channel = yChannel, filter_id = filterId, ...)
+  
+  mindensity(flow_frame = fr, channel = yChannel, filter_id = filterId, ...)
 }
 
-.flowClust.2d <- function(fs, pp_res, xChannel, yChannel, usePrior = "yes", 
+.flowClust.2d <- function(fr, pp_res, xChannel, yChannel, usePrior = "yes", 
                           ...) {
   require(openCyto)
-  prior <- pp_res
-  sname <- sampleNames(fs)
-  #collapse if necessary
-  if(length(sname)>1){
-    fr <- as(fs,"flowFrame")
-  }else{
-    fr <- fs[[sname]]  
+  
+  args <- list(...)
+  # get the value of neg and pos
+  if (is.element(c("k"), names(args))) {
+    K <- as.integer(args["k"])
+  } else {
+    message("'K' argument is missing! Using default setting: K = 2")
+    K <- 2
   }
   
-  flowClust.2d(fr = fr, xChannel = xChannel, yChannel = yChannel, usePrior = usePrior
-#               ,prior = prior[[sname]]
-                ,prior = prior[[1]] #TODO:this is a hack to get collapsed gating work.
-                , ...)
+  args[["k"]] <- K
+  names(args)[match("k", names(args))] <- "K"  #restore K to capital letter
+  names(args)[match("useprior",names(args))]<-"usePrior"
+  
+  do.call("flowClust.2d"
+      ,args = c(list(fr = fr
+                    , xChannel = xChannel
+                    , yChannel = yChannel
+                    , usePrior = usePrior
+                    ,prior = pp_res
+                    )
+                ,args
+              )
+        )
+  
 }
 
-.rangeGate <- function(fs, pp_res, xChannel = NA, yChannel, absolute = FALSE, filterId = "",
+.rangeGate <- function(fr, pp_res, xChannel = NA, yChannel, absolute = FALSE, filterId = "",
                        ...) {
   require(openCyto)
-  # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
-  # contain more than one flowFrame if 'split' is specified in the CSV file.
-  fr <- fs[[1]]
   rangeGate(x = fr, stain = yChannel, inBetween = TRUE, absolute = absolute,
             filterId = filterId, ...)
 }
 
-.quantileGate <- function(fs, pp_res, xChannel = NA, yChannel, probs = 0.999, filterId = "",
+.quantileGate <- function(fr, pp_res, xChannel = NA, yChannel, probs = 0.999, filterId = "",
                           ...) {
   require(openCyto)
-  # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
-  # contain more than one flowFrame if 'split' is specified in the CSV file.
-  fr <- fs[[1]]
+  
   quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)
 }
 
-.quadrantGate <- function(fs, pp_res, xChannel = NA, yChannel, ...) {
+.quadrantGate <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
   require(openCyto)
-  # TODO: Iterate through the flowFrames within 'fs', given that 'fs' may
-  # contain more than one flowFrame if 'split' is specified in the CSV file.
-  fr <- fs[[1]]
-  
+    
   qfilter <- quadrantGate(fr, stain = c(xChannel, yChannel), absolute = FALSE, 
-    inBetween = TRUE, ...)
+                 inBetween = TRUE, ...)
   
   ###############################################################     
   #construct rectangleGates based on the cuts and popNames,clock-wise

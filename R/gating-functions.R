@@ -88,9 +88,10 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   }
 
   usePrior <- ifelse(is.null(prior), "no", "yes")
+  
   L<-list(...)
-  if(exists("useprior",list(...))){
-	  usePrior<-get("useprior",list(...))
+  if("useprior"%in%names(L)){
+	  usePrior <- L["useprior"]
   	L$useprior<-NULL
   }
 

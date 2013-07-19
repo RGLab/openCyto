@@ -185,6 +185,9 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
     cur_dims <- thisRow[,"dims"][[1]]
     
     cur_collapse <- thisRow[,"collapseDataForGating"][[1]]
+    if(cur_collapse == "")
+      cur_collapse <- FALSE
+#    browser()
     cur_groupBy <- thisRow[,"groupBy"][[1]]
     # do not parse args for refGate-like gate since they might break the current
     # parse due to the +/- | &,! symbols
@@ -195,7 +198,13 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
     }
     cur_args <- .argParser(cur_args, split_args)
     
-    gm <- new("gtMethod", name = cur_method, dims = cur_dims, args = cur_args, collapse = as.logical(cur_collapse), groupBy = cur_groupBy)
+    gm <- new("gtMethod"
+                , name = cur_method
+                , dims = cur_dims
+                , args = cur_args
+                , collapse = cur_collapse
+                , groupBy = cur_groupBy
+              )
     # specialize gtMethod as needed
     if (names(gm) == "boolGate") {
       gm <- as(gm, "boolMethod")
@@ -214,7 +223,13 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
     cur_pp_args <- .argParser(cur_pp_args, TRUE)
     
     if(nchar(cur_pp_Method) > 0)
-      ppm <- new("ppMethod", name = cur_pp_Method, dims = cur_dims, args = cur_pp_args, collapse = as.logical(cur_collapse), groupBy = cur_groupBy)
+      ppm <- new("ppMethod"
+                  , name = cur_pp_Method
+                  , dims = cur_dims
+                  , args = cur_pp_args
+                  , collapse = cur_collapse
+                  , groupBy = cur_groupBy
+                )
     
     cat("Adding population:", curPop, "\n")
     # add current node to graph

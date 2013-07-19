@@ -10,7 +10,7 @@ unloadNamespace("flowWorkspace")
 
 
 library(openCyto)
-library(flowIncubator)
+#library(flowIncubator)
 library(flowWorkspace)
 library(flowClust)
 library(flowStats)
@@ -144,4 +144,60 @@ Rm("cd8", gs)
 gating(gating_template, gs, prior_group = 'Stim'
     , num_cores = 6, parallel_type = "MPI"
 )
+
+set.seed(42)
+
+n <- 50
+
+x1 <- rnorm(n, mean = 5)
+x2 <- rnorm(n, mean = 0)
+x3 <- rnorm(n, mean = 20)
+
+plot(density(x1), xlim = c(-5, 25))
+lines(density(x2), col = "red")
+lines(density(x3), col = "blue")
+
+ecdf1 <- ecdf(x1)
+ecdf2 <- ecdf(x2)
+ecdf3 <- ecdf(x3)
+
+plot(ecdf1, xlim = c(-5, 25))
+lines(ecdf2, col = "red")
+lines(ecdf3, col = "blue")
+
+# The statistics are equal. So with this criterion, samples 1 and 2 have the same distance as samples 1 and 3
+ks.test(x1, x2)$statistic
+ks.test(x1, x3)$statistic
+
+
+
+library(Rcpp)
+library(inline)
+
+cstring <- '
+double * _s = REAL(s);
+double * _t1 = REAL(t1);
+double * _t2 = REAL(t2);
+*_t1 =*_s;
+*_t2 =  (float)(*_s);
+
+
+return R_NilValue;
+'
+
+funx <- cfunction(signature(s="numeric",t1="numeric",t2 = "numeric")
+    ,cstring
+    
+    ,Rcpp=TRUE
+#    ,cppargs="-I/usr/include"
+#    ,libargs="-lgsl -lgslcblas"
+)
+s=.Machine$double.xmax/100;
+t1=0;
+t2=0
+funx(s,t1,t2)
+s
+t1
+t2
+
 

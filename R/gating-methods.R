@@ -121,9 +121,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
   popName <- names(gtPop)
   popId <- gtPop@id
   gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
-  
+#  browser()
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
-    message("Population '", popAlias, "'")
+    message("Gating for '", popAlias, "'")
     
     parent_data <- getData(y, parent)
     parallel_type <- match.arg(parallel_type)
@@ -142,9 +142,10 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     # In this case 'split' is specified with column names of the pData.
     # For example, "PTID:VISITNO"
     # when split is numeric, do the grouping by every N samples
-    if ("split" %in% names(args)) {
+    groupBy <- groupBy(x)
+    if (groupBy != "" && x@collapse) { #when x@collapse == FALSE,then ignore groupBy argument since grouping is only used for collapsed gating
       
-      split_by <- as.character(args["split"])
+      split_by <- as.character(groupBy)
       split_by_num <- as.numeric(split_by)
       #split by every N samples
       if(!is.na(split_by_num)){
@@ -161,7 +162,6 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
         split_by <- apply(pData(parent_data)[, split_by], 1, paste, collapse = ":")
         split_by <- as.character(split_by)
       }
-      args[["split"]] <- NULL
     } else {
       split_by <- sampleNames(parent_data)
     }
@@ -172,8 +172,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       pp_res <- sapply(names(fslist),function(i)pp_res)
     # construct method call
     thisCall <- substitute(f1(fslist,pp_res))
-    
-    thisCall[["FUN"]] <- as.symbol(gm)  #set gating method
+    thisCall[["FUN"]] <- as.symbol(".gating_wrapper")
+    args[["gFunc"]] <- as.symbol(gm)  #set gating method
     
     args[["xChannel"]] <- xChannel  #set x,y channel
     args[["yChannel"]] <- yChannel
@@ -190,96 +190,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       args[["positive"]] <- positive
     }
 
-    # prior estimation is done separately from flowClust routine because
-    # prior_flowClust1d requires the entire parent flowSet yet flowClust only
-    # takes one flowFrame
-    if (grepl("^\\.flowClust\\.[12]d$", gm)) {
-       if (gm == ".flowClust.1d") {
-        # If any of 'K, 'neg' or 'pos' are given, we extract them from the
-        # 'args' and coerce them as integers. Otherwise, they are defaulted to
-        # NULL.
-        # NOTE: the named elements within 'args' are coerced to lowercase.
-        K <- neg_cluster <- pos_cluster <- NULL
-
-        if ("k" %in% names(args)) {
-          K <- as.integer(args["k"])
-        }
-        if ("neg" %in% names(args)) {
-          neg_cluster <- as.integer(args["neg"])
-          args[["neg"]] <- NULL
-        }
-        if ("pos" %in% names(args)) {
-          pos_cluster <- as.integer(args["pos"])
-          args[["pos"]] <- NULL
-        }
-
-        # Examines the various cases of pos, neg and K.
-        # In the case that K is not given, we automatically select it.
-        # Exception: If both 'pos' and 'neg' are given, we set: K <- pos + neg
-        if (is.null(K)) {
-          if (!is.null(neg_cluster) && !is.null(pos_cluster)) {
-            K <- neg_cluster + pos_cluster
-          }
-        } else {
-          # If pos and neg are given, throw a warning and set: K <- pos + neg
-          # In the case that one of pos and neg are given and either exceeds K,
-          # we throw an error.         
-          if (!is.null(neg_cluster) && !is.null(pos_cluster)) {
-            warning("Values given for 'K', 'neg', and 'pos'. Setting K = neg + pos")
-            K <- neg_cluster + pos_cluster
-          } else if (!is.null(pos_cluster) && K < pos_cluster) {
-            stop("The number of positive clusters exceeds 'K'.")
-          } else if (!is.null(neg_cluster) && K < neg_cluster) {
-            stop("The number of negative clusters exceeds 'K'.")
-          }
-        }
-
-        args[["neg_cluster"]] <- neg_cluster
-#        args[["pos_cluster"]] <- pos_cluster
-
-        args[["k"]] <- NULL
-        args[["K"]] <- K
-
-        # If 'min' and/or 'max' are given, we pass this value along to the
-        # prior-elicitation method as well as flowClust. Otherwise, these values
-        # are set to NULL.
-        min_values <- -Inf
-        max_values <- Inf
-        if ("min" %in% names(args)) {
-          min_values <- as.numeric(args["min"])
-        }
-        if ("max" %in% names(args)) {
-          max_values <- as.numeric(args["max"])
-        }                          
-        
-        # If the number of positive clusters is 0 and no cutpoint method has been
-        # specified, we use the quantile gate by default.
-        if (!is.null(pos_cluster) && pos_cluster == 0 && is.null(args[["cutpoint_method"]])) {
-          args[["cutpoint_method"]] <- "quantile"
-        }
-      } else {
-        # get the value of neg and pos
-        if (is.element(c("k"), names(args))) {
-          K <- as.integer(args["k"])
-        } else {
-          message("'K' argument is missing! Using default setting: K = 2")
-          K <- 2
-        }
-        
-        args[["k"]] <- K
-        names(args)[match("k", names(args))] <- "K"  #restore K to capital letter
-        names(args)[match("useprior",names(args))]<-"usePrior"
-
-      }
-      
-    }
-#    browser()
-    # update arg_names
-#    if(!(all(is.na(args)))){
-#      for (arg in names(args)) {
-#        thisCall[[arg]] <- args[[arg]]
-#      }  
-#    }
+    
     thisCall[["MoreArgs"]] <- args
     
     ## choose serial or parallel mode
@@ -298,7 +209,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       thisCall[[1]] <- quote(mapply)  #select loop mode
   
      }
-    
+#browser()         
     flist <- eval(thisCall)
 
     # Handles the case that 'flist' is a list of lists.
