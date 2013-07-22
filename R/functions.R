@@ -445,15 +445,7 @@ channels2markers <- function(flow_frame, channels) {
 #' rituximab4 <- truncate_flowframe(rituximab, channels = c("FSC.H", "SSC.H"),
 #' min = c(100, 50), max = c(950, 1000))
 #' summary(rituximab4)
-truncate_flowframe <- function(flow_frame, channels, min = -Inf , max = Inf) {
-  channels <- as.character(channels)
-  gate_coordinates <- sapply(channels,function(thisChnl){list(c(min, max))})
-  thisFilter <- rectangleGate(gate_coordinates)
-  Subset(flow_frame,thisFilter)
-}
-
-truncate_flowframe_old <- function(flow_frame, channels, min = NULL, max = NULL) {
-  .Defunct()
+truncate_flowframe <- function(flow_frame, channels, min = NULL, max = NULL) {
   channels <- as.character(channels)
   num_channels <- length(channels)
 
@@ -469,25 +461,14 @@ truncate_flowframe_old <- function(flow_frame, channels, min = NULL, max = NULL)
   if (!(num_channels == length(min) && num_channels == length(max))) {
     stop("The lengths of 'min' and 'max' must match the number of 'channels' given.")
   }
+ 
+  gate_coordinates <- lapply(seq_len(num_channels), function(i) {
+    c(min[i], max[i])
+  })
+  names(gate_coordinates) <- channels
 
-  x <- as.matrix(exprs(flow_frame)[, channels])
-
-  # Determines which observations are within the range given for each channel.
-  above_min <- sweep(x, 2, min, ">", check.margin = FALSE)
-  below_max <- sweep(x, 2, max, "<", check.margin = FALSE)
-  which_keep <- apply(above_min & below_max, 1, all)
-
-  # Keeps only those values witin the range for each channel.
-  # In the special case that only 1 observation is kept, the subsetting results
-  # in a vector. We correct this by applying 'as.matrix'.
-  x <- exprs(flow_frame)[which_keep, ]
-
-  if (is.vector(x)) {
-    x <- t(as.matrix(x))
-  }
-  exprs(flow_frame) <- x
-  
-  flow_frame
+  truncate_filter <- rectangleGate(gate_coordinates)
+  Subset(flow_frame, truncate_filter)
 }
 
 #' Removes any observation from each flowFrame object within the flowSet that has
@@ -499,12 +480,30 @@ truncate_flowframe_old <- function(flow_frame, channels, min = NULL, max = NULL)
 #' @param min a numeric vector that sets the lower bounds for data filtering
 #' @param max a numeric vector that sets the upper bounds for data filtering
 #' @return a \code{flowSet} object
-truncate_flowset <- function(flow_set, channels, min = -Inf, max = Inf) {
-  
+truncate_flowset <- function(flow_set, channels, min = NULL, max = NULL) {
   channels <- as.character(channels)
-  gate_coordinates <- sapply(channels,function(thisChnl){list(c(min, max))})
-  thisFilter <- rectangleGate(gate_coordinates)
-  Subset(flow_set,thisFilter)  
+  num_channels <- length(channels)
+
+  # For comparison purposes, we update the min and max values to -Inf and Inf,
+  # respectively, if NULL.
+  if (is.null(min)) {
+    min <- rep(-Inf, num_channels)
+  }
+  if (is.null(max)) {
+    max <- rep(Inf, num_channels)
+  }
+
+  if (!(num_channels == length(min) && num_channels == length(max))) {
+    stop("The lengths of 'min' and 'max' must match the number of 'channels' given.")
+  }
+ 
+  gate_coordinates <- lapply(seq_len(num_channels), function(i) {
+    c(min[i], max[i])
+  })
+  names(gate_coordinates) <- channels
+
+  truncate_filter <- rectangleGate(gate_coordinates)
+  Subset(flow_set, truncate_filter)
 }
 
 
