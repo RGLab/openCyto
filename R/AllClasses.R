@@ -55,7 +55,14 @@ fcTree <- function(gt) {
   nodeDataDefaults(res, "fList") <- new("filterList")
   res
 }
-setClass("gtMethod", representation(name = "character", dims = "character", args = "list", groupBy = "character", collapse = "logical"))
+
+setClass("gtMethod", representation(name = "character"
+                                    , dims = "character"
+                                    , args = "list"
+                                    , groupBy = "ANY"
+                                    , collapse = "logical"
+                                    )
+          )
 setClass("ppMethod", contains = "gtMethod")
 setClass("refGate", contains = "gtMethod", representation(refNodes = "character"))
 
@@ -149,8 +156,11 @@ isPolyfunctional <- function(gm) {
 setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
 
 # constructor from csv
-setMethod("gatingTemplate", signature(x = "character"), function(x, name="default") {
-  df <- .preprocess_csv(x)
+setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
+      df <- .preprocess_csv(x)
+      .gatingTemplate(df, ...)
+    })
+.gatingTemplate <- function(df, name="default"){  
 #  browser()
   # create graph with root node
   g <- graphNEL(nodes = "1", edgemode = "directed")
@@ -298,5 +308,5 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name="defaul
   
   g@name <- name
   g
-})
+}
  

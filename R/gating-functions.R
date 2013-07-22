@@ -345,7 +345,8 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
                          plot = FALSE, target = NULL, transitional = FALSE,
                          quantile = 0.9, translation = 0.25, min = -Inf, max = Inf, ...) {
-
+  if(is.null(prior))
+    prior <- list(NA)
   if (!is.null(target)) {
     target <- as.numeric(target)
     if (length(target) != 2) {

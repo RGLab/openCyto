@@ -99,7 +99,11 @@
     #coercing
   
     fr <- as(fs,"flowFrame")
-    gFunc(fr,pp_res = pp_res, ...)
+    filterRes <- gFunc(fr,pp_res = pp_res, ...)
+#    browser()
+    #replicate the filter across samples
+    list(sapply(sampleNames(fs),function(i)filterRes))
+    
 }
 ## wrappers for the different gating routines
 .singletGate <- function(fr, xChannel = "FSC-A", yChannel = "FSC-H",

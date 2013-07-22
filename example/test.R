@@ -82,16 +82,13 @@ plot(env1$fct,"TNFa",posteriors=T)
 ###############
 #Tcell is already transformed
 ###############
-
-
-gt1<-gatingTemplate(file.path(path,"data/Cytotrol_Tcell_expanded.csv"),"Tcell")
 gt1<-gatingTemplate(file.path(path,"data/Cytotrol_Tcell.csv"),"Tcell")
 plot(gt1)
-
+getNodes(gs1[[1]])
 load(file.path(path,"data/fs_tcell.rda"))
 gs1<-GatingSet(fs_tcell)
 env1<-new.env(parent=emptyenv())
-gating(gt1,gs1,env1, num_cores=4,parallel_type="MPI")
+gating(gt1,gs1,env1)
 plotGate(gs1[[1]],xbin=64)
 plot(env1$fct,"nonDebris",post=T)
 plot(env1$fct,"cd3",post=T)
@@ -106,9 +103,6 @@ plot(env1$fct,"lymph",post=T)
 ###############
 #Bcell is already transformed
 ###############
-
-
-gt2<-gatingTemplate(file.path(path,"data/Cytotrol_Bcell_expanded.csv"),"Bcell")
 gt2<-gatingTemplate(file.path(path,"data/Cytotrol_Bcell.csv"),"Bcell")
 plot(gt2)
 
