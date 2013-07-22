@@ -555,7 +555,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                           fifth_vertex,
                           first_vertex)
     colnames(polygon_gate) <- c(xChannel, yChannel)
-    flowClust_gate <- polygonGate(filterId = filterId, boundaries = polygon_gate)
+    flowClust_gate <- polygonGate(filterId = filterId, .gate = polygon_gate)
   }
   
   # List of posterior point estimates
