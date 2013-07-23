@@ -1,20 +1,20 @@
-"alias","pop","parent","dims","method","args"
-"s","singlet","root","FSC-A,FSC-H","singletGate","prediction_level = 0.99"
-"v","viable-","s","Pacific Blue-A","flowClust","neg=1,pos=1"
-"nonDebris","nonDebris-","v","FSC-A","flowClust","neg=2,pos=1,prior_group='PTID'"
-"lymph","lymph","nonDebris","FSC-A,SSC-A","flowClust","K=2,target=c(15e4,5e4)"
-"cd3","cd3+","lymph","cd3","rangeGate","simple = TRUE"
-"*","cd4+/-","cd3","cd4","flowClust",
-"cd8-","cd8-","cd4+","cd8","flowClust",
-"cd8+","cd8+","cd4-","cd8","flowClust",
-"cd4","cd4+cd8-","cd3","cd4,cd8","refGate","cd4+:cd8-"
-"cd8","cd4-cd8+","cd3","cd4,cd8","refGate","cd4-:cd8+"
-"TNFa","TNFa+","cd4","TNFa","flowClust","cutpoint_method='quantile',quantile=0.995,prior_source='cd3'"
-"IFNg","IFNg+","cd4","IFNg","flowClust","cutpoint_method='quantile',quantile=0.995,prior_group='PTID'"
-"IL2","IL2+","cd4","IL2","flowClust","cutpoint_method='quantile',quantile=0.995"
-"TNFa","TNFa+","cd8","TNFa","flowClust","cutpoint_method='quantile',quantile=0.995"
-"IFNg","IFNg+","cd8","IFNg","flowClust","cutpoint_method='quantile',quantile=0.995"
-"IL2","IL2+","cd8","IL2","flowClust","cutpoint_method='quantile',quantile=0.995"
-"IL2|IFNg","cd4:IL2|IFNg","cd4",,"boolGate","cd4/IL2|cd4/IFNg"
-"cd8 subsets","cd8 subsets","cd8",,"polyFunctions","cd8/IFNg:cd8/IL2:cd8/TNFa"
-"IFNg0.998","IFNg+","cd8","IFNg","flowClust","cutpoint_method='quantile',quantile=0.998"
+"alias","pop","parent","dims","gating_method","gating_args","collapseDataForGating","groupBy","preprocessing_method","preprocessing_args"
+"s","singlet","root","FSC-A,FSC-H","singletGate","prediction_level = 0.99",,,,
+"v","viable-","s","Pacific Blue-A","flowClust","neg=1,pos=1",,,"prior_flowClust","neg=1,pos=1"
+"nonDebris","nonDebris","v","FSC-A","mindensity",,TRUE,"PTID",,
+"lymph","lymph","nonDebris","FSC-A,SSC-A","flowClust","K=2,target=c(10e4,5e4)",,,"prior_flowClust",
+"cd3","cd3+","lymph","cd3","mindensity",,,,,
+"*","cd4+/-","cd3","cd4","mindensity",,,,,
+"cd8-","cd8-","cd4+","cd8","mindensity","Neg=1,pos=1,min=1000",,,,
+"cd8+","cd8+","cd4-","cd8","flowClust","Neg=1,pos=1,min=0",,,,
+"cd4","cd4+cd8-","cd3","cd4,cd8","refGate","cd4+:cd8-",,,,
+"cd8","cd4-cd8+","cd3","cd4,cd8","refGate","cd4-:cd8+",,,,
+"TNFa","TNFa+","cd4","TNFa","flowClust","cutpoint_method='quantile',quantile=0.995,prior_source='cd3'",,,"prior_flowClust",
+"IFNg","IFNg+","cd4","IFNg","flowClust","cutpoint_method='quantile',quantile=0.995,prior_group='PTID'",,,"prior_flowClust",
+"IL2","IL2+","cd4","IL2","flowClust","cutpoint_method='quantile',quantile=0.995",,,"prior_flowClust",
+"TNFa","TNFa+","cd8","TNFa","flowClust","cutpoint_method='quantile',quantile=0.995",,,"prior_flowClust",
+"IFNg","IFNg+","cd8","IFNg","flowClust","cutpoint_method='quantile',quantile=0.995",,,"prior_flowClust",
+"IL2","IL2+","cd8","IL2","flowClust","cutpoint_method='quantile',quantile=0.995",,,"prior_flowClust",
+"IL2|IFNg","cd4:IL2|IFNg","cd4",,"boolGate","cd4/IL2|cd4/IFNg",,,,
+"cd8 subsets","cd8 subsets","cd8",,"polyFunctions","cd8/IFNg:cd8/IL2:cd8/TNFa",,,,
+"IFNg0.998","IFNg+","cd8","IFNg","flowClust","cutpoint_method='quantile',quantile=0.998",,,"prior_flowClust",

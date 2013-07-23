@@ -83,13 +83,15 @@
       cat("expanding pop: ", popName, "\n")
       cur_dim <- sub(two_pop_token, "", popName)
       new_pops <- paste(cur_dim, c("+", "-"), sep = "")
-      
+#      browser()
       # create 1d gate
       res_1d <- c(alias = new_pops[1], pop = new_pops[1], parent = this_row[1, "parent"], 
-                    dims, this_row[1, "gating_method"], this_row["gating_args"])
+                    dims, this_row[1, "gating_method"], this_row["gating_args"]
+                  , this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
       # create ref gate
       res_ref <- c(alias = new_pops[2], pop = new_pops[2], parent = this_row[1, "parent"], 
-                        dims, "refGate", file.path(this_row[1, "parent"],new_pops[1]))
+                        dims, "refGate", file.path(this_row[1, "parent"],new_pops[1])
+                        , this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
       res <- rbind(res_1d, res_ref)
 
     } else if (grepl(paste("^(", one_pop_pat, "){2}$", sep = ""), popName)) {

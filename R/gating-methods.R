@@ -159,7 +159,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
       }else{
         #split by study variables
         split_by <- strsplit(split_by, ":")[[1]]
-        split_by <- apply(pData(parent_data)[, split_by], 1, paste, collapse = ":")
+        split_by <- apply(pData(parent_data)[, split_by, drop = FALSE], 1, paste, collapse = ":")
         split_by <- as.character(split_by)
       }
     } else {

@@ -55,8 +55,9 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
         
       }else{
         #split by study variables
+        pd <- pData(parent_data)
         split_by <- strsplit(split_by, ":")[[1]]
-        split_by <- apply(pData(parent_data)[, split_by], 1, paste, collapse = ":")
+        split_by <- apply(pd[, split_by, drop = FALSE], 1, function(i)paste(i, collapse = ":"))
         split_by <- as.character(split_by)
       }
       fslist <- split(parent_data, split_by)

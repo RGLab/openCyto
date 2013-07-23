@@ -40,33 +40,24 @@ path<-"/home/wjiang2/rglab/workspace/openCyto"
 ###############
 ##ICS
 ###############
-
-gt<-gatingTemplate(file.path(path,"data/ICS_expanded.csv"),"ICS")
 gt<-gatingTemplate(file.path(path,"data/ICS.csv"),"ICS")
 gt
-#getNodes(gt,"14")
-#getChildren(obj=gt,y="2")
-#getGate(gt,"14","17")
-#getNodes(gt)
-#png("openCyto/gatingTemplate.png")
 plot(gt)
 
-#dev.off()
-
 ##transform the ICS data
-load(file.path(path,"data/065_fs.rda"))
-paramters<-colnames(fs[[1]])
-trans <- estimateLogicle(fs[[1]], channels = paramters[!grepl("[F|S]SC|[T|t]ime",paramters)])
-fs_trans<-transform(fs,trans)
+load(file.path(path,"data/fs_080.rda"))
+#paramters<-colnames(fs[[1]])
+#trans <- estimateLogicle(fs[[1]], channels = paramters[!grepl("[F|S]SC|[T|t]ime",paramters)])
+#fs_trans<-transform(fs,trans)
 
-gs<-GatingSet(fs_trans)
+gs<-GatingSet(fs)
 env1<-new.env(parent=emptyenv())
-gating(gt,gs,env1, prior_group='VISITNO')
+gating(gt,gs[1],env1)
 plot(gs[[1]])
 plot(gs[[1]],bool=T)
 getNodes(gs[[1]])
 plotGate(gs[[1]],xbin=64,margin=T)
-plotGate(gs[[1]],c(8,22),xbin=128,margin=T,digits=3)
+
 getPopStats(gs[[1]])[22,]
 
 #plot priors
@@ -85,10 +76,11 @@ plot(env1$fct,"TNFa",posteriors=T)
 gt1<-gatingTemplate(file.path(path,"data/Cytotrol_Tcell.csv"),"Tcell")
 plot(gt1)
 getNodes(gs1[[1]])
+Rm("cd3",gs1)
 load(file.path(path,"data/fs_tcell.rda"))
 gs1<-GatingSet(fs_tcell)
 env1<-new.env(parent=emptyenv())
-gating(gt1,gs1,env1)
+gating(gt1,gs1,env1,stop="cd8+")
 plotGate(gs1[[1]],xbin=64)
 plot(env1$fct,"nonDebris",post=T)
 plot(env1$fct,"cd3",post=T)
