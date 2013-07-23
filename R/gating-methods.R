@@ -318,7 +318,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet"),
   # actual gating
   lapply(polyExprsList, function(polyExpr) {
     bgt <- new("boolMethod", name = polyExpr, args = list(as.symbol(polyExpr)))
-    alias(gtPop) <- polyExpr
+    gtPop@alias <- polyExpr
     gating(bgt, y, parent = parent, gtPop = gtPop, ...)
   })
   
