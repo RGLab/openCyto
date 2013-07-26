@@ -384,11 +384,17 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # elements in the list `prior`.
   tmix_filter <- tmixFilter(filterId, c(xChannel, yChannel), K = K, trans = trans,
                         usePrior = usePrior, prior = prior, ...)
-  tmix_results <- filter(fr, tmix_filter)
+  tmix_results <- try(filter(fr, tmix_filter), silent = TRUE)
 
-  # Converts the tmixFilterResult object to a polygonGate.
-  # We select the cluster with the minimum 'yChannel' to be the subpopulation from
-  # which we obtain the contour (ellipse) to generate the polygon gate.
+  # In the case an error occurs when applying 'flowClust', the gate is
+  # constructed from the prior distributions. Errors typically occur when there
+  # are less than 2 observations in the flow frame.
+  if (class(tmix_results) == "try-error") {
+    tmix_results <- new("flowClust", varNames = c(xChannel, yChannel), K = K,
+                        w = prior$w0, mu = prior$Mu0, sigma = prior$Lambda0,
+                        nu = 4, prior = prior, ruleOutliers = c(0, quantile, quantile))
+  }
+
   fitted_means <- getEstimates(tmix_results)$locations
 
   # By default, the cluster with the largest number of observations is
@@ -640,7 +646,7 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 #' @param ... Additional arguments passed on to the \code{find_peaks} function
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
-                       pivot = FALSE, gate_range = NULL, min = -Inf, max = Inf,
+                       pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
                        ...) {
   
   if (missing(channel) || length(channel) != 1) {
