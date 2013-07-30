@@ -15,11 +15,11 @@
 #' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param ... additional arguments passed to \code{\link{cytokine_cutpoint}}
 #' @return a \code{filterList} containing the gates (cutpoints) for each sample
-cytokine <- function(flow_set, channel, filter_id = "", num_peaks = 1,
+cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
                      ref_peak = 1, tol = 1e-2, positive = TRUE, ...) {
   # Standardizes the flowFrame's for a given channel using the mode of the kernel
   # density estimate and the Huber estimator of the standard deviation
-  standardize_out <- standardize_flowset(flow_set, channel = channel)
+  standardize_out <- standardize_flowset(as(fr,"flowSet"), channel = channel)
 
   # Coerces the standardized flowSet into a single flowFrame from which a single
   # cutpoint is calculated using the first derivative of the kernel density
@@ -65,7 +65,7 @@ cytokine <- function(flow_set, channel, filter_id = "", num_peaks = 1,
     rectangleGate(gate_coordinates, filterId = filter_id)
   })
   
-  cytokine_gates
+  cytokine_gates[[1]]
 }
 
 #' Standardizes a channel within a \code{flowSet} object using the mode of the
