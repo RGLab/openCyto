@@ -1,7 +1,7 @@
 "alias","pop","parent","dims","gating_method","gating_args","collapseDataForGating","groupBy","preprocessing_method","preprocessing_args"
 "s","singlet","root","FSC-A,FSC-H","singletGate","prediction_level = 0.99",,,,
 "v","viable-","s","Pacific Blue-A","flowClust","neg=1,pos=1",,,"prior_flowClust","neg=1,pos=1"
-"nonDebris","nonDebris","v","FSC-A","mindensity",,TRUE,"name","standardize_flowset",
+"nonDebris","nonDebris","v","FSC-A","mindensity",,"TRUE","name",,
 "lymph","lymph","nonDebris","FSC-A,SSC-A","flowClust","K=2,target=c(10e4,5e4)",,,"prior_flowClust",
 "cd3","cd3+","lymph","cd3","mindensity",,,,,
 "*","cd4+/-","cd3","cd4","mindensity",,,,,

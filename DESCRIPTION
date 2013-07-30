@@ -21,6 +21,7 @@ Collate: 	AllClasses.R
 			fcTree-methods.R
 			fcFilter-methods.R
 			wrapper-functions.R
+			preprocessing-method.R
 Depends: methods,flowWorkspace
 Imports: gtools,flowStats,flowClust,MASS,clue,plyr			 
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation

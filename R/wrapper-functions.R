@@ -99,7 +99,9 @@
     #coercing
   
     fr <- as(fs,"flowFrame")
-    filterRes <- gFunc(fr,pp_res = pp_res, ...)
+    
+    thisCall <- substitute(f(fr = fr, pp_res = pp_res, ...),list(f=as.symbol(gFunc)))
+    filterRes <- eval(thisCall)
 #    browser()
     #replicate the filter across samples
     list(sapply(sampleNames(fs),function(i)filterRes))

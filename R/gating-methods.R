@@ -181,7 +181,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     # construct method call
     thisCall <- substitute(f1(fslist,pp_res))
     thisCall[["FUN"]] <- as.symbol(".gating_wrapper")
-    args[["gFunc"]] <- as.symbol(gm)  #set gating method
+    args[["gFunc"]] <- gm  #set gating method
     
     args[["xChannel"]] <- xChannel  #set x,y channel
     args[["yChannel"]] <- yChannel
