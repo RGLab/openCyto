@@ -109,13 +109,44 @@
 .singletGate <- function(fr, xChannel = "FSC-A", yChannel = "FSC-H",
                          prediction_level = 0.99, pp_res = NULL, ...) {
   require(openCyto)
+  fs <- fs[, c(xChannel,yChannel)]
   # Creates a list of polygon gates based on the prediction bands at the minimum
   # and maximum x_channel observation using a robust linear model trained by
   # flowStats.
+
   singletGate(fr, area = xChannel, height = yChannel,
-              prediction_level = prediction_level)
+              prediction_level = prediction_level, ...)
 }
 
+#' a rectangle gate with range (min, max) for each channel
+#' useful for filtering out very large signal (e.g. FSC,SSC, Time)
+.boundary <- function(fs, xChannel = NULL, yChannel, min = NULL, max = NULL,
+    ...) {
+  require(flowCore)
+  if (is.na(xChannel)) {
+    xChannel <- NULL
+  }
+  channels <- c(xChannel, yChannel)
+  num_channels <- length(channels)
+  
+  if (is.null(min)) {
+    min <- rep(-Inf, num_channels)
+  }
+  if (is.null(max)) {
+    max <- rep(Inf, num_channels)
+  }
+  
+  if (!(num_channels == length(min) && num_channels == length(max))) {
+    stop("The lengths of 'min' and 'max' must match the number of 'channels' given.")
+  }
+  
+  gate_coordinates <- lapply(seq_len(num_channels), function(i) {
+        c(min[i], max[i])
+      })
+  names(gate_coordinates) <- channels
+  
+  rectangleGate(gate_coordinates)
+}
 
 .flowClust.1d <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
   require(openCyto)
@@ -219,7 +250,7 @@
 
 .mindensity <- function(fr, pp_res, yChannel = "FSC-A", filterId = "", ...) {
   require(openCyto)
-  
+ 
   mindensity(flow_frame = fr, channel = yChannel, filter_id = filterId, ...)
 }
 
@@ -234,6 +265,7 @@
   } else {
     message("'K' argument is missing! Using default setting: K = 2")
     K <- 2
+  
   }
   
   args[["k"]] <- K
@@ -263,13 +295,11 @@
 .quantileGate <- function(fr, pp_res, xChannel = NA, yChannel, probs = 0.999, filterId = "",
                           ...) {
   require(openCyto)
-  
   quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)
 }
 
 .quadrantGate <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
   require(openCyto)
-    
   qfilter <- quadrantGate(fr, stain = c(xChannel, yChannel), absolute = FALSE, 
                  inBetween = TRUE, ...)
   

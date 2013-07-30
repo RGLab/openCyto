@@ -110,6 +110,14 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
   require("parallel")
 #  browser()
   args <- parameters(x)
+
+  # HOTFIX: This resolve an error when args is a named list with name NA and object NA.
+  # The resulting error occurs down below and is:
+  # Error in thisCall[[arg]] <- args[[arg]] : subscript out of bounds
+  if (!is.null(names(args))) {
+    args <- args[!is.na(names(args))]
+  }
+    
   gm <- paste0(".", names(x))
   
   dims <- dims(x)

@@ -64,7 +64,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          cutpoint_method = c("boundary", "min_density",
                            "quantile", "posterior_mean", "prior_density"),
                          neg_cluster = 1, cutpoint_min = NULL,
-                         cutpoint_max = NULL, min = -Inf, max = Inf,
+                         cutpoint_max = NULL, min = NULL, max = NULL,
                          quantile = 0.99, quantile_interval = c(0, 10),
                          plot = FALSE, ...) {
 
@@ -104,11 +104,12 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   # Filter out values less than the minimum and above the maximum, if they are
   # given. NOTE: These observations are removed from the 'flowFrame' locally and
   # are gated out only for the determining the gate.
-  if(!(is.infinite(min)&&is.infinite(max))){
-    fr <- truncate_flowframe(fr, channel = params[1], min = min, max = max)
+  if (!(is.null(min) && is.null(max))) {
+    fr <- truncate_flowframe(fr, channels = params[1], min = min, max = max)
   }
   if (nrow(fr) < 2) {
-    warning("Less than two observations are present in the given flowFrame. Constructing gate from prior...")
+    warning("Less than two observations are present in the given flowFrame.",
+            "Constructing gate from prior...")
   }
 
   # Applies `flowClust` to the feature specified in the `params` argument using
@@ -304,6 +305,14 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' shifted in a positive direction. Furthermore, the width of the
 #' \code{transitional} gate can be controlled with the \code{quantile} argument.
 #'
+#' The direction of the transitional gate can be controlled with the
+#' \code{transitional_angle} argument. By default, it is \code{NULL}, and we use
+#' the eigenvector of the \code{target} cluster that points towards the first
+#' quadrant (has positive slope). If \code{transitional_angle} is specified, we
+#' rotate the eigenvectors so that the angle between the x-axis (with the cluster
+#' centroid as the origin) and the major eigenvector (i.e., the eigenvector with
+#' the larger eigenvalue) is \code{transitional_angle}.
+#'
 #' @param fr a \code{flowFrame} object
 #' @param xChannel TODO
 #' @param yChannel TODO
@@ -330,6 +339,8 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' @param translation a numeric value between 0 and 1 used to position a
 #' transitional gate if \code{transitional = TRUE}. This argument is ignored if
 #' \code{transitional = FALSE}. See details
+#' @param transitional_angle the angle (in radians) of the transitional
+#' gate. See details. Ignored if \code{transitional = FALSE}.
 #' @param min A vector of length 2. Truncate observations less than this minimum
 #' value. The first value truncates the \code{xChannel}, and the second value
 #' truncates the \code{yChannel}. By default, this vector is \code{NULL} and is
@@ -344,9 +355,11 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
                          plot = FALSE, target = NULL, transitional = FALSE,
-                         quantile = 0.9, translation = 0.25, min = -Inf, max = Inf, ...) {
-  if(is.null(prior))
-    prior <- list(NA)
+                         quantile = 0.9, translation = 0.25, transitional_angle = NULL,
+                         min = NULL, max = NULL, ...) {
+#  if(is.null(prior))
+#    prior <- list(NA)
+                       
   if (!is.null(target)) {
     target <- as.numeric(target)
     if (length(target) != 2) {
@@ -359,10 +372,11 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # If specified, truncates all observations outside the 'min' and 'max' values.
   # NOTE: These observations are removed from the 'flowFrame' locally and are
   # gated out only for the determining the gate.
-  if(!(is.infinite(min)&&is.infinite(max))){
+  if (!(is.null(min) && is.null(max))) {
     fr <- truncate_flowframe(fr, channels = c(xChannel, yChannel), min = min,
-                           max = max)
-   }
+                             max = max)
+  }
+
   # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
   if (usePrior == "yes" && identical(prior, list(NA))) {
     prior <- prior_flowClust(fr = fr, channels = c(xChannel, yChannel), K = K)
@@ -373,11 +387,17 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # elements in the list `prior`.
   tmix_filter <- tmixFilter(filterId, c(xChannel, yChannel), K = K, trans = trans,
                         usePrior = usePrior, prior = prior, ...)
-  tmix_results <- filter(fr, tmix_filter)
+  tmix_results <- try(filter(fr, tmix_filter), silent = TRUE)
 
-  # Converts the tmixFilterResult object to a polygonGate.
-  # We select the cluster with the minimum 'yChannel' to be the subpopulation from
-  # which we obtain the contour (ellipse) to generate the polygon gate.
+  # In the case an error occurs when applying 'flowClust', the gate is
+  # constructed from the prior distributions. Errors typically occur when there
+  # are less than 2 observations in the flow frame.
+  if (class(tmix_results) == "try-error") {
+    tmix_results <- new("flowClust", varNames = c(xChannel, yChannel), K = K,
+                        w = prior$w0, mu = prior$Mu0, sigma = prior$Lambda0,
+                        nu = 4, prior = prior, ruleOutliers = c(0, quantile, quantile))
+  }
+
   fitted_means <- getEstimates(tmix_results)$locations
 
   # By default, the cluster with the largest number of observations is
@@ -399,6 +419,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                                   filterId = filterId)
   } else {
     chisq_quantile <- qchisq(quantile, df = 2)
+    tol <- sqrt(.Machine$double.eps)
 
     xbar <- tmix_results@mu[cluster_selected, ]
     Sigma <- tmix_results@sigma[cluster_selected, , ]
@@ -409,38 +430,82 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     lambda1 <- Sigma_eigen$values[1]
     lambda2 <- Sigma_eigen$values[2]
 
-    # Determines which eigenvector points towards the first quadrant (has
-    # positive slope). Because both eigenvectors can potentially point in the
-    # negative direction, we also check to see the negated eigenvectors point
-    # towards the first quadrant.
-    if (all(u1 >= 0)) {
+    # Computes the angles of each eigenvector with the x-axis in terms of polar
+    # coordinates. Note that each vector has magnitude 1, so the radius is 1.
+    u1_angle <- atan2(u1[2], u1[1])
+    if (u1_angle < 0) {
+      u1_angle <- u1_angle + 2 * pi
+    }
+    u2_angle <- atan2(u2[2], u2[1])
+    if (u2_angle < 0) {
+      u2_angle <- u2_angle + 2 * pi
+    }
+
+    # We ensure that each eigenvector is pointing vertically. That is, we ensure
+    # the angle between the x-axis and the eigenvector is between 0 and pi. If
+    # If they are not, we rotate them by pi (i.e., 180 degrees).
+    if (u1_angle > pi) {
+      R <- rotation_matrix(pi)
+      u1 <- as.vector(R %*% u1)
+    }
+    if (u2_angle > pi) {
+      R <- rotation_matrix(pi)
+      u2 <- as.vector(R %*% u2)
+    }
+
+    u1_angle <- atan2(u1[2], u1[1])
+    if (u1_angle < 0) {
+      u1_angle <- u1_angle + 2 * pi
+    }
+    u2_angle <- atan2(u2[2], u2[1])
+    if (u2_angle < 0) {
+      u2_angle <- u2_angle + 2 * pi
+    }
+    eigen_angles <- c(u1_angle, u2_angle)
+
+    # If the transitional angle is not provided, we set it as the angle between
+    # the x-axis as the eigenvector pointing towards the postive quadrant.
+    # If the transitional angle is provided, we first calculate the angle between
+    # the major eigenvector and the x-axis (with xbar as the origin). We then
+    # construct a rotation matrix, where the angle applied is the difference
+    # between the angle provided and the angle calculated. We then rotate the
+    # eigenvectors u1 and u2 accordingly
+    #
+    # In both cases, we compute the axis from which the transitional gate is
+    # constructed as well as the perpendicular axis. We ensure that 'axis_perp'
+    # is pi/2 radians counterclockwise from 'axis', following the right-hand
+    # rule.
+    if (is.null(transitional_angle)) {
+
+      # Determines which eigenvector points towards the positive quadrant
+      which_pos_quadrant <- which(0 < eigen_angles & eigen_angles < pi/2)
+
+      # Calculates the angle of the transitional gate as the angle of the
+      # eigenvector pointing toward the positive quadrant
+      transitional_angle <- eigen_angles[which_pos_quadrant]
+
+      if (which_pos_quadrant == 1) {
+        axis <- sqrt(lambda1 * chisq_quantile) * u1
+        axis_perp <- sqrt(lambda2 * chisq_quantile) * u2
+      } else {
+        axis <- sqrt(lambda2 * chisq_quantile) * u2
+        axis_perp <- sqrt(lambda1 * chisq_quantile) * u1
+      }
+    } else {
+      # Rotation angle
+      theta_u1 <- transitional_angle - eigen_angles[1]
+      theta_u2 <- transitional_angle - (pi/2) - eigen_angles[2]
+
+      # Rotation matrix
+      R1 <- rotation_matrix(theta_u1)
+      R2 <- rotation_matrix(theta_u2)
+
+      # Rotates the eigenvectors
+      u1 <- as.vector(R1 %*% u1)
+      u2 <- as.vector(R2 %*% u2)
+
       axis <- sqrt(lambda1 * chisq_quantile) * u1
-      if (u2[1] > 0) {
-        axis_perp <- sqrt(lambda2 * chisq_quantile) * u2    
-      } else {
-        axis_perp <- -sqrt(lambda2 * chisq_quantile) * u2    
-      }
-    } else if (all(-u1 >= 0)) {
-      axis <- -sqrt(lambda1 * chisq_quantile) * u1
-      if (u2[1] > 0) {
-        axis_perp <- sqrt(lambda2 * chisq_quantile) * u2    
-      } else {
-        axis_perp <- -sqrt(lambda2 * chisq_quantile) * u2    
-      }
-    } else if (all(u2 >= 0)) {
-      axis <- sqrt(lambda2 * chisq_quantile) * u2
-      if (u1[1] > 0) {
-        axis_perp <- sqrt(lambda1 * chisq_quantile) * u1   
-      } else {
-        axis_perp <- -sqrt(lambda1 * chisq_quantile) * u1    
-      }
-    } else if (all(-u2 >= 0)) {
-      axis <- -sqrt(lambda2 * chisq_quantile) * u2
-      if (u1[1] > 0) {
-        axis_perp <- sqrt(lambda1 * chisq_quantile) * u1   
-      } else {
-        axis_perp <- -sqrt(lambda1 * chisq_quantile) * u1    
-      }
+      axis_perp <- -sqrt(lambda2 * chisq_quantile) * u2
     }
 
     # The gate location is the frame of reference for the gate. If it is xbar,
@@ -459,20 +524,47 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     x <- exprs(fr)[, xChannel]
     y <- exprs(fr)[, yChannel]
 
+    x_min <- min(x) - sd(x)
+    y_min <- min(y) - sd(y)
     x_max <- max(x) + sd(x)
     y_max <- max(y) + sd(y)
-    gate_x <- c(x_max, (gate_location + axis_perp)[2])
-    gate_y <- c((gate_location - axis_perp)[1], y_max)
 
-    # We extend the gate to the min and max values
-    polygon_gate <- rbind(gate_location + axis_perp,
-                          gate_x,
-                          c(x_max, y_max),
-                          gate_y,
-                          gate_location - axis_perp)
-
+    # We construct the gate in clockwise fashion. The vertices of the gate
+    # depend on the quadrant towards which the 'transitional_angle' is pointed.
+    # No matter what the transitional gate's angle, the first and last vertices
+    # will be the same
+    first_vertex <- gate_location + axis_perp
+    fifth_vertex <- gate_location - axis_perp
+    
+    if (0 <= transitional_angle && transitional_angle <= pi/2) {
+      # First quadrant
+      second_vertex <- c(first_vertex[1], y_max)
+      third_vertex <- c(x_max, y_max)
+      fourth_vertex <- c(x_max, fifth_vertex[2])
+    } else if (pi/2 < transitional_angle && transitional_angle <= pi) {
+      # Second quadrant
+      second_vertex <- c(x_min, first_vertex[2])
+      third_vertex <- c(x_min, y_max)
+      fourth_vertex <- c(fifth_vertex[1], y_max)
+    } else if (pi < transitional_angle && transitional_angle <= 3*pi/2) {
+      # Third quadrant
+      second_vertex <- c(first_vertex[1], y_min)
+      third_vertex <- c(x_min, y_min)
+      fourth_vertex <- c(x_min, fifth_vertex[2])
+    } else {
+      # Fourth quadrant
+      second_vertex <- c(x_max, first_vertex[2])
+      third_vertex <- c(x_max, y_min)
+      fourth_vertex <- c(fifth_vertex[1], y_min)
+    }
+    polygon_gate <- rbind(first_vertex,
+                          second_vertex,
+                          third_vertex,
+                          fourth_vertex,
+                          fifth_vertex,
+                          first_vertex)
     colnames(polygon_gate) <- c(xChannel, yChannel)
-    flowClust_gate <- polygonGate(filterId = filterId, boundaries = polygon_gate)
+    flowClust_gate <- polygonGate(filterId = filterId, .gate = polygon_gate)
   }
   
   # List of posterior point estimates
@@ -548,12 +640,17 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 #' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param pivot logical value. If \code{TRUE}, we choose as the two peaks the
 #' largest peak and its neighboring peak. See details.
+#' @param gate_range numeric vector of length 2. If given, this sets the bounds
+#' on the gate applied. If no gate is found within this range, we set the gate to
+#' the minimum value within this range if \code{positive} is \code{TRUE} and the
+#' maximum value of the range otherwise.
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
 #' @param ... Additional arguments passed on to the \code{find_peaks} function
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
-                       pivot = FALSE, min = -Inf, max = Inf, ...) {
+                       pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
+                       ...) {
   
   if (missing(channel) || length(channel) != 1) {
     stop("A single channel must be specified.")
@@ -561,50 +658,51 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 
   # Filter out values less than the minimum and above the maximum, if they are
   # given.
-  if(!(is.infinite(min)&&is.infinite(max))){
-    flow_frame <- truncate_flowframe(flow_frame, channel = channel, min = min,
+  if (!(is.null(min) && is.null(max))) {
+    flow_frame <- truncate_flowframe(flow_frame, channels = channel, min = min,
                                      max = max)
-   }
+  }
   # Grabs the data matrix that is being gated.
   x <- exprs(flow_frame)[, channel]
 
-  peaks <- find_peaks(x, ...)
-
-  if (pivot) {
-    # If 'pivot' is selected, we choose the largest peak and its neighbor, which
-    # is chosen based on the current value of 'positive'
-    largest_peak <- peaks[1]
-    peaks <- sort(peaks)
-    which_largest <- which(peaks == largest_peak)
-    if (positive) {
-      peaks <- peaks[c(which_largest - 1, which_largest)]
-    } else {
-      peaks <- peaks[c(which_largest, which_largest + 1)]
-    }
-    peaks <- peaks[!is.na(peaks)]
+  if (is.null(gate_range)) {
+    gate_range <- c(min(x), max(x))
   } else {
-    # Otherwise, we choose the two largest peaks and sort them
-    peaks <- sort(peaks[1:2])
+    gate_range <- sort(gate_range)
   }
 
+  peaks <- find_peaks(x, ...)
+
   # In the special case that there is only one peak, we are conservative and set
-  # the cutpoint as the min(x) if 'positive' is TRUE, and the max(x) otherwise.
-  # value otherwise.
+  # the cutpoint as min(x) if 'positive' is TRUE, and max(x) otherwise.
   if (length(peaks) == 1) {
-    cutpoint <- ifelse(positive, min(x), max(x))
+    cutpoint <- ifelse(positive, gate_range[1], gate_range[2])
   } else {
     # The cutpoint is the deepest valley between the two peaks selected. In the
     # case that there are no valleys (i.e., if 'x_between' has an insufficient
     # number of observations), we are conservative and set the cutpoint as the
     # minimum value if 'positive' is TRUE, and the maximum value otherwise.
-    valleys <- try(find_valleys(x), silent = TRUE)
-    cutpoint <- between_interval(x = valleys, interval = peaks)[1]
+    valleys <- try(find_valleys(x, ...), silent = TRUE)
+    valleys <- between_interval(x = valleys, interval = gate_range)
 
-    if (is.na(cutpoint)) {
+    if (any(is.na(valleys))) {
     #FIXME:currently it is still returning the first peak,
     #we want to pass density instead of x_between to 'min'
-    #because x_between is the signal values 
-      cutpoint <- min(x_between) 
+    #because x_between is the signal values
+      cutpoint <- ifelse(positive, gate_range[1], gate_range[2])
+    } else if (length(valleys) == 1) {
+      cutpoint <- as.vector(valleys)
+    } else if (length(valleys) > 1) {
+      # If there are multiple valleys, we determine the deepest valley between
+      # the two largest peaks.
+      peaks <- sort(peaks[1:2])
+      cutpoint <- between_interval(valleys, peaks)[1]
+
+      # If none of the valleys detected are between the two largest peaks, we
+      # select the deepest valley.
+      if (is.na(cutpoint)) {
+        cutpoint <- valleys[1]
+      }      
     }
   }
   # After the 1D cutpoint is set, we set the gate coordinates used in the
