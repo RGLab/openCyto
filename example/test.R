@@ -50,9 +50,9 @@ load(file.path(path,"data/fs_080.rda"))
 #trans <- estimateLogicle(fs[[1]], channels = paramters[!grepl("[F|S]SC|[T|t]ime",paramters)])
 #fs_trans<-transform(fs,trans)
 
-gs<-GatingSet(fs)
+gs<-GatingSet(fs[1:2])
 env1<-new.env(parent=emptyenv())
-gating(gt,gs[1],env1)
+gating(gt,gs,env1)
 plot(gs[[1]])
 plot(gs[[1]],bool=T)
 getNodes(gs[[1]])
@@ -132,29 +132,28 @@ gating(gating_template, gs, prior_group = 'Stim'
     , num_cores = 6, parallel_type = "MPI"
 )
 
-set.seed(42)
+##debug John's gt
 
-n <- 50
+#bcell
+gs <- load_gs("/loc/no-backup/ramey/Lyoplate/gating-sets/gs-bcell")
+gating_template <- gatingTemplate(file.path(path,"data/gt-bcell.csv"))
+gs_sub <- gs[1:9]
+Rm("boundary",gs_sub)
+gating(gating_template, gs_sub
+#    , num_cores = 6, parallel_type = "MPI"
+)
 
-x1 <- rnorm(n, mean = 5)
-x2 <- rnorm(n, mean = 0)
-x3 <- rnorm(n, mean = 20)
+plotGate(gs_sub[[1]],xbin=32,margin=T)
+#t-reg
+gs <- load_gs("/loc/no-backup/ramey/Lyoplate/gating-sets/gs-treg")
+gating_template <- gatingTemplate(file.path(path,"data/gt-treg.csv"))
+gs_sub <- gs[1:9]
+Rm("boundary",gs_sub)
+gating(gating_template, gs_sub
+#    , num_cores = 6, parallel_type = "MPI"
+)
 
-plot(density(x1), xlim = c(-5, 25))
-lines(density(x2), col = "red")
-lines(density(x3), col = "blue")
-
-ecdf1 <- ecdf(x1)
-ecdf2 <- ecdf(x2)
-ecdf3 <- ecdf(x3)
-
-plot(ecdf1, xlim = c(-5, 25))
-lines(ecdf2, col = "red")
-lines(ecdf3, col = "blue")
-
-# The statistics are equal. So with this criterion, samples 1 and 2 have the same distance as samples 1 and 3
-ks.test(x1, x2)$statistic
-ks.test(x1, x3)$statistic
+plotGate(gs_sub[[1]],xbin=32,margin=T)
 
 
 
@@ -187,53 +186,3 @@ s
 t1
 t2
 
-p11 <- histogram( ~ height | voice.part, data = singer, xlab="Height")
-p12 <- densityplot( ~ height | voice.part, data = singer, xlab = "Height")
-p2 <- histogram( ~ height, data = singer, xlab = "Height")
-
-
-## simple positioning by split
-print(p11, split=c(1,1,1,2), more=TRUE)
-print(p2, split=c(1,2,1,2))
-
-## Combining split and position:
-print(p11, position = c(0,0,.75,.75), split=c(1,1,1,2), more=TRUE)
-print(p12, position = c(0,0,.75,.75), split=c(1,2,1,2), more=TRUE)
-print(p2, position = c(.5,.75,1,1), more=FALSE)
-
-## Using seekViewport
-
-## repeat same plot, with different polynomial fits in each panel
-xyplot(Armed.Forces ~ Year, longley, index.cond = list(rep(1, 6)),
-    layout = c(3, 2),
-    panel = function(x, y, ...)
-    {
-      panel.xyplot(x, y, ...)
-      fm <- lm(y ~ poly(x, panel.number()))
-      llines(x, predict(fm))
-    })
-
-## Not run: 
-grid::seekViewport(trellis.vpname("panel", 1, 1))
-cat("Click somewhere inside the first panel:\n")
-ltext(grid::grid.locator(), lab = "linear")
-
-## End(Not run)
-
-grid::seekViewport(trellis.vpname("panel", 1, 1))
-grid::grid.text("linear")
-
-grid::seekViewport(trellis.vpname("panel", 2, 1))
-grid::grid.text("quadratic")
-
-grid::seekViewport(trellis.vpname("panel", 3, 1))
-grid::grid.text("cubic")
-
-grid::seekViewport(trellis.vpname("panel", 1, 2))
-grid::grid.text("degree 4")
-
-grid::seekViewport(trellis.vpname("panel", 2, 2))
-grid::grid.text("degree 5")
-
-grid::seekViewport(trellis.vpname("panel", 3, 2))
-grid::grid.text("degree 6")
