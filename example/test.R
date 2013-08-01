@@ -148,12 +148,15 @@ plotGate(gs_sub[[1]],xbin=32,margin=T)
 gs <- load_gs("/loc/no-backup/ramey/Lyoplate/gating-sets/gs-treg")
 gating_template <- gatingTemplate(file.path(path,"data/gt-treg.csv"))
 gs_sub <- gs[1:9]
+getNodes(gs_sub[[1]])
 Rm("boundary",gs_sub)
+Rm("CD25CD127_transitional",gs_sub)
 gating(gating_template, gs_sub
 #    , num_cores = 6, parallel_type = "MPI"
 )
 
 plotGate(gs_sub[[1]],xbin=32,margin=T)
+plot(gating_template)
 
 
 

@@ -91,7 +91,7 @@
       # create ref gate
       res_ref <- c(alias = new_pops[2], pop = new_pops[2], parent = this_row[1, "parent"], 
                         dims, "refGate", file.path(this_row[1, "parent"],new_pops[1])
-                        , this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
+                        , this_row["collapseDataForGating"], this_row["groupBy"], NA,NA)
       res <- rbind(res_1d, res_ref)
 
     } else if (grepl(paste("^(", one_pop_pat, "){2}$", sep = ""), popName)) {
