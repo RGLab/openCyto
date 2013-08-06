@@ -62,32 +62,39 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
                       , graphAttr = list(rankdir = "LR", page = c(8.5, 11)) 
                       , nodeAttr = list(fixedsize = FALSE, shape = "ellipse")
                       , ...){
+#          browser()          
   # get gating method name attr from edges
-  gm.names <- unlist(lapply(edgeData(x, attr = "gtMethod"), names))
-  gm.types <- unique(gm.names)
-  
-  # fix the name attr
-  e.colnames <- gsub("\\|", "~", names(gm.names))
-  
-  # encode the method name with color
-  nMethods <- length(gm.types)
-  gm.col <- RColorBrewer::brewer.pal(nMethods, name = "Dark2")
-  names(gm.col) <- gm.types
-  eCols <- gm.col[gm.names]
-  
-  # restore names
-  names(eCols) <- e.colnames  
-  
-  # encode edge style
-  gm.isPoly <- unlist(lapply(gm.names, function(y) {
-            ifelse(y == "polyFunctions", "poly", "regular")
-          }))
-  edge.styles <- c("solid", "dashed")
-  names(edge.styles) <- unique(gm.isPoly)
-  eStyles <- edge.styles[gm.isPoly]
-  names(eStyles) <- e.colnames
-  eAttrs <- list(color = eCols, lty = eStyles)
-  
+  hasEdge <- length(edgeData(x)) > 0
+  if(hasEdge){
+    gm.names <- unlist(lapply(edgeData(x, attr = "gtMethod"), names))
+    gm.types <- unique(gm.names)
+    
+    # fix the name attr
+    e.colnames <- gsub("\\|", "~", names(gm.names))
+    
+    # encode the method name with color
+    nMethods <- length(gm.types)
+    gm.col <- RColorBrewer::brewer.pal(nMethods, name = "Dark2")
+    names(gm.col) <- gm.types
+    eCols <- gm.col[gm.names]
+    
+    # restore names
+    names(eCols) <- e.colnames  
+    
+    # encode edge style
+    gm.isPoly <- unlist(lapply(gm.names, function(y) {
+              ifelse(y == "polyFunctions", "poly", "regular")
+            }))
+    edge.styles <- c("solid", "dashed")
+    names(edge.styles) <- unique(gm.isPoly)
+    eStyles <- edge.styles[gm.isPoly]
+    names(eStyles) <- e.colnames
+    eAttrs <- list(color = eCols, lty = eStyles)
+    
+  }else{
+    eAttrs <- list()
+  }
+    
   # encode the node shape and color with isSubsets
   nodeTypes <- unlist(lapply(nodeData(x, attr = "pop"), function(y) {
             ifelse(class(y) == "gtSubsets", "subset", "pop")
@@ -113,55 +120,48 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
   plot(as(x, "graphNEL"), nodeAttrs = nAttrs, edgeAttrs = eAttrs,
       attrs = list(graph = graphAttr,node = nodeAttr))
   
-  plot.space = par()[["usr"]]
-  x1 = plot.space[1]
-  x2 = plot.space[2]
-  y1 = plot.space[3]
-  y2 = plot.space[4]
-  
-  legend.lty <- ifelse(gm.types == "polyFunctions", "poly", "regular")
-  legend(x1 + 100, y2 - 100, legend = gm.types, title = "Gating Methods",
-      col = gm.col, lty = edge.styles[legend.lty], cex = 0.8)
+  if(hasEdge){
+    plot.space = par()[["usr"]]
+    x1 = plot.space[1]
+    x2 = plot.space[2]
+    y1 = plot.space[3]
+    y2 = plot.space[4]
+    
+    legend.lty <- ifelse(gm.types == "polyFunctions", "poly", "regular")
+    legend(x1 + 100, y2 - 100, legend = gm.types, title = "Gating Methods",
+        col = gm.col, lty = edge.styles[legend.lty], cex = 0.8)
+  }
 }
 setMethod("plot", signature = c("gatingTemplate"),
           definition = function(x, y = missing,...) {
   
 })
-.getAllDescendants <- function(gt,startNode,nodelist){
-  stop("not supported yet!")  
-  children_nodes <- getChildren(gt,thisId)
-  if(length(children_nodes)>0){
-    for(this_parent in children_nodes){
-      nodelist$v <- c(nodelist$v, this_parent)
-      .getAllDescendants (gt,this_parent,nodelist)
-    }  
-  }
-  
-}
+
 setMethod("plot",c("gatingTemplate","character"),function(x,y,...){
       
-      stop("not supported yet!")
+      #convert alias to nodeID
+      allNodes <- getNodes(x)
+      allAlias <- laply(allNodes, alias)
+      nodeInd <- match(y, allAlias)
+      thisNode <- allNodes[nodeInd]
+      thisId <- names(thisNode)
+#      browser()
       if(length(y)==1){#use it as the root
-        #convert alias to nodeID
-        allNodes <- getNodes(x)
-        allAlias <- laply(allNodes, alias)
-        nodeInd <- match(y, allAlias) 
-        thisNode <- allNodes[nodeInd]
-        thisId <- names(thisNode)
         
         nodelist <- new.env(parent=emptyenv())
         nodelist$v <- character()
         flowWorkspace:::.getAllDescendants (x, thisId, nodelist)  
         
         
-        
+#        browser()
         nodelist$v <- c(nodelist$v,thisId)
+        nodelist$v <- unique(nodelist$v)
         #assume the number y is consistent with  R graph node name: N_x
         subNode_Ind <- nodelist$v
         
       }else{
         #when y is a vector, use it to subset the graph
-        subNode_Ind <- y
+        subNode_Ind <- thisId
       }
       
 #      subNodes <- paste("N",subNode_Ind-1,sep="_")
@@ -169,6 +169,6 @@ setMethod("plot",c("gatingTemplate","character"),function(x,y,...){
         stop("Rgraphviz doesn't know how to plot leaf node!")
       }
       x <- subGraph(subNode_Ind, x)
-      .plotTree(g,...)
+      .plotTree(x,...)
       
     })
