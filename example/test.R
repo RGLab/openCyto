@@ -2,9 +2,9 @@
 # ICS
 # 
 ###############################################################################
-unloadNamespace("flowIncubator")
+#unloadNamespace("flowIncubator")
 unloadNamespace("openCyto")
-unloadNamespace("QUALIFIER")
+#unloadNamespace("QUALIFIER")
 unloadNamespace("flowStats")
 unloadNamespace("flowWorkspace")
 
@@ -19,6 +19,7 @@ library(plyr)
 library(clue)
 library(gtools)
 
+lapply(list.files("/home/wjiang2/rglab/workspace/openCyto/R/",full=T),source)
 source("/home/wjiang2/rglab/workspace/openCyto/R/AllClasses.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gatingTemplate-methods.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/gating-cytokines.R")
@@ -145,21 +146,43 @@ gating(gating_template, gs_sub
 
 plotGate(gs_sub[[1]],xbin=32,margin=T)
 #t-reg
-gs <- load_gs("/loc/no-backup/ramey/Lyoplate/gating-sets/gs-treg")
+
+#gs <- load_gs("/loc/no-backup/ramey/Lyoplate/gating-sets/gs-treg")
+gs <- load_gs(file.path(path,"data/gs-treg"))
 gating_template <- gatingTemplate(file.path(path,"data/gt-treg.csv"))
-gs_sub <- gs[1:9]
+#gs_sub <- gs[1:3]
+#gs_sub <- clone(gs_sub)
+#save_gs(gs_sub,path = file.path(path,"data/gs-treg"))
+
 getNodes(gs_sub[[1]])
 Rm("boundary",gs_sub)
-Rm("CD25CD127_transitional",gs_sub)
+#Rm("CD25CD127_transitional",gs_sub)
 gating(gating_template, gs_sub
-#    , num_cores = 6, parallel_type = "MPI"
+    , mc.cores = 3, parallel_type = "multicore"
 )
 
 plotGate(gs_sub[[1]],xbin=32,margin=T)
-plot(gating_template)
+library(Cairo)
+CairoX11()
+plot(gating_template, graph =list(rankdir ="TB"))
 
 
-
+##HVTN065
+#gs <- load_gs("/loc/no-backup/ramey/HVTN/065/gating-set/")
+#gs_sub <- clone(gs[1])
+#getNodes(gs_sub[[1]])
+#getData(gs_sub[[1]],"cd3")
+#fr <- getData(gs_sub[[1]])
+#hist(exprs(fr)[,"PE Tx RD-A"])
+#
+#densityplot(~`SSC-A`,fr)
+#
+#xyplot(`SSC-A`~`PE Tx RD-A`
+#    , getData(gs_sub[[1]]
+##            ,"cd3"
+#              )
+##    ,filter =getGate(gs_sub[[1]],"cd4")
+#)
 library(Rcpp)
 library(inline)
 
@@ -189,3 +212,4 @@ s
 t1
 t2
 
+ 

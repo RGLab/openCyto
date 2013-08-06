@@ -53,12 +53,19 @@ setMethod("show", signature = c("gatingTemplate"),
   cat("\twith ", length(object@nodes), " populations defined\n")
 })
 
-setMethod("plot", signature = c("gatingTemplate"),
-          definition = function(x, y = missing) {
+setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
+      .plotTree(x,...)
+      
+    })
+
+.plotTree<-function(x
+                      , graphAttr = list(rankdir = "LR", page = c(8.5, 11)) 
+                      , nodeAttr = list(fixedsize = FALSE, shape = "ellipse")
+                      , ...){
   # get gating method name attr from edges
   gm.names <- unlist(lapply(edgeData(x, attr = "gtMethod"), names))
   gm.types <- unique(gm.names)
-
+  
   # fix the name attr
   e.colnames <- gsub("\\|", "~", names(gm.names))
   
@@ -67,14 +74,14 @@ setMethod("plot", signature = c("gatingTemplate"),
   gm.col <- RColorBrewer::brewer.pal(nMethods, name = "Dark2")
   names(gm.col) <- gm.types
   eCols <- gm.col[gm.names]
-
+  
   # restore names
   names(eCols) <- e.colnames  
   
   # encode edge style
   gm.isPoly <- unlist(lapply(gm.names, function(y) {
-    ifelse(y == "polyFunctions", "poly", "regular")
-  }))
+            ifelse(y == "polyFunctions", "poly", "regular")
+          }))
   edge.styles <- c("solid", "dashed")
   names(edge.styles) <- unique(gm.isPoly)
   eStyles <- edge.styles[gm.isPoly]
@@ -83,8 +90,8 @@ setMethod("plot", signature = c("gatingTemplate"),
   
   # encode the node shape and color with isSubsets
   nodeTypes <- unlist(lapply(nodeData(x, attr = "pop"), function(y) {
-    ifelse(class(y) == "gtSubsets", "subset", "pop")
-  }))
+            ifelse(class(y) == "gtSubsets", "subset", "pop")
+          }))
   n.colnames <- names(nodeTypes)
   nodeType <- unique(nodeTypes)
   
@@ -104,8 +111,7 @@ setMethod("plot", signature = c("gatingTemplate"),
   nAttrs <- list(label = nLabels, fillcolor = nFillCol, lty = nLtys)
   
   plot(as(x, "graphNEL"), nodeAttrs = nAttrs, edgeAttrs = eAttrs,
-       attrs = list(graph = list(rankdir = "LR", page = c(8.5, 11)),
-         node = list(fixedsize = FALSE, shape = "ellipse")))
+      attrs = list(graph = graphAttr,node = nodeAttr))
   
   plot.space = par()[["usr"]]
   x1 = plot.space[1]
@@ -115,6 +121,54 @@ setMethod("plot", signature = c("gatingTemplate"),
   
   legend.lty <- ifelse(gm.types == "polyFunctions", "poly", "regular")
   legend(x1 + 100, y2 - 100, legend = gm.types, title = "Gating Methods",
-         col = gm.col, lty = edge.styles[legend.lty], cex = 0.8)
+      col = gm.col, lty = edge.styles[legend.lty], cex = 0.8)
+}
+setMethod("plot", signature = c("gatingTemplate"),
+          definition = function(x, y = missing,...) {
+  
 })
-
+.getAllDescendants <- function(gt,startNode,nodelist){
+  stop("not supported yet!")  
+  children_nodes <- getChildren(gt,thisId)
+  if(length(children_nodes)>0){
+    for(this_parent in children_nodes){
+      nodelist$v <- c(nodelist$v, this_parent)
+      .getAllDescendants (gt,this_parent,nodelist)
+    }  
+  }
+  
+}
+setMethod("plot",c("gatingTemplate","character"),function(x,y,...){
+      
+      stop("not supported yet!")
+      if(length(y)==1){#use it as the root
+        #convert alias to nodeID
+        allNodes <- getNodes(x)
+        allAlias <- laply(allNodes, alias)
+        nodeInd <- match(y, allAlias) 
+        thisNode <- allNodes[nodeInd]
+        thisId <- names(thisNode)
+        
+        nodelist <- new.env(parent=emptyenv())
+        nodelist$v <- character()
+        flowWorkspace:::.getAllDescendants (x, thisId, nodelist)  
+        
+        
+        
+        nodelist$v <- c(nodelist$v,thisId)
+        #assume the number y is consistent with  R graph node name: N_x
+        subNode_Ind <- nodelist$v
+        
+      }else{
+        #when y is a vector, use it to subset the graph
+        subNode_Ind <- y
+      }
+      
+#      subNodes <- paste("N",subNode_Ind-1,sep="_")
+      if(length(subNode_Ind)<=1){
+        stop("Rgraphviz doesn't know how to plot leaf node!")
+      }
+      x <- subGraph(subNode_Ind, x)
+      .plotTree(g,...)
+      
+    })
