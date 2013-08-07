@@ -111,7 +111,7 @@
 .singletGate <- function(fr, xChannel = "FSC-A", yChannel = "FSC-H",
                          prediction_level = 0.99, pp_res = NULL, ...) {
   require(openCyto)
-  fs <- fs[, c(xChannel,yChannel)]
+  fr <- fr[, c(xChannel,yChannel)]
   # Creates a list of polygon gates based on the prediction bands at the minimum
   # and maximum x_channel observation using a robust linear model trained by
   # flowStats.
@@ -122,7 +122,7 @@
 
 #' a rectangle gate with range (min, max) for each channel
 #' useful for filtering out very large signal (e.g. FSC,SSC, Time)
-.boundary <- function(fs, xChannel = NULL, yChannel, min = NULL, max = NULL,
+.boundary <- function(fr, xChannel = NULL, yChannel, min = NULL, max = NULL,
     ...) {
   require(flowCore)
   if (is.na(xChannel)) {

@@ -204,7 +204,11 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
     cur_collapse <- thisRow[,"collapseDataForGating"][[1]]
     if(cur_collapse == "")
       cur_collapse <- FALSE
-#    browser()
+    cur_collapse <- as.logical(cur_collapse)
+    
+    if(is.na(cur_collapse))
+      stop("Invalid `collapseDataForGating` flag!")
+    
     cur_groupBy <- thisRow[,"groupBy"][[1]]
     # do not parse args for refGate-like gate since they might break the current
     # parse due to the +/- | &,! symbols
