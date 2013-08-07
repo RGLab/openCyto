@@ -30,8 +30,18 @@ setMethod("getChildren", signature = c("gatingTemplate", "character"),
 })
 
 setMethod("getParent", signature = c("gatingTemplate", "character"),
-          definition = function(obj, y) {
-  inEdges(y, obj)[[1]]
+          definition = function(obj, y, isRef = FALSE) {
+#            browser()
+  src <- inEdges(y, obj)[[1]]
+  isRefs <- laply(src,function(thisSrc){
+        thisEdge <- edgeData(obj,thisSrc,y)
+        thisEdge[[1]]$isReference 
+      })
+#  browser()
+  if(isRef)
+    src[isRefs]
+  else
+    src[!isRefs]
 })
 
 setMethod("getGate", signature = c("gatingTemplate", "character"),
@@ -58,9 +68,11 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
       
     })
 
+#FIXME:somehow the edge attributes are not correctly assigned to each edge respectively
 .plotTree<-function(x
                       , graphAttr = list(rankdir = "LR", page = c(8.5, 11)) 
                       , nodeAttr = list(fixedsize = FALSE, shape = "ellipse")
+                      , showRef = TRUE
                       , ...){
 #          browser()          
   # get gating method name attr from edges
@@ -69,17 +81,34 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
     gm.names <- unlist(lapply(edgeData(x, attr = "gtMethod"), names))
     gm.types <- unique(gm.names)
     
+    ref.edges <- unlist(edgeData(x, attr = "isReference"))
+    ref.edges <- ref.edges[ref.edges]
+    
+    
     # fix the name attr
     e.colnames <- gsub("\\|", "~", names(gm.names))
+    ref.colnames <- gsub("\\|", "~", names(ref.edges))
+    
+    #only care about the ref edges that are not conflicting with gm edges
+    ref.colnames <- ref.colnames[!ref.colnames%in%e.colnames]
+    
+    
     
     # encode the method name with color
     nMethods <- length(gm.types)
     gm.col <- RColorBrewer::brewer.pal(nMethods, name = "Dark2")
     names(gm.col) <- gm.types
-    eCols <- gm.col[gm.names]
+    eCol.gm <- gm.col[gm.names]
     
     # restore names
-    names(eCols) <- e.colnames  
+    names(eCol.gm) <- e.colnames  
+    
+    eCols <- eCol.gm
+    
+    #add ref edges
+    eCol.ref <- sapply(ref.colnames,function(i)return("grey"))
+    if(length(eCol.ref)>0)
+      eCols <- c(eCols, eCol.ref)
     
     # encode edge style
     gm.isPoly <- unlist(lapply(gm.names, function(y) {
@@ -87,8 +116,15 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
             }))
     edge.styles <- c("solid", "dashed")
     names(edge.styles) <- unique(gm.isPoly)
-    eStyles <- edge.styles[gm.isPoly]
-    names(eStyles) <- e.colnames
+    eStyles.gm <- edge.styles[gm.isPoly]
+    names(eStyles.gm) <- e.colnames
+    
+    eStyles <- eStyles.gm
+    
+    eStyles.ref <- sapply(ref.colnames,function(i)ifelse(showRef,"dotted","blank"))
+    if(length(eStyles.ref)>0)
+      eStyles <- c(eStyles,eStyles.ref)
+    
     eAttrs <- list(color = eCols, lty = eStyles)
     
   }else{
@@ -116,9 +152,10 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
   
   nLabels <- unlist(lapply(nodeData(x, attr = "pop"), alias))
   nAttrs <- list(label = nLabels, fillcolor = nFillCol, lty = nLtys)
-  
-  plot(as(x, "graphNEL"), nodeAttrs = nAttrs, edgeAttrs = eAttrs,
-      attrs = list(graph = graphAttr,node = nodeAttr))
+#  browser()
+  plot(as(x,"graphNEL"), nodeAttrs = nAttrs, edgeAttrs = eAttrs
+                  ,attrs = list(graph = graphAttr,node = nodeAttr)
+    )
   
   if(hasEdge){
     plot.space = par()[["usr"]]

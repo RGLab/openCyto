@@ -32,8 +32,8 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
       stop("Can't find stop point: ", stop.at)
   }
   # gate each node 
-#  gt_node_ids <- tsort(gt)#by the topological order
-  gt_node_ids <- bfs(gt)#by the bfs order
+  gt_node_ids <- tsort(gt)#by the topological order
+#  gt_node_ids <- bfs(gt)#by the bfs order
   # maintain the mapping between template node ID and gating set node ID in order
   # to refer gating set node ID back to the template ID and find the parent gs
   # node ID
@@ -55,17 +55,14 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
         
     }
 #    browser()
-    # parent node in graph is used as reference node
-    gt_ref_ids <- getParent(gt, gt_node_id)
-    # the parent to be used in gs is from parent slot of pop object
-    gt_parent_id <- as.character(gt_node_pop@parentID)
+    gt_parent_id <- getParent(gt, gt_node_id)
     
     # extract gate method from one edge(since multiple edge to the same node is
     # redudant)
-    this_gate <- getGate(gt, gt_ref_ids[1], gt_node_id)
+    this_gate <- getGate(gt, gt_parent_id, gt_node_id)
     
     #get preprocessing method
-    this_ppm <- ppMethod(gt, gt_ref_ids[1], gt_node_id)
+    this_ppm <- ppMethod(gt, gt_parent_id, gt_node_id)
     
     parentInd <- match(gt_parent_id, node_ids[, "gt"])
     if (is.na(parentInd)) 
@@ -274,7 +271,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
   
   tNodes <- deparse(args)
   if (!(popAlias %in% gs_nodes)) {
-    message(tNodes, " gating...")
+    message(popAlias, " gating...")
     bf <- eval(substitute(booleanFilter(x), list(x = args)))
     bf@filterId <- tNodes
     invisible(gs_node_id <- add(y, bf, parent = parent, name = popAlias))

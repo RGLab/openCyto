@@ -71,7 +71,10 @@ setClass("polyFunctions", contains = "boolMethod")
 
 #consistent with node label in gating template graph
 setClass("gtPopulation", representation(id = "numeric", name = "character",
-  alias = "character", parentID = "numeric"))
+                                        alias = "character"
+#                                      , parentID = "numeric"
+                                  )
+                              )
 setClass("gtSubsets", contains = "gtPopulation")
 
 
@@ -105,17 +108,17 @@ isPolyfunctional <- function(gm) {
 }
 
 # match node ID by name with the subset
-.getNodeID <- function(g, subset, this_node) {
+.getNodeID <- function(g, subset, this_node, ...) {
   node_id_ind <- which(unlist(lapply(subset, function(this_node_id) {
     alias(getNodes(g, this_node_id)) == this_node
   })))
   
   if (length(node_id_ind) == 0) {
     stop("Population '", this_node, "' not found under the current parent:", 
-      alias(getNodes(g, getParent(g, subset[2]))))
+      alias(getNodes(g, getParent(g, subset[2], ...))))
   } else if (length(node_id_ind) > 1) {
     stop("Population '", this_node, "' not unique under the current parent:", 
-      alias(getNodes(g, getParent(g, subset[2]))))
+      alias(getNodes(g, getParent(g, subset[2], ...))))
   } else {
     node_id <- subset[node_id_ind]
   }
@@ -123,7 +126,7 @@ isPolyfunctional <- function(gm) {
 }
 
 # search for node ID by path with gating template tree and add the edge
-.searchNode <- function(g, node_name) {
+.searchNode <- function(g, node_name, ...) {
   if (node_name == "root") {
     node_id <- "1"
   } else {
@@ -138,7 +141,7 @@ isPolyfunctional <- function(gm) {
     firstToken <- tokens[1]
     tokens <- tokens[-1]
     
-    node_id <- .getNodeID(g, subset = discovered, this_node = firstToken)
+    node_id <- .getNodeID(g, subset = discovered, this_node = firstToken, ...)
     
     # start from matchedID to match the rest of tokens in the path
     while (length(tokens) > 0) {
@@ -146,7 +149,7 @@ isPolyfunctional <- function(gm) {
       tokens <- tokens[-1]
       # find the id within the edges sourced from current ancester
       dests <- edges(g, node_id)[[1]]
-      node_id <- .getNodeID(g, subset = dests, this_node = curToken)
+      node_id <- .getNodeID(g, subset = dests, this_node = curToken, ...)
     }
   }
   
@@ -168,6 +171,8 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
   nodeDataDefaults(g, "pop") <- ""
   edgeDataDefaults(g, "gtMethod") <- ""
   edgeDataDefaults(g, "ppMethod") <- ""
+  edgeDataDefaults(g, "isReference") <- FALSE
+  
   # add default root
   nodeData(g, "1", "pop") <- new("gtPopulation", id = 1, name = "root", alias = "root")
 
@@ -187,8 +192,10 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
 
     # create pop object
     curNode <- new("gtPopulation", id = as.numeric(curNodeID), name = curPopName, 
-      alias = curPop, parentID = as.numeric(parentID))
-    
+                        alias = curPop
+#                    , parentID = as.numeric(parentID)
+                )
+                      
     # create gating method object
     cur_method <- thisRow[,"gating_method"][[1]]
     cur_args <- thisRow[,"gating_args"][[1]]
@@ -245,18 +252,17 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
     # add current node to graph
     g_updated <- graph::addNode(curNodeID, g)
     
-    if (!extends(class(gm), "refGate")) {
+#    if (!extends(class(gm), "refGate")) {
       # add edge from parent
-      g_updated <- addEdge(parentID, curNodeID, g_updated)
-      # add the gm object to the edge
-      edgeData(g_updated, parentID, curNodeID, "gtMethod") <- gm
-      #add preprcessing method to the edge
-      if(nchar(cur_pp_Method) > 0)
-        edgeData(g_updated, parentID, curNodeID, "ppMethod") <- ppm
-    } else {
-      ##########################################
-      # refGate-like methods need extra parsing
-      ##########################################
+    g_updated <- addEdge(parentID, curNodeID, g_updated)
+    
+    #add preprcessing method to the edge
+    if(nchar(cur_pp_Method) > 0)
+      edgeData(g_updated, parentID, curNodeID, "ppMethod") <- ppm
+    ##########################################
+    # refGate-like methods need extra parsing
+    ##########################################
+    if (extends(class(gm), "refGate")) {
       
       # get argument
       args <- gm@args[[1]]
@@ -281,25 +287,24 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
         curNode <- as(curNode, "gtSubsets")
       }
       
-      # add edges from reference nodes
+      # add edges from reference nodes (only used for tsort)
       for (ref_node in refNodes) {
         # get node id for reference node (using the old graph object
         # since the new graph has unconnected new node
-        ref_id <- .searchNode(g, ref_node)
+        ref_id <- .searchNode(g, ref_node,isRef = TRUE)
 
         # add the edge from it
         g_updated <- addEdge(ref_id, curNodeID, g_updated)
 
-        # append the gm object to the edge
-        edgeData(g_updated, ref_id, curNodeID, "gtMethod") <- gm
-        
-        #add preprcessing method to the edge
-        if(nchar(cur_pp_Method) > 0)
-          edgeData(g_updated, ref_id, curNodeID, "ppMethod") <- ppm
+        # flag the edge 
+        edgeData(g_updated, ref_id, curNodeID, "isReference") <- TRUE
       }
     }
     
-    
+    # attach the gm object to the parent edge
+    edgeData(g_updated, parentID, curNodeID, "gtMethod") <- gm
+    # flag the edge 
+    edgeData(g_updated, parentID, curNodeID, "isReference") <- FALSE
     # add the current population object to the current node
     nodeData(g_updated, curNodeID, "pop") <- curNode
     # update graph

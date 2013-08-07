@@ -55,9 +55,9 @@ gs<-GatingSet(fs[1:2])
 env1<-new.env(parent=emptyenv())
 gating(gt,gs,env1)
 plot(gs[[1]])
-plot(gs[[1]],bool=T)
+plot(gs[[1]],bool=F)
 getNodes(gs[[1]])
-plotGate(gs[[1]],xbin=64,margin=T)
+plotGate(gs[[1]],xbin=32,margin=T)
 xyplot(`SSC-A`~`<FITC-A>`,fr,smooth=F)
 
 getPopStats(gs[[1]])[22,]
@@ -82,8 +82,8 @@ Rm("cd3",gs1)
 load(file.path(path,"data/fs_tcell.rda"))
 gs1<-GatingSet(fs_tcell)
 env1<-new.env(parent=emptyenv())
-gating(gt1,gs1,env1)
-plotGate(gs1[[1]],xbin=64)
+gating(gt1,gs1,env1,mc.cores=4,parallel_type = "multicore")
+plotGate(gs1[[1]],xbin=32)
 plot(env1$fct,"nonDebris",post=T)
 plot(env1$fct,"cd3",post=T)
 plot(env1$fct,"cd4+",post=T,channel="<B710-A>")
@@ -107,7 +107,7 @@ env1<-new.env(parent=emptyenv())
 gating(gt2,gs2,env1)
 getGate(gs2,4)
 plot(gs2[[1]],bool=T)
-plotGate(gs2[[1]],bool=T,xbin=64)
+plotGate(gs2[[1]],bool=T,xbin=32)
 getData(gs2[[1]],"cd19&cd20")
 getNodes(gs2[[1]])
 densityplot(~`<G780-A>`,getData(gs2,"cd19&!cd20"))
@@ -118,33 +118,21 @@ plot(env1$fct,"cd19",post=T)
 plot(env1$fct,"IgD-cd27+",channel="<G780-A>",post=T)
 plot(env1$fct,"IgD-cd27+",post=T,channel="<V545-A>")
 
-###debug
-library(openCyto)
-gs_HVTN065 <- load_gs("/loc/no-backup/ramey/HVTN/065/gating-results")
-gating_template <- gatingTemplate("/home/jramey/rglab/papers/paper-opencyto/gt-HVTN065.csv", "HVTN065")
-Rm("cd4", gs_HVTN065)
-Rm("cd8", gs_HVTN065)
-gs <- clone(gs_HVTN065[1:12])
-getData(gs)
-Rm("cd4", gs)
-Rm("cd8", gs)
-
-gating(gating_template, gs, prior_group = 'Stim'
-    , num_cores = 6, parallel_type = "MPI"
-)
 
 ##debug John's gt
 
 #bcell
-gs <- load_gs("/loc/no-backup/ramey/Lyoplate/gating-sets/gs-bcell")
+
 gating_template <- gatingTemplate(file.path(path,"data/gt-bcell.csv"))
-gs_sub <- gs[1:9]
-Rm("boundary",gs_sub)
-gating(gating_template, gs_sub
-#    , num_cores = 6, parallel_type = "MPI"
+gs <- load_gs(path = file.path(path,"data/gs-bcell"))
+plot(gating_template)
+getNodes(gs[[1]])
+Rm("boundary",gs)
+gating(gating_template, gs
+    , mc.cores = 3, parallel_type = "multicore"
 )
 
-plotGate(gs_sub[[1]],xbin=32,margin=T)
+plotGate(gs[[1]],xbin=32,margin=T)
 #t-reg
 
 #gs <- load_gs("/loc/no-backup/ramey/Lyoplate/gating-sets/gs-treg")
@@ -154,18 +142,28 @@ gating_template <- gatingTemplate(file.path(path,"data/gt-treg.csv"))
 #gs_sub <- clone(gs_sub)
 #save_gs(gs_sub,path = file.path(path,"data/gs-treg"))
 
-getNodes(gs_sub[[1]])
-Rm("boundary",gs_sub)
-#Rm("CD25CD127_transitional",gs_sub)
-gating(gating_template, gs_sub
-    , mc.cores = 3, parallel_type = "multicore"
+getNodes(gs[[1]])
+Rm("boundary",gs)
+Rm("CD4",gs)
+Rm("memory",gs)
+plot(gs[[1]])
+gating(gating_template, gs
+#    , mc.cores = 3, parallel_type = "multicore"
 )
 
-plotGate(gs_sub[[1]],xbin=32,margin=T)
+plotGate(gs[[1]],xbin=32,margin=T,bool =T)
 library(Cairo)
 CairoX11()
-plot(gating_template, graph =list(rankdir ="TB"))
-
+plot(gating_template, graph =list(rankdir ="LR")
+#    ,y=c(   "CD25+CD127-"
+#            ,"Memory"
+#            ,"CCR4+CD45RO+"
+#            ,"CCR4+"
+#            ,"CD45RO+")
+    ,y = "CD4"
+#    , showRef = F
+    )
+dev.off()
 
 ##HVTN065
 #gs <- load_gs("/loc/no-backup/ramey/HVTN/065/gating-set/")
