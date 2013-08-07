@@ -37,7 +37,8 @@ source("/home/wjiang2/rglab/workspace/openCyto/R/wrapper-functions.R")
 source("/home/wjiang2/rglab/workspace/openCyto/R/preprocessing-method.R")
 
 path<-"/home/wjiang2/rglab/workspace/openCyto"
-
+library(Cairo)
+CairoX11()
 ###############
 ##ICS
 ###############
@@ -152,8 +153,7 @@ gating(gating_template, gs
 )
 
 plotGate(gs[[1]],xbin=32,margin=T,bool =T)
-library(Cairo)
-CairoX11()
+
 plot(gating_template, graph =list(rankdir ="LR")
 #    ,y=c(   "CD25+CD127-"
 #            ,"Memory"

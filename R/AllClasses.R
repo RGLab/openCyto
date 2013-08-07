@@ -98,7 +98,8 @@ isPolyfunctional <- function(gm) {
     }
     
     paired_args <- as.list(as.list(paired_args)[[1]])[-1]
-    names(paired_args) <- tolower(names(paired_args)) 
+#    names(paired_args) <- tolower(names(paired_args)) 
+    names(paired_args) <- names(paired_args)
   } else {
     paired_args <- as.symbol(txt)
     paired_args <- list(paired_args)
@@ -158,7 +159,18 @@ isPolyfunctional <- function(gm) {
 
 setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
 
-# constructor from csv
+#' gatingTemplate constructor expects csv template to have the following columns:
+#' 'alias':
+#' 'pop' 
+#' 'parent'
+#' 'dims'
+#' 'gating_method'
+#' 'gating_args' 
+#' 'collapseDataForGating'   
+#' 'groupBy' 
+#' 'preprocessing_method'    
+#' 'preprocessing_args'
+ 
 setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
       df <- .preprocess_csv(x)
       .gatingTemplate(df, ...)

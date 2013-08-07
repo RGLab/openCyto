@@ -5,7 +5,7 @@
 
 .prior_flowClust <- function(fs, gs, gm, xChannel, yChannel
                                 , prior_source = NULL
-                                , k, neg, pos
+                                , K = NULL, neg, pos
                                 , min, max, ...){
     prior_list <- list()
   
@@ -19,15 +19,16 @@
       prior_data <- getData(gs, prior_source)
     }
 #    browser()
+    
     if (names(gm) == "flowClust.1d") {
       # If any of 'K, 'neg' or 'pos' are given, we extract them from the
       # 'args' and coerce them as integers. Otherwise, they are defaulted to
       # NULL.
-      # NOTE: the named elements within 'args' are coerced to lowercase.
-      K <- neg_cluster <- pos_cluster <- NULL
       
-      if(!missing(k)) {
-        K <- as.integer(k)
+      neg_cluster <- pos_cluster <- NULL
+      
+      if(!is.null(K)) {
+        K <- as.integer(K)
       }
       if(!missing(neg)) {
         neg_cluster <- as.integer(neg)
@@ -81,8 +82,8 @@
       
     } else {
       # get the value of neg and pos
-      if (!missing(k)) {
-        K <- as.integer(k)
+      if (!is.null(K)) {
+        K <- as.integer(K)
       } else {
         message("'K' argument is missing! Using default setting: K = 2")
         K <- 2
@@ -170,8 +171,8 @@
   # NOTE: the named elements within 'args' are coerced to lowercase.
   K <- neg_cluster <- pos_cluster <- NULL
   
-  if ("k" %in% names(args)) {
-    K <- as.integer(args["k"])
+  if ("K" %in% names(args)) {
+    K <- as.integer(args["K"])
   }
   if ("neg" %in% names(args)) {
     neg_cluster <- as.integer(args["neg"])
@@ -206,7 +207,7 @@
   args[["neg_cluster"]] <- neg_cluster
 #        args[["pos_cluster"]] <- pos_cluster
   
-  args[["k"]] <- NULL
+#  args[["k"]] <- NULL
   args[["K"]] <- K
   
   # If 'min' and/or 'max' are given, we pass this value along to the
@@ -262,16 +263,16 @@
   
   args <- list(...)
   # get the value of neg and pos
-  if (is.element(c("k"), names(args))) {
-    K <- as.integer(args["k"])
+  if (is.element(c("K"), names(args))) {
+    K <- as.integer(args["K"])
   } else {
     message("'K' argument is missing! Using default setting: K = 2")
     K <- 2
   
   }
   
-  args[["k"]] <- K
-  names(args)[match("k", names(args))] <- "K"  #restore K to capital letter
+  args[["K"]] <- K
+#  names(args)[match("k", names(args))] <- "K"  #restore K to capital letter
   names(args)[match("useprior",names(args))]<-"usePrior"
   
   do.call("flowClust.2d"
@@ -333,4 +334,12 @@
   
   gateList
 }
- 
+.warpSet <- function(fs, gs, gm, xChannel, yChannel, stains, ...){
+  require(flowStats)
+  fs <- fs[, stains]
+  if(class(fs) == "ncdfFlowSet")
+    flowStats:::warpSetNCDF(fs, stains = stains, ...)
+  else
+    flowStats:::warpSet(fs, stains = stains, ...)
+  return (NULL)
+ }

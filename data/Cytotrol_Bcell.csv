@@ -6,8 +6,8 @@
 "cd20","cd20+","cd3","cd20","mindensity",,,,,
 "cd19&!cd20","cd19&!cd20","cd3",,"boolGate","cd19&!cd20",,,,
 "cd19&cd20","cd19&cd20","cd3",,"boolGate","cd19&cd20",,,,
-"plasmaB","cd27+cd38+","cd19&!cd20","cd27,cd38","flowClust","Neg=1,pos=2",,,,
+"plasmaB","cd27+cd38+","cd19&!cd20","cd27,cd38","flowClust","neg=1,pos=2",,,,
 "transitional","transitional","cd19&cd20","cd38,cd24","flowClust","K=4,transitional=TRUE,target=c(3.5e3,3.5e3),quantile=0.995,translation=0.55",,,"prior_flowClust","K=4"
-"cd27gate","cd27+","cd19&cd20","cd27","flowClust","Neg=1,pos=1",,,,
-"IgDgate","IgD+","cd27gate","IgD","flowClust","Neg=1,pos=1",,,,
+"cd27gate","cd27+","cd19&cd20","cd27","flowClust","neg=1,pos=1",,,,
+"IgDgate","IgD+","cd27gate","IgD","flowClust","neg=1,pos=1",,,,
 "*","IgD+/-cd27+/-","cd19&cd20","IgD,cd27","refGate","cd27gate:IgDgate",,,,
