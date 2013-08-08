@@ -144,12 +144,12 @@ gating_template <- gatingTemplate(file.path(path,"data/gt-treg.csv"))
 #save_gs(gs_sub,path = file.path(path,"data/gs-treg"))
 
 getNodes(gs[[1]])
-Rm("boundary",gs)
+#Rm("boundary",gs)
 Rm("CD4",gs)
-Rm("memory",gs)
+#Rm("memory",gs)
 plot(gs[[1]])
 gating(gating_template, gs
-#    , mc.cores = 3, parallel_type = "multicore"
+    , mc.cores = 3, parallel_type = "multicore"
 )
 
 plotGate(gs[[1]],xbin=32,margin=T,bool =T)

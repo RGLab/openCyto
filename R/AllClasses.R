@@ -160,16 +160,19 @@ isPolyfunctional <- function(gm) {
 setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
 
 #' gatingTemplate constructor expects csv template to have the following columns:
-#' 'alias':
-#' 'pop' 
-#' 'parent'
-#' 'dims'
-#' 'gating_method'
-#' 'gating_args' 
-#' 'collapseDataForGating'   
-#' 'groupBy' 
-#' 'preprocessing_method'    
-#' 'preprocessing_args'
+#' 'alias': a name used label the cell population, the path composed by the alias and its precedent nodes (e.g. /root/A/B/alias) has to be uniquely identifiable. 
+#' 'pop': population patterns of 'A+/-` or 'A+/-B+/-', which tells the algorithm which side (postive or negative) of 1d gate or which quadrant of 2d gate to be kept
+#' 'parent': the parent population alias, its path has to be uniquely identifiable. 
+#' 'dims': characters seperated by comma specifying the dimensions(1d or 2d) used for gating. It can be either channel name or stained marker name. 
+#' 'gating_method': the name of the gating function (e.g. 'flowClust'). It is invoked by a wrapper function that has the identical function name prefixed with a dot.(e.g. '.flowClust')    
+#' 'gating_args': the named arguments passed to gating function 
+#' 'collapseDataForGating': When TRUE, data is collapsed (within groups if 'groupBy' specified) before gating and the gate is replicated across collapsed samples.
+#'  When set FALSE (or blank),then 'groupBy' argument is only used by 'preprocessing' and ignored by gating.   
+#' 'groupBy': If given, samples are split into groups by the unique combinations of study variable (i.e. column names of pData,e.g."PTID:VISITNO").
+#'  when split is numeric, then samples are grouped by every N samples 
+#' 'preprocessing_method': the name of the preprocessing function(e.g. 'prior_flowClust'). It is invoked by a wrapper function that has the identical function name prefixed with a dot.(e.g. '.prior_flowClust')
+#'  the preprocessing results are then passed to gating wrapper function through 'pps_res' argument.      
+#' 'preprocessing_args': the named arguments passed to preprocessing function.
  
 setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
       df <- .preprocess_csv(x)
