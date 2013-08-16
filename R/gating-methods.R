@@ -1,14 +1,14 @@
 setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
-#' Applies gatingTemplate to one GatingSetInternal.
+#' Applies gatingTemplate to one GatingSet.
 #'
 #'
 #'
 #' @param x a \code{gatingTemplate} object
-#' @param y a \code{GatingSetInternal} object
+#' @param y a \code{GatingSet} object
 #' @param env_fct a \code{environment} that contains \code{fcTree} object named as 'fct'
 #' @param stop.at a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating prcoess will stop at.
 
-setMethod("gating", signature = c("gatingTemplate", "GatingSetInternal"),
+setMethod("gating", signature = c("gatingTemplate", "GatingSet"),
     definition = function(x, y, env_fct = NULL, ...) {
       .gating_gatingTemplate(x,y,env_fct,...)
     })
