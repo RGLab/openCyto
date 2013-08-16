@@ -1,5 +1,5 @@
 setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
-#' Applies gatingTemplate to 1 GatingSetInternal.
+#' Applies gatingTemplate to one GatingSetInternal.
 #'
 #'
 #'

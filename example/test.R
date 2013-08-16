@@ -154,7 +154,8 @@ gating(gating_template, gs
 
 plotGate(gs[[1]],xbin=32,margin=T,bool =T)
 
-plot(gating_template, graph =list(rankdir ="LR")
+plot(gating_template
+       , graph =list(rankdir ="TB")
 #    ,y=c(   "CD25+CD127-"
 #            ,"Memory"
 #            ,"CCR4+CD45RO+"
