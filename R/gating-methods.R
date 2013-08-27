@@ -125,7 +125,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   popId <- gtPop@id
-  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
+  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent])
 #  browser()
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     message("Gating for '", popAlias, "'")
@@ -243,7 +243,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     message("Skip gating! Population '", paste(popAlias, collapse = ","), "' already exists.")
     gs_node_id <- getChildren(y[[1]], parent)
     # select the corresponding gs node id by matching the node names
-    gs_node_name <- getNodes(y[[1]])[gs_node_id]
+    gs_node_name <- getNodes(y[[1]], showHidden = TRUE)[gs_node_id]
     gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
     filterObj <- NULL
   }
@@ -267,7 +267,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
   popName <- names(gtPop)
   popId <- gtPop@id
   
-  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
+  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent])
   
   tNodes <- deparse(args)
   if (!(popAlias %in% gs_nodes)) {
@@ -301,7 +301,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet"),
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   
-  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
+  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent])
   
   message("Population '", paste(popAlias, collapse = ","), "'")
   
@@ -346,7 +346,7 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
   xChannel <- dims[["xChannel"]]
   yChannel <- dims[["yChannel"]]
   
-  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], parent))
+  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent])
   
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     
@@ -360,11 +360,11 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
     flist <- flowWorkspace::lapply(y, function(gh) {
           
        glist <- lapply(refNodes, function(refNode) {
-          node_names <- getNodes(gh)
+          node_names <- getNodes(gh, showHidden = TRUE)
           node_ind <- match(refNode, node_names)
          if (is.na(node_ind)) {
             # match to path
-            node_paths <- getNodes(gh, isPath = T)
+            node_paths <- getNodes(gh, isPath = T, showHidden = TRUE)
             toMatch <- gsub("\\+", "\\\\+", refNode)
             toMatch <- paste(toMatch, "$", sep = "")
             node_ind <- grep(toMatch, node_paths)
@@ -496,7 +496,7 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
     gs_node_id <- getChildren(y[[1]], parent)
 
     # select the corresponding gs node id by matching the node names
-    gs_node_name <- getNodes(y[[1]])[gs_node_id]
+    gs_node_name <- getNodes(y[[1]], showHidden = TRUE)[gs_node_id]
     gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
     flist <- NULL
   }
