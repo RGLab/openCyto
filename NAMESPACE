@@ -1,5 +1,8 @@
 
 import(Biobase)
+import(Rgraphviz)
+importFrom(graph,graphNEL,addEdge,edges)
+import(RBGL)
 importFrom(gtools,permutations)
 importFrom(flowStats,singletGate,quadrantGate,rangeGate)
 importFrom(flowClust,tmixFilter,getEstimates,rbox,dmvtmix)
