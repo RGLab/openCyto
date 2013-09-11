@@ -1,4 +1,5 @@
 
+import(Biobase)
 importFrom(gtools,permutations)
 importFrom(flowStats,singletGate,quadrantGate,rangeGate)
 importFrom(flowClust,tmixFilter,getEstimates,rbox,dmvtmix)
