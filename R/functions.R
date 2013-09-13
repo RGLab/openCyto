@@ -22,7 +22,7 @@
 }
 
 .preprocess_csv <- function(x) {
-  df <- read.csv(x, as.is = T)
+  df <- as.data.frame(fread(x))
   new_df <- df[0, ]
   for (i in 1:nrow(df)) {
     this_row <- df[i, , drop = FALSE]

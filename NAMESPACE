@@ -9,7 +9,7 @@ importFrom(flowClust,tmixFilter,getEstimates,rbox,dmvtmix)
 importFrom(MASS,huber)
 importFrom(plyr,aaply,laply)
 importFrom(clue,solve_LSAP)
-
+importFrom(data.table,fread)
 exportClasses(gatingTemplate
 			,fcTree
 			,fcFilter

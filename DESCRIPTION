@@ -24,6 +24,6 @@ Collate: 	AllClasses.R
 			preprocessing-method.R
       openCyto.R
 Depends: methods,flowWorkspace (>= 3.7.27)
-Imports: Biobase,gtools,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph	 
+Imports: Biobase,gtools,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table	 
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
 
