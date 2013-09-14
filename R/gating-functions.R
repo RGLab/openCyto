@@ -58,6 +58,8 @@
 #' @param ... additional arguments that are passed to \code{\link{flowClust}}
 #' @return a \code{rectangleGate} object consisting of all values beyond the
 #' cutpoint calculated
+#' @export
+#' @importFrom flowClust getEstimates tmixFilter filter dmvtmix
 flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          positive = TRUE, prior = NULL,
                          criterion = c("BIC", "ICL"),
@@ -352,6 +354,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' @param ... additional arguments that are passed to \code{\link{flowClust}}
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
+#' @export
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
                          plot = FALSE, target = NULL, transitional = FALSE,
@@ -592,7 +595,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   fcPolygonGate(flowClust_gate, prior, posteriors)
 }
 
-quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
+quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE,
                          filterId = "", ...) {
   x <- exprs(fr[, stain])
   cutpoint <- quantile(x, probs = probs)
@@ -648,6 +651,7 @@ quantileGate <- function(fr, probs, stain, plot = FALSE, positive = TRUE,
 #' @param max a numeric value that sets the upper boundary for data filtering
 #' @param ... Additional arguments passed on to the \code{find_peaks} function
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
+#' @export
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
                        pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
                        ...) {

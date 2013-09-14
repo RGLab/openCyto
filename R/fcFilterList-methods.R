@@ -1,3 +1,16 @@
+#' plot a \code{fcFilterList}
+#' 
+#' It is usually called by \code{plot} method for \code{fcTree} instead of directly by users.
+#' @param x \code{fcFilterList}
+#' @param y \code{character} channel name
+#' @param samples \code{character} a vector of sample names to be plotted
+#' @param posteriors \code{logical} indicating whether posteriors should be plotted
+#' @param xlim,ylim scale settings for x,y axises
+#' @param lwd line width
+#' @param breaks passed to \link{hist}
+#' @param data \code{GatingSet} object
+#' @param node \code{character} population name associated with the \code{fcFilterList}
+#' @param ... other arguments passed to base \code{plot}
 setMethod("plot", sig = c("fcFilterList", "ANY"),
           definition = function(x, y, samples = NULL, posteriors = FALSE
         , xlim = NULL, ylim = NULL, node = NULL, data = NULL, breaks = 20, lwd = 1, ...) {

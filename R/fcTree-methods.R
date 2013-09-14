@@ -1,3 +1,7 @@
+#' get nodes from \code{fcTree}
+#'
+#' @param x \code{fcTree}
+#' @param y \code{character} node name
 setMethod("getNodes", signature = c("fcTree"), definition = function(x, y) {
   if (missing(y)) {
     nodeData(x)
@@ -5,7 +9,10 @@ setMethod("getNodes", signature = c("fcTree"), definition = function(x, y) {
     nodeData(x, y)
   }
 })
-
+#' get gates saved in \code{fcTree}
+#'
+#' @param obj \code{fcTree}
+#' @param y \code{character} node name
 setMethod("getGate", sig = c("fcTree", "character"),
     definition = function(obj, y,  ...) {
       # get filterList
@@ -28,6 +35,16 @@ setMethod("getGate", sig = c("fcTree", "character"),
   }
   matchedNode
 }
+
+#' plot the flowClust gating results
+#' 
+#' This provides the priors and posteriors as well as the gates for the purpose of debugging flowClust gating algorithm
+#' 
+#' @param x \code{fcTree}
+#' @param y \code{character} node name in the \code{fcTree}
+#' @param channel \code{character} specifying the channel.
+#' @param data \code{GatingSet} that the \code{fcTree} is associated with
+#' @param ... other arguments
 setMethod("plot", sig = c("fcTree", "character"),
           definition = function(x, y, channel = NULL, data = NULL,...) {
   # get filterList

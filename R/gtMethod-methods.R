@@ -1,3 +1,4 @@
+#' @rdname gtMethod-class
 setMethod("show", signature = c("gtMethod"), definition = function(object) {
   # cat('Gating Method: ')
   cat(names(object))
@@ -8,15 +9,24 @@ setMethod("show", signature = c("gtMethod"), definition = function(object) {
 #  cat(parameters(object))
 })
 
+#' @rdname boolMethod-class
 setMethod("show", signature = c("boolMethod"), definition = function(object) {
   cat(paste(class(object), "(", parameters(object), ")", sep = ""))
   cat("\n")
 })
 
+#' get gating method name
+#' 
+#' @param object \code{gtMethod} 
+#' @export 
 setMethod("names", signature = c("gtMethod"), definition = function(x) {
   x@name
 })
 
+#' get gating method dimensions
+#' 
+#' @param object \code{gtMethod}
+#' @export 
 setMethod("dims", signature = c("gtMethod"), definition = function(object) {
   dims <- strsplit(object@dims, ",")[[1]]
   if (length(dims) == 1) 
@@ -26,15 +36,36 @@ setMethod("dims", signature = c("gtMethod"), definition = function(object) {
   dims
 })
 
+#' get parameters of the gating method/function
+#' 
+#' @param object \code{gtMethod}
+#' @export 
 setMethod("parameters", signature = c("gtMethod"), definition = function(object) {
   object@args
 })
 
+#' get the flag that determines whether gating method is applied on collapsed data 
+#' 
+#' When TRUE, the flow data(multiple flowFrames) is collapsed into one and the gating method is applied on the collapsed data.
+#' Once the gate is generated, it is thenreplicated and applied to the each single flowFrame.
+#'   
+#' @return \code{logical} 
+#' @param object \code{gtMethod} 
+#' @export 
 setGeneric("isCollapse",function(object,...)standardGeneric("isCollapse"))
 setMethod("isCollapse", signature = c("gtMethod"), definition = function(object) {
       object@collapse
     })
-
+#' get the grouping variable for the gating method
+#' 
+#' When specified, the flow data is grouped by the grouping variable (column names in pData).
+#' Within each group, when \code{isCollapse} is set to TRUE, the gating method is applied to the collapsed data.
+#' Otherwise, it is done indepentently for each indiviudal sample(flowFrame).
+#' Grouping variable is also used by \code{preprocessing method}.
+#' 
+#' @param object \code{gtMethod}
+#' 
+#' @export 
 setGeneric("groupBy",function(object,...)standardGeneric("groupBy"))
 setMethod("groupBy", signature = c("gtMethod"), definition = function(object) {
       object@groupBy

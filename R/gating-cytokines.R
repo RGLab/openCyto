@@ -15,6 +15,7 @@
 #' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param ... additional arguments passed to \code{\link{cytokine_cutpoint}}
 #' @return a \code{filterList} containing the gates (cutpoints) for each sample
+#' @export
 cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
                      ref_peak = 1, tol = 1e-2, positive = TRUE, ...) {
   # Standardizes the flowFrame's for a given channel using the mode of the kernel
@@ -76,6 +77,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' @return list containing the transformed \code{flowSet} object along with the
 #' \code{transformation} list, where each element contains the transformation
 #' parameters for each \code{flowFrame}
+#' @export
 standardize_flowset <- function(flow_set, channel = "FSC-A") {
   transform_out <- fsApply(flow_set, function(flow_frame) {
     x <- exprs(flow_frame)[, channel]
@@ -142,6 +144,7 @@ standardize_flowset <- function(flow_set, channel = "FSC-A") {
 #' first derivative of the kernel density estimate
 #' @param ... additional arguments passed to \code{\link{deriv_density}}
 #' @return the cutpoint along the x-axis
+#' @export
 cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
                               method = c("first_deriv", "second_deriv"),
                               tol = 1e-2, adjust = 1, ...) {
@@ -203,6 +206,7 @@ cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
 #' @param num_points the length of the derivative of the kernel density estimate
 #' @param ... additional arguments passed to \code{\link[feature]{drvkde}}
 #' @return list containing the derivative of the kernel density estimate
+#' @export
 deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1,
                           num_points = 10000, ...) {
   require('feature')
@@ -221,6 +225,7 @@ deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1,
 #' @param x numeric vector
 #' @param ... additional arguments passed to \code{\link{density}}
 #' @return numeric vector containing the centered data
+#' @export
 center_mode <- function(x, ...) {
   x <- as.vector(x)
   density_x <- density(x, ...)
@@ -241,6 +246,7 @@ center_mode <- function(x, ...) {
 #' @param center logical value. Should \code{x} be centered?
 #' @param scale logical value. Should \code{x} be scaled?
 #' @return numeric vector containing the scaled data
+#' @export
 scale_huber <- function(x, center = TRUE, scale = TRUE) {
   require('MASS')
 

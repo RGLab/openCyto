@@ -1,8 +1,19 @@
 # This file contains all wrapper methods for dispatching data and arguments to
-# gating algorithms.
+# gating/preprocessing algorithms.
 
 #'  wrapper for prior_flowClust
-
+#' 
+#'  This wrapper does some parameter preprocessing before calls \link{prior_flowClust}
+#' 
+#' @param fs \code{flowSet} or \code{ncdfFlowSet} object
+#' @param gs \code{GatingSet}
+#' @param gm \code{gtMethod}
+#' @param xChannel,yChannel \code{character} specifying the dimensions of flow data used by \code{prior_flowClust}
+#' @param prior_source \code{character} specifying the ancester node from where the prior is elicited.
+#' @param neg,pos \code{numeric} specifying how many peaks are expected on positive and negative sides from 1d density profile
+#' @inheritParams prior_flowClust1d 
+#' 
+#' @return a \code{list} of priors, see \link{prior_flowClust} for more details
 .prior_flowClust <- function(fs, gs, gm, xChannel, yChannel
                                 , prior_source = NULL
                                 , K = NULL, neg, pos
@@ -95,7 +106,17 @@
     
     prior_list
 }
-
+#' An adapter to connect the gating wrapper function with the \link{gating} method
+#' 
+#' It coerce the input (\code{flowSet}) to a single \code{flowFrame} and apply the gating wrapper function
+#' then replicate the gates across samples from the \code{flowSet}.
+#' 
+#' @inheritParams .prior_flowClust
+#' @param pp_res preprocessing result produced by the \code{preprocessing} method
+#' @gFunc \code{character} function name of the wrapper function to be invoked
+#' @param ... other arguments to be passed to wrapper function
+#' 
+#' @return a \code{list} of \code{filter}s
 .gating_wrapper <- function(fs, pp_res, gFunc, ...){
     #coercing
   
@@ -108,23 +129,34 @@
     list(sapply(sampleNames(fs),function(i)filterRes))
     
 }
-## wrappers for the different gating routines
-.singletGate <- function(fr, xChannel = "FSC-A", yChannel = "FSC-H",
-                         prediction_level = 0.99, pp_res = NULL, ...) {
+#' wrapper for \link[flowStats:singletGate]{singletGate}
+#' 
+#' @param pp_res not used
+#' @param fr \code{flowFrame} object as a data input 
+#' @param ... arguments to be passed to \link[flowStats:singletGate]{singletGate}
+#' @inheritParams .prior_flowClust
+#' @return a \code{filter} object
+.singletGate <- function(fr, xChannel = "FSC-A", yChannel = "FSC-H", pp_res = NULL, ...) {
   require(openCyto)
   fr <- fr[, c(xChannel,yChannel)]
   # Creates a list of polygon gates based on the prediction bands at the minimum
   # and maximum x_channel observation using a robust linear model trained by
   # flowStats.
 
-  singletGate(fr, area = xChannel, height = yChannel,
-              prediction_level = prediction_level, ...)
+  singletGate(fr, area = xChannel, height = yChannel, ...)
 }
 
-#' a rectangle gate with range (min, max) for each channel
-#' useful for filtering out very large signal (e.g. FSC,SSC, Time)
-.boundary <- function(fr, xChannel = NULL, yChannel, min = NULL, max = NULL,
-    ...) {
+#' boundary gating function
+#' 
+#' It essentially constructs a rectangle gate from input range (min, max)
+#'
+#' @description It is useful for filtering out very large signal (e.g. FSC,SSC, Time)
+#'  
+#' @inheritParams .singletGate
+#' @param min,max the range input for constructing the \code{rectangleGate}
+#' @param ... other arguments (not used.)
+#' @return a \code{filter} object
+.boundary <- function(fr, xChannel = NULL, yChannel, min = NULL, max = NULL, ...) {
   require(flowCore)
   if (is.na(xChannel)) {
     xChannel <- NULL
@@ -151,6 +183,19 @@
   rectangleGate(gate_coordinates)
 }
 
+#' wrapper for flowClust.1d
+#' 
+#' It does some parameter preprocessing before calling the flowClust.1d
+#' 
+#' @param fr \code{flowFrame} object as a data input 
+#' @param ... arguments to be passed to \link{flowClust.1d}
+#' @param xChannel must be \code{NA}.
+#' @param yChannel the dimension used for gating
+#'  
+#' @inheritParams .gating_wrapper 
+#' @inheritParams .prior_flowClust
+#' 
+#' @return a \code{filter} object
 .flowClust.1d <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
   require(openCyto)
   
@@ -243,7 +288,15 @@
     stop("flowClust1d does not support 2d gate!")
   }
 }
-
+#' wrapper for cytokine
+#' 
+#' It does some parameter preprocessing before calling the cytokine
+#' 
+ 
+#' @param ... arguments to be passed to \link{cytokine}
+#' @inheritParams .flowClust.1d 
+#' 
+#' @return a \code{filter} object
 .cytokine <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", filterId = "", 
                       ...) {
   require(openCyto)
@@ -251,14 +304,29 @@
   cytokine(fr, channel = yChannel, filter_id = filterId, ...)
 }
 
+#' wrapper for mindensity
+#' 
+#' It does some parameter preprocessing before calling the mindensity
+#' 
+
+#' @param ... arguments to be passed to \link{mindensity}
+#' @inheritParams .flowClust.1d 
+#' 
+#' @return a \code{filter} object
 .mindensity <- function(fr, pp_res, yChannel = "FSC-A", filterId = "", ...) {
   require(openCyto)
  
   mindensity(flow_frame = fr, channel = yChannel, filter_id = filterId, ...)
 }
-
-.flowClust.2d <- function(fr, pp_res, xChannel, yChannel, usePrior = "yes", 
-                          ...) {
+#' wrapper for flowClust.2d
+#' 
+#' It does some parameter preprocessing before calling the flowClust.2d
+#' 
+#' @param ... arguments to be passed to \link{flowClust.2d}
+#' @inheritParams .flowClust.1d 
+#' 
+#' @return a \code{filter} object
+.flowClust.2d <- function(fr, pp_res, xChannel, yChannel, ...) {
   require(openCyto)
   
   args <- list(...)
@@ -272,14 +340,14 @@
   }
   
   args[["K"]] <- K
-#  names(args)[match("k", names(args))] <- "K"  #restore K to capital letter
-  names(args)[match("useprior",names(args))]<-"usePrior"
+
+#  names(args)[match("useprior",names(args))]<-"usePrior"
   
   do.call("flowClust.2d"
       ,args = c(list(fr = fr
                     , xChannel = xChannel
                     , yChannel = yChannel
-                    , usePrior = usePrior
+#                    , usePrior = usePrior
                     ,prior = pp_res
                     )
                 ,args
@@ -287,20 +355,33 @@
         )
   
 }
-
-.rangeGate <- function(fr, pp_res, xChannel = NA, yChannel, absolute = FALSE, filterId = "",
-                       ...) {
+#' wrapper for rangeGate (deprecated)
+#' 
+#' It does some parameter preprocessing before calling the rangeGate
+#' 
+#' @param pp_res not used
+#' @param ... arguments to be passed to \link[flowStats:rangeGate]{rangeGate}
+#' @inheritParams .flowClust.1d 
+#' 
+#' @return a \code{filter} object
+.rangeGate <- function(fr, pp_res, xChannel = NA, yChannel,  ...) {
   require(openCyto)
-  rangeGate(x = fr, stain = yChannel, inBetween = TRUE, absolute = absolute,
-            filterId = filterId, ...)
+  rangeGate(x = fr, stain = yChannel,  ...)
 }
-
-.quantileGate <- function(fr, pp_res, xChannel = NA, yChannel, probs = 0.999, filterId = "",
-                          ...) {
+#' wrapper for quantileGate
+#' 
+#' It does some parameter preprocessing before calling the quantileGate
+#' 
+#' @param ... arguments to be passed to \link{quantileGate}
+#' @inheritParams .flowClust.1d 
+#' 
+#' @return a \code{filter} object
+.quantileGate <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
   require(openCyto)
   quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)
 }
 
+#' deprecated
 .quadrantGate <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
   require(openCyto)
   qfilter <- quadrantGate(fr, stain = c(xChannel, yChannel), absolute = FALSE, 
@@ -334,6 +415,12 @@
   
   gateList
 }
+#'  wrapper for \link[flowStats:warpSet]{warpSet}
+#' 
+#' @param stains \code{character} passed to \link[flowStats:warpSet]{warpSet} 
+#' @inheritParams .prior_flowClust 
+#' 
+#' @return \code{NULL}
 .warpSet <- function(fs, gs, gm, xChannel, yChannel, stains, ...){
   require(flowStats)
   fs <- fs[, stains]

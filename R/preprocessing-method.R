@@ -1,12 +1,22 @@
 setGeneric("preprocessing", function(x, y, ...) standardGeneric("preprocessing"))
+#' apply a \link{ppMethod} to the \code{GatingSet}
+#' 
+#' @param x \code{ppMethod}
+#' @param x \code{GatingSet}
+#' ... other arguments
+#' 
+#' @inheritParams .preprocessing
+#' 
+#' @export 
 setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
     definition = function(x, y, ...) {
       .preprocessing(x,y,...)
     })
-
-.preprocessing <- function(x, y, gtPop, parent, gm,  mc.cores = 1,
-    parallel_type = c("none", "multicore", "cluster"), cl = NULL, plot = FALSE,
-    xbin = 128,  ...) {
+#' internal function (preprocessing)
+#' 
+#' @inheritParams .gating_gtMethod
+#' @param gm: \code{gtMethod} object
+.preprocessing <- function(x, y, gtPop, parent, gm, ...) {
 #  require("parallel")
   
   args <- parameters(x)

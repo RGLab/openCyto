@@ -1,3 +1,16 @@
+#' get nodes from \link{gatingtemplate} object
+#' 
+#' @param x \code{gatingTemplate}
+#' @param y \code{character} node index. When \code{missing}, return all the nodes
+#' @param order \code{character} specifying the order of nodes. options are "default", "bfs", "dfs", "tsort"
+#' @param only.names \code{logical} specifiying whether user wants to get the entire \code{gtPopulation} object or just the name of the population node
+#'   
+#' @examples 
+#' gt <- gatingTemplate(system.file("gatingTemplate/Cytotrol_Tcell.csv",package = "openCyto"))
+#' getNodes(gt)
+#' getNodes(gt, only.names = TURE)
+#' getNodes(gt, '2') 
+#' @export 
 setMethod("getNodes", signature = c("gatingTemplate"),
           definition = function(x, y
                                   , order = c("default", "bfs", "dfs", "tsort")
@@ -24,11 +37,15 @@ setMethod("getNodes", signature = c("gatingTemplate"),
    res
 })
 
+#' get children nodes
+#' @export 
 setMethod("getChildren", signature = c("gatingTemplate", "character"),
           definition = function(obj, y) {
   edges(obj, y)[[1]]
 })
 
+#' get parent nodes
+#' @export 
 setMethod("getParent", signature = c("gatingTemplate", "character"),
           definition = function(obj, y, isRef = FALSE) {
 #            browser()
@@ -44,17 +61,23 @@ setMethod("getParent", signature = c("gatingTemplate", "character"),
     src[!isRefs]
 })
 
+#' get gating method from the node
+#' @export 
 setMethod("getGate", signature = c("gatingTemplate", "character"),
           definition = function(obj, y, z) {
   edgeData(obj, from = y, to = z, attr = "gtMethod")[[1]]
 })
 
+#' get preprocessing method from the node
+#' @export 
 setGeneric("ppMethod", function(obj, y, ...) standardGeneric("ppMethod"))
 setMethod("ppMethod", signature = c("gatingTemplate", "character"),
     definition = function(obj, y, z) {
       edgeData(obj, from = y, to = z, attr = "ppMethod")[[1]]
     })
 
+#' export
+#' @rdname gatingTemplate-class
 setMethod("show", signature = c("gatingTemplate"),
           definition = function(object) {
   cat("--- Gating Template: ")
@@ -63,6 +86,20 @@ setMethod("show", signature = c("gatingTemplate"),
   cat("\twith ", length(object@nodes), " populations defined\n")
 })
 
+#' plot the gating scheme
+#' 
+#' plot the gating scheme using Rgraphviz
+#' 
+#' @param x \code{gatingTemplate} object
+#' @param y either \code{character} specifying the root node which can be used to visualize only the subgraph 
+#'              or \code{missing} which display the entire gating scheme
+#' @param ... other arguments 
+#'  
+#'      graphAttr, nodeAttr:  graph rendering attributes passed to \link[graph:renderGraph]{renderGraph}
+#'      showRef \code{logical}: whether to display the reference gates. Sometime it maybe helpful to 
+#'                              hide all those reference gates which are not the cell population of interest 
+#'                              and used primarily for generating other population nodes.
+#' @export 
 setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
       .plotTree(x,...)
       

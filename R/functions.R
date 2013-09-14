@@ -20,7 +20,9 @@
     stop(alias, " is not unique within ", this_parent)
   }
 }
-
+#' preprocess the csv template
+#' 
+#' It expands the definition of gates or construct reference gates when necessary
 .preprocess_csv <- function(x) {
   df <- as.data.frame(fread(x))
   new_df <- df[0, ]
@@ -174,7 +176,7 @@
    new_df
   
 }
-
+#' split the population pattern into multiple population names 
 .splitTerms <- function(pop_pat, two_pop_token, popName) {
   term_pos <- gregexpr(pop_pat, popName)[[1]]
   x_term <- substr(popName, 1, term_pos[2] - 1)
@@ -194,7 +196,7 @@
   })
   list(terms = terms, splitted_terms = splitted_terms)
 }
-#convert to 1d gating based on the population pattern
+#' convert to 1d gating based on the population pattern
 .gen_1dgate <- function(terms, this_row, one_pop_token, two_pop_token, new_df) {
   res <- do.call(rbind, lapply(terms, function(cur_term) {
     toReplace <- paste("(", two_pop_token, ")|(", one_pop_token, ")", sep = "")
@@ -209,6 +211,7 @@
   rownames(res) <- NULL
   res
 }
+#' generate reference gate based on the splitted population patterns 
 .gen_refGate <- function(splitted_terms, this_row, ref_nodes = NULL, alias = NULL, 
   new_df) {
   this_parent <- this_row[1, "parent"]
@@ -237,6 +240,7 @@
   }, SIMPLIFY = FALSE))
 }
 
+#' reading flowFrame from csv spreadsheet.It is for internal usage.
 read.FCS.csv <- function(file, stains = NA) {
   mat <- as.matrix(read.csv(file, check.names = FALSE))
   
@@ -261,7 +265,7 @@ read.FCS.csv <- function(file, stains = NA) {
   pData(parameters(fr)) <- pd
   fr
 }
-
+#' reading flowSet from multiple csv spreadsheets.It is for internal usage.
 read.flowSet.csv <- function(files, ...) {
   fs <- flowSet(lapply(files, read.FCS.csv, ...))
   sampleNames(fs) <- basename(files)
@@ -337,7 +341,7 @@ read.flowSet.csv <- function(files, ...) {
   }
   res
 }
-
+#' fussy match of marker/channel names
 .flowParamMatch <- function(pd, name, fix = FALSE, partial = FALSE) {
   # try to compelete word match by following with a space or the end of string
   if (partial) 

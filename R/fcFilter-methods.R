@@ -4,6 +4,12 @@ setMethod("show", sig = c("fcFilter"),
   callNextMethod(object)
 })
 
+#' get posteriors from a \code{fcFilter} object
+#' 
+#' @param x \code{fcFilter}
+#' @param y \code{character} or \code{missing} that specifiy which channel to look for
+#' 
+#' @export 
 setGeneric("posteriors", function(x, y, ...) standardGeneric("posteriors"))
 setMethod("posteriors", sig = c("fcFilter", "ANY"),
           definition = function(x, y = "missing") {
@@ -23,6 +29,10 @@ setMethod("posteriors", sig = c("fcFilter", "character"),
   }
 })
 
+#' get priors from a \code{fcFilter} object
+#' 
+#' @inheritParams posteriors
+#' @export
 setGeneric("priors", function(x, y, ...) standardGeneric("priors"))
 setMethod("priors", sig = c("fcFilter", "ANY"),
           definition = function(x, y = "missing") {

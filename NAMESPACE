@@ -1,45 +1,53 @@
-
-import(Biobase)
-import(Rgraphviz)
-importFrom(graph,graphNEL,addEdge,edges)
-import(RBGL)
+export(center_mode)
+export(cytokine_cutpoint)
+export(cytokine)
+export(deriv_density)
+export(find_peaks)
+export(find_valleys)
+export(flowClust.1d)
+export(flowClust.2d)
+export(mindensity)
+export(prior_flowClust)
+export(prior_flowClust1d)
+export(prior_kmeans)
+export(scale_huber)
+export(standardize_flowset)
+exportClasses(boolMethod)
+exportClasses(gatingTemplate)
+exportClasses(gtMethod)
+exportClasses(gtPopulation)
+exportClasses(gtSubsets)
+exportClasses(polyFunctions)
+exportClasses(ppMethod)
+exportClasses(refGate)
+exportMethods(alias)
+exportMethods(dims)
+exportMethods(gating)
+exportMethods(gatingTemplate)
+exportMethods(getChildren)
+exportMethods(getGate)
+exportMethods(getNodes)
+exportMethods(getParent)
+exportMethods(groupBy)
+exportMethods(isCollapse)
+exportMethods(names)
+exportMethods(parameters)
+exportMethods(plot)
+exportMethods(posteriors)
+exportMethods(ppMethod)
+exportMethods(preprocessing)
+exportMethods(priors)
+importFrom(flowClust,dmvtmix)
+importFrom(flowClust,filter)
+importFrom(flowClust,getEstimates)
+importFrom(flowClust,tmixFilter)
+importFrom(graph,addEdge)
+importFrom(graph,edgeData)
+importFrom(graph,edgeDataDefaults)
+importFrom(graph,edges)
+importFrom(graph,graphNEL)
+importFrom(graph,nodeData)
+importFrom(graph,nodeDataDefaults)
+importFrom(graph,subGraph)
 importFrom(gtools,permutations)
-importFrom(flowStats,singletGate,quadrantGate,rangeGate)
-importFrom(flowClust,tmixFilter,getEstimates,rbox,dmvtmix)
-importFrom(MASS,huber)
-importFrom(plyr,aaply,laply)
-importFrom(clue,solve_LSAP)
-importFrom(data.table,fread)
-exportClasses(gatingTemplate
-			,fcTree
-			,fcFilter
-			,fcRectangleGate
-			,fcPolygonGate
-			,fcFilterList
-			,gtMethod
-			,boolMethod
-			,polyFunctions
-			,gtPopulation
-			,gtSubsets
-			,refGate)
-
-export(fcRectangleGate
-	,fcPolygonGate
-	,fcFilterList
-	,flowClust.1d
-	,flowClust.2d
-	,fcTree
-	)
-
-exportMethods(getNodes
-			,getChildren
-			,getGate
-			,show
-			,plot
-			,gating
-			,names
-			,dims
-			,parameters
-			,alias
-			,gatingTemplate
-)
+importFrom(plyr,aaply)

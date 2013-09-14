@@ -166,7 +166,7 @@ plot(gating_template
     )
 dev.off()
 
-##HVTN065
+#TODO: HVTN065 (plotGate doesn't work because range slot is invalid( character) 
 #gs <- load_gs("/loc/no-backup/ramey/HVTN/065/gating-set/")
 #gs_sub <- clone(gs[1])
 #getNodes(gs_sub[[1]])
@@ -184,7 +184,8 @@ dev.off()
 #)
 library(Rcpp)
 library(inline)
-
+getNodes(gs[[1]])
+plotGate(gs[[1]],"cd4+",xbin=32)
 cstring <- '
 double * _s = REAL(s);
 double * _t1 = REAL(t1);

@@ -28,6 +28,8 @@
 #' covariance matrices are singular. See details.
 #' @param ... Additional arguments passed to the prior elicitation method selected
 #' @return list of the necessary prior parameters
+#' @export 
+#' @importFrom plyr aaply
 prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = 10, shrink = 1e-6, ...) {
 
@@ -140,6 +142,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' \code{NULL} (default), no truncation is applied. See
 #' \code{\link{truncate_flowSet}} for more details.
 #' @return list of prior parameters
+#' @export
 prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
                               clust_method = c("kmeans", "hclust"),
                               hclust_method = "complete", artificial = NULL,
@@ -325,6 +328,7 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
 #' \code{\link{truncate_flowSet}} for more details.
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
+#' @export 
 prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
                          pct = 0.1, min = NULL, max = NULL, ...) {
 
@@ -517,6 +521,7 @@ prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
 #' plot(density(y))
 #' peaks <- find_peaks(y)
 #' abline(v = peaks, col = "red")
+#' @export 
 find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, ...) {
   x <- as.vector(x)
 
@@ -589,6 +594,7 @@ find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, ...) {
 #' plot(density(y))
 #' valleys <- find_valleys(y)
 #' abline(v = valleys, col = "red")
+#' @export 
 find_valleys <- function(x, y = NULL, num_valleys = NULL, adjust = 2, ...) {
 
   x <- as.vector(x)

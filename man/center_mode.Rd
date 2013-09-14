@@ -1,0 +1,20 @@
+\name{center_mode}
+\alias{center_mode}
+\title{Centers a vector of data using the mode of the kernel density estimate}
+\usage{
+  center_mode(x, ...)
+}
+\arguments{
+  \item{x}{numeric vector}
+
+  \item{...}{additional arguments passed to
+  \code{\link{density}}}
+}
+\value{
+  numeric vector containing the centered data
+}
+\description{
+  Centers a vector of data using the mode of the kernel
+  density estimate
+}
+

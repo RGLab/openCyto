@@ -1,0 +1,50 @@
+\name{find_valleys}
+\alias{find_valleys}
+\title{Finds the local minima (valleys) in the given vector after smoothing the data
+with a kernel density estimator.}
+\usage{
+  find_valleys(x, y = NULL, num_valleys = NULL, adjust = 2,
+    ...)
+}
+\arguments{
+  \item{x}{numeric vector}
+
+  \item{y}{numeric vector. If given, it is treated as the
+  density values for \code{x}. The length of \code{y} must
+  equal that of \code{x}.}
+
+  \item{num_valleys}{the number of valleys to find. By
+  default, all valleys are returned. See details.}
+
+  \item{adjust}{the bandwidth to use in the kernel density
+  estimation. See \code{\link{density}} for more
+  information.}
+
+  \item{...}{additional arguments passed to the
+  \code{\link{density}} function}
+}
+\value{
+  the values where the valleys are attained.
+}
+\description{
+  First, we smooth the data using kernel density estimation
+  (KDE) with the \code{\link{density}} function. Then, we
+  find every local minima such that the density is concave
+  (downward).
+}
+\details{
+  Effectively, we find the local minima with a discrete
+  analogue to a second derivative applied to the KDE. For
+  details, see this StackOverflow post:
+  \url{http://bit.ly/Zbl7LV}.
+}
+\examples{
+library(flowClust)
+set.seed(42)
+# 3 peaks and 2 valleys
+y <- SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
+plot(density(y))
+valleys <- find_valleys(y)
+abline(v = valleys, col = "red")
+}
+
