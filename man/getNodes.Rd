@@ -1,5 +1,6 @@
 \name{getNodes}
 \alias{getNodes}
+\alias{getNodes,gatingTemplate,character-method}
 \title{get nodes from \link{gatingTemplate} object}
 \arguments{
   \item{x}{\code{gatingTemplate}}

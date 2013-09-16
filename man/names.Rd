@@ -1,5 +1,6 @@
 \name{names}
 \alias{names}
+\alias{names,gtPopulation-method}
 \title{get gating method name}
 \arguments{
   \item{object}{\code{gtMethod}}

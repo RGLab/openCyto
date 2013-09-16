@@ -332,6 +332,7 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
 #' @export 
+#' @importFrom clue solve_LSAP
 prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
                          pct = 0.1, min = NULL, max = NULL, ...) {
 

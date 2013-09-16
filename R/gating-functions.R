@@ -59,7 +59,7 @@
 #' @return a \code{rectangleGate} object consisting of all values beyond the
 #' cutpoint calculated
 #' @export
-#' @importFrom flowClust getEstimates tmixFilter filter dmvtmix
+#' @importFrom flowClust getEstimates tmixFilter filter dmvtmix dmvt
 #' @rdname flowClust1d 
 flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          positive = TRUE, prior = NULL,
@@ -197,7 +197,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
     
     prior_proportions <- with(prior, w0 / sum(w0))
     prior_y <- lapply(c(neg_cluster, neg_cluster + 1), function(k) {
-      prior_density <- flowClust::dmvt(x = prior_x, mu = prior$Mu0[k],
+      prior_density <- dmvt(x = prior_x, mu = prior$Mu0[k],
                                        sigma = prior$Omega0[k], nu = 4)$value
       prior_proportions[k] * prior_density
     })

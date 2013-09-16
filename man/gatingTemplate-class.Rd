@@ -1,5 +1,6 @@
 \name{gatingTemplate}
 \alias{gatingTemplate}
+\alias{gatingTemplate,character-method}
 \alias{show}
 \alias{show,gatingTemplate-method}
 \title{a class storing the gating method and population information in a graphNEL object}

@@ -11,6 +11,7 @@
 #' getNodes(gt, only.names = TURE)
 #' getNodes(gt, '2') 
 #' @export 
+#' @aliases getNodes,gatingTemplate,character-method
 setMethod("getNodes", signature = c("gatingTemplate"),
           definition = function(x, y
                                   , order = c("default", "bfs", "dfs", "tsort")
@@ -39,6 +40,7 @@ setMethod("getNodes", signature = c("gatingTemplate"),
 
 #' get children nodes
 #' @export 
+#' @aliases getChildren,gatingTemplate,character-method
 setMethod("getChildren", signature = c("gatingTemplate", "character"),
           definition = function(obj, y) {
   edges(obj, y)[[1]]
@@ -46,6 +48,8 @@ setMethod("getChildren", signature = c("gatingTemplate", "character"),
 
 #' get parent nodes
 #' @export 
+#' @importFrom plyr laply
+#' @aliases getParent,gatingTemplate,character-method
 setMethod("getParent", signature = c("gatingTemplate", "character"),
           definition = function(obj, y, isRef = FALSE) {
 #            browser()
@@ -63,6 +67,7 @@ setMethod("getParent", signature = c("gatingTemplate", "character"),
 
 #' get gating method from the node
 #' @export 
+#' @aliases getGate,gatingTemplate,character-method
 setMethod("getGate", signature = c("gatingTemplate", "character"),
           definition = function(obj, y, z) {
   edgeData(obj, from = y, to = z, attr = "gtMethod")[[1]]
@@ -70,6 +75,7 @@ setMethod("getGate", signature = c("gatingTemplate", "character"),
 
 #' get preprocessing method from the node
 #' @export 
+#' @aliases ppMethod,gatingTemplate,character-method
 setGeneric("ppMethod", function(obj, y, ...) standardGeneric("ppMethod"))
 setMethod("ppMethod", signature = c("gatingTemplate", "character"),
     definition = function(obj, y, z) {
@@ -102,6 +108,8 @@ setMethod("show", signature = c("gatingTemplate"),
 #'                              hide all those reference gates which are not the cell population of interest 
 #'                              and used primarily for generating other population nodes.
 #' @export 
+#' @importFrom RColorBrewer brewer.pal
+#' @aliases plot,gatingTemplate,missing-method
 setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
       .plotTree(x,...)
       
@@ -135,7 +143,7 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
     
     # encode the method name with color
     nMethods <- length(gm.types)
-    gm.col <- RColorBrewer::brewer.pal(nMethods, name = "Dark2")
+    gm.col <- brewer.pal(nMethods, name = "Dark2")
     names(gm.col) <- gm.types
     eCol.gm <- gm.col[gm.names]
     
@@ -178,7 +186,7 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
   nodeType <- unique(nodeTypes)
   
   # color
-  subset.col <- RColorBrewer::brewer.pal(9, name = "Set3")[c(9, 7)]
+  subset.col <- brewer.pal(9, name = "Set3")[c(9, 7)]
   names(subset.col) <- nodeType
   nFillCol <- subset.col[nodeTypes]
   names(nFillCol) <- n.colnames
@@ -208,11 +216,12 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
         col = gm.col, lty = edge.styles[legend.lty], cex = 0.8)
   }
 }
+#' @aliases plot,gatingTemplate-method
 setMethod("plot", signature = c("gatingTemplate"),
           definition = function(x, y = missing,...) {
   
 })
-
+#' @aliases plot,gatingTemplate,character-method
 setMethod("plot",c("gatingTemplate","character"),function(x,y,...){
       
       #convert alias to nodeID

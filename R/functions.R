@@ -23,6 +23,7 @@
 #' preprocess the csv template
 #' 
 #' It expands the definition of gates or construct reference gates when necessary
+#' @importFrom data.table fread
 .preprocess_csv <- function(x) {
   df <- as.data.frame(fread(x))
   new_df <- df[0, ]
@@ -289,12 +290,13 @@ read.flowSet.csv <- function(files, ...) {
 #' @param filter object containing the fitted \code{flowClust} model.
 #' @param include the mixture component in the fitted \code{flowClust} model for
 #' which the contour (ellipse) is returned
-#' @param ecol TODO
-#' @param elty TODO
+#' @param ecol \code{numeric} to be documented
+#' @param elty \code{numeric} to be documented
 #' @param quantile the contour level of the ellipse. See details.
 #' @param npoints the number of points on the ellipse
 #' @param subset the dimensions of the mixture component to return
 #' @return matrix containing the points of the ellipse from the flowClust contour
+#' @importFrom flowClust rbox
 .getEllipse <- function(filter = NULL, include = seq_len(filter@K), ecol = 1, elty = 1, 
   quantile = NULL, npoints = 501, subset = c(1, 2)) {
   
@@ -606,8 +608,8 @@ polyfunction_nodes <- function(markers) {
   
   markers <- paste0(markers, "+")
   num_markers <- length(markers)
-  and_list <- as.vector(permutations(n = 1, r = num_markers - 1, c("&"), repeats = TRUE))
-  isnot_list <- permutations(n = 2, r = num_markers, c("!", ""), repeats = TRUE)
+  and_list <- as.vector(permutations(n = 1, r = num_markers - 1, c("&"), repeats.allowed = TRUE))
+  isnot_list <- permutations(n = 2, r = num_markers, c("!", ""), repeats.allowed = TRUE)
   apply(isnot_list, 1, function(isnot_row) {
     isnot_row[-1] <- paste0(and_list, isnot_row[-1])
     paste(paste0(isnot_row, markers), collapse = "")
@@ -623,6 +625,7 @@ polyfunction_nodes <- function(markers) {
 #' @examples
 #' z <- seq.int(1, 9, by = 2)
 #' between_interval(z, interval = c(2, 8))
+#' @export 
 between_interval <- function(x, interval) {
   x <- x[findInterval(x, interval) == 1]
   if (length(x) == 0) {

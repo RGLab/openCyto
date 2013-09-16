@@ -26,6 +26,7 @@ setMethod("names", signature = c("gtMethod"), definition = function(x) {
 #' 
 #' @param object \code{gtMethod}
 #' @export 
+#' @importFrom Biobase dims
 setMethod("dims", signature = c("gtMethod"), definition = function(object) {
   dims <- strsplit(object@dims, ",")[[1]]
   if (length(dims) == 1) 

@@ -1,5 +1,6 @@
 \name{plot}
 \alias{plot}
+\alias{plot,gatingTemplate,missing-method}
 \title{plot the gating scheme}
 \arguments{
   \item{x}{\code{gatingTemplate} object}

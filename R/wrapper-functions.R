@@ -136,8 +136,9 @@
 #' @param ... arguments to be passed to \link[flowStats:singletGate]{singletGate}
 #' @inheritParams .prior_flowClust
 #' @return a \code{filter} object
+#' @importFrom flowStats singletGate
 .singletGate <- function(fr, xChannel = "FSC-A", yChannel = "FSC-H", pp_res = NULL, ...) {
-  require(openCyto)
+  
   fr <- fr[, c(xChannel,yChannel)]
   # Creates a list of polygon gates based on the prediction bands at the minimum
   # and maximum x_channel observation using a robust linear model trained by
@@ -157,7 +158,7 @@
 #' @param ... other arguments (not used.)
 #' @return a \code{filter} object
 .boundary <- function(fr, xChannel = NULL, yChannel, min = NULL, max = NULL, ...) {
-  require(flowCore)
+  
   if (is.na(xChannel)) {
     xChannel <- NULL
   }
@@ -197,7 +198,7 @@
 #' 
 #' @return a \code{filter} object
 .flowClust.1d <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
-  require(openCyto)
+  
   
   prior <- pp_res
   
@@ -299,7 +300,7 @@
 #' @return a \code{filter} object
 .cytokine <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", filterId = "", 
                       ...) {
-  require(openCyto)
+  
   #TODO:standardize data with pp_res
   cytokine(fr, channel = yChannel, filter_id = filterId, ...)
 }
@@ -314,7 +315,7 @@
 #' 
 #' @return a \code{filter} object
 .mindensity <- function(fr, pp_res, yChannel = "FSC-A", filterId = "", ...) {
-  require(openCyto)
+  
  
   mindensity(flow_frame = fr, channel = yChannel, filter_id = filterId, ...)
 }
@@ -327,7 +328,7 @@
 #' 
 #' @return a \code{filter} object
 .flowClust.2d <- function(fr, pp_res, xChannel, yChannel, ...) {
-  require(openCyto)
+  
   
   args <- list(...)
   # get the value of neg and pos
@@ -364,8 +365,9 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
+#' @importFrom flowStats rangeGate
 .rangeGate <- function(fr, pp_res, xChannel = NA, yChannel,  ...) {
-  require(openCyto)
+  
   rangeGate(x = fr, stain = yChannel,  ...)
 }
 #' wrapper for quantileGate
@@ -377,14 +379,15 @@
 #' 
 #' @return a \code{filter} object
 .quantileGate <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
-  require(openCyto)
-  quantileGate(fr = fr, probs = probs, stain = yChannel, filterId = filterId, ...)
+  
+  quantileGate(fr = fr, stain = yChannel, ...)
 }
 
 #' deprecated
+#' @importFrom flowStats quadrantGate
 .quadrantGate <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
-  require(openCyto)
-  qfilter <- quadrantGate(fr, stain = c(xChannel, yChannel), absolute = FALSE, 
+  
+  qfilter <- quadrantGate(fr, stains = c(xChannel, yChannel), absolute = FALSE, 
                  inBetween = TRUE, ...)
   
   ###############################################################     
@@ -421,12 +424,13 @@
 #' @inheritParams .prior_flowClust 
 #' 
 #' @return \code{NULL}
+#' @importFrom flowStats warpSet
 .warpSet <- function(fs, gs, gm, xChannel, yChannel, stains, ...){
-  require(flowStats)
+  
   fs <- fs[, stains]
   if(class(fs) == "ncdfFlowSet")
     flowStats:::warpSetNCDF(fs, stains = stains, ...)
   else
-    flowStats:::warpSet(fs, stains = stains, ...)
+    warpSet(fs, stains = stains, ...)
   return (NULL)
  }

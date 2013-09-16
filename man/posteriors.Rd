@@ -1,5 +1,6 @@
 \name{posteriors}
 \alias{posteriors}
+\alias{posteriors,fcFilter,ANY-method}
 \title{get posteriors from a \code{fcFilter} object}
 \arguments{
   \item{x}{\code{fcFilter}}

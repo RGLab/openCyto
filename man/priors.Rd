@@ -1,5 +1,6 @@
 \name{priors}
 \alias{priors}
+\alias{priors,fcFilter,ANY-method}
 \title{get priors from a \code{fcFilter} object}
 \arguments{
   \item{x}{\code{fcFilter} object}

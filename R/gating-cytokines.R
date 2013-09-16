@@ -207,11 +207,11 @@ cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
 #' @param ... additional arguments passed to \code{\link[ks:drvkde]{drvkde}}
 #' @return list containing the derivative of the kernel density estimate
 #' @export
-#' @importFrom ks hpi,drvkde
+#' @importFrom ks hpi drvkde
 deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1,
                           num_points = 10000, ...) {
-#  require('feature')
-#  require('ks')
+
+
   if (is.null(bandwidth)) {
     bandwidth <- hpi(x, deriv.order = deriv)
   }
@@ -248,8 +248,9 @@ center_mode <- function(x, ...) {
 #' @param scale logical value. Should \code{x} be scaled?
 #' @return numeric vector containing the scaled data
 #' @export
+#' @importFrom MASS huber
 scale_huber <- function(x, center = TRUE, scale = TRUE) {
-  require('MASS')
+  
 
   x <- as.vector(x)
   huber_x <- huber(x)

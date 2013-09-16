@@ -8,6 +8,8 @@ setGeneric("preprocessing", function(x, y, ...) standardGeneric("preprocessing")
 #' @inheritParams .preprocessing
 #' 
 #' @export 
+#' @importFrom lattice updateList
+#' @aliases preprocessing,ppMethod,GatingSet-method
 setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
     definition = function(x, y, ...) {
       .preprocessing(x,y,...)
@@ -21,7 +23,7 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
   
   args <- parameters(x)
   # overwrite the golbal args with the local one
-  args<-lattice:::updateList(args,list(...))
+  args<-updateList(args,list(...))
   
   
   ppm <- paste0(".", names(x))
