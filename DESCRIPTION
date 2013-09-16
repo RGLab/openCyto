@@ -28,5 +28,5 @@ Collate:
 Depends:
     methods,flowWorkspace (>= 3.7.27)
 Imports:
-    Biobase,gtools,flowCore,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table,ks,RColorBrewer,lattice
+    Biobase,gtools,flowCore,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table,ks,RColorBrewer,lattice,rrcov
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation

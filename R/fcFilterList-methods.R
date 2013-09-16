@@ -11,6 +11,9 @@
 #' @param data \code{GatingSet} object
 #' @param node \code{character} population name associated with the \code{fcFilterList}
 #' @param ... other arguments passed to base \code{plot}
+#' @aliases 
+#' plot,fcFilterList,ANY-method
+#' plot,filterList,ANY-method
 setMethod("plot", sig = c("fcFilterList", "ANY"),
           definition = function(x, y, samples = NULL, posteriors = FALSE
         , xlim = NULL, ylim = NULL, node = NULL, data = NULL, breaks = 20, lwd = 1, ...) {
@@ -86,6 +89,7 @@ setMethod("plot", sig = c("fcFilterList", "ANY"),
   
   
 })
+
 setMethod("plot", sig = c("filterList", "ANY"),
           definition = function(x, y, samples = NULL, posteriors = FALSE, ...) {
   message("Not valid flowClust filter results!")

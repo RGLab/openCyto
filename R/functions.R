@@ -604,6 +604,7 @@ quadGate2rectangleGates <- function(quad_gate, markers, channels, quadrants = 1:
 #' @return vector containing all combinations of the markers
 #' @examples
 #' polyfunction_nodes(c('IFNg', 'IL2', 'TNFa', 'GzB', 'CD57'))
+#' @export 
 polyfunction_nodes <- function(markers) {
   
   markers <- paste0(markers, "+")

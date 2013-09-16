@@ -10,13 +10,15 @@ setMethod("show", sig = c("fcFilter"),
 #' @param y \code{character} or \code{missing} that specifiy which channel to look for
 #' 
 #' @export
-#' @aliases posteriors,fcFilter,ANY-method 
+#' @aliases 
+#' posteriors,fcFilter,ANY-method
+#' posteriors,fcFilter,character-method 
 setGeneric("posteriors", function(x, y, ...) standardGeneric("posteriors"))
 setMethod("posteriors", sig = c("fcFilter", "ANY"),
           definition = function(x, y = "missing") {
   x@posteriors
 })
-#' @aliases posteriors,fcFilter,character-method
+
 setMethod("posteriors", sig = c("fcFilter", "character"),
           definition = function(x, y) {
   post <- posteriors(x)
@@ -37,13 +39,15 @@ setMethod("posteriors", sig = c("fcFilter", "character"),
 #'
 #' @inheritParams posteriors
 #' @export
-#' @aliases priors,fcFilter,ANY-method
+#' @aliases 
+#' priors,fcFilter,ANY-method
+#' priors,fcFilter,character-method
 setGeneric("priors", function(x, y, ...) standardGeneric("priors"))
 setMethod("priors", sig = c("fcFilter", "ANY"),
           definition = function(x, y = "missing") {
   x@priors
 })
-#' @aliases priors,fcFilter,character-method
+
 setMethod("priors", sig = c("fcFilter", "character"),
           definition = function(x, y) {
   prior <- priors(x)

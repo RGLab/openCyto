@@ -17,7 +17,7 @@
 #' @param K the number of clusters to find
 #' @param trans numeric indicating whether the Box-Cox transformation parameter
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
-#' (cluster-speciﬁc estimation). NOTE: For the Bayesian version of
+#' (cluster-specific estimation). NOTE: for the Bayesian version of
 #' \code{\link{flowClust}}, this value cannot be 2.
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
 #' line to the right of the cutpoint. Otherwise, the gate is the entire real
@@ -328,7 +328,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' list is unused.
 #' @param trans numeric indicating whether the Box-Cox transformation parameter
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
-#' (cluster-speciﬁc estimation). NOTE: For the Bayesian version of
+#' (cluster-specific estimation). NOTE: for the Bayesian version of
 #' \code{\link{flowClust}}, this value cannot be 2.
 #' @param plot a logical value indicating if the fitted mixture model should be
 #' plotted. By default, no.

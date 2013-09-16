@@ -1,6 +1,7 @@
 \name{getNodes}
 \alias{getNodes}
-\alias{getNodes,gatingTemplate,character-method}
+\alias{getNodes,fcTree-method}
+\alias{getNodes,gatingTemplate-method}
 \title{get nodes from \link{gatingTemplate} object}
 \arguments{
   \item{x}{\code{gatingTemplate}}
@@ -26,8 +27,8 @@
 }
 \examples{
 gt <- gatingTemplate(system.file("gatingTemplate/Cytotrol_Tcell.csv",package = "openCyto"))
-getNodes(gt)
-getNodes(gt, only.names = TURE)
+getNodes(gt)[1:2]
+getNodes(gt, only.names = TRUE)
 getNodes(gt, '2')
 }
 

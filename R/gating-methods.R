@@ -105,7 +105,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"),
 }
 
 
-#' apply a \link{gtMethod} to the \code{GatingSet}
+#' apply a \link[openCyto:gtMethod-class]{gtMethod} to the \code{GatingSet}
 #' 
 #' 
 #' @inheritParams .gating_gtMethod
@@ -284,7 +284,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
   list(gs_node_id = gs_node_id, filterObj = filterObj)
 }
 
-#' apply a \link{boolMethod} to the \code{GatingSet}
+#' apply a \link[openCyto:boolMethod-class]{boolMethod} to the \code{GatingSet}
 #' 
 #' @param x \code{boolMethod}
 #' @inheritParams .gating_boolMethod

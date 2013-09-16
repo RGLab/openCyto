@@ -1,10 +1,8 @@
 \name{ppMethod}
 \alias{ppMethod}
 \alias{ppMethod,gatingTemplate,character-method}
-\title{A class to represent a preprocessing method.}
+\title{get preprocessing method from the node}
 \description{
-  It extends \code{gtMethod} class.
-
   get preprocessing method from the node
 }
 

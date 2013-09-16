@@ -1,5 +1,6 @@
 \name{groupBy}
 \alias{groupBy}
+\alias{groupBy,gtMethod-method}
 \title{get the grouping variable for the gating method}
 \arguments{
   \item{object}{\code{gtMethod}}

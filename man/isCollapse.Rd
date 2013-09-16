@@ -1,5 +1,6 @@
 \name{isCollapse}
 \alias{isCollapse}
+\alias{isCollapse,gtMethod-method}
 \title{get the flag that determines whether gating method is applied on collapsed data}
 \arguments{
   \item{object}{\code{gtMethod}}

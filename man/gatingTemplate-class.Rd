@@ -1,5 +1,6 @@
-\name{gatingTemplate}
+\name{gatingTemplate-class}
 \alias{gatingTemplate}
+\alias{gatingTemplate-class}
 \alias{gatingTemplate,character-method}
 \alias{show}
 \alias{show,gatingTemplate-method}

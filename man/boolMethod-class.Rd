@@ -1,5 +1,5 @@
-\name{boolMethod}
-\alias{boolMethod}
+\name{boolMethod-class}
+\alias{boolMethod-class}
 \alias{show,boolMethod-method}
 \title{A class to represent a boolean gating method.}
 \description{

@@ -7,11 +7,11 @@
 #'   
 #' @examples 
 #' gt <- gatingTemplate(system.file("gatingTemplate/Cytotrol_Tcell.csv",package = "openCyto"))
-#' getNodes(gt)
-#' getNodes(gt, only.names = TURE)
+#' getNodes(gt)[1:2]
+#' getNodes(gt, only.names = TRUE)
 #' getNodes(gt, '2') 
 #' @export 
-#' @aliases getNodes,gatingTemplate,character-method
+#' @aliases getNodes,gatingTemplate-method
 setMethod("getNodes", signature = c("gatingTemplate"),
           definition = function(x, y
                                   , order = c("default", "bfs", "dfs", "tsort")
@@ -109,7 +109,11 @@ setMethod("show", signature = c("gatingTemplate"),
 #'                              and used primarily for generating other population nodes.
 #' @export 
 #' @importFrom RColorBrewer brewer.pal
-#' @aliases plot,gatingTemplate,missing-method
+#' @aliases 
+#' plot,gatingTemplate,missing-method
+#' plot,gatingTemplate,character-method
+#' plot,gatingTemplate-method
+#' plot,gatingTemplate,ANY-method
 setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
       .plotTree(x,...)
       
@@ -216,12 +220,12 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
         col = gm.col, lty = edge.styles[legend.lty], cex = 0.8)
   }
 }
-#' @aliases plot,gatingTemplate-method
+
 setMethod("plot", signature = c("gatingTemplate"),
           definition = function(x, y = missing,...) {
   
 })
-#' @aliases plot,gatingTemplate,character-method
+
 setMethod("plot",c("gatingTemplate","character"),function(x,y,...){
       
       #convert alias to nodeID

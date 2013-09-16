@@ -1,5 +1,5 @@
-\name{gtMethod}
-\alias{gtMethod}
+\name{gtMethod-class}
+\alias{gtMethod-class}
 \alias{show,gtMethod-method}
 \title{A class to represent a gating method.}
 \description{

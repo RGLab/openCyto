@@ -1,5 +1,6 @@
 \name{getGate}
 \alias{getGate}
+\alias{getGate,fcTree,character-method}
 \alias{getGate,gatingTemplate,character-method}
 \title{get gating method from the node}
 \arguments{

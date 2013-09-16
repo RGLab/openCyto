@@ -17,7 +17,8 @@ setMethod("show", signature = c("boolMethod"), definition = function(object) {
 #' get gating method name
 #' 
 #' @param object \code{gtMethod} 
-#' @export 
+#' @export
+#' @aliases names,gtMethod-method 
 setMethod("names", signature = c("gtMethod"), definition = function(x) {
   x@name
 })
@@ -27,6 +28,7 @@ setMethod("names", signature = c("gtMethod"), definition = function(x) {
 #' @param object \code{gtMethod}
 #' @export 
 #' @importFrom Biobase dims
+#' @aliases dims,gtMethod-method
 setMethod("dims", signature = c("gtMethod"), definition = function(object) {
   dims <- strsplit(object@dims, ",")[[1]]
   if (length(dims) == 1) 
@@ -40,6 +42,7 @@ setMethod("dims", signature = c("gtMethod"), definition = function(object) {
 #' 
 #' @param object \code{gtMethod}
 #' @export 
+#' @aliases parameters,gtMethod-method
 setMethod("parameters", signature = c("gtMethod"), definition = function(object) {
   object@args
 })
@@ -52,6 +55,7 @@ setMethod("parameters", signature = c("gtMethod"), definition = function(object)
 #' @return \code{logical} 
 #' @param object \code{gtMethod} 
 #' @export 
+#' @aliases isCollapse,gtMethod-method
 setGeneric("isCollapse",function(object,...)standardGeneric("isCollapse"))
 setMethod("isCollapse", signature = c("gtMethod"), definition = function(object) {
       object@collapse
@@ -66,6 +70,7 @@ setMethod("isCollapse", signature = c("gtMethod"), definition = function(object)
 #' @param object \code{gtMethod}
 #' 
 #' @export 
+#' @aliases groupBy,gtMethod-method
 setGeneric("groupBy",function(object,...)standardGeneric("groupBy"))
 setMethod("groupBy", signature = c("gtMethod"), definition = function(object) {
       object@groupBy

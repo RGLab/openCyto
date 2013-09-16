@@ -32,7 +32,7 @@ two markers}
   \item{trans}{numeric indicating whether the Box-Cox
   transformation parameter is estimated from the data. May
   take 0 (no estimation), 1 (estimation) or 2
-  (cluster-speciﬁc estimation). NOTE: For the Bayesian
+  (cluster-specific estimation). NOTE: for the Bayesian
   version of \code{\link{flowClust}}, this value cannot be
   2.}
 

@@ -1,5 +1,6 @@
 \name{dims}
 \alias{dims}
+\alias{dims,gtMethod-method}
 \title{get gating method dimensions}
 \arguments{
   \item{object}{\code{gtMethod}}

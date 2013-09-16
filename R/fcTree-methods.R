@@ -2,6 +2,7 @@
 #'
 #' @param x \code{fcTree}
 #' @param y \code{character} node name
+#' @aliases getNodes,fcTree-method
 setMethod("getNodes", signature = c("fcTree"), definition = function(x, y) {
   if (missing(y)) {
     nodeData(x)
@@ -13,6 +14,7 @@ setMethod("getNodes", signature = c("fcTree"), definition = function(x, y) {
 #'
 #' @param obj \code{fcTree}
 #' @param y \code{character} node name
+#' @aliases getGate,fcTree,character-method
 setMethod("getGate", sig = c("fcTree", "character"),
     definition = function(obj, y,  ...) {
       # get filterList
@@ -45,6 +47,7 @@ setMethod("getGate", sig = c("fcTree", "character"),
 #' @param channel \code{character} specifying the channel.
 #' @param data \code{GatingSet} that the \code{fcTree} is associated with
 #' @param ... other arguments
+#' @aliases plot,fcTree,character-method
 setMethod("plot", sig = c("fcTree", "character"),
           definition = function(x, y, channel = NULL, data = NULL,...) {
   # get filterList
