@@ -1,7 +1,7 @@
 #' Constructs cytokine gates from the derivative of a kernel density estimate
 #' after standardizing and collapsing flowFrames
 #'
-#' @param flow_set a \code{flowSet} object
+#' @param fr a \code{flowFrame} object
 #' @param channel the channel from which the cytokine gate is constructed
 #' @param filter_id the name of the filter
 #' @param num_peaks the number of peaks expected to see. This effectively removes
@@ -190,7 +190,7 @@ cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
 #' Constructs the derivative specified of the kernel density estimate of a
 #' numeric vector
 #'
-#' The derivative is computed with \code{\link[feature]{drvkde}}.
+#' The derivative is computed with \code{\link[ks:drvkde]{drvkde}}.
 #'
 #' For guidance on selecting the bandwidth, see this CrossValidated post:
 #' \url{http://bit.ly/12LkJWz}
@@ -204,13 +204,14 @@ cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
 #' @param adjust a numeric weight on the automatic bandwidth, analogous to the
 #' \code{adjust} parameter in \code{\link{density}}
 #' @param num_points the length of the derivative of the kernel density estimate
-#' @param ... additional arguments passed to \code{\link[feature]{drvkde}}
+#' @param ... additional arguments passed to \code{\link[ks:drvkde]{drvkde}}
 #' @return list containing the derivative of the kernel density estimate
 #' @export
+#' @importFrom ks hpi,drvkde
 deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1,
                           num_points = 10000, ...) {
-  require('feature')
-  require('ks')
+#  require('feature')
+#  require('ks')
   if (is.null(bandwidth)) {
     bandwidth <- hpi(x, deriv.order = deriv)
   }

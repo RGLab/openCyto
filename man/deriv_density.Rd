@@ -26,7 +26,7 @@ numeric vector}
   kernel density estimate}
 
   \item{...}{additional arguments passed to
-  \code{\link[feature]{drvkde}}}
+  \code{\link[ks:drvkde]{drvkde}}}
 }
 \value{
   list containing the derivative of the kernel density
@@ -34,7 +34,7 @@ numeric vector}
 }
 \description{
   The derivative is computed with
-  \code{\link[feature]{drvkde}}.
+  \code{\link[ks:drvkde]{drvkde}}.
 }
 \details{
   For guidance on selecting the bandwidth, see this

@@ -15,9 +15,10 @@ cluster and all other clusters.}
 \arguments{
   \item{fr}{a \code{flowFrame} object}
 
-  \item{params}{TODO}
+  \item{params}{\code{character} channel to be gated on}
 
-  \item{filterId}{TODO}
+  \item{filterId}{A \code{character} string that identifies
+  the filter created.}
 
   \item{K}{the number of clusters to find}
 
@@ -65,12 +66,12 @@ cluster and all other clusters.}
 
   \item{min}{a numeric value that sets the lower bound for
   data filtering. If \code{NULL} (default), no truncation
-  is applied. See \code{\link{truncate_flowSet}} for more
+  is applied. See \code{\link{truncate_flowset}} for more
   details.}
 
   \item{max}{a numeric value that sets the upper bound for
   data filtering. If \code{NULL} (default), no truncation
-  is applied. See \code{\link{truncate_flowSet}} for more
+  is applied. See \code{\link{truncate_flowset}} for more
   details.}
 
   \item{quantile}{the quantile for which we will find the

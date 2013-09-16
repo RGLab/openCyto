@@ -51,7 +51,7 @@ between two peaks}
 }
 \details{
   In the default case, the two peaks of interest are the
-  two largest peaks obtained from the \code{link{\density}}
+  two largest peaks obtained from the \code{link{density}}
   function. However, if \code{pivot} is \code{TRUE}, we
   choose the largest peak and its neighboring peak as the
   two peaks of interest. In this case, the neighboring peak

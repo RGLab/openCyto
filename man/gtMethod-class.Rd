@@ -1,6 +1,6 @@
 \name{gtMethod}
 \alias{gtMethod}
-\alias{show}
+\alias{show,gtMethod-method}
 \title{A class to represent a gating method.}
 \description{
   A gating method object contains the specifics for

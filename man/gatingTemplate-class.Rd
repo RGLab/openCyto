@@ -1,7 +1,8 @@
 \name{gatingTemplate}
 \alias{gatingTemplate}
 \alias{show}
-\title{gatingTemplate constructor}
+\alias{show,gatingTemplate-method}
+\title{a class storing the gating method and population information in a graphNEL object}
 \arguments{
   \item{x}{\code{character} csv file name}
 
@@ -10,10 +11,12 @@
   name: \code{character} the label of the gating template}
 }
 \description{
+  Each cell population is stored in graph node and is
+  connected with its parent population or its reference
+  node for boolGate or refGate.
+
   It parses the csv file that specifies the gating scheme
   for a particular staining pannel.
-
-  export
 }
 \details{
   This csv must have the following columns:

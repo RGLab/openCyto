@@ -12,11 +12,11 @@ two markers}
 \arguments{
   \item{fr}{a \code{flowFrame} object}
 
-  \item{xChannel}{TODO}
+  \item{xChannel,yChannel}{\code{character} specifying
+  channels to be gated on}
 
-  \item{yChannel}{TODO}
-
-  \item{filterId}{TODO}
+  \item{filterId}{A \code{character} string that identifies
+  the filter created.}
 
   \item{K}{the number of clusters to find}
 

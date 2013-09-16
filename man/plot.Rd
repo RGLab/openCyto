@@ -11,7 +11,7 @@
   \item{...}{other arguments
 
   graphAttr, nodeAttr: graph rendering attributes passed to
-  \link[graph:renderGraph]{renderGraph} showRef
+  \link[Rgraphviz:renderGraph]{renderGraph} showRef
   \code{logical}: whether to display the reference gates.
   Sometime it maybe helpful to hide all those reference
   gates which are not the cell population of interest and

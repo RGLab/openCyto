@@ -7,7 +7,7 @@ after standardizing and collapsing flowFrames}
     ref_peak = 1, tol = 0.01, positive = TRUE, ...)
 }
 \arguments{
-  \item{flow_set}{a \code{flowSet} object}
+  \item{fr}{a \code{flowFrame} object}
 
   \item{channel}{the channel from which the cytokine gate
   is constructed}

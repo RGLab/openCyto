@@ -1,4 +1,3 @@
-#' @rdname gtMethod-class
 setMethod("show", signature = c("gtMethod"), definition = function(object) {
   # cat('Gating Method: ')
   cat(names(object))
@@ -9,7 +8,7 @@ setMethod("show", signature = c("gtMethod"), definition = function(object) {
 #  cat(parameters(object))
 })
 
-#' @rdname boolMethod-class
+
 setMethod("show", signature = c("boolMethod"), definition = function(object) {
   cat(paste(class(object), "(", parameters(object), ")", sep = ""))
   cat("\n")

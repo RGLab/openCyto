@@ -4,6 +4,16 @@
 \usage{
   read.FCS.csv(file, stains = NA)
 }
+\arguments{
+  \item{file}{\code{character} csv file name that contains
+  the fluorescence intensities}
+
+  \item{stains}{\code{character} a vector specifying the
+  stains for channels. Default is \code{NA}}
+}
+\value{
+  a \code{flowFrame} object
+}
 \description{
   reading flowFrame from csv spreadsheet.It is for internal
   usage.

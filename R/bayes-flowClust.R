@@ -137,10 +137,13 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' \code{\link{density}} for more information.
 #' @param min a numeric value that sets the lower bound for data filtering. If
 #' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowSet}} for more details.
+#' \code{\link{truncate_flowset}} for more details.
 #' @param max a numeric value that sets the upper bound for data filtering. If
 #' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowSet}} for more details.
+#' \code{\link{truncate_flowset}} for more details.
+#' @param vague \code{logical} Whether to elicit a vague prior. If \code{TRUE}, we first calculate the median of standard
+#'                              deviations from all flowFrames. Then, we divide the overall standard
+#'                              deviation by the number of groups to the scale the standard deviation.
 #' @return list of prior parameters
 #' @export
 prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
@@ -322,10 +325,10 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
 #' than 0 and less than or equal to 1.
 #' @param min a numeric vector that sets the lower bounds for data filtering. If
 #' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowSet}} for more details.
+#' \code{\link{truncate_flowset}} for more details.
 #' @param max a numeric vector that sets the upper bounds for data filtering. If
 #' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowSet}} for more details.
+#' \code{\link{truncate_flowset}} for more details.
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
 #' @export 

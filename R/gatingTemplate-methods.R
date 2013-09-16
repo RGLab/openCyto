@@ -1,4 +1,4 @@
-#' get nodes from \link{gatingtemplate} object
+#' get nodes from \link{gatingTemplate} object
 #' 
 #' @param x \code{gatingTemplate}
 #' @param y \code{character} node index. When \code{missing}, return all the nodes
@@ -76,8 +76,10 @@ setMethod("ppMethod", signature = c("gatingTemplate", "character"),
       edgeData(obj, from = y, to = z, attr = "ppMethod")[[1]]
     })
 
-#' export
+
+#' @aliases show,gatingTemplate-method 
 #' @rdname gatingTemplate-class
+#' @export 
 setMethod("show", signature = c("gatingTemplate"),
           definition = function(object) {
   cat("--- Gating Template: ")
@@ -95,7 +97,7 @@ setMethod("show", signature = c("gatingTemplate"),
 #'              or \code{missing} which display the entire gating scheme
 #' @param ... other arguments 
 #'  
-#'      graphAttr, nodeAttr:  graph rendering attributes passed to \link[graph:renderGraph]{renderGraph}
+#'      graphAttr, nodeAttr:  graph rendering attributes passed to \link[Rgraphviz:renderGraph]{renderGraph}
 #'      showRef \code{logical}: whether to display the reference gates. Sometime it maybe helpful to 
 #'                              hide all those reference gates which are not the cell population of interest 
 #'                              and used primarily for generating other population nodes.

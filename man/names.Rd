@@ -4,7 +4,7 @@
 \arguments{
   \item{object}{\code{gtMethod}}
 
-  \item{\code{gtPopulation}}{}
+  \item{\code{gtPopulation}}{object}
 }
 \description{
   get gating method name

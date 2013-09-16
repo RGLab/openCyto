@@ -54,13 +54,19 @@
 
   \item{min}{a numeric value that sets the lower bound for
   data filtering. If \code{NULL} (default), no truncation
-  is applied. See \code{\link{truncate_flowSet}} for more
+  is applied. See \code{\link{truncate_flowset}} for more
   details.}
 
   \item{max}{a numeric value that sets the upper bound for
   data filtering. If \code{NULL} (default), no truncation
-  is applied. See \code{\link{truncate_flowSet}} for more
+  is applied. See \code{\link{truncate_flowset}} for more
   details.}
+
+  \item{vague}{\code{logical} Whether to elicit a vague
+  prior. If \code{TRUE}, we first calculate the median of
+  standard deviations from all flowFrames. Then, we divide
+  the overall standard deviation by the number of groups to
+  the scale the standard deviation.}
 }
 \value{
   list of prior parameters

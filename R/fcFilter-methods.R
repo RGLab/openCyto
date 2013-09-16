@@ -31,6 +31,9 @@ setMethod("posteriors", sig = c("fcFilter", "character"),
 
 #' get priors from a \code{fcFilter} object
 #' 
+#' @param x \code{fcFilter} object
+#' @param y \code{character} specifying channel name. if \code{missing} then extract priors for all the channels 
+#'
 #' @inheritParams posteriors
 #' @export
 setGeneric("priors", function(x, y, ...) standardGeneric("priors"))

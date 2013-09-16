@@ -14,6 +14,9 @@ outside the given range for the specified channels}
 
   \item{max}{a numeric vector that sets the upper bounds
   for data filtering}
+
+  \item{channels}{\code{character} specifying which channel
+  to operate on}
 }
 \value{
   a \code{flowFrame} object

@@ -9,6 +9,9 @@ values outside the given range for the specified channels}
 \arguments{
   \item{flow_set}{a \code{flowSet} object}
 
+  \item{channels}{\code{character} specifying which channel
+  to operate on}
+
   \item{min}{a numeric vector that sets the lower bounds
   for data filtering}
 

@@ -12,8 +12,8 @@
 #' is minimum.
 #'
 #' @param fr a \code{flowFrame} object
-#' @param params TODO
-#' @param filterId TODO
+#' @param params \code{character} channel to be gated on
+#' @param filterId A \code{character} string that identifies the filter created.
 #' @param K the number of clusters to find
 #' @param trans numeric indicating whether the Box-Cox transformation parameter
 #' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
@@ -42,10 +42,10 @@
 #' cutpoint value.
 #' @param min a numeric value that sets the lower bound for data filtering. If
 #' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowSet}} for more details.
+#' \code{\link{truncate_flowset}} for more details.
 #' @param max a numeric value that sets the upper bound for data filtering. If
 #' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowSet}} for more details.
+#' \code{\link{truncate_flowset}} for more details.
 #' @param quantile the quantile for which we will find the cutpoint using
 #' the quantile \code{cutpoint_method}. If the \code{cutpoint_method} is not set
 #' to \code{quantile}, this argument is ignored.
@@ -60,6 +60,7 @@
 #' cutpoint calculated
 #' @export
 #' @importFrom flowClust getEstimates tmixFilter filter dmvtmix
+#' @rdname flowClust1d 
 flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          positive = TRUE, prior = NULL,
                          criterion = c("BIC", "ICL"),
@@ -316,9 +317,8 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' the larger eigenvalue) is \code{transitional_angle}.
 #'
 #' @param fr a \code{flowFrame} object
-#' @param xChannel TODO
-#' @param yChannel TODO
-#' @param filterId TODO
+#' @param xChannel,yChannel \code{character} specifying channels to be gated on
+#' @param filterId A \code{character} string that identifies the filter created.
 #' @param K the number of clusters to find
 #' @param usePrior Should we use the Bayesian version of \code{\link{flowClust}}?
 #' Answers are "yes", "no", or "vague". The answer is passed along to
@@ -355,6 +355,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
 #' @export
+#' @rdname flowClust2d
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
                          plot = FALSE, target = NULL, transitional = FALSE,
@@ -625,7 +626,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' between the two peaks of interest.
 #'
 #' In the default case, the two peaks of interest are the two largest peaks
-#' obtained from the \code{link{\density}} function. However, if \code{pivot} is
+#' obtained from the \code{link{density}} function. However, if \code{pivot} is
 #' \code{TRUE}, we choose the largest peak and its neighboring peak as the two
 #' peaks of interest. In this case, the neighboring peak is the peak immediately
 #' to the left of the largest peak if \code{positive} is \code{TRUE}. Otherwise,

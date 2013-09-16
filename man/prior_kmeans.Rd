@@ -31,12 +31,12 @@ the K-Means clustering algorithm}
 
   \item{min}{a numeric vector that sets the lower bounds
   for data filtering. If \code{NULL} (default), no
-  truncation is applied. See \code{\link{truncate_flowSet}}
+  truncation is applied. See \code{\link{truncate_flowset}}
   for more details.}
 
   \item{max}{a numeric vector that sets the upper bounds
   for data filtering. If \code{NULL} (default), no
-  truncation is applied. See \code{\link{truncate_flowSet}}
+  truncation is applied. See \code{\link{truncate_flowset}}
   for more details.}
 
   \item{...}{Additional arguments passed to \code{kmeans}}

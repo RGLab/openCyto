@@ -2,6 +2,8 @@
 #' 
 #' Each cell population is stored in graph node and is connected with its parent population 
 #' or its reference node for boolGate or refGate.
+#' 
+#' @rdname gatingTemplate-class 
 #' @export 
 setClass("gatingTemplate", contains = "graphNEL", representation(name = "character"))
 
@@ -114,6 +116,7 @@ fcTree <- function(gt) {
 #' 
 #' @rdname gtMethod-class 
 #' @export 
+#' @aliases show,gtMethod-method
 setClass("gtMethod", representation(name = "character"
                                     , dims = "character"
                                     , args = "list"
@@ -143,6 +146,7 @@ setClass("refGate", contains = "gtMethod", representation(refNodes = "character"
 #' It extends \code{refGate} class.
 #' @rdname boolMethod-class
 #' @export 
+#' @aliases show,boolMethod-method
 setClass("boolMethod", contains = "refGate")
 
 #' A class to represent a polyFunctions gating method.

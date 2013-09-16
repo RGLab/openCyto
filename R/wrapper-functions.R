@@ -113,7 +113,7 @@
 #' 
 #' @inheritParams .prior_flowClust
 #' @param pp_res preprocessing result produced by the \code{preprocessing} method
-#' @gFunc \code{character} function name of the wrapper function to be invoked
+#' @param gFunc \code{character} function name of the wrapper function to be invoked
 #' @param ... other arguments to be passed to wrapper function
 #' 
 #' @return a \code{list} of \code{filter}s

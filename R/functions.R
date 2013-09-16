@@ -241,6 +241,9 @@
 }
 
 #' reading flowFrame from csv spreadsheet.It is for internal usage.
+#' @param file \code{character} csv file name that contains the fluorescence intensities
+#' @param stains \code{character} a vector specifying the stains for channels. Default is \code{NA}
+#' @return a \code{flowFrame} object
 read.FCS.csv <- function(file, stains = NA) {
   mat <- as.matrix(read.csv(file, check.names = FALSE))
   
@@ -266,6 +269,9 @@ read.FCS.csv <- function(file, stains = NA) {
   fr
 }
 #' reading flowSet from multiple csv spreadsheets.It is for internal usage.
+#' @param files \code{character} csv file names
+#' @param ... arguments passed to \link{read.FCS.csv}
+#' @return a \code{flowSet} object
 read.flowSet.csv <- function(files, ...) {
   fs <- flowSet(lapply(files, read.FCS.csv, ...))
   sampleNames(fs) <- basename(files)
@@ -434,6 +440,7 @@ channels2markers <- function(flow_frame, channels) {
 #' @param flow_frame a \code{flowFrame} object
 #' @param min a numeric vector that sets the lower bounds for data filtering
 #' @param max a numeric vector that sets the upper bounds for data filtering
+#' @param channels \code{character} specifying which channel to operate on
 #' @return a \code{flowFrame} object
 #' @examples
 #' library(flowClust)
@@ -486,8 +493,7 @@ truncate_flowframe <- function(flow_frame, channels, min = NULL, max = NULL) {
 #' The minimum/maximum values are ignored if \code{NULL}.
 #'
 #' @param flow_set a \code{flowSet} object
-#' @param min a numeric vector that sets the lower bounds for data filtering
-#' @param max a numeric vector that sets the upper bounds for data filtering
+#' @inheritParams truncate_flowframe
 #' @return a \code{flowSet} object
 truncate_flowset <- function(flow_set, channels, min = NULL, max = NULL) {
   channels <- as.character(channels)
@@ -626,6 +632,7 @@ between_interval <- function(x, interval) {
 }
 
 #' Constructs a 2x2 rotation matrix for a given angle
+#' @param theta \code{numeric} the degree of rotation that ensures the angle between the x-axis and the eigenvector is between 0 and pi
 rotation_matrix <- function(theta) {
   matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), nrow = 2)
 }

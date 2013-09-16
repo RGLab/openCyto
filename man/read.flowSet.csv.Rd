@@ -4,6 +4,14 @@
 \usage{
   read.flowSet.csv(files, ...)
 }
+\arguments{
+  \item{files}{\code{character} csv file names}
+
+  \item{...}{arguments passed to \link{read.FCS.csv}}
+}
+\value{
+  a \code{flowSet} object
+}
 \description{
   reading flowSet from multiple csv spreadsheets.It is for
   internal usage.

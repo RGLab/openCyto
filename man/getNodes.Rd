@@ -1,6 +1,6 @@
 \name{getNodes}
 \alias{getNodes}
-\title{get nodes from \link{gatingtemplate} object}
+\title{get nodes from \link{gatingTemplate} object}
 \arguments{
   \item{x}{\code{gatingTemplate}}
 
@@ -19,7 +19,7 @@
   \item{y}{\code{character} node name}
 }
 \description{
-  get nodes from \link{gatingtemplate} object
+  get nodes from \link{gatingTemplate} object
 
   get nodes from \code{fcTree}
 }
