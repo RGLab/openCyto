@@ -24,7 +24,6 @@ Collate:
     'fcFilter-methods.R'
     'wrapper-functions.R'
     'preprocessing-method.R'
-    'openCyto.R'
 Depends:
     methods,flowWorkspace (>= 3.7.27)
 Imports:

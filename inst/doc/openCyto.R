@@ -1,0 +1,22 @@
+library(openCyto)
+library(data.table)
+gtFile <- system.file("extdata/Cytotrol_Tcell.csv", package = "openCyto")
+dtTemplate <- fread(gtFile)
+
+#' #
+gt_tcell <- gatingTemplate(gtFile)
+plot(gt1)
+getNodes(gs1[[1]])
+Rm("cd3",gs1)
+load(file.path(path,"data/fs_tcell.rda"))
+gs1<-GatingSet(fs_tcell)
+env1<-new.env(parent=emptyenv())
+gating(gt1,gs1,env1,mc.cores=4,parallel_type = "multicore")
+plotGate(gs1[[1]],xbin=32)
+plot(env1$fct,"nonDebris",post=T)
+plot(env1$fct,"cd3",post=T)
+plot(env1$fct,"cd4+",post=T,channel="<B710-A>")
+plot(env1$fct,"activated cd4",post=T,channel="<R660-A>")
+plot(env1$fct,2,post=T)
+plot(env1$fct,"lymph",post=T)
+
