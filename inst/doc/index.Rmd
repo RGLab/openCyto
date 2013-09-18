@@ -254,7 +254,7 @@ Now we can apply the gating template to the data:
 gating(gt_tcell, gs)
 ```
 Optionally, we can run the pipeline in `parallel` to speed up gating. e.g.
-```{r gating, eval = FALSE}
+```{r gating_par, eval = FALSE}
 gating(gt_tcell, gs, mc.cores=2, parallel_type = "multicore")
 ```
 
