@@ -17,7 +17,9 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
 #' 
 #' @inheritParams .gating_gtMethod
 #' @param gm: \code{gtMethod} object
-.preprocessing <- function(x, y, gtPop, parent, gm, ...) {
+.preprocessing <- function(x, y, gtPop, parent, gm
+                            , mc.cores = 1, parallel_type = c("none", "multicore", "cluster"), cl = NULL
+                            , ...) {
 #  require("parallel")
   
   args <- parameters(x)

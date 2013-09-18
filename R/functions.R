@@ -83,7 +83,7 @@
         }
       }
       # expand to two rows
-      cat("expanding pop: ", popName, "\n")
+      message("expanding pop: ", popName, "\n")
       cur_dim <- sub(two_pop_token, "", popName)
       new_pops <- paste(cur_dim, c("+", "-"), sep = "")
 #      browser()
@@ -108,7 +108,7 @@
         
         if (gm == "flowClust") {
           if (dim_count == 2) {
-          cat("expanding pop: ", popName, "\n")
+          message("expanding pop: ", popName, "\n")
           
           this_row[1, "gating_method"] <- "flowClust.1d"
           } else {
@@ -133,7 +133,7 @@
                grepl(paste0("^", two_pop_pat, one_pop_pat, "$"), popName) ||
                grepl(paste0("^", one_pop_pat, two_pop_pat, "$"), popName)) {
       # A+/-B+/-
-      cat("expanding pop: ", popName, "\n")
+      message("expanding pop: ", popName, "\n")
       pop_stat <- paste0("(", two_pop_pat, ")|(", one_pop_pat, ")")
       split_terms <- .splitTerms(pop_pat = pop_stat, two_pop_token, popName)
       if (gm == "refGate") {
