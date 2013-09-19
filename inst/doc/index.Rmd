@@ -20,7 +20,7 @@ opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="cente
 The  **openCyto** package is designed to facilitate the automated gating methods in sequential way to mimic the manual gating scheme.
 
 
-### 1.1. Manually gating 
+### 1.1. Manual gating 
 
 Traditionally, scientists have to draw the gates for each individual sample on each 2D projections (2 channels) within `flowJo`. 
 Or draw the 'template gate's on one sample and replicate it to other samples, then manually inspect the gate on each sample
