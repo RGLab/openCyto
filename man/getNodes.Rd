@@ -26,7 +26,7 @@
   get nodes from \code{fcTree}
 }
 \examples{
-gt <- gatingTemplate(system.file("gatingTemplate/Cytotrol_Tcell.csv",package = "openCyto"))
+gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
 getNodes(gt)[1:2]
 getNodes(gt, only.names = TRUE)
 getNodes(gt, '2')
