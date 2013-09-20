@@ -31,7 +31,7 @@ Here is one `xml` workspace (manual gating scheme) exported from `flowJo`.
 ```{r load-flowWorkspace, echo=F}
 library(flowWorkspace)
 ```
-```{r load-xml, eval=F}
+```{r load-xml, eval=TRUE}
 flowDataPath <- system.file("extdata", package = "flowWorkspaceData")
 wsfile <- list.files(flowDataPath, pattern="manual.xml",full = TRUE)
 wsfile
