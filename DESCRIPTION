@@ -10,6 +10,7 @@ Description: This package is designed to facilitate the automated gating
 License: Artistic-2.0
 LazyLoad: yes
 Collate:
+	'AllGenerics.R'
     'AllClasses.R'
     'bayes-flowClust.R'
     'functions.R'
@@ -24,7 +25,6 @@ Collate:
     'fcFilter-methods.R'
     'wrapper-functions.R'
     'preprocessing-method.R'
-    'AllGenerics.R'
 Depends:
     methods,flowWorkspace (>= 3.7.27)
 Imports:
