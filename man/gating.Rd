@@ -43,8 +43,7 @@
   apply a \link[openCyto:gtMethod-class]{gtMethod} to the
   \code{GatingSet}
 
-  apply a \link[openCyto:boolMethod-class]{boolMethod} to
-  the \code{GatingSet}
+  apply a \code{boolMethod} to the \code{GatingSet}
 
   It generates a batch of \code{boolMethod}s based on the
   expression defined in \code{polyFunctions} objects. It is
