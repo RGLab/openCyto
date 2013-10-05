@@ -34,12 +34,12 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = 10, shrink = 1e-6, ...) {
 
   if (length(channels) == 1) {
-    prior_list <- prior_flowClust1d(flow_set = flow_set, channel = channels,
+    prior_list <- .prior_flowClust1d(flow_set = flow_set, channel = channels,
                                     K = K, nu0 = nu0, w0 = w0, ...)
   } else {
     prior_method <- match.arg(prior_method)
     if (prior_method == "kmeans") {
-      prior_list <- prior_kmeans(flow_set = flow_set, channels = channels, K = K,
+      prior_list <- .prior_kmeans(flow_set = flow_set, channels = channels, K = K,
                                  nu0 = nu0, w0 = w0, ...)
     }
     # In the rare case a covariance matrix is singular, we shrink the eigenvalues
@@ -145,8 +145,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #'                              deviations from all flowFrames. Then, we divide the overall standard
 #'                              deviation by the number of groups to the scale the standard deviation.
 #' @return list of prior parameters
-#' @export
-prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
+.prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
                               clust_method = c("kmeans", "hclust"),
                               hclust_method = "complete", artificial = NULL,
                               nu0 = 4, w0 = 10, adjust = 2, min = NULL,
@@ -331,9 +330,8 @@ prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
 #' \code{\link{truncate_flowset}} for more details.
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
-#' @export 
 #' @importFrom clue solve_LSAP
-prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
+.prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
                          pct = 0.1, min = NULL, max = NULL, ...) {
 
   channels <- as.character(channels)

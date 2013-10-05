@@ -61,6 +61,10 @@
 #' @export
 #' @importFrom flowClust getEstimates tmixFilter filter dmvtmix dmvt
 #' @rdname flowClust1d 
+#' @examples
+#' \dontrun{
+#'  gate <- flowClust.1d(fr, params = "APC-A", K =2) # fr is a flowFrame
+#' }
 flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          positive = TRUE, prior = NULL,
                          criterion = c("BIC", "ICL"),
@@ -185,7 +189,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
     x_dens <- dmvtmix(x = as.matrix(x_between), object = tmix_results)
     cutpoint <- x_between[which.min(x_dens)]
   } else if (cutpoint_method == "quantile") {
-    cutpoint <- quantile_flowClust(p = quantile, object = tmix_results,
+    cutpoint <- .quantile_flowClust(p = quantile, object = tmix_results,
                                    interval = quantile_interval)
   } else if (cutpoint_method == "posterior_mean") {
     cutpoint <- centroids_sorted[neg_cluster]
@@ -356,6 +360,10 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' gating.
 #' @export
 #' @rdname flowClust2d
+#' @examples
+#' \dontrun{
+#'  gate <- flowClust.2d(fr, xChannel = "FSC-A", xChannel = "SSC-A", K = 3) # fr is a flowFrame
+#' }
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
                          plot = FALSE, target = NULL, transitional = FALSE,
@@ -449,11 +457,11 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     # the angle between the x-axis and the eigenvector is between 0 and pi. If
     # If they are not, we rotate them by pi (i.e., 180 degrees).
     if (u1_angle > pi) {
-      R <- rotation_matrix(pi)
+      R <- .rotation_matrix(pi)
       u1 <- as.vector(R %*% u1)
     }
     if (u2_angle > pi) {
-      R <- rotation_matrix(pi)
+      R <- .rotation_matrix(pi)
       u2 <- as.vector(R %*% u2)
     }
 
@@ -501,8 +509,8 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
       theta_u2 <- transitional_angle - (pi/2) - eigen_angles[2]
 
       # Rotation matrix
-      R1 <- rotation_matrix(theta_u1)
-      R2 <- rotation_matrix(theta_u2)
+      R1 <- .rotation_matrix(theta_u1)
+      R2 <- .rotation_matrix(theta_u2)
 
       # Rotates the eigenvectors
       u1 <- as.vector(R1 %*% u1)
@@ -653,6 +661,10 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' @param ... Additional arguments passed on to the \code{find_peaks} function
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 #' @export
+#' @examples
+#' \dontrun{
+#'  gate <- mindensity(fr, channel = "APC-A") # fr is a flowFrame
+#' }
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
                        pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
                        ...) {

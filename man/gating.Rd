@@ -53,4 +53,11 @@
 
   apply a \link{refGate} to the \code{GatingSet}
 }
+\examples{
+\dontrun{
+ gt <- gatingTemplate(file.path(path, "data/ICStemplate.csv"), "ICS")
+ gs <- GatingSet(fs) #fs is a flowSet/ncdfFlowSet
+ gating(gt, gs)
+}
+}
 

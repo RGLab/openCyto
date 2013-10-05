@@ -18,7 +18,22 @@ setMethod("show", signature = c("boolMethod"), definition = function(object) {
 #' 
 #' @param object \code{gtMethod} 
 #' @export
-#' @aliases names,gtMethod-method 
+#' @aliases names,gtMethod-method
+#' @examples 
+#' gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#' 
+#' gtMthd <- getGate(gt, '3', '4')
+#' names(gtMthd) 
+#' dims(gtMthd)
+#' parameters(gtMthd)
+#' isCollapse(gtMthd)
+#' groupBy(gtMthd)
+#' 
+#' gtPop <- getNodes(gt,'12')
+#' names(gtPop)
+#' alias(gtPop)
+#' 
+#' @rdname names
 setMethod("names", signature = c("gtMethod"), definition = function(x) {
   x@name
 })
@@ -29,6 +44,7 @@ setMethod("names", signature = c("gtMethod"), definition = function(x) {
 #' @export 
 #' @importFrom Biobase dims
 #' @aliases dims,gtMethod-method
+#' @rdname names
 setMethod("dims", signature = c("gtMethod"), definition = function(object) {
   dims <- strsplit(object@dims, ",")[[1]]
   if (length(dims) == 1) 
@@ -43,6 +59,7 @@ setMethod("dims", signature = c("gtMethod"), definition = function(object) {
 #' @param object \code{gtMethod}
 #' @export 
 #' @aliases parameters,gtMethod-method
+#' @rdname names
 setMethod("parameters", signature = c("gtMethod"), definition = function(object) {
   object@args
 })
@@ -56,7 +73,7 @@ setMethod("parameters", signature = c("gtMethod"), definition = function(object)
 #' @param object \code{gtMethod} 
 #' @export 
 #' @aliases isCollapse,gtMethod-method
-setGeneric("isCollapse",function(object,...)standardGeneric("isCollapse"))
+#' @rdname names
 setMethod("isCollapse", signature = c("gtMethod"), definition = function(object) {
       object@collapse
     })
@@ -71,7 +88,7 @@ setMethod("isCollapse", signature = c("gtMethod"), definition = function(object)
 #' 
 #' @export 
 #' @aliases groupBy,gtMethod-method
-setGeneric("groupBy",function(object,...)standardGeneric("groupBy"))
+#' @rdname names
 setMethod("groupBy", signature = c("gtMethod"), definition = function(object) {
       object@groupBy
     })

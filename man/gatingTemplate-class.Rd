@@ -67,4 +67,10 @@
   'preprocessing_args': the named arguments passed to
   preprocessing function.
 }
+\examples{
+dontrun{
+  gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+  plot(gt)
+}
+}
 

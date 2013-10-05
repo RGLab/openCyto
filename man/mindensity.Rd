@@ -64,4 +64,9 @@ between two peaks}
   \code{positive} is \code{TRUE}, and the \code{max(x)}
   otherwise.
 }
+\examples{
+\dontrun{
+ gate <- mindensity(fr, channel = "APC-A") # fr is a flowFrame
+}
+}
 

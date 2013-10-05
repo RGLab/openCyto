@@ -13,19 +13,23 @@
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
 #' line to the right of the cutpoint. Otherwise, the gate is the entire real
 #' line to the left of the cutpoint. (Default: \code{TRUE})
-#' @param ... additional arguments passed to \code{\link{cytokine_cutpoint}}
+#' @param ... additional arguments passed to \code{\link{.cytokine_cutpoint}}
 #' @return a \code{filterList} containing the gates (cutpoints) for each sample
 #' @export
+#' @examples
+#' \dontrun{
+#'  gate <- cytokine(fr, Channel = "APC-A") # fr is a flowFrame
+#' }
 cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
                      ref_peak = 1, tol = 1e-2, positive = TRUE, ...) {
   # Standardizes the flowFrame's for a given channel using the mode of the kernel
   # density estimate and the Huber estimator of the standard deviation
-  standardize_out <- standardize_flowset(as(fr,"flowSet"), channel = channel)
+  standardize_out <- .standardize_flowset(as(fr,"flowSet"), channel = channel)
 
   # Coerces the standardized flowSet into a single flowFrame from which a single
   # cutpoint is calculated using the first derivative of the kernel density
   # estimate. 
-  cutpoint <- cytokine_cutpoint(flow_frame = as(standardize_out$flow_set, "flowFrame"),
+  cutpoint <- .cytokine_cutpoint(flow_frame = as(standardize_out$flow_set, "flowFrame"),
                                 channel = channel, num_peaks = num_peaks,
                                 ref_peak = ref_peak, tol = tol, ...)
 
@@ -77,18 +81,17 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' @return list containing the transformed \code{flowSet} object along with the
 #' \code{transformation} list, where each element contains the transformation
 #' parameters for each \code{flowFrame}
-#' @export
-standardize_flowset <- function(flow_set, channel = "FSC-A") {
+.standardize_flowset <- function(flow_set, channel = "FSC-A") {
   transform_out <- fsApply(flow_set, function(flow_frame) {
     x <- exprs(flow_frame)[, channel]
 
     if (length(x) >= 2) {
       # First, centers the values by the mode of the kernel density estimate.
-      x <- center_mode(x)
+      x <- .center_mode(x)
       mode <- attr(x, "mode")
   
       # Scales the marker cells by the Huber estimator of the standard deviation.
-      x <- scale_huber(x, center = FALSE)
+      x <- .scale_huber(x, center = FALSE)
       sd_huber <- attr(x, "scale")
 
       exprs(flow_frame)[, channel] <- x
@@ -142,10 +145,9 @@ standardize_flowset <- function(flow_set, channel = "FSC-A") {
 #' @param tol the tolerance value
 #' @param adjust the scaling adjustment applied to the bandwidth used in the
 #' first derivative of the kernel density estimate
-#' @param ... additional arguments passed to \code{\link{deriv_density}}
+#' @param ... additional arguments passed to \code{\link{.deriv_density}}
 #' @return the cutpoint along the x-axis
-#' @export
-cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
+.cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
                               method = c("first_deriv", "second_deriv"),
                               tol = 1e-2, adjust = 1, ...) {
 
@@ -167,7 +169,7 @@ cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
   if (method == "first_deriv") {
     # Finds the deepest valleys from the kernel density and sorts them.
     # The number of valleys identified is determined by 'num_peaks'
-    deriv_out <- deriv_density(x = x, adjust = adjust, deriv = 1, ...)
+    deriv_out <- .deriv_density(x = x, adjust = adjust, deriv = 1, ...)
 
     deriv_valleys <- with(deriv_out, find_valleys(x = x, y = y, adjust = adjust))
     deriv_valleys <- deriv_valleys[deriv_valleys > peaks[ref_peak]]
@@ -178,7 +180,7 @@ cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
   } else {
     # The cutpoint is selected as the first peak from the second derivative
     # density which is to the right of the reference peak.
-    deriv_out <- deriv_density(x = x, adjust = adjust, deriv = 2, ...)
+    deriv_out <- .deriv_density(x = x, adjust = adjust, deriv = 2, ...)
     deriv_peaks <- with(deriv_out, find_peaks(x, y, adjust = adjust))
     deriv_peaks <- deriv_peaks[deriv_peaks > peaks[ref_peak]]
     cutpoint <- sort(deriv_peaks)[1]
@@ -206,9 +208,8 @@ cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
 #' @param num_points the length of the derivative of the kernel density estimate
 #' @param ... additional arguments passed to \code{\link[ks:drvkde]{drvkde}}
 #' @return list containing the derivative of the kernel density estimate
-#' @export
 #' @importFrom ks hpi drvkde
-deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1,
+.deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1,
                           num_points = 10000, ...) {
 
 
@@ -226,8 +227,7 @@ deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1,
 #' @param x numeric vector
 #' @param ... additional arguments passed to \code{\link{density}}
 #' @return numeric vector containing the centered data
-#' @export
-center_mode <- function(x, ...) {
+.center_mode <- function(x, ...) {
   x <- as.vector(x)
   density_x <- density(x, ...)
   mode <- density_x$x[which.max(density_x$y)]
@@ -247,9 +247,8 @@ center_mode <- function(x, ...) {
 #' @param center logical value. Should \code{x} be centered?
 #' @param scale logical value. Should \code{x} be scaled?
 #' @return numeric vector containing the scaled data
-#' @export
 #' @importFrom MASS huber
-scale_huber <- function(x, center = TRUE, scale = TRUE) {
+.scale_huber <- function(x, center = TRUE, scale = TRUE) {
   
 
   x <- as.vector(x)

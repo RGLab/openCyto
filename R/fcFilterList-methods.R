@@ -14,6 +14,14 @@
 #' @aliases 
 #' plot,fcFilterList,ANY-method
 #' plot,filterList,ANY-method
+#' @examples
+#' \dontrun{ 
+#'  env1<-new.env(parent=emptyenv())
+#'  #gt is a gatingTemplate, gs is a GatingSet
+#'  gating(gt,gs,env1) #the flowClust gating results are stored in env1 
+#'  plot(env1$fct,"nonDebris",post=T) #plot the priors as well as posteriors for the "nonDebris" gate
+#' }
+
 setMethod("plot", sig = c("fcFilterList", "ANY"),
           definition = function(x, y, samples = NULL, posteriors = FALSE
         , xlim = NULL, ylim = NULL, node = NULL, data = NULL, breaks = 20, lwd = 1, ...) {

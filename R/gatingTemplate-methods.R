@@ -9,9 +9,17 @@
 #' gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
 #' getNodes(gt)[1:2]
 #' getNodes(gt, only.names = TRUE)
-#' getNodes(gt, '2') 
+#' getNodes(gt, '2')
+#' getChildren(gt, '2')
+#' getParent(gt, '3') 
+#' getGate(gt, '2', '3')
+#' ppMethod(gt, '3', '4')
+#' plot(gt) #plot entire tree
+#' plot(gt, "lymph") #only plot the subtree rooted from "lymph"
+#' 
 #' @export 
 #' @aliases getNodes,gatingTemplate-method
+#' @rdname getNodes
 setMethod("getNodes", signature = c("gatingTemplate"),
           definition = function(x, y
                                   , order = c("default", "bfs", "dfs", "tsort")
@@ -41,6 +49,7 @@ setMethod("getNodes", signature = c("gatingTemplate"),
 #' get children nodes
 #' @export 
 #' @aliases getChildren,gatingTemplate,character-method
+#' @rdname getNodes
 setMethod("getChildren", signature = c("gatingTemplate", "character"),
           definition = function(obj, y) {
   edges(obj, y)[[1]]
@@ -49,7 +58,9 @@ setMethod("getChildren", signature = c("gatingTemplate", "character"),
 #' get parent nodes
 #' @export 
 #' @importFrom plyr laply
+#' @importFrom graph inEdges
 #' @aliases getParent,gatingTemplate,character-method
+#' @rdname getNodes
 setMethod("getParent", signature = c("gatingTemplate", "character"),
           definition = function(obj, y, isRef = FALSE) {
 #            browser()
@@ -68,6 +79,7 @@ setMethod("getParent", signature = c("gatingTemplate", "character"),
 #' get gating method from the node
 #' @export 
 #' @aliases getGate,gatingTemplate,character-method
+#' @rdname getNodes
 setMethod("getGate", signature = c("gatingTemplate", "character"),
           definition = function(obj, y, z) {
   edgeData(obj, from = y, to = z, attr = "gtMethod")[[1]]
@@ -76,7 +88,7 @@ setMethod("getGate", signature = c("gatingTemplate", "character"),
 #' get preprocessing method from the node
 #' @export 
 #' @aliases ppMethod,gatingTemplate,character-method
-setGeneric("ppMethod", function(obj, y, ...) standardGeneric("ppMethod"))
+#' @rdname getNodes
 setMethod("ppMethod", signature = c("gatingTemplate", "character"),
     definition = function(obj, y, z) {
       edgeData(obj, from = y, to = z, attr = "ppMethod")[[1]]
@@ -114,6 +126,7 @@ setMethod("show", signature = c("gatingTemplate"),
 #' plot,gatingTemplate,character-method
 #' plot,gatingTemplate-method
 #' plot,gatingTemplate,ANY-method
+#' @rdname getNodes
 setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
       .plotTree(x,...)
       

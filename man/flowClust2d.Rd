@@ -114,4 +114,9 @@ two markers}
   eigenvector (i.e., the eigenvector with the larger
   eigenvalue) is \code{transitional_angle}.
 }
+\examples{
+\dontrun{
+ gate <- flowClust.2d(fr, xChannel = "FSC-A", xChannel = "SSC-A", K = 3) # fr is a flowFrame
+}
+}
 

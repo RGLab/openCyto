@@ -245,7 +245,7 @@
 #' @param file \code{character} csv file name that contains the fluorescence intensities
 #' @param stains \code{character} a vector specifying the stains for channels. Default is \code{NA}
 #' @return a \code{flowFrame} object
-read.FCS.csv <- function(file, stains = NA) {
+.read.FCS.csv <- function(file, stains = NA) {
   mat <- as.matrix(read.csv(file, check.names = FALSE))
   
   fr <- new("flowFrame", exprs = mat)
@@ -273,8 +273,8 @@ read.FCS.csv <- function(file, stains = NA) {
 #' @param files \code{character} csv file names
 #' @param ... arguments passed to \link{read.FCS.csv}
 #' @return a \code{flowSet} object
-read.flowSet.csv <- function(files, ...) {
-  fs <- flowSet(lapply(files, read.FCS.csv, ...))
+.read.flowSet.csv <- function(files, ...) {
+  fs <- flowSet(lapply(files, .read.FCS.csv, ...))
   sampleNames(fs) <- basename(files)
   fs
 }
@@ -397,42 +397,6 @@ getChannelMarker <- function(frm, name, ...) {
   pd[ind, c("name", "desc")]
 }
 
-#' For the given workflow, we look up the given markers and return the
-#' corresponding channels.
-#'
-#' @param flow_frame object of type \code{flowFrame}
-#' @param markers the markers from which we obtain the corresponding channel names
-#' @return vector of channel names
-markers2channels <- function(flow_frame, markers) {
-  # First, we build a lookup table for the channels and markers.
-  channel_markers <- lapply(colnames(flow_frame), function(channel) {
-    marker_name_desc <- getChannelMarker(flow_frame, channel)
-    marker <- with(marker_name_desc, ifelse(is.na(desc), name, desc))
-    cbind(channel, marker = unname(marker))
-  })
-  channel_markers <- data.frame(do.call(rbind, channel_markers), stringsAsFactors = FALSE)
-  
-  # Now, we query the channels for the specified markers.
-  channels <- sapply(markers, function(marker) {
-    channel_markers$channel[grepl(marker, channel_markers$marker)]
-  })
-  
-  as.vector(channels)
-}
-
-#' For the given flow frame, we look up the given markers and return the
-#' corresponding channels.
-#'
-#' @param flow_frame object of type \code{flowFrame}
-#' @param channels the channels from which we obtain the corresponding markers
-#' @return vector of markers
-channels2markers <- function(flow_frame, channels) {
-  markers <- sapply(channels, function(channel) {
-    marker <- getChannelMarker(flow_frame, channel)
-    with(marker, ifelse(is.na(desc), name, desc))
-  })
-  unname(markers)
-}
 
 #' Removes any observation from the given flowFrame object that has values
 #' outside the given range for the specified channels
@@ -542,7 +506,7 @@ truncate_flowset <- function(flow_set, channels, min = NULL, max = NULL) {
 #' @param ... Additional arguments that are passed to \code{uniroot} to find the
 #' quantile.
 #' @return the quantile corresponding to the specified probabilities
-quantile_flowClust <- function(p, object, interval, ...) {
+.quantile_flowClust <- function(p, object, interval, ...) {
   cdf_target <- function(x, p, object) {
     cdf_values <- sapply(seq_len(object@K), function(k) {
       nu <- ifelse(length(object@nu) == 1, object@nu, object@nu[k])
@@ -569,7 +533,7 @@ quantile_flowClust <- function(p, object, interval, ...) {
 #' @param channels character vector of the channel names for the x- and y-axes
 #' @param quadrants a vector indicating the quadrants to extract
 #' @return a \code{filters} object containing a list of the rectangle gates
-quadGate2rectangleGates <- function(quad_gate, markers, channels, quadrants = 1:4) {
+.quadGate2rectangleGates <- function(quad_gate, markers, channels, quadrants = 1:4) {
   x_gate <- quad_gate@boundary[1]
   y_gate <- quad_gate@boundary[2]
   
@@ -638,6 +602,6 @@ between_interval <- function(x, interval) {
 
 #' Constructs a 2x2 rotation matrix for a given angle
 #' @param theta \code{numeric} the degree of rotation that ensures the angle between the x-axis and the eigenvector is between 0 and pi
-rotation_matrix <- function(theta) {
+.rotation_matrix <- function(theta) {
   matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), nrow = 2)
 }

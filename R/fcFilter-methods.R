@@ -9,11 +9,9 @@ setMethod("show", sig = c("fcFilter"),
 #' @param x \code{fcFilter}
 #' @param y \code{character} or \code{missing} that specifiy which channel to look for
 #' 
-#' @export
 #' @aliases 
 #' posteriors,fcFilter,ANY-method
 #' posteriors,fcFilter,character-method 
-setGeneric("posteriors", function(x, y, ...) standardGeneric("posteriors"))
 setMethod("posteriors", sig = c("fcFilter", "ANY"),
           definition = function(x, y = "missing") {
   x@posteriors
@@ -38,11 +36,9 @@ setMethod("posteriors", sig = c("fcFilter", "character"),
 #' @param y \code{character} specifying channel name. if \code{missing} then extract priors for all the channels 
 #'
 #' @inheritParams posteriors
-#' @export
 #' @aliases 
 #' priors,fcFilter,ANY-method
 #' priors,fcFilter,character-method
-setGeneric("priors", function(x, y, ...) standardGeneric("priors"))
 setMethod("priors", sig = c("fcFilter", "ANY"),
           definition = function(x, y = "missing") {
   x@priors

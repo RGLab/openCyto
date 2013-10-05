@@ -32,7 +32,7 @@ after standardizing and collapsing flowFrames}
   of the cutpoint. (Default: \code{TRUE})}
 
   \item{...}{additional arguments passed to
-  \code{\link{cytokine_cutpoint}}}
+  \code{\link{.cytokine_cutpoint}}}
 }
 \value{
   a \code{filterList} containing the gates (cutpoints) for
@@ -42,5 +42,10 @@ after standardizing and collapsing flowFrames}
   Constructs cytokine gates from the derivative of a kernel
   density estimate after standardizing and collapsing
   flowFrames
+}
+\examples{
+\dontrun{
+ gate <- cytokine(fr, Channel = "APC-A") # fr is a flowFrame
+}
 }
 

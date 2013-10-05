@@ -1,4 +1,3 @@
-setGeneric("preprocessing", function(x, y, ...) standardGeneric("preprocessing"))
 #' apply a \link{ppMethod} to the \code{GatingSet}
 #' 
 #' @param x \code{ppMethod}
@@ -7,7 +6,6 @@ setGeneric("preprocessing", function(x, y, ...) standardGeneric("preprocessing")
 #' 
 #' @inheritParams .preprocessing
 #' 
-#' @export 
 #' @aliases preprocessing,ppMethod,GatingSet-method
 setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
     definition = function(x, y, ...) {

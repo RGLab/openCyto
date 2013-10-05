@@ -11,7 +11,7 @@
 #' @param xChannel,yChannel \code{character} specifying the dimensions of flow data used by \code{prior_flowClust}
 #' @param prior_source \code{character} specifying the ancester node from where the prior is elicited.
 #' @param neg,pos \code{numeric} specifying how many peaks are expected on positive and negative sides from 1d density profile
-#' @inheritParams prior_flowClust1d 
+#' @inheritParams .prior_flowClust1d 
 #' 
 #' @return a \code{list} of priors, see \link{prior_flowClust} for more details
 .prior_flowClust <- function(fs, gs, gm, xChannel, yChannel
@@ -21,7 +21,7 @@
     prior_list <- list()
   
   # prior estimation is done separately from flowClust routine because
-  # prior_flowClust1d requires the entire parent flowSet yet flowClust only
+  # .prior_flowClust1d requires the entire parent flowSet yet flowClust only
   # takes one flowFrame
     
     if (is.null(prior_source)) {

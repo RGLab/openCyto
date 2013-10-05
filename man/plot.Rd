@@ -3,27 +3,8 @@
 \alias{plot,fcFilterList,ANY-method}
 \alias{plot,fcTree,character-method}
 \alias{plot,filterList,ANY-method}
-\alias{plot,gatingTemplate-method}
-\alias{plot,gatingTemplate,ANY-method}
-\alias{plot,gatingTemplate,character-method}
-\alias{plot,gatingTemplate,missing-method}
-\title{plot the gating scheme}
+\title{plot a \code{fcFilterList}}
 \arguments{
-  \item{x}{\code{gatingTemplate} object}
-
-  \item{y}{either \code{character} specifying the root node
-  which can be used to visualize only the subgraph or
-  \code{missing} which display the entire gating scheme}
-
-  \item{...}{other arguments
-
-  graphAttr, nodeAttr: graph rendering attributes passed to
-  \link[Rgraphviz:renderGraph]{renderGraph} showRef
-  \code{logical}: whether to display the reference gates.
-  Sometime it maybe helpful to hide all those reference
-  gates which are not the cell population of interest and
-  used primarily for generating other population nodes.}
-
   \item{x}{\code{fcFilterList}}
 
   \item{y}{\code{character} channel name}
@@ -59,13 +40,19 @@
   \item{...}{other arguments}
 }
 \description{
-  plot the gating scheme using Rgraphviz
-
   It is usually called by \code{plot} method for
   \code{fcTree} instead of directly by users.
 
   This provides the priors and posteriors as well as the
   gates for the purpose of debugging flowClust gating
   algorithm
+}
+\examples{
+\dontrun{
+ env1<-new.env(parent=emptyenv())
+ #gt is a gatingTemplate, gs is a GatingSet
+ gating(gt,gs,env1) #the flowClust gating results are stored in env1
+ plot(env1$fct,"nonDebris",post=T) #plot the priors as well as posteriors for the "nonDebris" gate
+}
 }
 

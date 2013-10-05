@@ -24,6 +24,7 @@ Collate:
     'fcFilter-methods.R'
     'wrapper-functions.R'
     'preprocessing-method.R'
+    'AllGenerics.R'
 Depends:
     methods,flowWorkspace (>= 3.7.27)
 Imports:

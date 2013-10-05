@@ -110,4 +110,9 @@ cluster and all other clusters.}
   which the density between the first and second smallest
   cluster centroids is minimum.
 }
+\examples{
+\dontrun{
+ gate <- flowClust.1d(fr, params = "APC-A", K =2) # fr is a flowFrame
+}
+}
 
