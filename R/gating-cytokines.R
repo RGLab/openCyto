@@ -154,7 +154,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
   method <- match.arg(method)
 
   x <- as.vector(exprs(flow_frame)[, channel])
-  peaks <- sort(find_peaks(x, num_peaks = num_peaks, adjust = adjust))
+  peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust))
 
   if (ref_peak > num_peaks) {
     warning("The reference peak is larger than the number of peaks found.",
@@ -171,7 +171,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
     # The number of valleys identified is determined by 'num_peaks'
     deriv_out <- .deriv_density(x = x, adjust = adjust, deriv = 1, ...)
 
-    deriv_valleys <- with(deriv_out, find_valleys(x = x, y = y, adjust = adjust))
+    deriv_valleys <- with(deriv_out, .find_valleys(x = x, y = y, adjust = adjust))
     deriv_valleys <- deriv_valleys[deriv_valleys > peaks[ref_peak]]
     deriv_valleys <- sort(deriv_valleys)[1]
     
@@ -181,7 +181,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
     # The cutpoint is selected as the first peak from the second derivative
     # density which is to the right of the reference peak.
     deriv_out <- .deriv_density(x = x, adjust = adjust, deriv = 2, ...)
-    deriv_peaks <- with(deriv_out, find_peaks(x, y, adjust = adjust))
+    deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust))
     deriv_peaks <- deriv_peaks[deriv_peaks > peaks[ref_peak]]
     cutpoint <- sort(deriv_peaks)[1]
   }

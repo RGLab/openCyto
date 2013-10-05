@@ -69,8 +69,8 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #'
 #' We elicit data-driven prior parameters from a \code{flowSet} object for a
 #' specified channel. For each sample in the \code{flowSet} object, we apply a
-#' kernel-density estimator (KDE) and identify its local maxima (peaks) using
-#' \code{\link{find_peaks}}. We then aggregate these peaks to elicit a prior
+#' kernel-density estimator (KDE) and identify its local maxima (peaks). 
+#' We then aggregate these peaks to elicit a prior
 #' parameters for each of \code{K} mixture components.
 #'
 #' Here, we outline the approach used for prior elicitation. First, we apply a
@@ -136,11 +136,9 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' @param adjust the bandwidth to use in the kernel density estimation. See
 #' \code{\link{density}} for more information.
 #' @param min a numeric value that sets the lower bound for data filtering. If
-#' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowset}} for more details.
+#' \code{NULL} (default), no truncation is applied.
 #' @param max a numeric value that sets the upper bound for data filtering. If
-#' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowset}} for more details.
+#' \code{NULL} (default), no truncation is applied.
 #' @param vague \code{logical} Whether to elicit a vague prior. If \code{TRUE}, we first calculate the median of standard
 #'                              deviations from all flowFrames. Then, we divide the overall standard
 #'                              deviation by the number of groups to the scale the standard deviation.
@@ -158,12 +156,12 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
   }
 
   if (!(is.null(min) && is.null(max))) {
-    flow_set <- truncate_flowset(flow_set, channels = channel, min = min, max = max)
+    flow_set <- .truncate_flowset(flow_set, channels = channel, min = min, max = max)
   }
   # For each sample in 'flow_set', we identify the peaks after smoothing.
   peaks <- fsApply(flow_set, function(flow_frame, adjust) {
     x <- exprs(flow_frame)[, channel]
-    peaks_found <- find_peaks(x, adjust = adjust)
+    peaks_found <- .find_peaks(x, adjust = adjust)
 
     # If K is specified and is smaller than the number of peaks found,
     # we keep only the K largest peaks from the sample.
@@ -323,11 +321,9 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' that is used to elicit the prior parameters. The value should must be greater
 #' than 0 and less than or equal to 1.
 #' @param min a numeric vector that sets the lower bounds for data filtering. If
-#' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowset}} for more details.
+#' \code{NULL} (default), no truncation is applied.
 #' @param max a numeric vector that sets the upper bounds for data filtering. If
-#' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowset}} for more details.
+#' \code{NULL} (default), no truncation is applied.
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
 #' @importFrom clue solve_LSAP
@@ -338,7 +334,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
   
   # Truncates flow_set before eliciting priors when necessary 
   if (!(is.null(min) && is.null(max))) {
-    flow_set <- truncate_flowset(flow_set, channels = channels, min = min,
+    flow_set <- .truncate_flowset(flow_set, channels = channels, min = min,
                                  max = max)
   }
   # For each randomly selected sample in the flow_set, we apply K-means with to
@@ -521,10 +517,9 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' # 2 peaks with a minor hump
 #' y <- SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
 #' plot(density(y))
-#' peaks <- find_peaks(y)
+#' peaks <- .find_peaks(y)
 #' abline(v = peaks, col = "red")
-#' @export 
-find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, ...) {
+.find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, ...) {
   x <- as.vector(x)
 
   if (length(x) < 2) {
@@ -594,10 +589,9 @@ find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, ...) {
 #' # 3 peaks and 2 valleys
 #' y <- SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
 #' plot(density(y))
-#' valleys <- find_valleys(y)
+#' valleys <- .find_valleys(y)
 #' abline(v = valleys, col = "red")
-#' @export 
-find_valleys <- function(x, y = NULL, num_valleys = NULL, adjust = 2, ...) {
+.find_valleys <- function(x, y = NULL, num_valleys = NULL, adjust = 2, ...) {
 
   x <- as.vector(x)
 

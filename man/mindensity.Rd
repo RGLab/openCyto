@@ -35,8 +35,7 @@ between two peaks}
   \item{max}{a numeric value that sets the upper boundary
   for data filtering}
 
-  \item{...}{Additional arguments passed on to the
-  \code{find_peaks} function}
+  \item{...}{Additional arguments for peak detection.}
 }
 \value{
   a \code{rectangleGate} object based on the minimum
@@ -44,10 +43,10 @@ between two peaks}
 }
 \description{
   We fit a kernel density estimator to the cells in the
-  \code{flowFrame} and identify the two largest peaks using
-  the \code{find_peaks} function. We then select as the
-  cutpoint the value at which the minimum density is
-  attained between the two peaks of interest.
+  \code{flowFrame} and identify the two largest peaks. We
+  then select as the cutpoint the value at which the
+  minimum density is attained between the two peaks of
+  interest.
 }
 \details{
   In the default case, the two peaks of interest are the

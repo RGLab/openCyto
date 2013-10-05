@@ -41,11 +41,9 @@
 #' to the given maximum value. If \code{NULL} (default), there is no maximum
 #' cutpoint value.
 #' @param min a numeric value that sets the lower bound for data filtering. If
-#' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowset}} for more details.
+#' \code{NULL} (default), no truncation is applied.
 #' @param max a numeric value that sets the upper bound for data filtering. If
-#' \code{NULL} (default), no truncation is applied. See
-#' \code{\link{truncate_flowset}} for more details.
+#' \code{NULL} (default), no truncation is applied.
 #' @param quantile the quantile for which we will find the cutpoint using
 #' the quantile \code{cutpoint_method}. If the \code{cutpoint_method} is not set
 #' to \code{quantile}, this argument is ignored.
@@ -112,7 +110,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   # given. NOTE: These observations are removed from the 'flowFrame' locally and
   # are gated out only for the determining the gate.
   if (!(is.null(min) && is.null(max))) {
-    fr <- truncate_flowframe(fr, channels = params[1], min = min, max = max)
+    fr <- .truncate_flowframe(fr, channels = params[1], min = min, max = max)
   }
   if (nrow(fr) < 2) {
     warning("Less than two observations are present in the given flowFrame.",
@@ -385,7 +383,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # NOTE: These observations are removed from the 'flowFrame' locally and are
   # gated out only for the determining the gate.
   if (!(is.null(min) && is.null(max))) {
-    fr <- truncate_flowframe(fr, channels = c(xChannel, yChannel), min = min,
+    fr <- .truncate_flowframe(fr, channels = c(xChannel, yChannel), min = min,
                              max = max)
   }
 
@@ -629,7 +627,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' between two peaks
 #'
 #' We fit a kernel density estimator to the cells in the \code{flowFrame} and
-#' identify the two largest peaks using the \code{find_peaks} function. We then
+#' identify the two largest peaks. We then
 #' select as the cutpoint the value at which the minimum density is attained
 #' between the two peaks of interest.
 #'
@@ -658,7 +656,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' maximum value of the range otherwise.
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
-#' @param ... Additional arguments passed on to the \code{find_peaks} function
+#' @param ... Additional arguments for peak detection.
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 #' @export
 #' @examples
@@ -676,7 +674,7 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   # Filter out values less than the minimum and above the maximum, if they are
   # given.
   if (!(is.null(min) && is.null(max))) {
-    flow_frame <- truncate_flowframe(flow_frame, channels = channel, min = min,
+    flow_frame <- .truncate_flowframe(flow_frame, channels = channel, min = min,
                                      max = max)
   }
   # Grabs the data matrix that is being gated.
@@ -688,7 +686,7 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
     gate_range <- sort(gate_range)
   }
 
-  peaks <- find_peaks(x, ...)
+  peaks <- .find_peaks(x, ...)
 
   # In the special case that there is only one peak, we are conservative and set
   # the cutpoint as min(x) if 'positive' is TRUE, and max(x) otherwise.
@@ -699,8 +697,8 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
     # case that there are no valleys (i.e., if 'x_between' has an insufficient
     # number of observations), we are conservative and set the cutpoint as the
     # minimum value if 'positive' is TRUE, and the maximum value otherwise.
-    valleys <- try(find_valleys(x, ...), silent = TRUE)
-    valleys <- between_interval(x = valleys, interval = gate_range)
+    valleys <- try(.find_valleys(x, ...), silent = TRUE)
+    valleys <- .between_interval(x = valleys, interval = gate_range)
 
     if (any(is.na(valleys))) {
     #FIXME:currently it is still returning the first peak,
@@ -713,7 +711,7 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
       # If there are multiple valleys, we determine the deepest valley between
       # the two largest peaks.
       peaks <- sort(peaks[1:2])
-      cutpoint <- between_interval(valleys, peaks)[1]
+      cutpoint <- .between_interval(valleys, peaks)[1]
 
       # If none of the valleys detected are between the two largest peaks, we
       # select the deepest valley.

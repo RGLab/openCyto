@@ -10,7 +10,7 @@ Description: This package is designed to facilitate the automated gating
 License: Artistic-2.0
 LazyLoad: yes
 Collate:
-	'AllGenerics.R'
+    'AllGenerics.R'
     'AllClasses.R'
     'bayes-flowClust.R'
     'functions.R'

@@ -4,4 +4,10 @@
 \description{
   It extends \code{gtMethod} class.
 }
+\examples{
+\dontrun{
+     gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+     ppMethod(gt, '3', '4')
+}
+}
 

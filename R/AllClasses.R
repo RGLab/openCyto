@@ -163,6 +163,11 @@ fcTree <- function(gt) {
 #' @export 
 #' @aliases show,gtMethod-method
 #' @name gtMethod-class
+#' @examples 
+#'  \dontrun{
+#'      gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'      getGate(gt, '2', '3')
+#' }
 setClass("gtMethod", representation(name = "character"
                                     , dims = "character"
                                     , args = "list"
@@ -174,7 +179,12 @@ setClass("gtMethod", representation(name = "character"
 #' 
 #' It extends \code{gtMethod} class.
 #' @export      
-#' @name ppMethod-class     
+#' @name ppMethod-class
+#' @examples 
+#'  \dontrun{
+#'      gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'      ppMethod(gt, '3', '4')
+#' }     
 setClass("ppMethod", contains = "gtMethod")
 
 #' A class to represent a reference gating method.
@@ -185,7 +195,6 @@ setClass("ppMethod", contains = "gtMethod")
 #' \describe{ 
 #'  \item{refNodes}{ \code{character} specifying the reference nodes}
 #' }
-#' @export   
 #' @name refGate-class      
 setClass("refGate", contains = "gtMethod", representation(refNodes = "character"))
 
@@ -193,7 +202,6 @@ setClass("refGate", contains = "gtMethod", representation(refNodes = "character"
 #' 
 #' It extends \code{refGate} class.
 #' @rdname boolMethod-class
-#' @export 
 #' @aliases 
 #' show,boolMethod-method
 #' @name boolMethod-class
@@ -202,7 +210,6 @@ setClass("boolMethod", contains = "refGate")
 #' A class to represent a polyFunctions gating method.
 #' 
 #' It extends \code{boolMethod} class and will be expanded to multiple \code{boolMethod} object.
-#' @export
 #' 
 #' @name polyFunctions-class
 setClass("polyFunctions", contains = "boolMethod")
@@ -218,6 +225,12 @@ setClass("polyFunctions", contains = "boolMethod")
 #' }
 #' @export 
 #' @name gtPopulation-class
+#' @examples 
+#'  \dontrun{
+#'      gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'       
+#'      getNodes(gt, '2')
+#' }
 setClass("gtPopulation", representation(id = "numeric", name = "character",
                                         alias = "character"
                                   )
@@ -226,7 +239,6 @@ setClass("gtPopulation", representation(id = "numeric", name = "character",
 #' A class representing a group of cell populations.
 #' 
 #' It extends \code{gtPopulation} class.
-#' @export 
 #' @name gtSubsets-class
 setClass("gtSubsets", contains = "gtPopulation")
 
@@ -355,7 +367,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' @rdname gatingTemplate-class
 #' @aliases gatingTemplate,character-method
 #' @examples
-#' dontrun{ 
+#' \dontrun{ 
 #'   gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
 #'   plot(gt)
 #' }

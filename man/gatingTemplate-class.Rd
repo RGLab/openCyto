@@ -68,7 +68,7 @@
   preprocessing function.
 }
 \examples{
-dontrun{
+\dontrun{
   gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
   plot(gt)
 }

@@ -115,7 +115,6 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"),
 #' 
 #' @inheritParams .gating_gtMethod
 #' @param ... other arguments
-#' @export 
 #' @aliases gating,gtMethod,GatingSet-method
 setMethod("gating", signature = c("gtMethod", "GatingSet"),
     definition = function(x, y, ...) {
@@ -294,7 +293,6 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
 #' @param x \code{boolMethod}
 #' @inheritParams .gating_boolMethod
 #' @param ... other arguments
-#' @export 
 #' @aliases gating,boolMethod,GatingSet-method
 setMethod("gating", signature = c("boolMethod", "GatingSet"),
     definition = function(x, y, ...) {
@@ -343,7 +341,6 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
 #' @param x \code{polyFunctions}
 #' @inheritParams .gating_polyFunctions
 #' @param ... other arguments
-#' @export 
 #' @aliases gating,polyFunctions,GatingSet-method
 setMethod("gating", signature = c("polyFunctions", "GatingSet"),
     definition = function(x, y, ...) {
@@ -397,7 +394,6 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet"),
 #' @inheritParams .gating_refGate
 #' @param .. other arguments
 #' 
-#' @export
 #' @aliases gating,refGate,GatingSet-method
 setMethod("gating", signature = c("refGate", "GatingSet"),
     definition = function(x, y, ...) {

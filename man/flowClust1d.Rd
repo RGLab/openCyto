@@ -66,13 +66,11 @@ cluster and all other clusters.}
 
   \item{min}{a numeric value that sets the lower bound for
   data filtering. If \code{NULL} (default), no truncation
-  is applied. See \code{\link{truncate_flowset}} for more
-  details.}
+  is applied.}
 
   \item{max}{a numeric value that sets the upper bound for
   data filtering. If \code{NULL} (default), no truncation
-  is applied. See \code{\link{truncate_flowset}} for more
-  details.}
+  is applied.}
 
   \item{quantile}{the quantile for which we will find the
   cutpoint using the quantile \code{cutpoint_method}. If

@@ -27,4 +27,10 @@
   collapse the data within group before gating.  it is only
   valid when \code{groupBy} is specified} }
 }
+\examples{
+\dontrun{
+     gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+     getGate(gt, '2', '3')
+}
+}
 

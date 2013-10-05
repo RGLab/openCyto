@@ -416,19 +416,19 @@ getChannelMarker <- function(frm, name, ...) {
 #'  summary(rituximab)
 #' 
 #'  # Truncates any observations with FSC.H outside [100, 950]
-#'  rituximab2 <- truncate_flowframe(rituximab, channels = "FSC.H", min = 100, max = 950)
+#'  rituximab2 <- .truncate_flowframe(rituximab, channels = "FSC.H", min = 100, max = 950)
 #'  summary(rituximab2)
 #'  # Next, truncates any observations with SSC.H outside [50, 1000]
-#'  rituximab3 <- truncate_flowframe(rituximab2, channels = "SSC.H", min = 50, max = 1000)
+#'  rituximab3 <- .truncate_flowframe(rituximab2, channels = "SSC.H", min = 50, max = 1000)
 #'  summary(rituximab3)
 #'
 #'  # Instead, truncates both channels at the same time
-#'  rituximab4 <- truncate_flowframe(rituximab, channels = c("FSC.H", "SSC.H"),
+#'  rituximab4 <- .truncate_flowframe(rituximab, channels = c("FSC.H", "SSC.H"),
 #'  min = c(100, 50), max = c(950, 1000))
 #'  summary(rituximab4)
 #' }
 #' 
-truncate_flowframe <- function(flow_frame, channels, min = NULL, max = NULL) {
+.truncate_flowframe <- function(flow_frame, channels, min = NULL, max = NULL) {
   channels <- as.character(channels)
   num_channels <- length(channels)
 
@@ -460,9 +460,9 @@ truncate_flowframe <- function(flow_frame, channels, min = NULL, max = NULL) {
 #' The minimum/maximum values are ignored if \code{NULL}.
 #'
 #' @param flow_set a \code{flowSet} object
-#' @inheritParams truncate_flowframe
+#' @inheritParams .truncate_flowframe
 #' @return a \code{flowSet} object
-truncate_flowset <- function(flow_set, channels, min = NULL, max = NULL) {
+.truncate_flowset <- function(flow_set, channels, min = NULL, max = NULL) {
   channels <- as.character(channels)
   num_channels <- length(channels)
 
@@ -568,9 +568,8 @@ truncate_flowset <- function(flow_set, channels, min = NULL, max = NULL) {
 #' @param markers character vector of marker names
 #' @return vector containing all combinations of the markers
 #' @examples
-#' polyfunction_nodes(c('IFNg', 'IL2', 'TNFa', 'GzB', 'CD57'))
-#' @export 
-polyfunction_nodes <- function(markers) {
+#' .polyfunction_nodes(c('IFNg', 'IL2', 'TNFa', 'GzB', 'CD57'))
+.polyfunction_nodes <- function(markers) {
   
   markers <- paste0(markers, "+")
   num_markers <- length(markers)
@@ -590,9 +589,9 @@ polyfunction_nodes <- function(markers) {
 #' \code{interval}. If no values are found, \code{NA} is returned.
 #' @examples
 #' z <- seq.int(1, 9, by = 2)
-#' between_interval(z, interval = c(2, 8))
+#' .between_interval(z, interval = c(2, 8))
 #' @export 
-between_interval <- function(x, interval) {
+.between_interval <- function(x, interval) {
   x <- x[findInterval(x, interval) == 1]
   if (length(x) == 0) {
     x <- NA

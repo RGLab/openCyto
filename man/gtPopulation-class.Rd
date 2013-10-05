@@ -14,4 +14,11 @@
   \item{alias}{ \code{character} the more user friendly
   name of population} }
 }
+\examples{
+\dontrun{
+     gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+
+     getNodes(gt, '2')
+}
+}
 
