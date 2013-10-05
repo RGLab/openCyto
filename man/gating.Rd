@@ -51,7 +51,7 @@
   a convenience way to generate different boolean
   combinations of cytokine gates.
 
-  apply a \link{refGate} to the \code{GatingSet}
+  apply a \code{refGate} to the \code{GatingSet}
 }
 \examples{
 \dontrun{

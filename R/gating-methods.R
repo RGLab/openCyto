@@ -388,7 +388,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet"),
   
   list()
 }
-#' apply a \link{refGate} to the \code{GatingSet}
+#' apply a \code{refGate} to the \code{GatingSet}
 #' 
 #' @param x \code{refGate}
 #' @inheritParams .gating_refGate
