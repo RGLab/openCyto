@@ -31,8 +31,7 @@ after standardizing and collapsing flowFrames}
   Otherwise, the gate is the entire real line to the left
   of the cutpoint. (Default: \code{TRUE})}
 
-  \item{...}{additional arguments passed to
-  \code{\link{.cytokine_cutpoint}}}
+  \item{...}{additional arguments.}
 }
 \value{
   a \code{filterList} containing the gates (cutpoints) for

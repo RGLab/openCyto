@@ -2,6 +2,7 @@
 \alias{getChildren}
 \alias{getChildren,gatingTemplate,character-method}
 \alias{getGate}
+\alias{getGate,fcTree,character-method}
 \alias{getGate,gatingTemplate,character-method}
 \alias{getNodes}
 \alias{getNodes,fcTree-method}
@@ -9,6 +10,9 @@
 \alias{getParent}
 \alias{getParent,gatingTemplate,character-method}
 \alias{plot}
+\alias{plot,fcFilterList,ANY-method}
+\alias{plot,fcTree,character-method}
+\alias{plot,filterList,ANY-method}
 \alias{plot,gatingTemplate-method}
 \alias{plot,gatingTemplate,ANY-method}
 \alias{plot,gatingTemplate,character-method}
@@ -47,6 +51,10 @@
   \item{x}{\code{fcTree}}
 
   \item{y}{\code{character} node name}
+
+  \item{obj}{\code{fcTree}}
+
+  \item{y}{\code{character} node name}
 }
 \description{
   get nodes from \link{gatingTemplate} object
@@ -62,6 +70,8 @@
   plot the gating scheme using Rgraphviz
 
   get nodes from \code{fcTree}
+
+  get gates saved in \code{fcTree}
 }
 \examples{
 gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))

@@ -13,7 +13,7 @@
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
 #' line to the right of the cutpoint. Otherwise, the gate is the entire real
 #' line to the left of the cutpoint. (Default: \code{TRUE})
-#' @param ... additional arguments passed to \code{\link{.cytokine_cutpoint}}
+#' @param ... additional arguments.
 #' @return a \code{filterList} containing the gates (cutpoints) for each sample
 #' @export
 #' @examples
