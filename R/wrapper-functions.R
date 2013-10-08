@@ -119,14 +119,20 @@
 #' @return a \code{list} of \code{filter}s
 .gating_wrapper <- function(fs, pp_res, gFunc, ...){
     #coercing
-  
+    sn <- sampleNames(fs)
     fr <- as(fs,"flowFrame")
     
     thisCall <- substitute(f(fr = fr, pp_res = pp_res, ...),list(f=as.symbol(gFunc)))
-    filterRes <- eval(thisCall)
+    filterRes <- try(eval(thisCall), silent = TRUE)
+    
+    if(inherits(filterRes, "filter")){
 #    browser()
-    #replicate the filter across samples
-    list(sapply(sampleNames(fs),function(i)filterRes))
+      #replicate the filter across samples
+      list(sapply(sampleNames(fs),function(i)filterRes))      
+    }else{
+      stop("failed at ",paste0(sn), "\n", filterRes)
+    }
+
     
 }
 #' wrapper for \link[flowStats:singletGate]{singletGate}
