@@ -80,7 +80,7 @@ setMethod("plot", sig = c("fcFilterList", "ANY"),
         lines(x_dens, prior_density[[k]], col = rainbow(K)[k], lty = 2, lwd = lwd)
         
         posterior_density <- curPost$w[k]*flowClust::dmvt(x_dens, mu = curPost$mu[k, ], sigma = curPost$sigma[k, 
-          , ], nu = curPost$nu, lambda = curPost$lamdda)$value
+          , ], nu = curPost$nu, lambda = curPost$lambda)$value
         lines(x_dens, posterior_density, col = rainbow(K)[k], lwd = lwd)
 
         # plot gate
