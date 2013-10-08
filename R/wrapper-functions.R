@@ -348,13 +348,17 @@
   
   args[["K"]] <- K
 
-#  names(args)[match("useprior",names(args))]<-"usePrior"
+  if (is.null(pp_res)) {
+    usePrior <- "no"
+  } else {
+    usePrior <- "yes"
+  }
   
   do.call("flowClust.2d"
       ,args = c(list(fr = fr
                     , xChannel = xChannel
                     , yChannel = yChannel
-#                    , usePrior = usePrior
+                    , usePrior = usePrior
                     ,prior = pp_res
                     )
                 ,args
