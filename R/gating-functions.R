@@ -244,7 +244,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   # because no prior updating was performed.
   postList <- list()
   if (class(tmix_results) != "try-error") {
-    posteriors <- list(mu = tmix_results@mu, lamdda = tmix_results@lambda,
+    posteriors <- list(mu = tmix_results@mu, lambda = tmix_results@lambda,
                        sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x)
                       ,w = tmix_results@w
                     , max = max(x))
@@ -578,7 +578,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   }
   
   # List of posterior point estimates
-  posteriors <- list(mu = tmix_results@mu, lamdda = tmix_results@lambda,
+  posteriors <- list(mu = tmix_results@mu, lambda = tmix_results@lambda,
                      sigma = tmix_results@sigma, nu = tmix_results@nu)
 
   if (plot) {
