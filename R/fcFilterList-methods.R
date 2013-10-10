@@ -11,9 +11,6 @@
 #' @param data \code{GatingSet} object
 #' @param node \code{character} population name associated with the \code{fcFilterList}
 #' @param ... other arguments passed to base \code{plot}
-#' @aliases 
-#' plot,fcFilterList,ANY-method
-#' plot,filterList,ANY-method
 #' @examples
 #' \dontrun{ 
 #'  env1<-new.env(parent=emptyenv())
@@ -83,7 +80,7 @@ setMethod("plot", sig = c("fcFilterList", "ANY"),
         lines(x_dens, prior_density[[k]], col = rainbow(K)[k], lty = 2, lwd = lwd)
         
         posterior_density <- curPost$w[k]*flowClust::dmvt(x_dens, mu = curPost$mu[k, ], sigma = curPost$sigma[k, 
-          , ], nu = curPost$nu, lambda = curPost$lamdda)$value
+          , ], nu = curPost$nu, lambda = curPost$lambda)$value
         lines(x_dens, posterior_density, col = rainbow(K)[k], lwd = lwd)
 
         # plot gate

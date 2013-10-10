@@ -53,9 +53,29 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"),
   # maintain the mapping between template node ID and gating set node ID in order
   # to refer gating set node ID back to the template ID and find the parent gs
   # node ID
-  node_ids <- cbind(gt = gt_node_ids, gs = NA)
-  node_ids[1, "gs"] <- 1  #fill out default gsid for root node
-  
+  node_ids <- ldply(gt_node_ids,function(this_gt_id){
+                         
+                        #fill out default gsid for root node
+                        this_gs_id <- ifelse(this_gt_id == "1", 1, NA)
+                          
+                        #alias and parent info are for debug purpose
+                        thisAlias <- alias(getNodes(gt, this_gt_id))
+                        
+                        thisParentID <- getParent(gt, this_gt_id, isRef = FALSE)
+                        if(length(thisParentID) == 0)
+                          thisParent <- "root"
+                        else
+                          thisParent <- alias(getNodes(gt, thisParentID))
+                        
+                        data.frame(gt =this_gt_id
+                                  , gs = this_gs_id
+                                  , alias = thisAlias
+                                  , parent = thisParent
+                                  , stringsAsFactors = FALSE
+                                )
+                                
+                      })
+                  
   for (i in 2:nrow(node_ids)) {
     
     # get parent node to gate
@@ -158,8 +178,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   popId <- gtPop@id
-  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent])
-#  browser()
+  gs_nodes <- basename(getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent], isPath = TRUE))
+  
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     message("Gating for '", popAlias, "'")
     
@@ -276,7 +296,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     message("Skip gating! Population '", paste(popAlias, collapse = ","), "' already exists.")
     gs_node_id <- getChildren(y[[1]], parent)
     # select the corresponding gs node id by matching the node names
-    gs_node_name <- getNodes(y[[1]], showHidden = TRUE)[gs_node_id]
+    gs_node_name <- basename(getNodes(y[[1]], showHidden = TRUE, isPath = TRUE))[gs_node_id]
     gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
     filterObj <- NULL
   }
@@ -288,7 +308,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
   list(gs_node_id = gs_node_id, filterObj = filterObj)
 }
 
-#' apply a \link[openCyto:boolMethod-class]{boolMethod} to the \code{GatingSet}
+#' apply a \code{boolMethod} to the \code{GatingSet}
 #' 
 #' @param x \code{boolMethod}
 #' @inheritParams .gating_boolMethod
@@ -310,8 +330,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
   popName <- names(gtPop)
   popId <- gtPop@id
   
-  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent])
-  
+  gs_nodes <- basename(getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent], isPath = TRUE))
   tNodes <- deparse(args)
   if (!(popAlias %in% gs_nodes)) {
     message(popAlias, " gating...")
@@ -325,7 +344,8 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
     gs_node_id <- getChildren(y[[1]], parent)
 
     # select the corresponding gs node id by matching the node names
-    gs_node_name <- getNodes(y[[1]])[gs_node_id]
+    
+    gs_node_name <- basename(getNodes(y[[1]], showHidden = TRUE, isPath = TRUE))[gs_node_id] 
     gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
   }
   
@@ -354,12 +374,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet"),
 .gating_polyFunctions <- function(x, y, gtPop, parent, ...) {
   
   refNodes <- x@refNodes
-  gm <- paste0(".", names(x))
   popAlias <- alias(gtPop)
-  popName <- names(gtPop)
-  
-  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent])
-  
   message("Population '", paste(popAlias, collapse = ","), "'")
   
   nMarkers <- length(refNodes)
@@ -388,7 +403,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSet"),
   
   list()
 }
-#' apply a \link{refGate} to the \code{GatingSet}
+#' apply a \code{refGate} to the \code{GatingSet}
 #' 
 #' @param x \code{refGate}
 #' @inheritParams .gating_refGate
@@ -406,15 +421,13 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
             ...) {
 #  negated <- FALSE
   refNodes <- x@refNodes
-  gm <- paste0(".", names(x))
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   dims <- dims(x)
   xChannel <- dims[["xChannel"]]
   yChannel <- dims[["yChannel"]]
   
-  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent])
-  
+  gs_nodes <- basename(getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent], isPath = TRUE))
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     
     message("Population '", paste(popAlias, collapse = ","), "'")
@@ -563,7 +576,7 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
     gs_node_id <- getChildren(y[[1]], parent)
 
     # select the corresponding gs node id by matching the node names
-    gs_node_name <- getNodes(y[[1]], showHidden = TRUE)[gs_node_id]
+    gs_node_name <- basename(getNodes(y[[1]], showHidden = TRUE, isPath = TRUE))[gs_node_id]
     gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
     flist <- NULL
   }
