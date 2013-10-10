@@ -426,11 +426,12 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
     cur_groupBy <- thisRow[,"groupBy"][[1]]
     # do not parse args for refGate-like gate since they might break the current
     # parse due to the +/- | &,! symbols
-    if (cur_method %in% c("boolGate", "polyfunctions", "refGate")) {
+    if (any(grepl(cur_method,  c("boolGate", "polyfunctions", "refGate"), ignore.case = TRUE))) {
       split_args <- FALSE
     } else {
       split_args <- TRUE
     }
+    
     cur_args <- .argParser(cur_args, split_args)
     
     gm <- new("gtMethod"
@@ -441,11 +442,11 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
                 , groupBy = cur_groupBy
               )
     # specialize gtMethod as needed
-    if (names(gm) == "boolGate") {
+    if (grepl(names(gm) , "boolGate", ignore.case = TRUE)) {
       gm <- as(gm, "boolMethod")
-    } else if (names(gm) == "polyFunctions") {
+    } else if (grepl(names(gm) , "polyFunctions", ignore.case = TRUE)) {
       gm <- as(gm, "polyFunctions")
-    } else if (names(gm) == "refGate") {
+    } else if (grepl(names(gm) , "refGate", ignore.case = TRUE)) {
       gm <- as(gm, "refGate")
       if(nchar(cur_dims) == 0){
         stop("No dimensions defined for refGate!")
