@@ -53,9 +53,29 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"),
   # maintain the mapping between template node ID and gating set node ID in order
   # to refer gating set node ID back to the template ID and find the parent gs
   # node ID
-  node_ids <- cbind(gt = gt_node_ids, gs = NA)
-  node_ids[1, "gs"] <- 1  #fill out default gsid for root node
-  
+  node_ids <- ldply(gt_node_ids,function(this_gt_id){
+                         
+                        #fill out default gsid for root node
+                        this_gs_id <- ifelse(this_gt_id == "1", 1, NA)
+                          
+                        #alias and parent info are for debug purpose
+                        thisAlias <- alias(getNodes(gt, this_gt_id))
+                        
+                        thisParentID <- getParent(gt, this_gt_id, isRef = FALSE)
+                        if(length(thisParentID) == 0)
+                          thisParent <- "root"
+                        else
+                          thisParent <- alias(getNodes(gt, thisParentID))
+                        
+                        data.frame(gt =this_gt_id
+                                  , gs = this_gs_id
+                                  , alias = thisAlias
+                                  , parent = thisParent
+                                  , stringsAsFactors = FALSE
+                                )
+                                
+                      })
+                  
   for (i in 2:nrow(node_ids)) {
     
     # get parent node to gate
@@ -276,7 +296,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
     message("Skip gating! Population '", paste(popAlias, collapse = ","), "' already exists.")
     gs_node_id <- getChildren(y[[1]], parent)
     # select the corresponding gs node id by matching the node names
-    gs_node_name <- getNodes(y[[1]], showHidden = TRUE)[gs_node_id]
+    gs_node_name <- basename(getNodes(y[[1]], showHidden = TRUE, isPath = TRUE))[gs_node_id]
     gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
     filterObj <- NULL
   }
@@ -324,7 +344,8 @@ setMethod("gating", signature = c("boolMethod", "GatingSet"),
     gs_node_id <- getChildren(y[[1]], parent)
 
     # select the corresponding gs node id by matching the node names
-    gs_node_name <- getNodes(y[[1]])[gs_node_id]
+    
+    gs_node_name <- basename(getNodes(y[[1]], showHidden = TRUE, isPath = TRUE))[gs_node_id] 
     gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
   }
   
@@ -555,7 +576,7 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
     gs_node_id <- getChildren(y[[1]], parent)
 
     # select the corresponding gs node id by matching the node names
-    gs_node_name <- getNodes(y[[1]], showHidden = TRUE)[gs_node_id]
+    gs_node_name <- basename(getNodes(y[[1]], showHidden = TRUE, isPath = TRUE))[gs_node_id]
     gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
     flist <- NULL
   }
