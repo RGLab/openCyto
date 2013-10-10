@@ -95,7 +95,10 @@ setMethod("ppMethod", signature = c("gatingTemplate", "character"),
     })
 
 
-#' @aliases show,gatingTemplate-method 
+#' @aliases 
+#' show,gatingTemplate-method
+#' show,boolMethod-method 
+#' show,fcFilter-method
 #' @rdname gatingTemplate-class
 #' @export 
 setMethod("show", signature = c("gatingTemplate"),
@@ -126,6 +129,10 @@ setMethod("show", signature = c("gatingTemplate"),
 #' plot,gatingTemplate,character-method
 #' plot,gatingTemplate-method
 #' plot,gatingTemplate,ANY-method
+#' plot,fcFilterList,ANY-method
+#' plot,filterList,ANY-method
+#' plot,fcTree,character-method
+
 #' @rdname getNodes
 setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
       .plotTree(x,...)

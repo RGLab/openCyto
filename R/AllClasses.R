@@ -509,8 +509,9 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
       for (ref_node in refNodes) {
         # get node id for reference node (using the old graph object
         # since the new graph has unconnected new node
-        ref_id <- .searchNode(g, ref_node,isRef = TRUE)
-
+#        ref_id <- .searchNode(g, ref_node,isRef = TRUE)
+        ref_id <- .searchNode(g, ref_node)
+        
         # add the edge from it
         g_updated <- addEdge(ref_id, curNodeID, g_updated)
 
