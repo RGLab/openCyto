@@ -29,6 +29,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSet"),
 #' @param stop.at a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating prcoess will stop at.
 #' @param ... other arguments passed to the gatingMethod-specific \code{gating} methods.
 #' @importFrom RBGL tsort
+#' @importFrom plyr ldply
 .gating_gatingTemplate <- function(x, y, env_fct = NULL, stop.at = NULL, ...) {
   gt <- x
   if (!is.null(env_fct)) {
