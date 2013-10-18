@@ -264,6 +264,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
           stop("cluster object 'cl' is empty!")
         thisCall[[1]] <- quote(clusterMap)
         thisCall[["cl"]] <- cl
+        thisCall[["fun"]] <- thisCall[["FUN"]] 
+        thisCall[["FUN"]] <- NULL
      }else {
       thisCall[[1]] <- quote(mapply)  #select loop mode
   
