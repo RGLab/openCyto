@@ -118,6 +118,7 @@
 #' 
 #' @return a \code{list} of \code{filter}s
 .gating_wrapper <- function(fs, pp_res, gFunc, ...){
+    require(openCyto)  #since it is going to be invoked by MPI, better load it
     #coercing
     sn <- sampleNames(fs)
     fr <- as(fs,"flowFrame")
@@ -126,14 +127,14 @@
     filterRes <- try(eval(thisCall), silent = TRUE)
     
     if(inherits(filterRes, "filter")){
-#    browser()
+##    browser()
       #replicate the filter across samples
       list(sapply(sampleNames(fs),function(i)filterRes))      
     }else{
       stop("failed at ",paste0(sn), "\n", filterRes)
     }
+#
 
-    
 }
 #' wrapper for \link[flowStats:singletGate]{singletGate}
 #' 
