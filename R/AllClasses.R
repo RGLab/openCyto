@@ -244,6 +244,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 
 #' A function to tell wether a gating method is \code{polyFunctions}
 #' 
+#' @rdname isPolyfunctional
 #' @param gm an object that extends \code{gtMethod}  
 .isPolyfunctional <- function(gm) {
   # grepl('^\\[\\:.+\\:\\]$',x)
@@ -254,6 +255,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' 
 #' parsing the arguments read from `args` columns of csv template into 
 #' list of paired arguments
+#' @rdname argParser
 .argParser <- function(txt, split = TRUE) {
   # trim whitespaces at beginning and the end of string
   txt <- gsub("^\\s*|\\s*$", "", txt)
@@ -278,6 +280,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 }
 
 #' match node ID by name with the subset
+#' @rdname getNodeID
 .getNodeID <- function(g, subset, this_node, ...) {
   node_id_ind <- which(unlist(lapply(subset, function(this_node_id) {
     alias(getNodes(g, this_node_id)) == this_node
@@ -297,6 +300,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 
 #' search for node ID by path with gating template tree and add the edge
 #' @importFrom RBGL dfs
+#' @rdname searchNode
 .searchNode <- function(g, node_name, ...) {
   if (node_name == "root") {
     node_id <- "1"
