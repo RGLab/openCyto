@@ -20,8 +20,8 @@
   }
   posn[!is.na(chnls)]<-positive
   
-  browser()
-  debug(flowDensity:::.deGate2D)
+#  browser()
+#  debug(flowDensity:::.deGate2D)
   result<-flowDensity::flowDensity(obj=fr,channels=chnls,position=posn)
   #TODO construct a filterResult
 }

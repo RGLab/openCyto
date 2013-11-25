@@ -9,14 +9,9 @@ using namespace Rcpp;
 SEXP unlockNamespace(SEXP env);
 RcppExport SEXP openCyto_unlockNamespace(SEXP envSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< SEXP >::type env(envSEXP );
-        SEXP __result = unlockNamespace(env);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RNGScope __rngScope;
+    SEXP env = Rcpp::as<SEXP >(envSEXP);
+    SEXP __result = unlockNamespace(env);
+    return Rcpp::wrap(__result);
 END_RCPP
 }
