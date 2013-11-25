@@ -3,8 +3,6 @@
 \alias{gatingTemplate,character-method}
 \alias{gatingTemplate-class}
 \alias{show}
-\alias{show,boolMethod-method}
-\alias{show,fcFilter-method}
 \alias{show,gatingTemplate-method}
 \title{a class storing the gating method and population information in a graphNEL object}
 \arguments{
