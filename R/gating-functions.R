@@ -1005,7 +1005,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
     scale_x <- huber_x$s
   }
   
-  x <- as.vector(base:::scale(x, center = center_x, scale = scale_x))
+  x <- as.vector(base::scale(x, center = center_x, scale = scale_x))
   
   if (!center) {
     center_x <- NULL

@@ -10,6 +10,10 @@
 
   \item{methodName}{\code{character} name of the gating
   method}
+
+  \item{dep}{\code{character} name of the library
+  dependency required for the plugin gating method to
+  work.}
 }
 \value{
   \code{logical} TRUE if successful and prints a message.

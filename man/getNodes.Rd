@@ -1,24 +1,5 @@
 \name{getNodes}
-\alias{getChildren}
-\alias{getChildren,gatingTemplate,character-method}
-\alias{getGate}
-\alias{getGate,fcTree,character-method}
-\alias{getGate,gatingTemplate,character-method}
-\alias{getNodes}
-\alias{getNodes,fcTree-method}
 \alias{getNodes,gatingTemplate-method}
-\alias{getParent}
-\alias{getParent,gatingTemplate,character-method}
-\alias{plot}
-\alias{plot,fcFilterList,ANY-method}
-\alias{plot,fcTree,character-method}
-\alias{plot,filterList,ANY-method}
-\alias{plot,gatingTemplate,ANY-method}
-\alias{plot,gatingTemplate,character-method}
-\alias{plot,gatingTemplate,missing-method}
-\alias{plot,gatingTemplate-method}
-\alias{ppMethod}
-\alias{ppMethod,gatingTemplate,character-method}
 \title{get nodes from \link{gatingTemplate} object}
 \arguments{
   \item{x}{\code{gatingTemplate}}
