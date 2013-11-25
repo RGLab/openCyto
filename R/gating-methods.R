@@ -154,6 +154,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSet"),
 #'  @param  cl \code{cluster} object passed to \code{parallel} package
 #'  @param  plot \code{logical} whether to plot the gates after the gating is done
 #'  @param  xbin \code{numeric} passed to \link[flowViz:xyplot]{xyplot}
+#'  @import flowWorkspace
 .gating_gtMethod <- function(x, y, gtPop, parent, pp_res 
             , mc.cores = 1, parallel_type = c("none", "multicore", "cluster"), cl = NULL
             , plot = FALSE, xbin = 128,  ...) {

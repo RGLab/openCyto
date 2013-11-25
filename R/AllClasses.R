@@ -244,6 +244,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 
 #' A function to tell wether a gating method is \code{polyFunctions}
 #' 
+#' @rdname isPolyfunctional
 #' @param gm an object that extends \code{gtMethod}  
 .isPolyfunctional <- function(gm) {
   # grepl('^\\[\\:.+\\:\\]$',x)

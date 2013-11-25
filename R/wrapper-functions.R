@@ -1,3 +1,35 @@
+#flowDensity wrapper
+.flowDensity<-function(fr, pp_res, xChannel=NA, yChannel=NA, filter_id="",...){
+  chnls <- yChannel
+  if(!is.na(xChannel)){
+    chnls<-c(xChannel,yChannel)
+  }
+  #We ignore the "position" argument and define it ourselves based on the input from the template
+  #Deal with flowDensity's god-awful argument handling..
+  positive<-match.call()$positive
+  eligible.args <- c("use.percentile", "upper", "avg", "percentile", 
+                     "sd.threshold", "n.sd", "alpha", "debris.gate", "scale", 
+                     "ellip.gate", "graphs")
+  if(any(names(match.call())%in%eligible.args)){
+    extra.args<-match.call[names(match.call())%in%eligible.args]
+  }
+  if(length(chnls)==2){
+    posn<-rep(NA,2)
+  }else{
+    posn<-NA
+  }
+  posn[!is.na(chnls)]<-positive
+  
+#  browser()
+#  debug(flowDensity:::.deGate2D)
+  result<-flowDensity::flowDensity(obj=fr,channels=chnls,position=posn)
+  #TODO construct a filterResult
+}
+
+.onAttach<-function(libname,pkgname){
+#register flowDensity
+  registerGatingFunction(fun=.flowDensity,methodName="flowDensity",dep="flowDensity")
+}
 # This file contains all wrapper methods for dispatching data and arguments to
 # gating/preprocessing algorithms.
 
@@ -122,7 +154,9 @@
     #coercing
     sn <- sampleNames(fs)
     fr <- as(fs,"flowFrame")
-    
+    if(!.isRegistered(gFunc)){
+      stop(sprintf("Can't gate using unregistered method %s",gFunc))
+    }
     thisCall <- substitute(f(fr = fr, pp_res = pp_res, ...),list(f=as.symbol(gFunc)))
     filterRes <- try(eval(thisCall), silent = TRUE)
     
