@@ -61,6 +61,7 @@ listgtMethods<-function(){
 #'csv template.
 #'@param fun \code{function} to be registered
 #'@param methodName \code{character} name of the gating method
+#'@param dep \code{character} name of the library dependency required for the plugin gating method to work.
 #'@return \code{logical} TRUE if successful and prints a message. FALSE otherwise.
 #'@export
 #'@useDynLib openCyto
@@ -69,7 +70,7 @@ listgtMethods<-function(){
 #'The function must return a filter (i.e. polygonGate or other instance) from flowCore.
 #'Not all formal parameters need to be used. Additional arguments are passed via the ... and can be processed in the wrapper
 #'@import utils
-#'@import R.utils
+#'@importFrom R.utils isPackageInstalled
 registerGatingFunction<-function(fun=NA,methodName="myGatingMethod",dep=NA){
   if(!is.na(dep)){
     if(is.character(dep)){
