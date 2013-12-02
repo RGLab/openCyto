@@ -443,7 +443,7 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
     flist <- flowWorkspace::lapply(y, function(gh) {
           
        glist <- lapply(refNodes, function(refNode) {
-          node_names <- getNodes(gh, showHidden = TRUE)
+          node_names <- getNodes(gh, showHidden = TRUE, isPath = F)
           node_ind <- match(refNode, node_names)
          if (is.na(node_ind)) {
             # match to path
