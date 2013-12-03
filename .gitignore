@@ -2,3 +2,4 @@ src/*.o
 src/*.so
 .Rproj.user
 *.Rproj
+.Rhistory
