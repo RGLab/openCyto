@@ -735,7 +735,7 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   rectangleGate(gate_coordinates, filterId = filter_id)
 }
 
-#' Constructs cytokine gates from the derivative of a kernel density estimate
+#' Gates the tail of a density using the derivative of a kernel density estimate
 #' after standardizing and collapsing flowFrames
 #'
 #' @param fr a \code{flowFrame} object
@@ -757,9 +757,9 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 #' @export
 #' @examples
 #' \dontrun{
-#'  gate <- cytokine(fr, Channel = "APC-A") # fr is a flowFrame
+#'  gate <- tailgate(fr, Channel = "APC-A") # fr is a flowFrame
 #' }
-cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
+tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
     ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right", ...) {
   
   # Standardizes the flowFrame's for a given channel using the mode of the kernel
@@ -811,6 +811,15 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
       })
   
   cytokine_gates[[1]]
+}
+
+#' @rdname tailgate
+#' @export
+cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
+  ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right", ...) {
+  return (tailgate(fr=fr, channel=channel, filter_id=filter_id,
+    num_peaks=num_peaks, ref_peak=ref_peak, tol=tol, positive=positive,
+    side=side, ...))
 }
 
 #' Standardizes a channel within a \code{flowSet} object using the mode of the

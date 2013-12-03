@@ -346,6 +346,17 @@
   cytokine(fr, channel = yChannel, filter_id = filterId, ...)
 }
 
+#' @param ... arguments to be passed to \link{tailgate}
+#' @inheritParams .flowClust.1d 
+#' 
+#' @return a \code{filter} object
+.tailgate <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", filterId = "", 
+  ...) {
+  
+  #TODO:standardize data with pp_res
+  tailgate(fr, channel = yChannel, filter_id = filterId, ...)
+}
+
 #' wrapper for mindensity
 #' 
 #' It does some parameter preprocessing before calling the mindensity

@@ -31,7 +31,8 @@ Depends:
 Imports:
     Biobase,gtools,flowCore,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils
 Suggests:
-    flowWorkspaceData
+    flowWorkspaceData,
+    knitr
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
 Enhances: flowDensity
 VignetteBuilder: knitr

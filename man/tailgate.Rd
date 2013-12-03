@@ -1,10 +1,16 @@
-\name{cytokine}
+\name{tailgate}
 \alias{cytokine}
-\title{Constructs cytokine gates from the derivative of a kernel density estimate
+\alias{tailgate}
+\title{Gates the tail of a density using the derivative of a kernel density estimate
 after standardizing and collapsing flowFrames}
 \usage{
+  tailgate(fr, channel, filter_id = "", num_peaks = 1,
+    ref_peak = 1, tol = 0.01, positive = TRUE,
+    side = "right", ...)
+
   cytokine(fr, channel, filter_id = "", num_peaks = 1,
-    ref_peak = 1, tol = 0.01, positive = TRUE, ...)
+    ref_peak = 1, tol = 0.01, positive = TRUE,
+    side = "right", ...)
 }
 \arguments{
   \item{fr}{a \code{flowFrame} object}
@@ -31,6 +37,10 @@ after standardizing and collapsing flowFrames}
   Otherwise, the gate is the entire real line to the left
   of the cutpoint. (Default: \code{TRUE})}
 
+  \item{side}{On which side of the density do we want to
+  gate the tail, the \code{'right'} (default) or
+  \code{'left'}?}
+
   \item{...}{additional arguments.}
 }
 \value{
@@ -38,13 +48,13 @@ after standardizing and collapsing flowFrames}
   each sample
 }
 \description{
-  Constructs cytokine gates from the derivative of a kernel
-  density estimate after standardizing and collapsing
-  flowFrames
+  Gates the tail of a density using the derivative of a
+  kernel density estimate after standardizing and
+  collapsing flowFrames
 }
 \examples{
 \dontrun{
- gate <- cytokine(fr, Channel = "APC-A") # fr is a flowFrame
+ gate <- tailgate(fr, Channel = "APC-A") # fr is a flowFrame
 }
 }
 
