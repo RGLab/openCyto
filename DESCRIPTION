@@ -24,13 +24,14 @@ Collate:
     'fcFilter-methods.R'
     'wrapper-functions.R'
     'preprocessing-method.R'
-    'RcppExports.R'
     'pluginFramework.R'
+    'unlockNamespace.R'
 Depends:
     methods,flowWorkspace (>= 3.7.27)
 Imports:
     Biobase,gtools,flowCore,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils
+Suggests:
+    flowWorkspaceData
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
 Enhances: flowDensity
-LinkingTo: Rcpp
 VignetteBuilder: knitr
