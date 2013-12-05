@@ -13,10 +13,10 @@
 \alias{plot,fcFilterList,ANY-method}
 \alias{plot,fcTree,character-method}
 \alias{plot,filterList,ANY-method}
-\alias{plot,gatingTemplate-method}
 \alias{plot,gatingTemplate,ANY-method}
 \alias{plot,gatingTemplate,character-method}
 \alias{plot,gatingTemplate,missing-method}
+\alias{plot,gatingTemplate-method}
 \alias{ppMethod}
 \alias{ppMethod,gatingTemplate,character-method}
 \title{get nodes from \link{gatingTemplate} object}

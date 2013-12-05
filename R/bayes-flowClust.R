@@ -143,6 +143,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #'                              deviations from all flowFrames. Then, we divide the overall standard
 #'                              deviation by the number of groups to the scale the standard deviation.
 #' @return list of prior parameters
+#' @rdname prior_flowClust1d
 .prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
                               clust_method = c("kmeans", "hclust"),
                               hclust_method = "complete", artificial = NULL,
@@ -327,6 +328,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
 #' @importFrom clue solve_LSAP
+#' @rdname prior_kmeans
 .prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
                          pct = 0.1, min = NULL, max = NULL, ...) {
 
