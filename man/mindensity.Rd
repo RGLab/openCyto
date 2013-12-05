@@ -5,7 +5,7 @@ between two peaks}
 \usage{
   mindensity(flow_frame, channel, filter_id = "",
     positive = TRUE, pivot = FALSE, gate_range = NULL,
-    min = NULL, max = NULL, ...)
+    min = NULL, max = NULL, bw = NULL, adjust = 1, ...)
 }
 \arguments{
   \item{flow_frame}{a \code{flowFrame} object}
@@ -34,6 +34,16 @@ between two peaks}
 
   \item{max}{a numeric value that sets the upper boundary
   for data filtering}
+
+  \item{bw}{The bandwidth used in producing the density
+  estimates. If \code{NULL} we estimate the bandwidth using
+  \code{\link[KernSmooth:dpik]{dpik}}. Alternatively, you
+  can supply your own bandwidth-generating function, which
+  should take a vector, and return a single number.}
+
+  \item{adjust}{The bandwidth used is actually \code{bw *
+  adjust}; turn this knob if you need finer control over
+  the level of smoothing.}
 
   \item{...}{Additional arguments for peak detection.}
 }

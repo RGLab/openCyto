@@ -656,7 +656,14 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' maximum value of the range otherwise.
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
+#' @param bw The bandwidth used in producing the density estimates. If
+#' \code{NULL} we estimate the bandwidth using \code{\link[KernSmooth:dpik]{dpik}}.
+#' Alternatively, you can supply your own bandwidth-generating function, which
+#' should take a vector, and return a single number.
+#' @param adjust The bandwidth used is actually \code{bw * adjust}; turn this
+#' knob if you need finer control over the level of smoothing.
 #' @param ... Additional arguments for peak detection.
+#' @importFrom KernSmooth dpik
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 #' @export
 #' @examples
@@ -665,6 +672,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' }
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
                        pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
+                       bw = NULL, adjust = 1,
                        ...) {
   
   if (missing(channel) || length(channel) != 1) {
@@ -685,8 +693,21 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   } else {
     gate_range <- sort(gate_range)
   }
+  
+  # Determine the bandwidth
+  if (is.null(bw)) {
+    bw <- dpik(x)
+  }
+  
+  if (is.function(bw)) {
+    bw <- bw(x)
+  }
+  
+  if (!is.numeric(bw) && length(bw) != 0) {
+    stop("'bw' must be a scalar numeric value")
+  }
 
-  peaks <- .find_peaks(x, ...)
+  peaks <- .find_peaks(x, bw=bw, adjust=adjust, ...)
 
   # In the special case that there is only one peak, we are conservative and set
   # the cutpoint as min(x) if 'positive' is TRUE, and max(x) otherwise.
@@ -697,7 +718,7 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
     # case that there are no valleys (i.e., if 'x_between' has an insufficient
     # number of observations), we are conservative and set the cutpoint as the
     # minimum value if 'positive' is TRUE, and the maximum value otherwise.
-    valleys <- try(.find_valleys(x, ...), silent = TRUE)
+    valleys <- try(.find_valleys(x, bw=bw, adjust=adjust, ...), silent = TRUE)
     valleys <- .between_interval(x = valleys, interval = gate_range)
 
     if (any(is.na(valleys))) {

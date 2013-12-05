@@ -3,3 +3,6 @@ src/*.so
 .Rproj.user
 *.Rproj
 .Rhistory
+vignettes/*.md
+vignettes/*.html
+vignettes/figure

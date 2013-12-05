@@ -1,3 +1,6 @@
+#' @include AllGenerics.R
+NULL
+
 #' Hierarchical Gating Pipeline for flow cytometry data.
 #' 
 #' openCyto is a package designed to facilitate the automated gating methods in sequential way 
