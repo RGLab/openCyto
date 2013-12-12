@@ -11,6 +11,10 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
     definition = function(x, y, ...) {
       .preprocessing(x,y,...)
     })
+setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
+    definition = function(x, y, ...) {
+      .preprocessing(x,y,...)
+    })
 #' internal function (preprocessing)
 #' 
 #' @inheritParams .gating_gtMethod
