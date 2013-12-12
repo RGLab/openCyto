@@ -421,6 +421,15 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
   # actual gating
   lapply(polyExprsList, function(polyExpr) {
     bgt <- new("boolMethod", name = polyExpr, args = list(as.symbol(polyExpr)))
+    
+    #replace the slash with colon 
+    #since forward slash is reserved for gating path
+    if(grepl("/",polyExpr)){
+      old_name <- polyExpr
+      polyExpr <- gsub("/",":",polyExpr)
+      warning(old_name, " is replaced with ", polyExpr)
+    }
+    
     gtPop@alias <- polyExpr
     gating(bgt, y, parent = parent, gtPop = gtPop, ...)
   })
