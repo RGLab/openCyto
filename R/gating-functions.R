@@ -1050,7 +1050,14 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
   
   
   x <- as.vector(x)
-  huber_x <- huber(x)
+  
+  huber_x <- try(huber(x), silent=TRUE)
+  if (inherits(huber_x, "try-error")) {
+    warning("huber estimation failed; using a trimmed mean, sd instead")
+    quantiles <- quantile(x, c(0.01, 0.99))
+    x_trimmed <- x[ x > quantiles[1] & x < quantiles[2] ]
+    huber_x <- list(mu=mean(x_trimmed), s=sd(x_trimmed))
+  }
   
   # If 'center' is set to TRUE, we center 'x' by the Huber robust location
   # estimator.
