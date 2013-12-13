@@ -1,10 +1,15 @@
 \name{gating}
 \alias{gating}
 \alias{gating,boolMethod,GatingSet-method}
+\alias{gating,boolMethod,GatingSetList-method}
 \alias{gating,gatingTemplate,GatingSet-method}
+\alias{gating,gatingTemplate,GatingSetList-method}
 \alias{gating,gtMethod,GatingSet-method}
+\alias{gating,gtMethod,GatingSetList-method}
 \alias{gating,polyFunctions,GatingSet-method}
+\alias{gating,polyFunctions,GatingSetList-method}
 \alias{gating,refGate,GatingSet-method}
+\alias{gating,refGate,GatingSetList-method}
 \title{Applies gatingTemplate to one GatingSet.}
 \arguments{
   \item{x}{a \code{gatingTemplate} object}

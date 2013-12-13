@@ -1,7 +1,7 @@
 \name{gatingTemplate-class}
 \alias{gatingTemplate}
-\alias{gatingTemplate,character-method}
 \alias{gatingTemplate-class}
+\alias{gatingTemplate,character-method}
 \alias{show}
 \alias{show,boolMethod-method}
 \alias{show,fcFilter-method}

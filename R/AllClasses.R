@@ -339,6 +339,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' This csv must have the following columns:
 #' 
 #' 'alias': a name used label the cell population, the path composed by the alias and its precedent nodes (e.g. /root/A/B/alias) has to be uniquely identifiable.
+#'          So alias can not contain '/' character, which is reserved as path delimiter.
 #'  
 #' 'pop': population patterns of 'A+/-` or 'A+/-B+/-', which tells the algorithm which side (postive or negative) of 1d gate or which quadrant of 2d gate to be kept
 #' 
@@ -405,6 +406,8 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
     # get parent ID
     parentID <- .searchNode(g, parent)
     curPop <- thisRow[,"alias"][[1]]
+    if(grepl("/", curPop))
+      stop("Population name(or alias) '", curPop , "' contains '/', which is reserved as gating path delimiter!")
     curPopName <- thisRow[,"pop"][[1]]
 
     # create pop object
