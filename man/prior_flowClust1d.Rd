@@ -1,0 +1,132 @@
+\name{.prior_flowClust1d}
+\alias{.prior_flowClust1d}
+\title{Elicits data-driven priors from a flowSet object for a specified channel}
+\usage{
+  .prior_flowClust1d(flow_set, channel, K = NULL,
+    hclust_height = NULL,
+    clust_method = c("kmeans", "hclust"),
+    hclust_method = "complete", artificial = NULL, nu0 = 4,
+    w0 = 10, adjust = 2, min = NULL, max = NULL,
+    vague = TRUE)
+}
+\arguments{
+  \item{flow_set}{a \code{flowSet} object}
+
+  \item{channel}{the channel in the \code{flowSet} from
+  which we elicit the prior parameters for the Student's t
+  mixture}
+
+  \item{K}{the number of mixture components to identify. By
+  default, this value is \code{NULL} and determined
+  automatically}
+
+  \item{hclust_height}{the height of the
+  \code{\link{hclust}} tree of peaks, where the should be
+  cut By default, we use the median of the distances
+  between adjacent peaks. If a value is specified, we pass
+  it directly to \code{\link{cutree}}.}
+
+  \item{clust_method}{the method used to cluster peaks
+  together when for prior elicitation. By default,
+  \code{kmeans} is used. However, if \code{K} is not
+  specified, \code{hclust} will be used instead.}
+
+  \item{hclust_method}{the agglomeration method used in the
+  hierarchical clustering. This value is passed directly to
+  \code{\link{hclust}}. Default is complete linkage.}
+
+  \item{artificial}{a numeric vector containing prior means
+  for artificial mixture components. The remaining prior
+  parameters for the artificial components are copied
+  directly from the most informative prior component
+  elicited. If \code{NULL} (default), no artificial prior
+  components are added.}
+
+  \item{nu0}{prior degrees of freedom of the Student's t
+  mixture components.}
+
+  \item{w0}{the number of prior pseudocounts of the
+  Student's t mixture components.}
+
+  \item{adjust}{the bandwidth to use in the kernel density
+  estimation. See \code{\link{density}} for more
+  information.}
+
+  \item{min}{a numeric value that sets the lower bound for
+  data filtering. If \code{NULL} (default), no truncation
+  is applied.}
+
+  \item{max}{a numeric value that sets the upper bound for
+  data filtering. If \code{NULL} (default), no truncation
+  is applied.}
+
+  \item{vague}{\code{logical} Whether to elicit a vague
+  prior. If \code{TRUE}, we first calculate the median of
+  standard deviations from all flowFrames. Then, we divide
+  the overall standard deviation by the number of groups to
+  the scale the standard deviation.}
+}
+\value{
+  list of prior parameters
+}
+\description{
+  We elicit data-driven prior parameters from a
+  \code{flowSet} object for a specified channel. For each
+  sample in the \code{flowSet} object, we apply a
+  kernel-density estimator (KDE) and identify its local
+  maxima (peaks). We then aggregate these peaks to elicit a
+  prior parameters for each of \code{K} mixture components.
+}
+\details{
+  Here, we outline the approach used for prior elicitation.
+  First, we apply a KDE to each sample and extract all of
+  its peaks (local maxima). It is important to note that
+  different samples may have a different number of peaks.
+  Our goal then is to align the peaks before aggregating
+  the information across all samples.  To do this, we
+  utilize a technique similar to the peak probability
+  contrasts (PPC) method from Tibshirani et al (2004).
+  Effectively, we apply hierarchical clustering to the
+  peaks from all samples to find clusters of peaks. We
+  compute the sample mean and variance of the peaks within
+  each cluster to elicit the prior means and its hyperprior
+  variance, respectively, for a \code{\link{flowClust}}
+  mixture component. We elicit the prior variance for each
+  mixture component by first assigning the observations
+  within each sample to the nearest prior mean. Then, we
+  compute the variance of the observations within each
+  cluster. Finally, we average the variances corresponding
+  to each mixture component across all samples in the
+  \code{flowSet} object.
+
+  Following Tibshirani et al. (2004), we cluster the peaks
+  from each sample using complete-linkage hierarchical
+  clustering. The linkage type can be changed via the
+  \code{hclust_method} argument. This argument is passed
+  directly to \code{\link{hclust}}.
+
+  To cluster the peaks, we must cut the hierarchical tree
+  by selecting either a value for \code{K} or by providing
+  a height of the tree to cut. By default, we cut the tree
+  using as the height the median of the distances between
+  adjacent peaks within each sample. This value can be
+  changed via the \code{hclust_height} argument and, if
+  provided, will be passed to \code{\link{cutree}}. Also,
+  by default, the number of mixture components \code{K} is
+  \code{NULL} and is ignored.  However, if \code{K} is
+  provided, then it has priority over \code{hclust_height}
+  and is passed instead directly to \code{\link{cutree}}.
+
+  To ensure that the KDEs are smooth, we recommend that the
+  bandwidth set in the \code{adjust} argument be
+  sufficiently large. We have defaulted this value to 2. If
+  the bandwidth is not large enough, the KDE may contain
+  numerous bumps, resulting in erroneous peaks.
+}
+\references{
+  Tibshirani, R et al. (2004), "Sample classification from
+  protein mass spectrometry, by 'peak probability
+  contrasts'," Bioinformatics, 20, 17, 3034-3044.
+  \url{http://bioinformatics.oxfordjournals.org/content/20/17/3034}.
+}
+

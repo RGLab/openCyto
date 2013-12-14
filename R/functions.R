@@ -26,7 +26,9 @@
 #' @importFrom data.table fread
 .preprocess_csv <- function(x) {
   df <- as.data.frame(fread(x))
+  df <- df[, 1:10] #only parse first 10 columns and ignore the rest 
   new_df <- df[0, ]
+  
   for (i in 1:nrow(df)) {
     this_row <- df[i, , drop = FALSE]
     
