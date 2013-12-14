@@ -3,6 +3,13 @@
 %\VignetteIndexEntry{An Introduction to the openCyto package}
 -->
 
+```{r requirements, echo=FALSE}
+if (!require(flowWorkspaceData)) {
+  stop("Cannot build the vignettes without 'flowWorkspaceData'")
+}
+```
+
+
 An Introduction to **openCyto** package
 =======================================
 

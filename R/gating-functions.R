@@ -735,7 +735,7 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   rectangleGate(gate_coordinates, filterId = filter_id)
 }
 
-#' Constructs cytokine gates from the derivative of a kernel density estimate
+#' Gates the tail of a density using the derivative of a kernel density estimate
 #' after standardizing and collapsing flowFrames
 #'
 #' @param fr a \code{flowFrame} object
@@ -750,15 +750,18 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
 #' line to the right of the cutpoint. Otherwise, the gate is the entire real
 #' line to the left of the cutpoint. (Default: \code{TRUE})
+#' @param side On which side of the density do we want to gate the tail, the
+#'  \code{'right'} (default) or \code{'left'}?
 #' @param ... additional arguments.
 #' @return a \code{filterList} containing the gates (cutpoints) for each sample
 #' @export
 #' @examples
 #' \dontrun{
-#'  gate <- cytokine(fr, Channel = "APC-A") # fr is a flowFrame
+#'  gate <- tailgate(fr, Channel = "APC-A") # fr is a flowFrame
 #' }
-cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
-    ref_peak = 1, tol = 1e-2, positive = TRUE, ...) {
+tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
+    ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right", ...) {
+  
   # Standardizes the flowFrame's for a given channel using the mode of the kernel
   # density estimate and the Huber estimator of the standard deviation
   standardize_out <- .standardize_flowset(as(fr,"flowSet"), channel = channel)
@@ -768,7 +771,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
   # estimate. 
   cutpoint <- .cytokine_cutpoint(flow_frame = as(standardize_out$flow_set, "flowFrame"),
       channel = channel, num_peaks = num_peaks,
-      ref_peak = ref_peak, tol = tol, ...)
+      ref_peak = ref_peak, tol = tol, side = side, ...)
   
   # Backtransforms the cutpoint with respect to each sample to place
   # them on the scales of the original samples
@@ -808,6 +811,15 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
       })
   
   cytokine_gates[[1]]
+}
+
+#' @rdname tailgate
+#' @export
+cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
+  ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right", ...) {
+  return (tailgate(fr=fr, channel=channel, filter_id=filter_id,
+    num_peaks=num_peaks, ref_peak=ref_peak, tol=tol, positive=positive,
+    side=side, ...))
 }
 
 #' Standardizes a channel within a \code{flowSet} object using the mode of the
@@ -882,11 +894,13 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' @param tol the tolerance value
 #' @param adjust the scaling adjustment applied to the bandwidth used in the
 #' first derivative of the kernel density estimate
+#' @param side On which side of the density do we want to gate the tail, the
+#'  \code{'right'} (default) or \code{'left'}?
 #' @param ... additional arguments passed to \code{\link{.deriv_density}}
 #' @return the cutpoint along the x-axis
 .cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
     method = c("first_deriv", "second_deriv"),
-    tol = 1e-2, adjust = 1, ...) {
+    tol = 1e-2, adjust = 1, side = "right", ...) {
   
   method <- match.arg(method)
   
@@ -908,19 +922,45 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
     # The number of valleys identified is determined by 'num_peaks'
     deriv_out <- .deriv_density(x = x, adjust = adjust, deriv = 1, ...)
     
-    deriv_valleys <- with(deriv_out, .find_valleys(x = x, y = y, adjust = adjust))
-    deriv_valleys <- deriv_valleys[deriv_valleys > peaks[ref_peak]]
-    deriv_valleys <- sort(deriv_valleys)[1]
+    if (side == "right") {
+      
+      deriv_valleys <- with(deriv_out, .find_valleys(x = x, y = y, adjust = adjust))
+      deriv_valleys <- deriv_valleys[deriv_valleys > peaks[ref_peak]]
+      deriv_valleys <- sort(deriv_valleys)[1]
+      cutpoint <- with(deriv_out, x[x > deriv_valleys & abs(y) < tol])
+      cutpoint <- cutpoint[1]
+      
+    } else if (side == "left") {
+      
+      deriv_out$y <- -deriv_out$y
+      deriv_valleys <- with(deriv_out, .find_valleys(x = x, y = y, adjust = adjust))
+      deriv_valleys <- deriv_valleys[deriv_valleys < peaks[ref_peak]]
+      deriv_valleys <- sort(deriv_valleys, decreasing=TRUE)[1]
+      cutpoint <- with(deriv_out, x[x < deriv_valleys & abs(y) < tol])
+      cutpoint <- cutpoint[ length(cutpoint) ]
+      
+    } else {
+      stop("Unrecognized 'side' argument (was '", side, "'.")
+    }
     
-    cutpoint <- with(deriv_out, x[x > deriv_valleys & abs(y) < tol])
-    cutpoint <- cutpoint[1]
   } else {
     # The cutpoint is selected as the first peak from the second derivative
     # density which is to the right of the reference peak.
     deriv_out <- .deriv_density(x = x, adjust = adjust, deriv = 2, ...)
-    deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust))
-    deriv_peaks <- deriv_peaks[deriv_peaks > peaks[ref_peak]]
-    cutpoint <- sort(deriv_peaks)[1]
+    
+    if (side == "right") {
+      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust))
+      deriv_peaks <- deriv_peaks[deriv_peaks > peaks[ref_peak]]
+      cutpoint <- sort(deriv_peaks)[1]
+    } else if (side == "left") {
+      deriv_out$y <- -deriv_out$y
+      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust))
+      deriv_peaks <- deriv_peaks[deriv_peaks < peaks[ref_peak]]
+      cutpoint <- sort(deriv_peaks, decreasing=TRUE)[length(deriv_peaks)]
+    } else {
+      stop("Unrecognized 'side' argument (was '", side, "'.")
+    }
+    
   }
   
   cutpoint
@@ -1005,7 +1045,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
     scale_x <- huber_x$s
   }
   
-  x <- as.vector(base:::scale(x, center = center_x, scale = scale_x))
+  x <- as.vector(base::scale(x, center = center_x, scale = scale_x))
   
   if (!center) {
     center_x <- NULL

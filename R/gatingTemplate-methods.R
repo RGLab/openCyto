@@ -132,7 +132,6 @@ setMethod("show", signature = c("gatingTemplate"),
 #' plot,fcFilterList,ANY-method
 #' plot,filterList,ANY-method
 #' plot,fcTree,character-method
-
 #' @rdname getNodes
 setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
       .plotTree(x,...)

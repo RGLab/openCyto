@@ -9,7 +9,6 @@
 \alias{getNodes,gatingTemplate-method}
 \alias{getParent}
 \alias{getParent,gatingTemplate,character-method}
-\alias{plot}
 \alias{plot,fcFilterList,ANY-method}
 \alias{plot,fcTree,character-method}
 \alias{plot,filterList,ANY-method}

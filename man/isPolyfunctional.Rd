@@ -1,0 +1,14 @@
+\name{.isPolyfunctional}
+\alias{.isPolyfunctional}
+\title{A function to tell wether a gating method is \code{polyFunctions}}
+\usage{
+  .isPolyfunctional(gm)
+}
+\arguments{
+  \item{gm}{an object that extends \code{gtMethod}}
+}
+\description{
+  A function to tell wether a gating method is
+  \code{polyFunctions}
+}
+
