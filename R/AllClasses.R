@@ -301,6 +301,10 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' search for node ID by path with gating template tree and add the edge
 #' @importFrom RBGL dfs
 .searchNode <- function(g, node_name, ...) {
+  #strip initial /
+  if(substr(node_name, 1, 1) == "/")
+    node_name <- substr(node_name, 2, nchar(node_name))
+  
   if (node_name == "root") {
     node_id <- "1"
   } else {

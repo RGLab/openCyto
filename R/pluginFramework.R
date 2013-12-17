@@ -106,7 +106,7 @@ registerGatingFunction<-function(fun=NA,methodName="myGatingMethod",dep=NA){
   methodName <- paste0(".",methodName)
   ENV <- getNamespace("openCyto")
   openCyto:::unlockNamespace(ENV)  
-  unlockBinding(methodName,ENV)
+  try(unlockBinding(methodName,ENV),silent=TRUE)
   assign(methodName,fun,ENV)
   e<-getFromNamespace(".openCyto_gtmethod_lookup",ns=getNamespace("openCyto"))
   assign(gsub("^\\.","",methodName)," ",envir=e)
