@@ -2,13 +2,83 @@
   ind <- match(ref_node, new_df[, "alias"])
   if (!is.na(ind)) {
     if (this_parent == "root") {
-      stop("Not able to to find unique reference for ", ref_node)
+      stop("Not able to to find unique reference to ", ref_node)
     } else {
-      # assuming this_parent is uniquely identifiable
-      ref_node <- paste(this_parent, ref_node, sep = "/")
+      ref_node <- file.path(this_parent, ref_node)
     }
-  }
+  }else
+    stop("Not able to to find reference to ", ref_node)
   ref_node
+}
+
+.getFullPath <- function(ref_node, new_df){
+
+  ref_node <- flowWorkspace:::trimWhiteSpace(ref_node)
+  #prepend root if start with /
+  if(substr(ref_node, 1, 1) == "/")
+    ref_node <- file.path(root, ref_node)
+  
+  tokens <- strsplit(ref_node, "/")[[1]]
+  tokens <- rev(tokens)
+  res_path <- NULL
+  childind <- NULL
+#  browser()
+  # start from matchedID to match the rest of tokens in the path
+  while (length(tokens) > 0) {
+    #pop the current one
+    curToken <- tokens[1]
+    tokens <- tokens[-1]
+    if(curToken == "root")
+      res_path <- c(res_path, curToken)
+    else{
+      
+      ind <- match(curToken, new_df[, "alias"])
+      if(is.na(ind))
+        stop("Not able to to find reference to: ", curToken)
+      else{
+        if(length(ind) > 1)
+          stop("Non-unique reference to: ", curToken)
+        else{
+          if(!is.null(childind)){
+            #check the validity of parenthood
+            if(curToken != new_df[childind, "parent"])
+              stop("invalid node path: ", ref_node)
+          }
+          res_path <- c(res_path, curToken)
+          childind <- ind
+        }
+          
+      }
+        
+    }
+    
+  }
+#  browser()
+  #if partial path, then try to trace back all the way to the root
+  while(curToken != "root"){
+    ind <- match(curToken, new_df[, "alias"])
+    if(is.na(ind))
+      stop("Not able to to find reference to: ", curToken)
+    else{
+      if(length(ind) > 1)
+        stop("Non-unique reference to: ", curToken)
+      else {
+        curToken <- basename(new_df[ind, "parent"])
+        res_path <- c(res_path, curToken)    
+      }
+    
+      }
+    }
+  res_path <- rev(res_path)
+  res_path <- paste(res_path, collapse = "/")
+  
+  
+  res_path <- paste0("/", res_path)
+  if(res_path == "/root")
+    "root"
+  else #strip root from path to keep consistency with gatingset path
+    substr(res_path, 6, nchar(res_path))
+  
 }
 
 # make sure the alias is unique under one parent
@@ -35,6 +105,11 @@
     popName <- this_row[1, "pop"]
     dims <- this_row[1, "dims"]
     gm <- this_row[1, "gating_method"]
+    
+    
+    #update parent with full path
+    this_row[1, "parent"] <- .getFullPath(this_row[1, "parent"], new_df)
+    
     
     if (!grepl("[+-]", popName)) {
       popName <- paste0(popName, "+")
@@ -73,7 +148,7 @@
       }
       
       res <- this_row
-      
+      new_df <- .addToDf(res, this_row, new_df)
     } else if (grepl(paste("^", two_pop_pat, "$", sep = ""), popName)) {
       # A+/-
       
@@ -93,11 +168,13 @@
       res_1d <- c(alias = new_pops[1], pop = new_pops[1], parent = this_row[1, "parent"], 
                     dims, this_row[1, "gating_method"], this_row["gating_args"]
                   , this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
+      new_df <- .addToDf(res_1d, this_row, new_df)
       # create ref gate
+  
+      refNode <- file.path(this_row[1, "parent"], new_pops[1])
       res_ref <- c(alias = new_pops[2], pop = new_pops[2], parent = this_row[1, "parent"], 
-                        dims, "refGate", file.path(this_row[1, "parent"],new_pops[1])
-                        , this_row["collapseDataForGating"], this_row["groupBy"], NA,NA)
-      res <- rbind(res_1d, res_ref)
+                        dims, "refGate", refNode, this_row["collapseDataForGating"], this_row["groupBy"], NA,NA)
+      new_df <- .addToDf(res_ref, this_row, new_df)
 
     } else if (grepl(paste("^(", one_pop_pat, "){2}$", sep = ""), popName)) {
       # A+B+
@@ -105,7 +182,7 @@
       if (gm == "refGate") {
         # no expansion
         res <- this_row
-        
+        new_df <- .addToDf(res, this_row, new_df)
       } else {
         
         if (gm == "flowClust") {
@@ -125,10 +202,10 @@
         # create 1d gate for each dim
         res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, 
           two_pop_token, new_df)
+        new_df <- .addToDf(res_1d, this_row, new_df)
         
-        res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, 
-          "alias"], alias = this_row["alias"], new_df = new_df)
-        res <- rbind(res_1d, res_ref)
+        res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, "alias"], alias = this_row["alias"], new_df = new_df)
+        new_df <- .addToDf(res_ref, this_row, new_df)
         
       }
     } else if (grepl(paste0("^(", two_pop_pat, "){2}$"), popName) ||
@@ -141,6 +218,7 @@
       if (gm == "refGate") {
         res <- .gen_refGate(split_terms$splitted_terms, this_row = this_row, 
           new_df = new_df)
+        new_df <- .addToDf(res, this_row, new_df)
       } else {
         
         if (gm == "flowClust") {
@@ -156,28 +234,35 @@
         # create 1d gate for each dim
         res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, 
           two_pop_token, new_df)
-        res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, 
-          "alias"], new_df = new_df)
-        res <- rbind(res_1d, res_ref)
+#        browser()
+        new_df <- .addToDf(res_1d, this_row, new_df)
+        
+        res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, "alias"], new_df = new_df)
+        new_df <- .addToDf(res_ref, this_row, new_df)
       }
       
     } else {
       stop("invalid population pattern '", popName, "'")
     }
-#    browser()
-    if (is.matrix(res)) {
-      colnames(res) <- names(this_row)
-    } else {
-      names(res) <- names(this_row)
-    }
-    
-    new_df <- rbind(new_df, res)
+
   }
 #  browser()
 
    new_df[is.na(new_df)] <- ""
    new_df
   
+}
+.addToDf <- function(res,this_row, new_df){
+#  browser()
+  if (is.matrix(res)) {
+    colnames(res) <- names(this_row)
+  } else {
+    names(res) <- names(this_row)
+  }
+  
+  res <- as.data.frame(res)
+  
+  rbind(new_df, res)
 }
 #' split the population pattern into multiple population names 
 .splitTerms <- function(pop_pat, two_pop_token, popName) {
@@ -201,16 +286,17 @@
 }
 #' convert to 1d gating based on the population pattern
 .gen_1dgate <- function(terms, this_row, one_pop_token, two_pop_token, new_df) {
-  res <- do.call(rbind, lapply(terms, function(cur_term) {
+    
+  res <- ldply(terms, function(cur_term) {
     toReplace <- paste("(", two_pop_token, ")|(", one_pop_token, ")", sep = "")
     cur_dim <- sub(toReplace, "", cur_term)
     new_pop_name <- paste(cur_dim, "+", sep = "")
     this_parent <- this_row[1, "parent"]
     .check_alias(new_df, new_pop_name, this_parent)
     
-    c(alias = new_pop_name, pop = new_pop_name, parent = this_parent, dims = cur_dim, 
+    data.frame(alias = new_pop_name, pop = new_pop_name, parent = this_parent, dims = cur_dim, 
       this_row["gating_method"], this_row["gating_args"], this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
-  }))
+  })
   rownames(res) <- NULL
   res
 }
@@ -235,10 +321,11 @@
   if (is.null(alias)) {
     alias <- new_pops
   }
+  
   # create ref gate for each new_pop )
   do.call(rbind, mapply(new_pops, alias, FUN = function(new_pop, cur_alias) {
     .check_alias(new_df, cur_alias, this_parent)
-    c(alias = cur_alias, pop = new_pop, parent = this_parent, this_row["dims"], 
+    data.frame(alias = cur_alias, pop = new_pop, parent = this_parent, this_row["dims"], 
       method = "refGate", gating_args = ref_args, NA, NA, NA, NA)
   }, SIMPLIFY = FALSE))
 }
