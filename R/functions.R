@@ -1,17 +1,5 @@
-.update_ref_node <- function(ref_node, new_df, this_parent) {
-  ind <- match(ref_node, new_df[, "alias"])
-  if (!is.na(ind)) {
-    if (this_parent == "root") {
-      stop("Not able to to find unique reference to ", ref_node)
-    } else {
-      ref_node <- file.path(this_parent, ref_node)
-    }
-  }else
-    stop("Not able to to find reference to ", ref_node)
-  ref_node
-}
 
-.getFullPath <- function(ref_node, new_df){
+.getFullPath <- function(ref_node, df){
 
   ref_node <- flowWorkspace:::trimWhiteSpace(ref_node)
   #prepend root if start with /
@@ -19,72 +7,59 @@
     ref_node <- file.path(root, ref_node)
   
   tokens <- strsplit(ref_node, "/")[[1]]
-  tokens <- rev(tokens)
   res_path <- NULL
-  childind <- NULL
-#  browser()
-  # start from matchedID to match the rest of tokens in the path
+#  
+  
+  # start to match the tokens in the path
   while (length(tokens) > 0) {
     #pop the current one
     curToken <- tokens[1]
     tokens <- tokens[-1]
     if(curToken == "root")
-      res_path <- c(res_path, curToken)
+      res_path <- c(res_path, "root")
     else{
-      
-      ind <- match(curToken, new_df[, "alias"])
-      if(is.na(ind))
+      toMatch <- gsub("\\+", "\\\\\\+", curToken)
+      toMatch <- paste0("^",toMatch,"$")
+      ind <- grep(toMatch, df[, "alias"])
+      if(length(ind) == 0)
         stop("Not able to to find reference to: ", curToken)
+      else if(length(ind) > 1)
+        stop("Non-unique reference to: ", curToken)
       else{
-        if(length(ind) > 1)
-          stop("Non-unique reference to: ", curToken)
-        else{
-          if(!is.null(childind)){
-            #check the validity of parenthood
-            if(curToken != new_df[childind, "parent"])
-              stop("invalid node path: ", ref_node)
+          if(is.null(res_path)){ # if the first node in the path, then prepend its parent to make it full path
+            thisParent <- df[ind, "parent"]
+            if(thisParent == "root")
+              curToken <- paste0("/", curToken)
+            else
+              curToken <- paste(thisParent, curToken, sep = "/")
           }
           res_path <- c(res_path, curToken)
-          childind <- ind
-        }
+      }
+    }
+#    browser()
+    #subset the data frame by parent
+    df <- subset(df, parent == curToken)
           
-      }
-        
-    }
-    
   }
-#  browser()
-  #if partial path, then try to trace back all the way to the root
-  while(curToken != "root"){
-    ind <- match(curToken, new_df[, "alias"])
-    if(is.na(ind))
-      stop("Not able to to find reference to: ", curToken)
-    else{
-      if(length(ind) > 1)
-        stop("Non-unique reference to: ", curToken)
-      else {
-        curToken <- basename(new_df[ind, "parent"])
-        res_path <- c(res_path, curToken)    
-      }
-    
-      }
-    }
-  res_path <- rev(res_path)
+        
+  
   res_path <- paste(res_path, collapse = "/")
   
-  
-  res_path <- paste0("/", res_path)
   if(res_path == "/root")
-    "root"
-  else #strip root from path to keep consistency with gatingset path
-    substr(res_path, 6, nchar(res_path))
-  
+    res_path <- "root"
+  else
+    res_path <- sub("/root", "", res_path)
+  res_path
+#  browser()  
 }
 
 # make sure the alias is unique under one parent
 .check_alias <- function(new_df, alias, this_parent) {
   siblings <- subset(new_df, parent == this_parent)[, "alias"]
-  matched_sibs <- match(alias, siblings)
+  toMatch <- gsub("\\+", "\\\\\\+", alias)
+  toMatch <- paste0("^",toMatch,"$")
+  
+  matched_sibs <- grep(toMatch, siblings)
   
   if (length(matched_sibs) >= 2) {
     stop(alias, " is not unique within ", this_parent)
@@ -106,7 +81,7 @@
     dims <- this_row[1, "dims"]
     gm <- this_row[1, "gating_method"]
     
-    
+#    browser()
     #update parent with full path
     this_row[1, "parent"] <- .getFullPath(this_row[1, "parent"], new_df)
     
@@ -163,7 +138,7 @@
       message("expanding pop: ", popName, "\n")
       cur_dim <- sub(two_pop_token, "", popName)
       new_pops <- paste(cur_dim, c("+", "-"), sep = "")
-#      browser()
+  
       # create 1d gate
       res_1d <- c(alias = new_pops[1], pop = new_pops[1], parent = this_row[1, "parent"], 
                     dims, this_row[1, "gating_method"], this_row["gating_args"]
@@ -175,7 +150,7 @@
       res_ref <- c(alias = new_pops[2], pop = new_pops[2], parent = this_row[1, "parent"], 
                         dims, "refGate", refNode, this_row["collapseDataForGating"], this_row["groupBy"], NA,NA)
       new_df <- .addToDf(res_ref, this_row, new_df)
-
+#      browser()
     } else if (grepl(paste("^(", one_pop_pat, "){2}$", sep = ""), popName)) {
       # A+B+
       
@@ -310,8 +285,8 @@
     ref_args <- this_row[1, "gating_args"]
   } else {
     # use the new generated 1d pops to construct ref args
-    # prepend the path to ref_nodes if needed
-    ref_nodes <- lapply(ref_nodes, .update_ref_node, new_df = new_df, this_parent = this_parent)
+    # prepend the path to ref_nodes 
+    ref_nodes <- file.path(this_parent, ref_nodes)
     ref_args <- paste(ref_nodes, collapse = ":")
   }
   

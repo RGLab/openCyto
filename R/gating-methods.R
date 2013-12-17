@@ -485,8 +485,10 @@ setMethod("gating", signature = c("refGate", "GatingSetList"),
 #             browser()
           #match node by base name
           node_names <- getNodes(gh, showHidden = TRUE, isPath = F)
-          node_ind <- match(refNode, node_names)
-         if (is.na(node_ind)) {
+          toMatch <- gsub("\\+", "\\\\\\+", refNode)
+          toMatch <- paste0("^",toMatch,"$")
+          node_ind <- grep(toMatch, node_names)
+         if (length(node_ind) == 0) {
             #if no match to base name then match to path
             node_paths <- getNodes(gh, isPath = T, showHidden = TRUE)
             toMatch <- gsub("\\+", "\\\\+", refNode)
@@ -497,10 +499,9 @@ setMethod("gating", signature = c("refGate", "GatingSetList"),
             } else if (length(node_ind) > 1) {
             stop("Multiple ", refNode, " found in gating set!")
             }
-          }else{
-            if(length(node_ind)>1)
+          }else if(length(node_ind)>1)
               stop("Multiple ", refNode, " found in gating set!")
-          }
+          
           getGate(gh, node_ind)
         })
 
