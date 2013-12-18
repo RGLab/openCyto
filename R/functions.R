@@ -4,12 +4,13 @@
   ref_node <- flowWorkspace:::trimWhiteSpace(ref_node)
   #prepend root if start with /
   if(substr(ref_node, 1, 1) == "/")
-    ref_node <- file.path(root, ref_node)
+    ref_node <- paste0("root", ref_node)
   
   tokens <- strsplit(ref_node, "/")[[1]]
   res_path <- NULL
-#  
   
+#browser()
+  df_toSearch <- df
   # start to match the tokens in the path
   while (length(tokens) > 0) {
     #pop the current one
@@ -20,41 +21,50 @@
     else{
       toMatch <- gsub("\\+", "\\\\\\+", curToken)
       toMatch <- paste0("^",toMatch,"$")
-      ind <- grep(toMatch, df[, "alias"])
+      ind <- grep(toMatch, df_toSearch[, "alias"])
       if(length(ind) == 0)
         stop("Not able to to find reference to: ", curToken)
       else if(length(ind) > 1)
         stop("Non-unique reference to: ", curToken)
       else{
-          if(is.null(res_path)){ # if the first node in the path, then prepend its parent to make it full path
-            thisParent <- df[ind, "parent"]
-            if(thisParent == "root")
-              curToken <- paste0("/", curToken)
-            else
-              curToken <- paste(thisParent, curToken, sep = "/")
-          }
-          res_path <- c(res_path, curToken)
+          # prepend its parent to make it full path
+          thisParent <- df_toSearch[ind, "parent"]
+          if(thisParent == "root")
+            curToken <- paste0("/", curToken)
+          else
+            curToken <- paste(thisParent, curToken, sep = "/")
+          
+          #only save the full path of the first token 
+          if(is.null(res_path))
+            toSave <- curToken
+          else
+            toSave <- basename(curToken)
+          
+          res_path <- c(res_path, toSave)
       }
     }
 #    browser()
     #subset the data frame by parent
-    df <- subset(df, parent == curToken)
+    df_toSearch <- subset(df, parent == curToken)
           
   }
         
   
   res_path <- paste(res_path, collapse = "/")
-  
-  if(res_path == "/root")
+#  browser()    
+  if(res_path == "root")
     res_path <- "root"
   else
-    res_path <- sub("/root", "", res_path)
+    res_path <- sub("root", "", res_path)
   res_path
-#  browser()  
+
 }
 
 # make sure the alias is unique under one parent
 .check_alias <- function(new_df, alias, this_parent) {
+  if(grepl("[\\|\\&|\\:|\\/]", alias))
+    stop(alias , "contains illegal character: |,&,:,/")
+  
   siblings <- subset(new_df, parent == this_parent)[, "alias"]
   toMatch <- gsub("\\+", "\\\\\\+", alias)
   toMatch <- paste0("^",toMatch,"$")
@@ -76,6 +86,8 @@
   
   for (i in 1:nrow(df)) {
     this_row <- df[i, , drop = FALSE]
+    
+    .check_alias(new_df, this_row[1, "alias"], this_row[1, "parent"])
     
     popName <- this_row[1, "pop"]
     dims <- this_row[1, "dims"]
@@ -137,9 +149,11 @@
       # expand to two rows
       message("expanding pop: ", popName, "\n")
       cur_dim <- sub(two_pop_token, "", popName)
+      
       new_pops <- paste(cur_dim, c("+", "-"), sep = "")
   
       # create 1d gate
+    .check_alias(new_df, new_pops[1], this_row[1, "parent"])
       res_1d <- c(alias = new_pops[1], pop = new_pops[1], parent = this_row[1, "parent"], 
                     dims, this_row[1, "gating_method"], this_row["gating_args"]
                   , this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
@@ -147,6 +161,7 @@
       # create ref gate
   
       refNode <- file.path(this_row[1, "parent"], new_pops[1])
+      .check_alias(new_df, new_pops[2], this_row[1, "parent"])
       res_ref <- c(alias = new_pops[2], pop = new_pops[2], parent = this_row[1, "parent"], 
                         dims, "refGate", refNode, this_row["collapseDataForGating"], this_row["groupBy"], NA,NA)
       new_df <- .addToDf(res_ref, this_row, new_df)

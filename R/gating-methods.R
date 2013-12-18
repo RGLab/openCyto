@@ -48,45 +48,19 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
     }
     
   }
-  #validity check for stop.at argument
+    #validity check for stop.at argument
   if(!is.null(stop.at)){
     if(is.na(match(stop.at,sapply(getNodes(gt),alias))))
       stop("Can't find stop point: ", stop.at)
   }
   # gate each node 
-  gt_node_ids <- tsort(gt)#by the topological order
-#  gt_node_ids <- bfs(gt)#by the bfs order
-  # maintain the mapping between template node ID and gating set node ID in order
-  # to refer gating set node ID back to the template ID and find the parent gs
-  # node ID
-  node_ids <- ldply(gt_node_ids,function(this_gt_id){
-                         
-                        #fill out default gsid for root node
-                        this_gs_id <- ifelse(this_gt_id == "1", 1, NA)
-                          
-                        #alias and parent info are for debug purpose
-                        thisAlias <- alias(getNodes(gt, this_gt_id))
-                        
-                        thisParentID <- getParent(gt, this_gt_id, isRef = FALSE)
-                        if(length(thisParentID) == 0)
-                          thisParent <- "root"
-                        else
-                          thisParent <- alias(getNodes(gt, thisParentID))
-                        
-                        data.frame(gt =this_gt_id
-                                  , gs = this_gs_id
-                                  , alias = thisAlias
-                                  , parent = thisParent
-                                  , stringsAsFactors = FALSE
-                                )
-                                
-                      })
-                  
-  for (i in 2:nrow(node_ids)) {
+  gt_nodes <- tsort(gt)[-1]#by the topological order
+
+                   
+  for (node in gt_nodes) {
     
     # get parent node to gate
-    gt_node_id <- node_ids[i, "gt"]
-    gt_node_pop <- getNodes(gt, gt_node_id)
+    gt_node_pop <- getNodes(gt, node)
     if(!is.null(stop.at)){
     
       if(alias(gt_node_pop) == stop.at)
@@ -97,39 +71,30 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
         
     }
 #    browser()
-    gt_parent_id <- getParent(gt, gt_node_id)
+    parent <- getParent(gt, node)
     
     # extract gate method from one edge(since multiple edge to the same node is
     # redudant)
-    this_gate <- getGate(gt, gt_parent_id, gt_node_id)
+    this_gate <- getGate(gt, parent, node)
     
     #get preprocessing method
-    this_ppm <- ppMethod(gt, gt_parent_id, gt_node_id)
+    this_ppm <- ppMethod(gt, parent, node)
     
-    parentInd <- match(gt_parent_id, node_ids[, "gt"])
+    parentInd <- match(parent,getNodes(y[[1]]))
     if (is.na(parentInd)) 
-      stop("parent node '", names(getNodes(gt, gt_parent_id)), "' not gated yet!")
-    gs_parent_id <- node_ids[parentInd, "gs"]
-    if (is.na(gs_parent_id)) 
-      stop("parent node '", names(getNodes(gt, gt_parent_id)), "' not gated yet!")
+      stop("parent node '", parent, "' not gated yet!")
     
     #preprocessing
     pp_res <- NULL
 #    browser()
     if(class(this_ppm) == "ppMethod")
-      pp_res <- preprocessing(x = this_ppm, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, gm = this_gate, ...)
-    
+      pp_res <- preprocessing(x = this_ppm, y, parent = parent, gtPop = gt_node_pop, gm = this_gate, ...)
+#    browser()
     # pass the pops and gate to gating routine
-    res <- gating(x = this_gate, y, parent = as.integer(gs_parent_id), gtPop = gt_node_pop, pp_res = pp_res, ...)
-    gs_node_id <- res[["gs_node_id"]]
-    filterObj <- res[["filterObj"]]
-    
-    # upodate gs node ids
-    if (!is.null(gs_node_id)) 
-      node_ids[i, "gs"] <- gs_node_id
+    filterObj <- gating(x = this_gate, y, parent = parent, gtPop = gt_node_pop, pp_res = pp_res, ...)
     # update fct
     if (!is.null(env_fct) && !is.null(filterObj)) {
-      nodeData(env_fct$fct, gt_node_id, "fList")[[1]] <- filterObj
+      nodeData(env_fct$fct, node, "fList")[[1]] <- filterObj
     }
   }
   message("finished.")
@@ -190,8 +155,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   popId <- gtPop@id
-  gs_nodes <- basename(getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent], isPath = TRUE))
-  
+  gs_nodes <- basename(getChildren(y[[1]], parent, isPath = TRUE))
+#  browser()
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     message("Gating for '", popAlias, "'")
     
@@ -308,10 +273,6 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     
   } else {
     message("Skip gating! Population '", paste(popAlias, collapse = ","), "' already exists.")
-    gs_node_id <- getChildren(y[[1]], parent)
-    # select the corresponding gs node id by matching the node names
-    gs_node_name <- basename(getNodes(y[[1]], showHidden = TRUE, isPath = TRUE))[gs_node_id]
-    gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
     filterObj <- NULL
   }
   
@@ -319,7 +280,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
   }
   
-  list(gs_node_id = gs_node_id, filterObj = filterObj)
+  filterObj
 }
 
 #' apply a \code{boolMethod} to the \code{GatingSet}
@@ -350,7 +311,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSetList"),
   popName <- names(gtPop)
   popId <- gtPop@id
   
-  gs_nodes <- basename(getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent], isPath = TRUE))
+  gs_nodes <- basename(getChildren(y[[1]], parent, isPath = TRUE))
   tNodes <- deparse(args)
   if (!(popAlias %in% gs_nodes)) {
     message(popAlias, " gating...")
@@ -361,16 +322,10 @@ setMethod("gating", signature = c("boolMethod", "GatingSetList"),
     message("done.")
   } else {
     message("Skip gating! Population '", popAlias, "' already exists.")
-    gs_node_id <- getChildren(y[[1]], parent)
-
-    # select the corresponding gs node id by matching the node names
-    
-    gs_node_name <- basename(getNodes(y[[1]], showHidden = TRUE, isPath = TRUE))[gs_node_id] 
-    gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
   }
   
   # gs_node_id
-  list(gs_node_id = gs_node_id)
+  NULL
 }
 
 #' apply a \link{polyFunctions} gating method to the \code{GatingSet}
@@ -469,7 +424,7 @@ setMethod("gating", signature = c("refGate", "GatingSetList"),
   xChannel <- dims[["xChannel"]]
   yChannel <- dims[["yChannel"]]
   
-  gs_nodes <- basename(getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent], isPath = TRUE))
+  gs_nodes <- basename(getChildren(y[[1]], parent, isPath = TRUE))
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     
     message("Population '", paste(popAlias, collapse = ","), "'")
@@ -621,15 +576,10 @@ setMethod("gating", signature = c("refGate", "GatingSetList"),
     }
   } else {
     message("Skip gating! Population '", popAlias, "' already exists.")
-    gs_node_id <- getChildren(y[[1]], parent)
-
-    # select the corresponding gs node id by matching the node names
-    gs_node_name <- basename(getNodes(y[[1]], showHidden = TRUE, isPath = TRUE))[gs_node_id]
-    gs_node_id <- gs_node_id[match(popAlias, gs_node_name)]
     flist <- NULL
   }
 
   message("done.")
-  list(gs_node_id = gs_node_id, filterObj = flist)
+  flist
 }
 
