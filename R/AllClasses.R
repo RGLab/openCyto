@@ -230,7 +230,7 @@ setClass("polyFunctions", contains = "boolMethod")
 #'       
 #'      getNodes(gt, '2')
 #' }
-setClass("gtPopulation", representation(id = "numeric", name = "character",
+setClass("gtPopulation", representation(id = "character", name = "character",
                                         alias = "character"
                                   )
                               )
@@ -277,57 +277,8 @@ setClass("gtSubsets", contains = "gtPopulation")
   paired_args
 }
 
-#' match node ID by name with the subset
-.getNodeID <- function(g, subset, this_node, ...) {
-  node_id_ind <- which(unlist(lapply(subset, function(this_node_id) {
-    alias(getNodes(g, this_node_id)) == this_node
-  })))
-  
-  if (length(node_id_ind) == 0) {
-    stop("Population '", this_node, "' not found under the current parent:", 
-      alias(getNodes(g, getParent(g, subset[2], ...))))
-  } else if (length(node_id_ind) > 1) {
-    stop("Population '", this_node, "' not unique under the current parent:", 
-      alias(getNodes(g, getParent(g, subset[2], ...))))
-  } else {
-    node_id <- subset[node_id_ind]
-  }
-  node_id
-}
 
-#' search for node ID by path with gating template tree and add the edge
-#' @importFrom RBGL dfs
-.searchNode <- function(g, node_name, ...) {
-  if (node_name == "root") {
-    node_id <- "1"
-  } else {
-    # travese the graph to get node list for matching later on
-    discovered <- dfs(g)[["discovered"]]
-    # split by '/' for each reference node
-    
-    node_name <- flowWorkspace:::trimWhiteSpace(node_name)
-    tokens <- strsplit(node_name, "/")[[1]]
-    
-    ## locate the first token in traversed node list
-    firstToken <- tokens[1]
-    tokens <- tokens[-1]
-    
-    node_id <- .getNodeID(g, subset = discovered, this_node = firstToken, ...)
-    
-    # start from matchedID to match the rest of tokens in the path
-    while (length(tokens) > 0) {
-      curToken <- tokens[1]
-      tokens <- tokens[-1]
-      # find the id within the edges sourced from current ancester
-      dests <- edges(g, node_id)[[1]]
-      node_id <- .getNodeID(g, subset = dests, this_node = curToken, ...)
-    }
-  }
-  
-  node_id
-}
 
- 
 
 #' gatingTemplate constructor 
 #' 
@@ -381,7 +332,8 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
 .gatingTemplate <- function(df, name="default"){  
 #  browser()
   # create graph with root node
-  g <- graphNEL(nodes = "1", edgemode = "directed")
+#  browser()
+  g <- graphNEL(nodes = "root", edgemode = "directed")
   g <- as(g, "gatingTemplate")
   nodeDataDefaults(g, "pop") <- ""
   edgeDataDefaults(g, "gtMethod") <- ""
@@ -389,28 +341,31 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
   edgeDataDefaults(g, "isReference") <- FALSE
   
   # add default root
-  nodeData(g, "1", "pop") <- new("gtPopulation", id = 1, name = "root", alias = "root")
+  nodeData(g, "root", "pop") <- new("gtPopulation", id = "root", name = "root", alias = "root")
 
   # parse each row
   nEdges <- nrow(df)
   edgs <- vector("list", nEdges)
   for (i in 1:nEdges) {
-    curNodeID <- as.character(i + 1)
+    
     thisRow <- df[i,]
     # extract info from dataframe
     parent <- thisRow[,"parent"][[1]]
-
+    
     # get parent ID
-    parentID <- .searchNode(g, parent)
+    
     curPop <- thisRow[,"alias"][[1]]
+    
     if(grepl("/", curPop))
       stop("Population name(or alias) '", curPop , "' contains '/', which is reserved as gating path delimiter!")
+    
+    curNodePath <- paste(parent, curPop, sep = "/")
+    curNodePath <- sub("root", "", curNodePath)
     curPopName <- thisRow[,"pop"][[1]]
 
     # create pop object
-    curNode <- new("gtPopulation", id = as.numeric(curNodeID), name = curPopName, 
+    curNode <- new("gtPopulation", id = curNodePath, name = curPopName, 
                         alias = curPop
-#                    , parentID = as.numeric(parentID)
                 )
                       
     # create gating method object
@@ -471,16 +426,17 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
                 )
     
     cat("Adding population:", curPop, "\n")
+#    browser()
     # add current node to graph
-    g_updated <- graph::addNode(curNodeID, g)
+    g_updated <- graph::addNode(curNodePath, g)
     
 #    if (!extends(class(gm), "refGate")) {
       # add edge from parent
-    g_updated <- addEdge(parentID, curNodeID, g_updated)
+    g_updated <- addEdge(parent, curNodePath, g_updated)
     
     #add preprcessing method to the edge
     if(nchar(cur_pp_Method) > 0)
-      edgeData(g_updated, parentID, curNodeID, "ppMethod") <- ppm
+      edgeData(g_updated, parent, curNodePath, "ppMethod") <- ppm
     ##########################################
     # refGate-like methods need extra parsing
     ##########################################
@@ -506,30 +462,27 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
       
       # specialize the node type for polyfunctions
       if (class(gm) == "polyFunctions") {
+#        browser()
         curNode <- as(curNode, "gtSubsets")
       }
       
       # add edges from reference nodes (only used for tsort)
       for (ref_node in refNodes) {
-        # get node id for reference node (using the old graph object
-        # since the new graph has unconnected new node
-#        ref_id <- .searchNode(g, ref_node,isRef = TRUE)
-        ref_id <- .searchNode(g, ref_node)
         
         # add the edge from it
-        g_updated <- addEdge(ref_id, curNodeID, g_updated)
+        g_updated <- addEdge(.getFullPath(ref_node, df), curNodePath, g_updated)
 
         # flag the edge 
-        edgeData(g_updated, ref_id, curNodeID, "isReference") <- TRUE
+        edgeData(g_updated, .getFullPath(ref_node, df), curNodePath, "isReference") <- TRUE
       }
     }
     
     # attach the gm object to the parent edge
-    edgeData(g_updated, parentID, curNodeID, "gtMethod") <- gm
+    edgeData(g_updated, parent, curNodePath, "gtMethod") <- gm
     # flag the edge 
-    edgeData(g_updated, parentID, curNodeID, "isReference") <- FALSE
+    edgeData(g_updated, parent, curNodePath, "isReference") <- FALSE
     # add the current population object to the current node
-    nodeData(g_updated, curNodeID, "pop") <- curNode
+    nodeData(g_updated, curNodePath, "pop") <- curNode
     # update graph
     g <- g_updated
   }
