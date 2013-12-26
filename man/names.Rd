@@ -58,14 +58,14 @@
 \examples{
 gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
 
-gtMthd <- getGate(gt, '3', '4')
+gtMthd <- getGate(gt, "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
 names(gtMthd)
 dims(gtMthd)
 parameters(gtMthd)
 isCollapse(gtMthd)
 groupBy(gtMthd)
 
-gtPop <- getNodes(gt,'12')
+gtPop <- getNodes(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
 names(gtPop)
 alias(gtPop)
 }
