@@ -1,6 +1,6 @@
 #'The environment holding the names of registered methods
 .openCyto_gtmethod_lookup<-new.env()
-.DEFAULTS <- c("quadrantGate", "quantileGate","rangeGate","flowClust.2d","mindensity","cytokine","flowClust.1d","boundary","singletGate")
+.DEFAULTS <- c("quadrantGate", "quantileGate","rangeGate","flowClust.2d","mindensity","cytokine","flowClust.1d","boundary","singletGate", "tailgate")
 
 #'Print a list of the registered gating methods
 #'@return Does not return anything. Prints a list of the available gating methods.
