@@ -282,7 +282,7 @@ dodesToHide <- c("cd8+", "cd4+"
 				, "cd4-cd8-", "cd4+cd8+"
 				, "cd4+cd8-/HLA+", "cd4+cd8-/CD38+"
 				, "cd4-cd8+/HLA+", "cd4-cd8+/CD38+"
-				, "cd4+cd8-/CCR7+", "cd4+cd8-/CD45RA+"
+				, "CD45_neg/CCR7_gate", "cd4+cd8-/CD45_neg"
 				, "cd4-cd8+/CCR7+", "cd4-cd8+/CD45RA+"
 				)
 lapply(dodesToHide, function(thisNode)setNode(gs, thisNode, FALSE))
