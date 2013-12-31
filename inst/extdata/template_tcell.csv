@@ -7,6 +7,6 @@
 "activated cd4"	"CD38+HLA+"	"cd4+cd8-"	"CD38,HLA"	"tailgate"					
 "activated cd8"	"CD38+HLA+"	"cd4-cd8+"	"CD38,HLA"	"tailgate"					
 "CD45_neg"	"CD45RA-"	"cd4+cd8-"	"CD45RA"	"mindensity"	"gate_range=c(2,3)"				
-"CCR7_gate"	"CCR7+"	"CD45_neg"	"CCR7"	"mindensity"	"gate_range=c(1,2)"				
+"CCR7_gate"	"CCR7+"	"CD45_neg"	"CCR7"	"flowClust"	"neg=1,pos=1"				
 "*"	"CCR7+/-CD45RA+/-"	"cd4+cd8-"	"CCR7,CD45RA"	"refGate"	"CD45_neg:CCR7_gate"				
 "*"	"CCR7+/-CD45RA+/-"	"cd4-cd8+"	"CCR7,CD45RA"	"mindensity"					
