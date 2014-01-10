@@ -9,11 +9,11 @@
 #' gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
 #' getNodes(gt)[1:2]
 #' getNodes(gt, only.names = TRUE)
-#' getNodes(gt, '2')
-#' getChildren(gt, '2')
-#' getParent(gt, '3') 
-#' getGate(gt, '2', '3')
-#' ppMethod(gt, '3', '4')
+#' getNodes(gt, "/nonDebris")
+#' getChildren(gt, "/nonDebris")
+#' getParent(gt, "/nonDebris/singlets") 
+#' getGate(gt, "/nonDebris", "/nonDebris/singlets")
+#' ppMethod(gt,  "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
 #' plot(gt) #plot entire tree
 #' plot(gt, "lymph") #only plot the subtree rooted from "lymph"
 #' 
@@ -132,7 +132,6 @@ setMethod("show", signature = c("gatingTemplate"),
 #' plot,fcFilterList,ANY-method
 #' plot,filterList,ANY-method
 #' plot,fcTree,character-method
-
 #' @rdname getNodes
 setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
       .plotTree(x,...)

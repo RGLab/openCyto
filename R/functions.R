@@ -1,20 +1,75 @@
-.update_ref_node <- function(ref_node, new_df, this_parent) {
-  ind <- match(ref_node, new_df[, "alias"])
-  if (!is.na(ind)) {
-    if (this_parent == "root") {
-      stop("Not able to to find unique reference for ", ref_node)
-    } else {
-      # assuming this_parent is uniquely identifiable
-      ref_node <- paste(this_parent, ref_node, sep = "/")
+
+.getFullPath <- function(ref_node, df){
+
+  ref_node <- flowWorkspace:::trimWhiteSpace(ref_node)
+  #prepend root if start with /
+  if(substr(ref_node, 1, 1) == "/")
+    ref_node <- paste0("root", ref_node)
+  
+  tokens <- strsplit(ref_node, "/")[[1]]
+  res_path <- NULL
+  
+#browser()
+  df_toSearch <- df
+  # start to match the tokens in the path
+  while (length(tokens) > 0) {
+    #pop the current one
+    curToken <- tokens[1]
+    tokens <- tokens[-1]
+    if(curToken == "root")
+      res_path <- c(res_path, "root")
+    else{
+      toMatch <- gsub("\\+", "\\\\\\+", curToken)
+      toMatch <- paste0("^",toMatch,"$")
+      ind <- grep(toMatch, df_toSearch[, "alias"])
+      if(length(ind) == 0)
+        stop("Not able to to find reference to: ", curToken)
+      else if(length(ind) > 1)
+        stop("Non-unique reference to: ", curToken)
+      else{
+          # prepend its parent to make it full path
+          thisParent <- df_toSearch[ind, "parent"]
+          if(thisParent == "root")
+            curToken <- paste0("/", curToken)
+          else
+            curToken <- paste(thisParent, curToken, sep = "/")
+          
+          #only save the full path of the first token 
+          if(is.null(res_path))
+            toSave <- curToken
+          else
+            toSave <- basename(curToken)
+          
+          res_path <- c(res_path, toSave)
+      }
     }
+#    browser()
+    #subset the data frame by parent
+    df_toSearch <- subset(df, parent == curToken)
+          
   }
-  ref_node
+        
+  
+  res_path <- paste(res_path, collapse = "/")
+#  browser()    
+  if(res_path == "root")
+    res_path <- "root"
+  else
+    res_path <- sub("root", "", res_path)
+  res_path
+
 }
 
 # make sure the alias is unique under one parent
 .check_alias <- function(new_df, alias, this_parent) {
+  if(grepl("[\\|\\&|\\:|\\/]", alias))
+    stop(alias , "contains illegal character: |,&,:,/")
+  
   siblings <- subset(new_df, parent == this_parent)[, "alias"]
-  matched_sibs <- match(alias, siblings)
+  toMatch <- gsub("\\+", "\\\\\\+", alias)
+  toMatch <- paste0("^",toMatch,"$")
+  
+  matched_sibs <- grep(toMatch, siblings)
   
   if (length(matched_sibs) >= 2) {
     stop(alias, " is not unique within ", this_parent)
@@ -26,13 +81,22 @@
 #' @importFrom data.table fread
 .preprocess_csv <- function(x) {
   df <- as.data.frame(fread(x))
+  df <- df[, 1:10] #only parse first 10 columns and ignore the rest 
   new_df <- df[0, ]
+  
   for (i in 1:nrow(df)) {
     this_row <- df[i, , drop = FALSE]
+    
+    .check_alias(new_df, this_row[1, "alias"], this_row[1, "parent"])
     
     popName <- this_row[1, "pop"]
     dims <- this_row[1, "dims"]
     gm <- this_row[1, "gating_method"]
+    
+#    browser()
+    #update parent with full path
+    this_row[1, "parent"] <- .getFullPath(this_row[1, "parent"], new_df)
+    
     
     if (!grepl("[+-]", popName)) {
       popName <- paste0(popName, "+")
@@ -71,7 +135,7 @@
       }
       
       res <- this_row
-      
+      new_df <- .addToDf(res, this_row, new_df)
     } else if (grepl(paste("^", two_pop_pat, "$", sep = ""), popName)) {
       # A+/-
       
@@ -85,25 +149,30 @@
       # expand to two rows
       message("expanding pop: ", popName, "\n")
       cur_dim <- sub(two_pop_token, "", popName)
+      
       new_pops <- paste(cur_dim, c("+", "-"), sep = "")
-#      browser()
+  
       # create 1d gate
+    .check_alias(new_df, new_pops[1], this_row[1, "parent"])
       res_1d <- c(alias = new_pops[1], pop = new_pops[1], parent = this_row[1, "parent"], 
                     dims, this_row[1, "gating_method"], this_row["gating_args"]
                   , this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
+      new_df <- .addToDf(res_1d, this_row, new_df)
       # create ref gate
+  
+      refNode <- file.path(this_row[1, "parent"], new_pops[1])
+      .check_alias(new_df, new_pops[2], this_row[1, "parent"])
       res_ref <- c(alias = new_pops[2], pop = new_pops[2], parent = this_row[1, "parent"], 
-                        dims, "refGate", file.path(this_row[1, "parent"],new_pops[1])
-                        , this_row["collapseDataForGating"], this_row["groupBy"], NA,NA)
-      res <- rbind(res_1d, res_ref)
-
+                        dims, "refGate", refNode, this_row["collapseDataForGating"], this_row["groupBy"], NA,NA)
+      new_df <- .addToDf(res_ref, this_row, new_df)
+#      browser()
     } else if (grepl(paste("^(", one_pop_pat, "){2}$", sep = ""), popName)) {
       # A+B+
       
       if (gm == "refGate") {
         # no expansion
         res <- this_row
-        
+        new_df <- .addToDf(res, this_row, new_df)
       } else {
         
         if (gm == "flowClust") {
@@ -123,10 +192,10 @@
         # create 1d gate for each dim
         res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, 
           two_pop_token, new_df)
+        new_df <- .addToDf(res_1d, this_row, new_df)
         
-        res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, 
-          "alias"], alias = this_row["alias"], new_df = new_df)
-        res <- rbind(res_1d, res_ref)
+        res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, "alias"], alias = this_row["alias"], new_df = new_df)
+        new_df <- .addToDf(res_ref, this_row, new_df)
         
       }
     } else if (grepl(paste0("^(", two_pop_pat, "){2}$"), popName) ||
@@ -139,6 +208,7 @@
       if (gm == "refGate") {
         res <- .gen_refGate(split_terms$splitted_terms, this_row = this_row, 
           new_df = new_df)
+        new_df <- .addToDf(res, this_row, new_df)
       } else {
         
         if (gm == "flowClust") {
@@ -154,28 +224,35 @@
         # create 1d gate for each dim
         res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, 
           two_pop_token, new_df)
-        res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, 
-          "alias"], new_df = new_df)
-        res <- rbind(res_1d, res_ref)
+#        browser()
+        new_df <- .addToDf(res_1d, this_row, new_df)
+        
+        res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, "alias"], new_df = new_df)
+        new_df <- .addToDf(res_ref, this_row, new_df)
       }
       
     } else {
       stop("invalid population pattern '", popName, "'")
     }
-#    browser()
-    if (is.matrix(res)) {
-      colnames(res) <- names(this_row)
-    } else {
-      names(res) <- names(this_row)
-    }
-    
-    new_df <- rbind(new_df, res)
+
   }
 #  browser()
 
    new_df[is.na(new_df)] <- ""
    new_df
   
+}
+.addToDf <- function(res,this_row, new_df){
+#  browser()
+  if (is.matrix(res)) {
+    colnames(res) <- names(this_row)
+  } else {
+    names(res) <- names(this_row)
+  }
+  
+  res <- as.data.frame(res)
+  
+  rbind(new_df, res)
 }
 #' split the population pattern into multiple population names 
 .splitTerms <- function(pop_pat, two_pop_token, popName) {
@@ -199,16 +276,17 @@
 }
 #' convert to 1d gating based on the population pattern
 .gen_1dgate <- function(terms, this_row, one_pop_token, two_pop_token, new_df) {
-  res <- do.call(rbind, lapply(terms, function(cur_term) {
+    
+  res <- ldply(terms, function(cur_term) {
     toReplace <- paste("(", two_pop_token, ")|(", one_pop_token, ")", sep = "")
     cur_dim <- sub(toReplace, "", cur_term)
     new_pop_name <- paste(cur_dim, "+", sep = "")
     this_parent <- this_row[1, "parent"]
     .check_alias(new_df, new_pop_name, this_parent)
     
-    c(alias = new_pop_name, pop = new_pop_name, parent = this_parent, dims = cur_dim, 
+    data.frame(alias = new_pop_name, pop = new_pop_name, parent = this_parent, dims = cur_dim, 
       this_row["gating_method"], this_row["gating_args"], this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
-  }))
+  })
   rownames(res) <- NULL
   res
 }
@@ -222,8 +300,8 @@
     ref_args <- this_row[1, "gating_args"]
   } else {
     # use the new generated 1d pops to construct ref args
-    # prepend the path to ref_nodes if needed
-    ref_nodes <- lapply(ref_nodes, .update_ref_node, new_df = new_df, this_parent = this_parent)
+    # prepend the path to ref_nodes 
+    ref_nodes <- file.path(this_parent, ref_nodes)
     ref_args <- paste(ref_nodes, collapse = ":")
   }
   
@@ -233,10 +311,11 @@
   if (is.null(alias)) {
     alias <- new_pops
   }
+  
   # create ref gate for each new_pop )
   do.call(rbind, mapply(new_pops, alias, FUN = function(new_pop, cur_alias) {
     .check_alias(new_df, cur_alias, this_parent)
-    c(alias = cur_alias, pop = new_pop, parent = this_parent, this_row["dims"], 
+    data.frame(alias = cur_alias, pop = new_pop, parent = this_parent, this_row["dims"], 
       method = "refGate", gating_args = ref_args, NA, NA, NA, NA)
   }, SIMPLIFY = FALSE))
 }

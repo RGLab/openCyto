@@ -1,10 +1,12 @@
-"alias","pop","parent","dims","gating_method","gating_args","collapseDataForGating","groupBy","preprocessing_method","preprocessing_args"
-"nonDebris","nonDebris","root","FSC-A","mindensity",,,,,
-"singlets","singlets","nonDebris","FSC-A,FSC-H","singletGate",,,,,
-"lymph","lymph","singlets","FSC-A,SSC-A","flowClust","K=2,target=c(1e5,5e4)",,,"prior_flowClust",
-"cd3","cd3","lymph","CD3","mindensity",,"TRUE",4,,
-"*","cd4-/+cd8+/-","cd3","cd4,cd8","flowClust","neg=1,pos=1",,,"prior_flowClust","neg=1,pos=1"
-"activated cd4","CD38+HLA+","cd4+cd8-","CD38,HLA","flowClust","neg=1,pos=1",,,,
-"activated cd8","CD38+HLA+","cd4-cd8+","CD38,HLA","flowClust","neg=1,pos=1",,,,
-"*","CCR7+/-CD45RA+/-","cd4+cd8-","CCR7,CD45RA","flowClust","neg=1,pos=1",,,,
-"*","CCR7+/-CD45RA+/-","cd4-cd8+","CCR7,CD45RA","flowClust","neg=1,pos=1",,,,
+"alias"	"pop"	"parent"	"dims"	"gating_method"	"gating_args"	"collapseDataForGating"	"groupBy"	"preprocessing_method"	"preprocessing_args"
+"nonDebris"	"nonDebris"	"root"	"FSC-A"	"mindensity"					
+"singlets"	"singlets"	"nonDebris"	"FSC-A,FSC-H"	"singletGate"					
+"lymph"	"lymph"	"singlets"	"FSC-A,SSC-A"	"flowClust"	"K=2,target=c(1e5,5e4)"			"prior_flowClust"	
+"cd3"	"cd3"	"lymph"	"CD3"	"mindensity"		"TRUE"	4		
+"*"	"cd4-/+cd8+/-"	"cd3"	"cd4,cd8"	"mindensity"	"gate_range=c(1,3)"				
+"activated cd4"	"CD38+HLA+"	"cd4+cd8-"	"CD38,HLA"	"tailgate"					
+"activated cd8"	"CD38+HLA+"	"cd4-cd8+"	"CD38,HLA"	"tailgate"					
+"CD45_neg"	"CD45RA-"	"cd4+cd8-"	"CD45RA"	"mindensity"	"gate_range=c(2,3)"				
+"CCR7_gate"	"CCR7+"	"CD45_neg"	"CCR7"	"flowClust"	"neg=1,pos=1"				
+"*"	"CCR7+/-CD45RA+/-"	"cd4+cd8-"	"CCR7,CD45RA"	"refGate"	"CD45_neg:CCR7_gate"				
+"*"	"CCR7+/-CD45RA+/-"	"cd4-cd8+"	"CCR7,CD45RA"	"mindensity"					

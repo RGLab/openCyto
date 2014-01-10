@@ -11,6 +11,10 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
     definition = function(x, y, ...) {
       .preprocessing(x,y,...)
     })
+setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
+    definition = function(x, y, ...) {
+      .preprocessing(x,y,...)
+    })
 #' internal function (preprocessing)
 #' 
 #' @inheritParams .gating_gtMethod
@@ -35,8 +39,8 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSet"),
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   popId <- gtPop@id
-  gs_nodes <- getChildren(y[[1]], getNodes(y[[1]], showHidden = TRUE)[parent])
-#  browser()
+  
+  gs_nodes <- basename(getChildren(y[[1]], parent, isPath = TRUE))
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     message("Preprocessing for '", popAlias, "'")
     
