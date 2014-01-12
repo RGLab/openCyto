@@ -27,11 +27,11 @@ Collate:
     'pluginFramework.R'
     'unlockNamespace.R'
 Depends:
-    methods,flowWorkspace (>= 3.9.43)
+    methods,flowWorkspace (>= 3.8.43)
 Imports:
     Biobase,gtools,flowCore,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils
 Suggests:
-    flowWorkspaceData (>= 1.99.12),
+    flowWorkspaceData (>= 2.0.0),
     knitr
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
 #Enhances: flowDensity
