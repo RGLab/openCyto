@@ -52,7 +52,15 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
       cov_mat
     })
     prior_list$Lambda0 <- unname(prior_list$Lambda0)
-
+    
+    #Lambda0 should be Kxpxp.. but it's reduced to pxp when K=1
+    #correct the dimensions here
+    L0<-prior_list$Lambda0
+    if(length(dim(L0))==2){
+      dim(L0)<-c(1,dim(L0))
+      prior_list$Lambda0<-L0
+    }
+    
     prior_list$Omega0 <- aaply(prior_list$Omega0, 1, function(cov_mat) {
       if (class(try(solve(cov_mat), silent = TRUE)) == "try-error") {
         cov_mat <- cov_mat + shrink * diag(nrow(cov_mat))
