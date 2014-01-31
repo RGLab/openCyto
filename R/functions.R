@@ -374,10 +374,11 @@
 #' @param quantile the contour level of the ellipse. See details.
 #' @param npoints the number of points on the ellipse
 #' @param subset the dimensions of the mixture component to return
+#' @param \code{...} additional parameters
 #' @return matrix containing the points of the ellipse from the flowClust contour
 #' @importFrom flowClust rbox
 .getEllipse <- function(filter = NULL, include = seq_len(filter@K), ecol = 1, elty = 1, 
-  quantile = NULL, npoints = 501, subset = c(1, 2)) {
+  quantile = NULL, npoints = 501, subset = c(1, 2),...) {
   
   # Sets the quantile of the ellipse.
   if (is.null(quantile)) {
@@ -406,7 +407,19 @@
   }
   
   j <- 0
-  if (length(filter@lambda) > 0) {
+  
+  #Does trans exist in the extra parameter list?
+  #If not, set it to true by default
+  ellipsis<-as.environment(list(...))
+  if(exists("trans",envir=ellipsis)){
+    trans<-get("trans",ellipsis)
+  }else{
+    trans<-1
+  }
+
+  #Test for trans==0 when lambda is defined to get around the off 
+  #by one bug due to the reverse box-cox transformation
+  if ((length(filter@lambda) > 0)&&trans==0) {
     lambda <- rep(filter@lambda, length.out = filter@K)
   } else {
     lambda <- numeric(0)
@@ -418,7 +431,7 @@
     l2 <- sqrt(eigenPair$values[2]) * sqrt(cc)
     angle <- atan(eigenPair$vectors[2, 1]/eigenPair$vectors[1, 1]) * 180/pi
     
-    if (length(lambda) > 0) {
+    if ((length(lambda) > 0)&trans==1) {
       res <- rbox(flowClust:::.ellipsePoints(a = l1[i], b = l2[i], alpha = angle, 
         loc = filter@mu[i, subset], n = npoints), lambda[i])
     } else {

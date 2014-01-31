@@ -423,7 +423,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 
   if (!transitional) {
     contour_ellipse <- .getEllipse(filter = tmix_results, include = cluster_selected,
-                                   quantile = quantile)
+                                   quantile = quantile,trans=trans)
     flowClust_gate <- polygonGate(.gate = matrix(contour_ellipse, ncol = 2,
                                     dimnames = list(NULL, tmix_results@varNames)),
                                   filterId = filterId)
