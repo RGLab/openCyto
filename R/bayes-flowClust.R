@@ -31,7 +31,7 @@
 #' @export 
 #' @importFrom plyr aaply
 prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
-                            K = 2, nu0 = 4, w0 = 10, shrink = 1e-6, ...) {
+                            K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...) {
 
   if (length(channels) == 1) {
     prior_list <- .prior_flowClust1d(flow_set = flow_set, channel = channels,
@@ -415,12 +415,11 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
   kmeans_centroids <- lapply(kmeans_summary, "[[", "centroids")
   
   # For each sample, we obtain the alignment indices.
-  ref_indices <- lapply(kmeans_centroids, function(centroids) {
-    dist_centroids <- as.matrix(dist(rbind(ref_centroids, centroids)))
-    dist_centroids <- dist_centroids[seq_len(K), seq_len(K) + K]
-    as.vector(solve_LSAP(dist_centroids))
-  })
-
+    ref_indices <- lapply(kmeans_centroids, function(centroids) {
+      dist_centroids <- as.matrix(dist(rbind(ref_centroids, centroids)))
+      dist_centroids <- dist_centroids[seq_len(K), seq_len(K) + K,drop=FALSE]
+      as.vector(solve_LSAP(dist_centroids))
+    })
   # Now, we align the 'kmeans' summary information using the alignment indices.
   kmeans_summary <- mapply(function(kmeans_sample, align_idx) {
     kmeans_sample$centroids <- kmeans_sample$centroids[align_idx, ]
