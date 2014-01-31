@@ -428,53 +428,7 @@
   }
   res
 }
-#' fussy match of marker/channel names
-.flowParamMatch <- function(pd, name, fix = FALSE, partial = FALSE) {
-  # try to compelete word match by following with a space or the end of string
-  if (partial) 
-    pname <- name else pname <- paste0(name, "([ ]|$)")
-  
-  if (fix) {
-    ind <- which(toupper(pd$name) %in% toupper(name))
-  } else {
-    ind <- which(grepl(pname, pd$name, ignore.case = T))
-  }
-  
-  if (length(ind) == 0) {
-    # try marker name
-    ind <- which(unlist(lapply(pd$des, function(x) {
-      # split by white space and then match each individual string
-      if (fix) {
-        any(unlist(lapply(strsplit(x, " "), function(y) toupper(y) %in% toupper(name))))
-      } else {
-        grepl(pattern = pname, x, ignore.case = T)
-      }
-    })))
-  }
-  ind
-}
 
-getChannelMarker <- function(frm, name, ...) {
-  # try stain name
-  pd <- pData(parameters(frm))
-
-  # try complete match first
-  ind <- .flowParamMatch(pd, name, ...)
-
-  if (length(ind) > 1) {
-    stop("multiple markers matched: ", name)
-  }
-  
-  if (length(ind) == 0) {
-    # if no match then give a second try to patial match
-    ind <- .flowParamMatch(pd, name, partial = TRUE, ...)
-    if (length(ind) == 0) 
-      stop("can't find ", name) else if (length(ind) > 1) 
-      stop("multiple markers matched: ", name) else warning(name, " is partially matched with ", pd[ind, c("name", "desc")])
-  }
-  
-  pd[ind, c("name", "desc")]
-}
 
 
 #' Removes any observation from the given flowFrame object that has values
