@@ -81,16 +81,16 @@ registerGatingFunction<-function(fun=NA,methodName="myGatingMethod",dep=NA){
     if(is.character(dep)){
       if(!isPackageInstalled(dep)){
         message(sprintf("Can't register %s with dependency on %s, because dependency is not installed.",methodName,dep))
-        invisible(FALSE)
+        return(FALSE)
       }
     }else{
       warning("If provided, dep must be a character naming the package dependency.")
-      invisible(FALSE)
+      return(FALSE)
     }
   }
   if(!is.function(fun)){
     warning("You need to put the fun in function! (argument fun is not a function)")
-    invisible(FALSE)
+    return(FALSE)
   }else{
     ###Check the formal arguments
     frmls<-formals(fun)
@@ -101,7 +101,7 @@ registerGatingFunction<-function(fun=NA,methodName="myGatingMethod",dep=NA){
       
     }else{
       warning("Can't register function")
-      invisible(FALSE)
+      return(FALSE)
     }
   }
 }
