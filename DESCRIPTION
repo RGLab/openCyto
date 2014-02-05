@@ -34,5 +34,5 @@ Suggests:
     flowWorkspaceData (>= 1.99.12),
     knitr
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
-#Enhances: flowDensity
+Enhances: flowDensity
 VignetteBuilder: knitr

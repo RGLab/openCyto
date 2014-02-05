@@ -1,22 +1,22 @@
 #flowDensity wrapper used as a dispatcher to either 1d or 2d gating function
-#.flowDensity <- function(fr, pp_res, xChannel = NA, yChannel = NA, filterId="", ...){
-#  
-#  chnls <- yChannel
-#  if(!is.na(xChannel)){
-#    chnls <- c(xChannel,yChannel)
-#  }
-#  
-#  if(length(chnls)==2)
-#    .flowDensity.2d(fr, channels = chnls, ...)
-#  else
-#    .flowDensity.1d(fr, channel = chnls, filterId = filterId, ...)
-#  
-#}
+.flowDensity <- function(fr, pp_res, xChannel = NA, yChannel = NA, filterId="", ...){
+  
+  chnls <- yChannel
+  if(!is.na(xChannel)){
+    chnls <- c(xChannel,yChannel)
+  }
+  
+  if(length(chnls)==2)
+    .flowDensity.2d(fr, channels = chnls, ...)
+  else
+    .flowDensity.1d(fr, channel = chnls, filterId = filterId, ...)
+  
+}
 
-#.onAttach<-function(libname,pkgname){
+.onAttach<-function(libname,pkgname){
 #register flowDensity
-#  registerGatingFunction(fun=.flowDensity,methodName="flowDensity",dep="flowDensity")
-#}
+  registerGatingFunction(fun=.flowDensity,methodName="flowDensity",dep="flowDensity")
+}
 # This file contains all wrapper methods for dispatching data and arguments to
 # gating/preprocessing algorithms.
 
