@@ -15,7 +15,7 @@
 
 .onAttach<-function(libname,pkgname){
 #register flowDensity
-  registerGatingFunction(fun=.flowDensity,methodName="flowDensity",dep="flowDensity")
+#  registerGatingFunction(fun=.flowDensity,methodName="flowDensity",dep="flowDensity")
 }
 # This file contains all wrapper methods for dispatching data and arguments to
 # gating/preprocessing algorithms.
