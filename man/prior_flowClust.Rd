@@ -3,8 +3,8 @@
 \title{Elicits data-driven priors from a flowSet object for specified channels}
 \usage{
   prior_flowClust(flow_set, channels,
-    prior_method = c("kmeans"), K = 2, nu0 = 4, w0 = 10,
-    shrink = 1e-06, ...)
+    prior_method = c("kmeans"), K = 2, nu0 = 4,
+    w0 = c(10, 10), shrink = 1e-06, ...)
 }
 \arguments{
   \item{flow_set}{a \code{flowSet} object}
