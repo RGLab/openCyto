@@ -1,5 +1,5 @@
 #flowDensity wrapper used as a dispatcher to either 1d or 2d gating function
-.flowDensity <- function(fr, pp_res, xChannel = NA, yChannel = NA, filterId="", ...){
+#.flowDensity <- function(fr, pp_res, xChannel = NA, yChannel = NA, filterId="", ...){
 #  
 #  chnls <- yChannel
 #  if(!is.na(xChannel)){
