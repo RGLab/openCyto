@@ -1,0 +1,38 @@
+Package: openCyto
+Type: Package
+Title: Hierarchical Gating Pipeline for flow cytometry data
+Version: 1.1.9
+Date: 2012-06-10
+Author: Mike Jiang, John Ramey, Greg Finak, Raphael Gottardo
+Maintainer: Mike Jiang <wjiang2@fhcrc.org>
+Description: This package is designed to facilitate the automated gating
+    methods in sequential way to mimic the manual gating strategy.
+License: Artistic-2.0
+LazyLoad: yes
+Collate:
+    'AllGenerics.R'
+    'AllClasses.R'
+    'bayes-flowClust.R'
+    'functions.R'
+    'gating-methods.R'
+    'gating-functions.R'
+    'gatingTemplate-methods.R'
+    'gtMethod-methods.R'
+    'gtPopulation-methods.R'
+    'fcFilterList-methods.R'
+    'fcTree-methods.R'
+    'fcFilter-methods.R'
+    'wrapper-functions.R'
+    'preprocessing-method.R'
+    'pluginFramework.R'
+    'unlockNamespace.R'
+Depends:
+    methods,flowWorkspace (>= 3.9.47)
+Imports:
+    Biobase,gtools,flowCore,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils
+Suggests:
+    flowWorkspaceData (>= 1.99.12),
+    knitr
+biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
+#Enhances: flowDensity
+VignetteBuilder: knitr
