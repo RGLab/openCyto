@@ -383,6 +383,7 @@
 
   if (is.null(pp_res)) {
     usePrior <- "no"
+    pp_res <- list(NA)
   } else {
     usePrior <- "yes"
   }
