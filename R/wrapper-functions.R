@@ -141,6 +141,12 @@
     #coercing
     sn <- sampleNames(fs)
     fr <- as(fs,"flowFrame")
+    openCyto.options <- getOption("openCyto")
+    minEvents <- openCyto.options[["gating"]][["minEvents"]]
+    if(is.null(minEvents))
+      minEvents <- 0
+    if(nrow(fr) <= minEvents)
+      stop("Not enough events to proceed the gating!")
     if(!.isRegistered(gFunc)){
       stop(sprintf("Can't gate using unregistered method %s",gFunc))
     }
