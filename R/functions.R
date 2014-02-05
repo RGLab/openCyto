@@ -407,10 +407,11 @@ templateGen <- function(gh){
 #' @param quantile the contour level of the ellipse. See details.
 #' @param npoints the number of points on the ellipse
 #' @param subset the dimensions of the mixture component to return
+#' @param \code{...} additional parameters
 #' @return matrix containing the points of the ellipse from the flowClust contour
 #' @importFrom flowClust rbox
 .getEllipse <- function(filter = NULL, include = seq_len(filter@K), ecol = 1, elty = 1, 
-  quantile = NULL, npoints = 501, subset = c(1, 2)) {
+  quantile = NULL, npoints = 501, subset = c(1, 2),...) {
   
   # Sets the quantile of the ellipse.
   if (is.null(quantile)) {
@@ -439,7 +440,19 @@ templateGen <- function(gh){
   }
   
   j <- 0
-  if (length(filter@lambda) > 0) {
+  
+  #Does trans exist in the extra parameter list?
+  #If not, set it to true by default
+  ellipsis<-as.environment(list(...))
+  if(exists("trans",envir=ellipsis)){
+    trans<-get("trans",ellipsis)
+  }else{
+    trans<-1
+  }
+
+  #Test for trans==0 when lambda is defined to get around the off 
+  #by one bug due to the reverse box-cox transformation
+  if ((length(filter@lambda) > 0)&&trans==0) {
     lambda <- rep(filter@lambda, length.out = filter@K)
   } else {
     lambda <- numeric(0)
@@ -451,7 +464,7 @@ templateGen <- function(gh){
     l2 <- sqrt(eigenPair$values[2]) * sqrt(cc)
     angle <- atan(eigenPair$vectors[2, 1]/eigenPair$vectors[1, 1]) * 180/pi
     
-    if (length(lambda) > 0) {
+    if ((length(lambda) > 0)&trans==1) {
       res <- rbox(flowClust:::.ellipsePoints(a = l1[i], b = l2[i], alpha = angle, 
         loc = filter@mu[i, subset], n = npoints), lambda[i])
     } else {
@@ -461,53 +474,7 @@ templateGen <- function(gh){
   }
   res
 }
-#' fussy match of marker/channel names
-.flowParamMatch <- function(pd, name, fix = FALSE, partial = FALSE) {
-  # try to compelete word match by following with a space or the end of string
-  if (partial) 
-    pname <- name else pname <- paste0(name, "([ ]|$)")
-  
-  if (fix) {
-    ind <- which(toupper(pd$name) %in% toupper(name))
-  } else {
-    ind <- which(grepl(pname, pd$name, ignore.case = T))
-  }
-  
-  if (length(ind) == 0) {
-    # try marker name
-    ind <- which(unlist(lapply(pd$des, function(x) {
-      # split by white space and then match each individual string
-      if (fix) {
-        any(unlist(lapply(strsplit(x, " "), function(y) toupper(y) %in% toupper(name))))
-      } else {
-        grepl(pattern = pname, x, ignore.case = T)
-      }
-    })))
-  }
-  ind
-}
 
-getChannelMarker <- function(frm, name, ...) {
-  # try stain name
-  pd <- pData(parameters(frm))
-
-  # try complete match first
-  ind <- .flowParamMatch(pd, name, ...)
-
-  if (length(ind) > 1) {
-    stop("multiple markers matched: ", name)
-  }
-  
-  if (length(ind) == 0) {
-    # if no match then give a second try to patial match
-    ind <- .flowParamMatch(pd, name, partial = TRUE, ...)
-    if (length(ind) == 0) 
-      stop("can't find ", name) else if (length(ind) > 1) 
-      stop("multiple markers matched: ", name) else warning(name, " is partially matched with ", pd[ind, c("name", "desc")])
-  }
-  
-  pd[ind, c("name", "desc")]
-}
 
 
 #' Removes any observation from the given flowFrame object that has values
