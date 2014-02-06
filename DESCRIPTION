@@ -26,6 +26,7 @@ Collate:
     'preprocessing-method.R'
     'pluginFramework.R'
     'unlockNamespace.R'
+    'zzz.R'
 Depends:
     methods,flowWorkspace (>= 3.9.47)
 Imports:
