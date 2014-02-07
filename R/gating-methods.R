@@ -392,15 +392,14 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
     #since forward slash is reserved for gating path
     if(grepl("/",polyExpr)){
       old_name <- polyExpr
-      polyExpr <- gsub("/",":",polyExpr)
-      warning(old_name, " is replaced with ", polyExpr)
+      new_name <- gsub("/",":",polyExpr)
+      warning(old_name, " is replaced with ", new_name)
     }
 #    browser()
-    args <- parameters(x)[[1]]
     
-    isExist <- polyExpr %in% gs_nodes
+    isExist <- new_name %in% gs_nodes
     if (!isExist) {
-      message("adding ", polyExpr, " ...")
+      message("adding ", new_name, " ...")
 
       bf <- char2booleanFilter(polyExpr)
 
@@ -408,7 +407,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
       
       message("done.")
     } else {
-      message("Skip gating! Population '", polyExpr, "' already exists.")
+      message("Skip gating! Population '", new_name, "' already exists.")
     }        
   })
   #to reduce overhead,compute from parent node once instead of do it multiple times for each individual new bool gate
