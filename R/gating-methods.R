@@ -394,7 +394,8 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
       old_name <- polyExpr
       new_name <- gsub("/",":",polyExpr)
       warning(old_name, " is replaced with ", new_name)
-    }
+    }else
+      new_name <- polyExpr
 #    browser()
     
     isExist <- new_name %in% gs_nodes
@@ -421,11 +422,11 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
 .addGate_fast <- function(gs, filter, name = NULL, parent = NULL, negated = FALSE){
   
   
-  samples <- sampleNames(gs)
+  
   
   #preprocess filter
   filterObj <- flowWorkspace:::filterObject(filter)
-  
+#  browser()
   if(is.null(name))
     name<-filterObj$filterId
   #replace the slash with colon 
@@ -450,11 +451,27 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
   }
   filterObj$negated<-negated
   
-  nodeIDs<-lapply(samples,function(sample){
-  	
-        nodeID <- .Call("R_addGate",gh@pointer,sample,filterObj,as.integer(pid-1),name)
-        nodeID+1
-      })
+  
+  if(class(gs) == "GatingSetList"){
+    nodeIDs <- lapply(gs, function(thisGS){
+                        samples <- sampleNames(thisGS)
+                        lapply(samples,function(sample){
+                              
+                                nodeID <- .Call("R_addGate",thisGS@pointer,sample,filterObj,as.integer(pid-1),name)
+                                nodeID+1
+                              })
+                      }, level = 1)
+    nodeIDs <- unlist(nodeIDs)
+    
+  }else{
+    samples <- sampleNames(gs)
+    nodeIDs<-lapply(samples,function(sample){
+          
+          nodeID <- .Call("R_addGate",gs@pointer,sample,filterObj,as.integer(pid-1),name)
+          nodeID+1
+        })  
+  }
+  
   
   nodeID<-nodeIDs[[1]]
   
