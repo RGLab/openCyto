@@ -32,10 +32,11 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
 #' internal function (gating_gatingTemplate)
 #'  
 #' @param stop.at a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating prcoess will stop at.
+#' @param start a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating prcoess will start from. It is useful to quickly skip some gates and go directly to the target population in the testing run. 
 #' @param ... other arguments passed to the gatingMethod-specific \code{gating} methods.
 #' @importFrom RBGL tsort
 #' @importFrom plyr ldply
-.gating_gatingTemplate <- function(x, y, env_fct = NULL, stop.at = NULL, ...) {
+.gating_gatingTemplate <- function(x, y, env_fct = NULL, start = "root", stop.at = NULL, ...) {
   gt <- x
   if (!is.null(env_fct)) {
     # use the fcTree if already exists
@@ -56,6 +57,16 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
   # gate each node 
   gt_nodes <- tsort(gt)[-1]#by the topological order
 
+  #try to skip some nodes to save time
+  if(start != "root"){
+    startID <- match(start, basename(gt_nodes))
+    if(length(startID) > 1)
+      stop("multiple nodes matched to 'start': ", start)
+    if(length(startID) == 0)
+      stop("No node matched to 'start': ", start)
+    gt_nodes <- gt_nodes[startID:length(gt_nodes)]
+  }  
+    
                    
   for (node in gt_nodes) {
     
@@ -155,7 +166,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   popId <- gtPop@id
-  gs_nodes <- basename(getChildren(y[[1]], parent, isPath = TRUE))
+  gs_nodes <- basename(getChildren(y[[1]], parent))
 #  browser()
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     message("Gating for '", popAlias, "'")
@@ -311,7 +322,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSetList"),
   popName <- names(gtPop)
   popId <- gtPop@id
   
-  gs_nodes <- basename(getChildren(y[[1]], parent, isPath = TRUE))
+  gs_nodes <- basename(getChildren(y[[1]], parent))
   tNodes <- deparse(args)
   if (!(popAlias %in% gs_nodes)) {
     message(popAlias, " gating...")
@@ -373,25 +384,100 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
   })
   polyExprsList <- as.vector(polyExprsList)
   
+  gs_nodes <- basename(getChildren(y[[1]], parent))
   # actual gating
   lapply(polyExprsList, function(polyExpr) {
-    bgt <- new("boolMethod", name = polyExpr, args = list(as.symbol(polyExpr)))
     
     #replace the slash with colon 
     #since forward slash is reserved for gating path
     if(grepl("/",polyExpr)){
       old_name <- polyExpr
-      polyExpr <- gsub("/",":",polyExpr)
-      warning(old_name, " is replaced with ", polyExpr)
-    }
+      new_name <- gsub("/",":",polyExpr)
+      warning(old_name, " is replaced with ", new_name)
+    }else
+      new_name <- polyExpr
+#    browser()
     
-    gtPop@alias <- polyExpr
-    gating(bgt, y, parent = parent, gtPop = gtPop, ...)
+    isExist <- new_name %in% gs_nodes
+    if (!isExist) {
+      message("adding ", new_name, " ...")
+
+      bf <- char2booleanFilter(polyExpr)
+
+      invisible(gs_node_id <- .addGate_fast(y, bf, parent = parent, name = polyExpr))
+      
+      message("done.")
+    } else {
+      message("Skip gating! Population '", new_name, "' already exists.")
+    }        
   })
-  
+  #to reduce overhead,compute from parent node once instead of do it multiple times for each individual new bool gate
+  message("Gating  ...")  
+  invisible(recompute(y, parent))
   message("done.")
   
   list()
+}
+#' fast version of add gates to gatingset (bypassing some R checks)
+.addGate_fast <- function(gs, filter, name = NULL, parent = NULL, negated = FALSE){
+  
+  
+  
+  
+  #preprocess filter
+  filterObj <- flowWorkspace:::filterObject(filter)
+#  browser()
+  if(is.null(name))
+    name<-filterObj$filterId
+  #replace the slash with colon 
+  #since forward slash is reserved for gating path
+  if(grepl("/",name)){
+    old_name <- name
+    name <- gsub("/",":",name)
+    warning(old_name, " is replaced with ", name)
+  }
+  
+  
+  gh<-gs[[1]]
+  ##get node ID
+  if(is.null(parent))
+    pid<-1
+  else
+  {
+    if(is.numeric(parent))
+      pid <- parent
+    else
+      pid <- flowWorkspace:::.getNodeInd(gh,parent)
+  }
+  filterObj$negated<-negated
+  
+  
+  if(class(gs) == "GatingSetList"){
+    nodeIDs <- lapply(gs, function(thisGS){
+                        samples <- sampleNames(thisGS)
+                        lapply(samples,function(sample){
+                              
+                                nodeID <- .Call("R_addGate",thisGS@pointer,sample,filterObj,as.integer(pid-1),name)
+                                nodeID+1
+                              })
+                      }, level = 1)
+    nodeIDs <- unlist(nodeIDs)
+    
+  }else{
+    samples <- sampleNames(gs)
+    nodeIDs<-lapply(samples,function(sample){
+          
+          nodeID <- .Call("R_addGate",gs@pointer,sample,filterObj,as.integer(pid-1),name)
+          nodeID+1
+        })  
+  }
+  
+  
+  nodeID<-nodeIDs[[1]]
+  
+  if(!all(sapply(nodeIDs[-1],function(x)identical(x,nodeID))))
+    stop("nodeID are not identical across samples!")
+  nodeID
 }
 #' apply a \code{refGate} to the \code{GatingSet}
 #' 
@@ -424,7 +510,7 @@ setMethod("gating", signature = c("refGate", "GatingSetList"),
   xChannel <- dims[["xChannel"]]
   yChannel <- dims[["yChannel"]]
   
-  gs_nodes <- basename(getChildren(y[[1]], parent, isPath = TRUE))
+  gs_nodes <- basename(getChildren(y[[1]], parent))
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     
     message("Population '", paste(popAlias, collapse = ","), "'")
@@ -439,13 +525,13 @@ setMethod("gating", signature = c("refGate", "GatingSetList"),
        glist <- lapply(refNodes, function(refNode) {
 #             browser()
           #match node by base name
-          node_names <- getNodes(gh, showHidden = TRUE, isPath = F)
+          node_names <- getNodes(gh, showHidden = TRUE, path = 1, prefix = "auto")
           toMatch <- gsub("\\+", "\\\\\\+", refNode)
           toMatch <- paste0("^",toMatch,"$")
           node_ind <- grep(toMatch, node_names)
          if (length(node_ind) == 0) {
             #if no match to base name then match to path
-            node_paths <- getNodes(gh, isPath = T, showHidden = TRUE)
+            node_paths <- getNodes(gh, showHidden = TRUE)
             toMatch <- gsub("\\+", "\\\\+", refNode)
             toMatch <- paste(toMatch, "$", sep = "")
             node_ind <- grep(toMatch, node_paths)

@@ -1,7 +1,7 @@
 Package: openCyto
 Type: Package
 Title: Hierarchical Gating Pipeline for flow cytometry data
-Version: 1.0.9
+Version: 1.0.10
 Date: 2012-06-10
 Author: Mike Jiang, John Ramey, Greg Finak, Raphael Gottardo
 Maintainer: Mike Jiang <wjiang2@fhcrc.org>
@@ -26,13 +26,14 @@ Collate:
     'preprocessing-method.R'
     'pluginFramework.R'
     'unlockNamespace.R'
+    'zzz.R'
 Depends:
-    methods,flowWorkspace (>= 3.8.47)
+    methods,flowWorkspace
 Imports:
     Biobase,gtools,flowCore,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils
 Suggests:
-    flowWorkspaceData (>= 2.0.0),
+    flowWorkspaceData,
     knitr
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
-#Enhances: flowDensity
+Enhances: flowDensity
 VignetteBuilder: knitr
