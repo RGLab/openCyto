@@ -28,11 +28,11 @@ Collate:
     'unlockNamespace.R'
     'zzz.R'
 Depends:
-    methods,flowWorkspace (>= 3.9.47)
+    methods,flowWorkspace
 Imports:
     Biobase,gtools,flowCore,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils
 Suggests:
-    flowWorkspaceData (>= 1.99.12),
+    flowWorkspaceData,
     knitr
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
 Enhances: flowDensity
