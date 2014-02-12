@@ -1,0 +1,146 @@
+/*
+
+http://www.colourlovers.com/palette/2080987/HackingIntheDark
+Background - "Dark Charcoal" (#181818)
+Foreground text - White (#ffffff)
+Links - "Dark Forest Green" (#107010)
+Hover Links - "Golf Green" (#18a718)
+Headings - "Deep Orange" (#df8020)
+Heading Border & Trim - "Caution Orange" (#ffc40c)
+
+*/
+.hackinthedark-base {
+  background-color: #181818;
+  color: #ffffff;
+  font-size: 20px;
+  font-family: "Palatino Linotype", Palatino, serif;
+}
+.hackinthedark {
+  background-color: #181818;
+  color: #ffffff;
+  font-size: 20px;
+  font-family: "Palatino Linotype", Palatino, serif;
+  /*
+    li.active a,
+    li.active a:hover {
+        color: @white;
+        text-decoration: none;
+        cursor: default;
+    }
+*/
+
+  /* fonts */
+
+}
+.hackinthedark #wrap {
+  background-color: #181818;
+  color: #ffffff;
+  font-size: 20px;
+  font-family: "Palatino Linotype", Palatino, serif;
+}
+.hackinthedark a {
+  color: #107010;
+}
+.hackinthedark a:active,
+.hackinthedark a:hover {
+  color: #18a718;
+}
+.hackinthedark .brand,
+.hackinthedark a.brand,
+.hackinthedark a.brand:active,
+.hackinthedark a.brand:hover {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 72px;
+  letter-spacing: 10px;
+  font-family: Courier New, monospace, serif;
+}
+.hackinthedark #header .brand .dark-gray {
+  color: #333333;
+  transition: color 1.5s;
+}
+.hackinthedark #header .brand .dark-gray:hover {
+  color: #ffffff;
+}
+.hackinthedark #header .tagline {
+  font-style: italic;
+  font-family: "Palatino Linotype", Palatino, serif;
+}
+.hackinthedark #main #right_box {
+  border-color: #333333;
+  transition: border-color 1.5s;
+}
+.hackinthedark #main #right_box:hover {
+  border-color: #ffffff;
+}
+.hackinthedark #main .page .header {
+  background-color: #df8020;
+  border-color: #ffc40c !important;
+}
+.hackinthedark #main .page .header .fake-console {
+  background-color: #181818;
+  opacity: 0.85;
+  transition: opacity 1.5s;
+}
+.hackinthedark #main .page .header .fake-console:hover {
+  opacity: 1.0;
+}
+.hackinthedark #main .page .header .fake-console .tagline {
+  font-weight: bold;
+  font-style: normal;
+  font-family: Courier New, monospace, serif;
+}
+.hackinthedark #main .page .content h1 {
+  background-color: #df8020;
+  border-color: #ffc40c !important;
+}
+.hackinthedark #main .page .content h1 a {
+  color: #ffffff;
+  text-decoration: none;
+}
+.hackinthedark #main .page .content h1 a:hover {
+  text-decoration: underline;
+}
+.hackinthedark #main .page .content h2 {
+  border-color: #ffc40c !important;
+}
+.hackinthedark #main .page .content h2 a {
+  color: #ffffff;
+  text-decoration: none;
+}
+.hackinthedark #main .page .content h2 a:hover {
+  text-decoration: underline;
+}
+.hackinthedark #footer {
+  background-color: #181818;
+  color: #ffffff;
+  font-size: 20px;
+  font-family: "Palatino Linotype", Palatino, serif;
+}
+.hackinthedark h1,
+.hackinthedark h2,
+.hackinthedark h3,
+.hackinthedark h4 {
+  font-weight: bold;
+  font-family: "Lucida Sans Unicode", "Lucida Grand", sans-serif;
+}
+.hackinthedark .pagination li {
+  display: inline;
+  list-style-type: none;
+}
+.hackinthedark .navlinks,
+.hackinthedark .footerlinks,
+.hackinthedark .pagination,
+.hackinthedark #disqus_thread a,
+.hackinthedark #dsq-sort-by {
+  font-family: "Lucida Sans Unicode", "Lucida Grand", sans-serif;
+}
+.hackinthedark #dsq-comments,
+.hackinthedark #dsq-comments a {
+  font-family: "Palatino Linotype", Palatino, serif;
+}
+.hackinthedark .yui3-twitter li {
+  list-style-type: none;
+  color: #000000;
+}
