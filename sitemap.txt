@@ -4,6 +4,7 @@ opencyto.org/atom.xml
 opencyto.org/categories.html
 opencyto.org/index.html
 opencyto.org/openCytoVignette.html
+opencyto.org/openCytoVignette.html
 opencyto.org/pages.html
 opencyto.org/rss.xml
 opencyto.org/sitemap.txt
