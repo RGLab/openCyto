@@ -1,0 +1,29 @@
+<header>
+  <div id="header">
+    {% if site.author.github %}
+    <a href="http://github.com/{{ site.author.github }}"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub" /></a>
+    {% endif %}
+
+    <a class="brand" href="{{ HOME_PATH }}" title="{{ site.title }}">
+      {% if site.author.gravatar %}<img class="gravatar" src="http://www.gravatar.com/avatar/{{ site.author.gravatar }}?s=128" alt="{{ site.author.name }} profile picture gravatar" />{% endif %}
+      {% if site.header_title %}{{ site.header_title }}{% else %}{{ site.title }}{% endif %}
+    </a><br/>
+
+    {% if site.tagline %}
+    <div class="tagline">
+      "{{ site.tagline }}"
+    </div>
+    {% endif %}
+    <div id="navbar">
+      <ul class="navlinks">
+        {% if site.navlinks %}
+        {% assign pages_list = site.navlinks %}
+        {% else %}
+        {% assign pages_list = site.pages %}
+        {% assign group = 'navigation' %}
+        {% endif %}
+        {% include JB/pages_list %}
+      </ul>
+    </div>
+  </div>
+</header>

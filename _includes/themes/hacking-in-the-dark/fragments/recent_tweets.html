@@ -1,0 +1,34 @@
+<div id="twitter_feed">
+  <!--<a href="http://twitter.com/{{ site.author.twitter }}">Recent Tweets from @{{ site.author.twitter }}</a>:-->
+  <div id="twitter_posts">
+  </div>
+  <div id="twitter_search">
+  </div>
+</div>
+<script type="text/javascript">
+YUI().use('gallery-twitter-widget', function(Y) {
+    var twitterFeed = new Y.Twitter.Status({
+        boundingBox : '#twitter_posts',
+        //hideSkin : true,
+        key : '{{ site.author.twitter }}',
+        strings : { title: '' },
+        count : 10,
+        showPhoto : false,
+        refreshSeconds : 1000
+    });
+    twitterFeed.render();
+ 
+    /*
+    var twitterSearch = new Y.Twitter.Status({
+        boundingBox : '#twitter_search',
+        isQuery: true,
+        key : '#{{ site.author.twitter }}',
+        showHandle: false,
+        strings: { title: 'Search for:' },
+        count : 5,
+        refreshSeconds : 10
+    });
+    twitterSearch.render();
+    */
+});
+</script>

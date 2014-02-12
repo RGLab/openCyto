@@ -1,0 +1,15 @@
+<div id="right_box" class="rounded-10">
+  <div class="social-buttons">
+    {% include themes/hacking-in-the-dark/fragments/social/facebook_like.html %}
+    <br/>
+    {% include themes/hacking-in-the-dark/fragments/social/tweet.html %}
+    <br/>
+    {% include themes/hacking-in-the-dark/fragments/social/google_plusone.html %}
+    <br/>
+    {% include themes/hacking-in-the-dark/fragments/social/flattr.html %}
+  </div>
+
+  {% if nil and site.author.twitter %}
+  {% include themes/hacking-in-the-dark/fragments/recent_tweets.html %}
+  {% endif %}
+</div>

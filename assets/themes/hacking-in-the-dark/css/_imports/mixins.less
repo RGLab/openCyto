@@ -1,0 +1,17 @@
+.border-radius(@top-left: 0px,
+               @top-right: 0px,
+               @bottom-right: 0px,
+               @bottom-left: 0px) {
+    -webkit-border-radius: @top-left @top-right @bottom-right @bottom-left;
+    -moz-border-radius: @top-left @top-right @bottom-right @bottom-left;
+    border-radius: @top-left @top-right @bottom-right @bottom-left;
+}
+
+.rounded(@size) {
+    .border-radius(@size, @size, @size, @size);
+}
+
+.h-base(@size) {
+    font-size: @size;
+    margin: (@size / 3) 0px;
+}

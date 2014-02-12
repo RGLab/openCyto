@@ -1,0 +1,32 @@
+@import "_imports/colors.less";
+@import "_imports/fonts.less";
+
+.terminal-style {
+    background-color: @black;
+    color: @green;
+    opacity: 0.8;
+    font-family: @monospace-font;
+    font-weight: bold;
+ }
+
+.yui3-panel {
+    .yui3-widget-hd {
+        font-family: @sans-font;
+    }
+    .yui3-widget-bd {
+        .terminal-style;
+        pre {
+            .terminal-style;
+        }
+        &.console-container {
+            height: 100%;
+        }
+        .console {
+            .terminal-style;
+            width: 100%;
+            height: 100%;
+            resize: none;
+            overflow: scroll;
+        }
+    }
+}

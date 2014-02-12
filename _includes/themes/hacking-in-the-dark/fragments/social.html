@@ -1,0 +1,18 @@
+{% if site.author.linkedin or site.author.twitter or site.author.facebook or site.author.flickr or site.author.feedburner %}
+<li>Social:</li>
+{% endif %}
+{% if site.author.linkedin %}
+<li><a href="http://linkedin.com/in/{{ site.author.linkedin }}" target="_blank"><img src="{{ ASSET_PATH }}/img/social/16/linkedin.png" title="LinkedIn" /></a></li>
+{% endif %}
+{% if site.author.twitter %}
+<li><a href="http://twitter.com/{{ site.author.twitter }}" target="_blank"><img src="{{ ASSET_PATH }}/img/social/16/twitter.png" title="Twitter" /></a></li>
+{% endif %}
+{% if site.author.facebook %}
+<li><a href="http://facebook.com/{{ site.author.facebook }}" target="_blank"><img src="{{ ASSET_PATH }}/img/social/16/facebook.png" title="Facebook" /></a></li>
+{% endif %}
+{% if site.author.flickr %}
+<li><a href="http://flickr.com/photos/{{ site.author.flickr }}" target="_blank"><img src="{{ ASSET_PATH }}/img/social/16/flickr.png" title="Flickr" /></a></li>
+{% endif %}
+{% if site.author.feedburner %}
+<li><a href="http://feeds.feedburner.com/{{ site.author.feedburner }}" target="_blank"><img src="{{ ASSET_PATH }}/img/social/16/rss.png" title="Feedburner" /></a></li>
+{% endif %}

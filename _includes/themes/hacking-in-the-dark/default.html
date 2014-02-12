@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
+    {% if page.description %}<meta name="description" content="{{ page.description }}">{% endif %}
+    <meta name="author" content="{{ site.author.name }}">
+
+    {% include themes/hacking-in-the-dark/fragments/js/common.html %}
+
+    {% include themes/hacking-in-the-dark/fragments/css/common.html %}
+
+    {% comment %}fav and touch icons{% endcomment %}
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    {% comment %}
+    <!-- Update these with your own images
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+    -->
+    {% endcomment %}
+    {% include JB/analytics %}
+  </head>
+
+  <body id="body" class="hackinthedark yui3-skin-sam">
+    {% include themes/hacking-in-the-dark/fragments/js/facebook_sdk.html %}
+
+    <div id="wrap">
+      {% include themes/hacking-in-the-dark/header.html %}
+      <div id="main">
+        <div class="pure-g-r">
+          <div class="pure-u-1-5">
+	    {% include themes/hacking-in-the-dark/fragments/left_box.html %}
+          </div>
+	  <div class="pure-u-3-5">
+            {{ content }}
+	  </div>
+          <div class="pure-u-1-5">
+	    {% include themes/hacking-in-the-dark/fragments/right_box.html %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% include themes/hacking-in-the-dark/footer.html %}
+    {% include themes/hacking-in-the-dark/fragments/keyboard_shortcuts.html %}
+    {% include themes/hacking-in-the-dark/fragments/web_console.html %}
+    {% include themes/hacking-in-the-dark/fragments/js/non_blocking.html %}
+  </body>
+</html>

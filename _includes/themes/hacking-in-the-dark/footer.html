@@ -1,0 +1,27 @@
+<footer>
+  <div id="footer">
+    <div class="spacer"></div>
+    <div class="item">
+      <ul class="links">
+	<li>Meta:</li>
+	{% if site.footerlinks %}
+	{% assign pages_list = site.footerlinks %}
+	{% else %}
+	{% assign pages_list = site.pages %}
+	{% assign group = 'navigation' %}
+	{% endif %}
+	{% include JB/pages_list %}
+	{% include themes/hacking-in-the-dark/fragments/social.html %}
+      </ul>
+    </div>
+    <div class="item">
+      &copy; {{ site.author.name }} {{ site.copyright_year }}.
+      {% include themes/hacking-in-the-dark/fragments/credits.html %}
+    </div>
+    <div class="item">
+      Keyboard shortcuts enabled
+      -
+      Press ? for help/info
+    </div>
+  </div>
+</footer>

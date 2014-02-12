@@ -1,0 +1,151 @@
+@import "_imports/mixins.less";
+@import "_imports/vars.less";
+
+body {
+    height: 100%;
+    width: 100%;
+}
+
+#header {
+    font-size: @body-text-size;
+    text-align: center;
+    padding-top: 15px;
+    .brand {
+    }
+    .gravatar {
+        vertical-align: middle;
+    }
+    .tagline {
+        padding: 15px;
+    }
+    #navbar {
+        ul.navlinks {
+            font-size: @body-text-size;
+            padding-top: 6px;
+            padding-bottom: 6px;
+            li {
+                display: inline;
+                margin-left: 0px;
+                padding: 15px;
+            }
+        }
+    }
+}
+
+#main {
+    #left_box {
+    }
+
+    #right_box {
+        position: fixed;
+        margin: 20px;
+        padding: 20px;
+        border: 2px solid;
+    }
+}
+
+.page-header-base {
+    border: 3px solid;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    .border-radius(@top-left: 20px, @bottom-right: 20px);
+}
+#main .page {
+    .header {
+        .page-header-base;
+        .tagline {
+            font-size: 26px;
+        }
+        .title {
+            margin-left: 20px;
+        }
+        .fake-console {
+            padding: 10px 20px;
+            .border-radius(@bottom-right: 20px);
+        }
+    }
+    .content {
+        h1 {
+            .page-header-base;
+            padding-left: 12px;
+        }
+        h2 {
+            border: 3px solid;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding-left: 12px;
+            .border-radius(5px, 5px, 5px, 5px);
+        }
+    }
+}
+
+.footer-item {
+    margin-left: 0px;
+    font-size: 14px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 3px;
+}
+#footer {
+    text-align: center;
+    height: 125px;
+    .spacer {
+        height: 50px;
+    }
+    li {
+        display: inline;
+    }
+    .item {
+        .footer-item;
+        ul.links {
+            li {
+                .footer-item;
+            }
+            img {
+                vertical-align: middle;
+            }
+        }
+    }
+    .footerlinks li {
+    }
+}
+
+/*
+#about_iframe {
+    width: 800px;
+    height: 625px;
+    overflow: hidden;
+    border: none;
+}
+
+#about_iframe::-webkit-scrollbar {
+    display: none;
+}
+*/
+
+.pagination-separator-top {
+    margin-top: 20px;
+}
+
+.pagination-separator-bottom {
+    margin-bottom: 10px;
+}
+
+.pagination {
+    width: 100%;
+    text-align: center;
+    .prev {
+        float: left;
+    }
+    .next {
+        float: right;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    #header {
+        .dark-gray {
+            display: none;
+        }
+    }
+}
