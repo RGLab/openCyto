@@ -27,7 +27,9 @@
 
   'alias': a name used label the cell population, the path
   composed by the alias and its precedent nodes (e.g.
-  /root/A/B/alias) has to be uniquely identifiable.
+  /root/A/B/alias) has to be uniquely identifiable.  So
+  alias can not contain '/' character, which is reserved as
+  path delimiter.
 
   'pop': population patterns of 'A+/-` or 'A+/-B+/-', which
   tells the algorithm which side (postive or negative) of

@@ -1,29 +1,16 @@
-#flowDensity wrapper
-.flowDensity<-function(fr, pp_res, xChannel=NA, yChannel=NA, filter_id="",...){
+#flowDensity wrapper used as a dispatcher to either 1d or 2d gating function
+.flowDensity <- function(fr, pp_res, xChannel = NA, yChannel = NA, filterId="", ...){
+  
   chnls <- yChannel
   if(!is.na(xChannel)){
-    chnls<-c(xChannel,yChannel)
+    chnls <- c(xChannel,yChannel)
   }
-  #We ignore the "position" argument and define it ourselves based on the input from the template
-  #Deal with flowDensity's god-awful argument handling..
-  positive<-match.call()$positive
-  eligible.args <- c("use.percentile", "upper", "avg", "percentile", 
-                     "sd.threshold", "n.sd", "alpha", "debris.gate", "scale", 
-                     "ellip.gate", "graphs")
-  if(any(names(match.call())%in%eligible.args)){
-    extra.args<-match.call[names(match.call())%in%eligible.args]
-  }
-  if(length(chnls)==2){
-    posn<-rep(NA,2)
-  }else{
-    posn<-NA
-  }
-  posn[!is.na(chnls)]<-positive
   
-#  browser()
-#  debug(flowDensity:::.deGate2D)
-  result<-flowDensity::flowDensity(obj=fr,channels=chnls,position=posn)
-  #TODO construct a filterResult
+  if(length(chnls)==2)
+    .flowDensity.2d(fr, channels = chnls, ...)
+  else
+    .flowDensity.1d(fr, channel = chnls, filterId = filterId, ...)
+  
 }
 
 .onAttach<-function(libname,pkgname){
@@ -154,6 +141,12 @@
     #coercing
     sn <- sampleNames(fs)
     fr <- as(fs,"flowFrame")
+    openCyto.options <- getOption("openCyto")
+    minEvents <- openCyto.options[["gating"]][["minEvents"]]
+    if(is.null(minEvents))
+      minEvents <- 0
+    if(nrow(fr) <= minEvents)
+      stop("Not enough events to proceed the gating!")
     if(!.isRegistered(gFunc)){
       stop(sprintf("Can't gate using unregistered method %s",gFunc))
     }
@@ -396,6 +389,7 @@
 
   if (is.null(pp_res)) {
     usePrior <- "no"
+    pp_res <- list(NA)
   } else {
     usePrior <- "yes"
   }

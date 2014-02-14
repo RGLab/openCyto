@@ -1,15 +1,49 @@
+#' generate a partially complete csv template from the existing gating hierarchy 
+#' 
+#' To ease the process of replicating the existing (usually a manual one) gating schemes, 
+#' this function populate an empty gating template with the 'alias', 'pop', 'parent' and 'dims' 
+#' columns that exacted from an \code{GatingHierarchy}, and leave the other columns (e.g. `gating_method`) blank.
+#' So users can make changes to that template instead of writing from scratch.
+#' 
+#' @param gh a \code{GatingHierarchy} likely parsed from a xml workspace
+#' @return a gating template in \code{data.frame} format that requires further edition after output to csv 
+#' @export 
+templateGen <- function(gh){
+  nodes <- getNodes(gh, order = "tsort")
+  ldply(nodes[-1], function(thisNode){
+        thisGate <- getGate(gh, thisNode)
+        dims <- paste(as.vector(parameters(thisGate)), collapse = ",")
+        parent <- getParent(gh, thisNode)
+        alias <- basename(thisNode)
+        pop <- alias
+        c(alias = alias
+          , pop = pop
+          , parent = parent
+          , dims = dims
+          , gating_method = NA
+          , gating_args = NA
+          , collapseDataForGating = NA
+          , groupBy = NA
+          , preprocessing_method = NA
+          , preprocessing_args = NA
+          )
+      })
+  
+  
+}
 
 .getFullPath <- function(ref_node, df){
 
   ref_node <- flowWorkspace:::trimWhiteSpace(ref_node)
   #prepend root if start with /
   if(substr(ref_node, 1, 1) == "/")
-    ref_node <- file.path(root, ref_node)
+    ref_node <- paste0("root", ref_node)
   
   tokens <- strsplit(ref_node, "/")[[1]]
   res_path <- NULL
-#  
   
+#browser()
+  df_toSearch <- df
   # start to match the tokens in the path
   while (length(tokens) > 0) {
     #pop the current one
@@ -20,41 +54,50 @@
     else{
       toMatch <- gsub("\\+", "\\\\\\+", curToken)
       toMatch <- paste0("^",toMatch,"$")
-      ind <- grep(toMatch, df[, "alias"])
+      ind <- grep(toMatch, df_toSearch[, "alias"])
       if(length(ind) == 0)
         stop("Not able to to find reference to: ", curToken)
       else if(length(ind) > 1)
         stop("Non-unique reference to: ", curToken)
       else{
-          if(is.null(res_path)){ # if the first node in the path, then prepend its parent to make it full path
-            thisParent <- df[ind, "parent"]
-            if(thisParent == "root")
-              curToken <- paste0("/", curToken)
-            else
-              curToken <- paste(thisParent, curToken, sep = "/")
-          }
-          res_path <- c(res_path, curToken)
+          # prepend its parent to make it full path
+          thisParent <- df_toSearch[ind, "parent"]
+          if(thisParent == "root")
+            curToken <- paste0("/", curToken)
+          else
+            curToken <- paste(thisParent, curToken, sep = "/")
+          
+          #only save the full path of the first token 
+          if(is.null(res_path))
+            toSave <- curToken
+          else
+            toSave <- basename(curToken)
+          
+          res_path <- c(res_path, toSave)
       }
     }
 #    browser()
     #subset the data frame by parent
-    df <- subset(df, parent == curToken)
+    df_toSearch <- subset(df, parent == curToken)
           
   }
         
   
   res_path <- paste(res_path, collapse = "/")
-  
-  if(res_path == "/root")
+#  browser()    
+  if(res_path == "root")
     res_path <- "root"
   else
-    res_path <- sub("/root", "", res_path)
+    res_path <- sub("root", "", res_path)
   res_path
-#  browser()  
+
 }
 
 # make sure the alias is unique under one parent
 .check_alias <- function(new_df, alias, this_parent) {
+  if(grepl("[\\|\\&|\\:|\\/]", alias))
+    stop(alias , "contains illegal character: |,&,:,/")
+  
   siblings <- subset(new_df, parent == this_parent)[, "alias"]
   toMatch <- gsub("\\+", "\\\\\\+", alias)
   toMatch <- paste0("^",toMatch,"$")
@@ -76,6 +119,8 @@
   
   for (i in 1:nrow(df)) {
     this_row <- df[i, , drop = FALSE]
+    
+    .check_alias(new_df, this_row[1, "alias"], this_row[1, "parent"])
     
     popName <- this_row[1, "pop"]
     dims <- this_row[1, "dims"]
@@ -137,9 +182,11 @@
       # expand to two rows
       message("expanding pop: ", popName, "\n")
       cur_dim <- sub(two_pop_token, "", popName)
+      
       new_pops <- paste(cur_dim, c("+", "-"), sep = "")
   
       # create 1d gate
+    .check_alias(new_df, new_pops[1], this_row[1, "parent"])
       res_1d <- c(alias = new_pops[1], pop = new_pops[1], parent = this_row[1, "parent"], 
                     dims, this_row[1, "gating_method"], this_row["gating_args"]
                   , this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
@@ -147,6 +194,7 @@
       # create ref gate
   
       refNode <- file.path(this_row[1, "parent"], new_pops[1])
+      .check_alias(new_df, new_pops[2], this_row[1, "parent"])
       res_ref <- c(alias = new_pops[2], pop = new_pops[2], parent = this_row[1, "parent"], 
                         dims, "refGate", refNode, this_row["collapseDataForGating"], this_row["groupBy"], NA,NA)
       new_df <- .addToDf(res_ref, this_row, new_df)
@@ -359,10 +407,11 @@
 #' @param quantile the contour level of the ellipse. See details.
 #' @param npoints the number of points on the ellipse
 #' @param subset the dimensions of the mixture component to return
+#' @param \code{...} additional parameters
 #' @return matrix containing the points of the ellipse from the flowClust contour
 #' @importFrom flowClust rbox
 .getEllipse <- function(filter = NULL, include = seq_len(filter@K), ecol = 1, elty = 1, 
-  quantile = NULL, npoints = 501, subset = c(1, 2)) {
+  quantile = NULL, npoints = 501, subset = c(1, 2),...) {
   
   # Sets the quantile of the ellipse.
   if (is.null(quantile)) {
@@ -391,7 +440,19 @@
   }
   
   j <- 0
-  if (length(filter@lambda) > 0) {
+  
+  #Does trans exist in the extra parameter list?
+  #If not, set it to true by default
+  ellipsis<-as.environment(list(...))
+  if(exists("trans",envir=ellipsis)){
+    trans<-get("trans",ellipsis)
+  }else{
+    trans<-1
+  }
+
+  #Test for trans==0 when lambda is defined to get around the off 
+  #by one bug due to the reverse box-cox transformation
+  if ((length(filter@lambda) > 0)&&trans==0) {
     lambda <- rep(filter@lambda, length.out = filter@K)
   } else {
     lambda <- numeric(0)
@@ -403,7 +464,7 @@
     l2 <- sqrt(eigenPair$values[2]) * sqrt(cc)
     angle <- atan(eigenPair$vectors[2, 1]/eigenPair$vectors[1, 1]) * 180/pi
     
-    if (length(lambda) > 0) {
+    if ((length(lambda) > 0)&trans==1) {
       res <- rbox(flowClust:::.ellipsePoints(a = l1[i], b = l2[i], alpha = angle, 
         loc = filter@mu[i, subset], n = npoints), lambda[i])
     } else {
@@ -413,53 +474,7 @@
   }
   res
 }
-#' fussy match of marker/channel names
-.flowParamMatch <- function(pd, name, fix = FALSE, partial = FALSE) {
-  # try to compelete word match by following with a space or the end of string
-  if (partial) 
-    pname <- name else pname <- paste0(name, "([ ]|$)")
-  
-  if (fix) {
-    ind <- which(toupper(pd$name) %in% toupper(name))
-  } else {
-    ind <- which(grepl(pname, pd$name, ignore.case = T))
-  }
-  
-  if (length(ind) == 0) {
-    # try marker name
-    ind <- which(unlist(lapply(pd$des, function(x) {
-      # split by white space and then match each individual string
-      if (fix) {
-        any(unlist(lapply(strsplit(x, " "), function(y) toupper(y) %in% toupper(name))))
-      } else {
-        grepl(pattern = pname, x, ignore.case = T)
-      }
-    })))
-  }
-  ind
-}
 
-getChannelMarker <- function(frm, name, ...) {
-  # try stain name
-  pd <- pData(parameters(frm))
-
-  # try complete match first
-  ind <- .flowParamMatch(pd, name, ...)
-
-  if (length(ind) > 1) {
-    stop("multiple markers matched: ", name)
-  }
-  
-  if (length(ind) == 0) {
-    # if no match then give a second try to patial match
-    ind <- .flowParamMatch(pd, name, partial = TRUE, ...)
-    if (length(ind) == 0) 
-      stop("can't find ", name) else if (length(ind) > 1) 
-      stop("multiple markers matched: ", name) else warning(name, " is partially matched with ", pd[ind, c("name", "desc")])
-  }
-  
-  pd[ind, c("name", "desc")]
-}
 
 
 #' Removes any observation from the given flowFrame object that has values

@@ -1,6 +1,6 @@
 #'The environment holding the names of registered methods
 .openCyto_gtmethod_lookup<-new.env()
-.DEFAULTS <- c("quadrantGate", "quantileGate","rangeGate","flowClust.2d","mindensity","cytokine","flowClust.1d","boundary","singletGate","tailgate")
+.DEFAULTS <- c("quadrantGate", "quantileGate","rangeGate","flowClust.2d","mindensity","cytokine","flowClust.1d","boundary","singletGate", "tailgate")
 
 #'Print a list of the registered gating methods
 #'@return Does not return anything. Prints a list of the available gating methods.
@@ -38,10 +38,15 @@ listgtMethods<-function(){
 #'
 #'The formal arguments need to match a certain template
 #'We check that they do or do not.
-.checkFormals <- function(frmls=NA){
-  expected<-c("fr","pp_res","yChannel","filter_id","...")
-  posn<-sapply(expected,function(x)which(names(frmls)%in%x))
-  if(!(all.equal(posn,c(fr=1,pp_res=2,yChannel=4,filter_id=5,"..."=6))|isTRUE(all.equal(posn,c(fr=1,pp_res=2,yChannel=3,filter_id=4,"..."=5))))){
+.checkFormals <- function(frmls = NA){
+  expected <- c("fr","pp_res","yChannel","filterId", "...")
+  
+  posn <- sapply(expected,function(x)which(names(frmls)%in%x))
+  frm1 <- c(fr = 1, pp_res = 2, yChannel = 4, filterId = 5, "..." = 6)
+  frm2 <- c(fr = 1, pp_res = 2, yChannel = 3, filterId = 4, "..." = 5)
+  isMatched <- isTRUE(all.equal(posn, frm1))|isTRUE(all.equal(posn, frm2))
+  if(!isMatched)
+  {
     message("Formals of function don't match expected template.")
     return(FALSE)
   }else{
@@ -76,16 +81,16 @@ registerGatingFunction<-function(fun=NA,methodName="myGatingMethod",dep=NA){
     if(is.character(dep)){
       if(!isPackageInstalled(dep)){
         message(sprintf("Can't register %s with dependency on %s, because dependency is not installed.",methodName,dep))
-        invisible(FALSE)
+        return(FALSE)
       }
     }else{
       warning("If provided, dep must be a character naming the package dependency.")
-      invisible(FALSE)
+      return(FALSE)
     }
   }
   if(!is.function(fun)){
     warning("You need to put the fun in function! (argument fun is not a function)")
-    invisible(FALSE)
+    return(FALSE)
   }else{
     ###Check the formal arguments
     frmls<-formals(fun)
@@ -96,7 +101,7 @@ registerGatingFunction<-function(fun=NA,methodName="myGatingMethod",dep=NA){
       
     }else{
       warning("Can't register function")
-      invisible(FALSE)
+      return(FALSE)
     }
   }
 }
