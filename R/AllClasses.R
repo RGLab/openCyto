@@ -326,6 +326,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' 
 setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
       df <- .preprocess_csv(x)
+      df<-.validateFlowClustArgs(df)
       .gatingTemplate(df, ...)
     })
 #' @importFrom graph nodeDataDefaults<- edgeDataDefaults<- nodeData<- edgeData<-

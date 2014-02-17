@@ -683,3 +683,35 @@ templateGen <- function(gh){
 .rotation_matrix <- function(theta) {
   matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), nrow = 2)
 }
+
+#' Validate the arguments to flowClust and tell the user early if there are problems
+#' For now we make sure that the K argument to flowClust and to prior_flowClust are present and agree.
+#' @param df a \code{data.frame} of the template
+#' @return a \code{data.frame}
+.validateFlowClustArgs <- function(df){
+  inds<-which(df$gating_method%like%"flowClust")
+  for(i in inds){
+    fc_args<-.argParser(df[i,"gating_args"],TRUE)
+    prepro_args<-.argParser(df[i,"preprocessing_args"],TRUE)
+    if(length(fc_args)==0){
+      #default K
+      fc_args$K<-2
+    }
+    
+    if(exists("K",fc_args)){
+      K<-fc_args$K
+    }
+
+    if(length(prepro_args)==0){
+      prepro_args$K<-K 
+    }else if(exists("K",prepro_args)){
+      if(!(prepro_args$K==K)){
+        warning("K in preprocessing_args doesn't match K in gating_args for flowClust.\nOverridiing with K from flowClust.")
+      }
+      prepro_args$K<-K
+    }
+    df[i,"preprocessing_args"] <- gsub("\\)$","",gsub("list\\(","",deparse(prepro_args,control=c())))
+    df[i,"gating_args"] <- gsub("\\)$","",gsub("list\\(","",deparse(fc_args,control=c())))
+  }
+  df
+}
