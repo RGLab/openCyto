@@ -4,7 +4,7 @@
  <title>OpenCyto</title>
  <link href="opencyto.org/" rel="self"/>
  <link href="opencyto.org"/>
- <updated>2014-02-17T12:15:26-08:00</updated>
+ <updated>2014-02-19T11:29:40-05:00</updated>
  <id>opencyto.org</id>
  <author>
    <name></name>
@@ -15,7 +15,7 @@
  <entry>
    <title>Jekyll Introduction</title>
    <link href="opencyto.org/lessons/2011/12/29/jekyll-introduction"/>
-   <updated>2011-12-29T00:00:00-08:00</updated>
+   <updated>2011-12-29T00:00:00-05:00</updated>
    <id>opencyto.org/lessons/2011/12/29/jekyll-introduction</id>
    <content type="html">&lt;p&gt;This Jekyll introduction will outline specifically what Jekyll is and why you would want to use it. Directly following the intro we’ll learn exactly &lt;em&gt;how&lt;/em&gt; Jekyll does what it does.&lt;/p&gt;
 
