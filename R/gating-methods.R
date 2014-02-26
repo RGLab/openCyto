@@ -273,16 +273,27 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
      }
 
     flist <- eval(thisCall)
-
+#browser()
     # Handles the case that 'flist' is a list of lists.
     #   The outer lists correspond to the split by pData factors.
     #   The inner lists contain the actual gates.
     #     The order do not necessarily match up with sampleNames()
     # Unforunately, we cannot simply use 'unlist' because the list element names
     # are mangled.
+    
     if (all(sapply(flist, is.list))) {
       flist <- do.call(c, unname(flist))
     }
+    #check failed sample 
+    #eventually we want to handle this properly (like inserting dummy gates)
+    #in order for the other samples proceed the gating
+    failed <- sapply(flist, function(i)extends(class(i), "character"))
+    if(any(failed)){
+      print(flist[failed])
+      stop("some samples failed!")
+      
+    }
+    
     
     if (extends(class(flist[[1]]), "fcFilter")) {
       flist <- fcFilterList(flist)
@@ -292,7 +303,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     
     filterObj <- flist
     gs_node_id <- add(y, flist, parent = parent, name = popAlias)
-    recompute(y, gs_node_id)
+    
+    invisible(recompute(y, gs_node_id, alwaysLoadData = TRUE))
     
     message("done.")
     
@@ -420,13 +432,13 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
 
       invisible(gs_node_id <- .addGate_fast(y, bf, parent = parent, name = polyExpr))
       
-      message("done.")
+  
     } else {
-      message("Skip gating! Population '", new_name, "' already exists.")
+      message("Skip!Population '", new_name, "' already exists.")
     }        
   })
   #to reduce overhead,compute from parent node once instead of do it multiple times for each individual new bool gate
-  message("Gating  ...")  
+    
   invisible(recompute(y, parent))
   message("done.")
   
@@ -669,7 +681,7 @@ setMethod("gating", signature = c("refGate", "GatingSetList"),
     
     flist <- filterList(flist)
     gs_node_id <- add(y, flist, parent = parent, name = popAlias)
-    recompute(y, gs_node_id)
+    invisible(recompute(y, gs_node_id, alwaysLoadData = TRUE))
     
     if (plot) {
       print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
