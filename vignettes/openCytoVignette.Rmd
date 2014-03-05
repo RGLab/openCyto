@@ -104,7 +104,7 @@ Here is the an example of the gating template.
 ```{r gatingTemplate, eval = T}
 library(openCyto)
 library(data.table)
-gtFile <- system.file("extdata/template_tcell.csv", package = "openCyto")
+gtFile <- system.file("extdata/tcell.csv", package = "openCyto")
 dtTemplate <- fread(gtFile)
 dtTemplate
 ```

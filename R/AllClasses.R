@@ -164,7 +164,7 @@ fcTree <- function(gt) {
 #' @name gtMethod-class
 #' @examples 
 #'  \dontrun{
-#'      gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'      gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #'      getGate(gt, '2', '3')
 #' }
 setClass("gtMethod", representation(name = "character"
@@ -181,7 +181,7 @@ setClass("gtMethod", representation(name = "character"
 #' @name ppMethod-class
 #' @examples 
 #'  \dontrun{
-#'      gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'      gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #'      ppMethod(gt, '3', '4')
 #' }     
 setClass("ppMethod", contains = "gtMethod")
@@ -226,7 +226,7 @@ setClass("polyFunctions", contains = "boolMethod")
 #' @name gtPopulation-class
 #' @examples 
 #'  \dontrun{
-#'      gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'      gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #'       
 #'      getNodes(gt, '2')
 #' }
@@ -320,12 +320,14 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' @aliases gatingTemplate,character-method
 #' @examples
 #' \dontrun{ 
-#'   gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'   gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #'   plot(gt)
 #' }
 #' 
+#' @importFrom data.table fread
 setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
-      df <- .preprocess_csv(x)
+      df <- as.data.frame(fread(x))
+      df <- .preprocess_csv(df)
       .gatingTemplate(df, ...)
     })
 #' @importFrom graph nodeDataDefaults<- edgeDataDefaults<- nodeData<- edgeData<-
@@ -425,7 +427,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
                   , groupBy = cur_groupBy
                 )
     
-    cat("Adding population:", curPop, "\n")
+    message("Adding population:", curPop)
 #    browser()
     # add current node to graph
     g_updated <- graph::addNode(curNodePath, g)

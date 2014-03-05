@@ -93,7 +93,14 @@ templateGen <- function(gh){
 
 }
 
-# make sure the alias is unique under one parent
+#' validity check of alias column
+#' 
+#' the valid alias is either not present or unique under the given parent
+#' 
+#' @param new_df \code{data.frame} contains the preprocessed rows
+#' @param alias \code{character} the alias to be checked
+#' @param this_parent \code{character} the full gating path of the parent node  
+#' @return NULL when pass the check, otherwise, throw the error
 .check_alias <- function(new_df, alias, this_parent) {
   if(grepl("[\\|\\&|\\:|\\/]", alias))
     stop(alias , "contains illegal character: |,&,:,/")
@@ -111,9 +118,8 @@ templateGen <- function(gh){
 #' preprocess the csv template
 #' 
 #' It expands the definition of gates or construct reference gates when necessary
-#' @importFrom data.table fread
-.preprocess_csv <- function(x) {
-  df <- as.data.frame(fread(x))
+.preprocess_csv <- function(df) {
+  
   df <- df[, 1:10] #only parse first 10 columns and ignore the rest 
   new_df <- df[0, ]
   
@@ -236,8 +242,8 @@ templateGen <- function(gh){
                grepl(paste0("^", one_pop_pat, two_pop_pat, "$"), popName)) {
       # A+/-B+/-
       message("expanding pop: ", popName, "\n")
-      pop_stat <- paste0("(", two_pop_pat, ")|(", one_pop_pat, ")")
-      split_terms <- .splitTerms(pop_pat = pop_stat, two_pop_token, popName)
+      two_or_one_pop_pat <- paste0("(", two_pop_pat, ")|(", one_pop_pat, ")")
+      split_terms <- .splitTerms(pop_pat = two_or_one_pop_pat, two_pop_token, popName)
       if (gm == "refGate") {
         res <- .gen_refGate(split_terms$splitted_terms, this_row = this_row, 
           new_df = new_df)
@@ -275,6 +281,12 @@ templateGen <- function(gh){
    new_df
   
 }
+#' add the processed entries to the data.frame
+#' 
+#' the results from the csv expansion need to be coerced to the right format before inserting to the new template
+#' 
+#' @param res \code{vector} which is the single row subsetted from a data frame or
+#'              \code{matrix} which is the outcome of expansion process
 .addToDf <- function(res,this_row, new_df){
 #  browser()
   if (is.matrix(res)) {
@@ -287,7 +299,9 @@ templateGen <- function(gh){
   
   rbind(new_df, res)
 }
-#' split the population pattern into multiple population names 
+#' split the population pattern into multiple population names
+#' 
+#' only works for A+/-B+/- . Yet to support A+/- 
 .splitTerms <- function(pop_pat, two_pop_token, popName) {
   term_pos <- gregexpr(pop_pat, popName)[[1]]
   x_term <- substr(popName, 1, term_pos[2] - 1)
