@@ -1,64 +1,77 @@
 context("Gating Template")
 
 expectResults <- readRDS(system.file("tests/expectResults.rds", package = "openCyto"))
+
+one_pop_token <- "[\\+-]"
+pop_name_pat <- "[^\\+-]+"
+one_pop_pat <- paste(pop_name_pat, one_pop_token, sep = "")
+
+two_pop_token <- "(\\+/-)|(-/\\+)"
+two_pop_pat <- paste(pop_name_pat, "(", two_pop_token, ")", sep = "")
+two_or_one_pop_pat <- paste0("(", two_pop_pat, ")|(", one_pop_pat, ")")
 #test_that("templateGen", {
 #      
 #      templateGen(gh)
 #    })
 
-df <- as.data.frame(fread(gtFile))
+dt <- fread(gtFile)
+
 
 test_that(".preprocess_csv", {
       
       suppressMessages(
-          pre_csv <<- .preprocess_csv(df)
+          preprocessed_dt <<- .preprocess_csv(dt)
       )
-      expect_equivalent(pre_csv, expectResults[["preprocess_csv"]])
+      expect_equivalent(preprocessed_dt, expectResults[["preprocess_csv"]])
       
     })
 
+
 test_that(".gatingTemplate", {
-      suppressMessages(thisRes <- .gatingTemplate(pre_csv, name="default"))
+      suppressMessages(thisRes <- .gatingTemplate(preprocessed_dt, name="default"))
       expect_equal(thisRes, expectResults[["tcell"]])
     })
 
 test_that(".getFullPath", {
+      ref_node <- "root"
+      expect_equal(.getFullPath(ref_node, preprocessed_dt), "root")
       
-      .getFullPath(ref_node, df)
+      ref_node <- "cd3"
+      expect_equal(.getFullPath(ref_node, preprocessed_dt), "/nonDebris/singlets/lymph/cd3")
+      
+      ref_node <- "lymph/cd3"
+      expect_equal(.getFullPath(ref_node, preprocessed_dt), "/nonDebris/singlets/lymph/cd3")
+      
+      ref_node <- "/lymph/cd3"
+      expect_error(.getFullPath(ref_node, preprocessed_dt), "Not able to to find reference")
+      
+      ref_node <- "cd31"
+      expect_error(.getFullPath(ref_node, preprocessed_dt), "Not able to to find reference")
+      
     })
 
-test_that(".check_alias", {
+test_that(".validity_check_alias", {
       
-      this_df <- pre_csv
-      parentPath <- "/nonDebris/singlets/lymph/cd3"
-      #unique
-      expect_null(.check_alias(this_df, alias = "cd4+", this_parent = parentPath))
-      #not found
-      expect_null(.check_alias(this_df, alias = "cd4", this_parent = parentPath))
       #illegal character |,&,:,/
       errMsg <- "contains illegal character:"
-      expect_error(.check_alias(this_df, alias = "cd4+:", this_parent = parentPath), errMsg)
-      expect_error(.check_alias(this_df, alias = "cd3/cd4+", this_parent = parentPath), errMsg)
-      expect_error(.check_alias(this_df, alias = "cd8&cd4+", this_parent = parentPath), errMsg)
-      expect_error(.check_alias(this_df, alias = "cd4+|cd8", this_parent = parentPath), errMsg)
+      expect_error(.validity_check_alias("cd4+:"), errMsg)
+      expect_error(.validity_check_alias("cd3/cd4+"), errMsg)
+      expect_error(.validity_check_alias("cd8&cd4+"), errMsg)
+      expect_error(.validity_check_alias("cd4+|cd8"), errMsg)
       
-      #duplicated entry
-      tmp <- subset(this_df, alias == "cd8+") 
-      tmp[["alias"]] <- "cd4+"
-      new_df <- rbind(this_df, tmp)
+    })
+
+test_that(".unique_check_alias", {
       
-      expect_error(.check_alias(new_df, alias = "cd4+", this_parent = parentPath), "not unique") 
       
+      parentPath <- "/nonDebris/singlets/lymph/cd3"
+      
+      expect_null(.unique_check_alias(preprocessed_dt, alias = "cd4", this_parent = parentPath))
+      expect_error(.unique_check_alias(preprocessed_dt, alias = "cd4+", this_parent = parentPath), , "not unique")
     })
 
 test_that(".splitTerms", {
-      one_pop_token <- "[\\+-]"
-      pop_name_pat <- "[^\\+-]+"
-      one_pop_pat <- paste(pop_name_pat, one_pop_token, sep = "")
       
-      two_pop_token <- "(\\+/-)|(-/\\+)"
-      two_pop_pat <- paste(pop_name_pat, "(", two_pop_token, ")", sep = "")
-      two_or_one_pop_pat <- paste0("(", two_pop_pat, ")|(", one_pop_pat, ")")
       # A+B+
       expectRes <- list(terms = c("A+", "B+")
                         , splitted_terms = list("A+", "B+")
@@ -76,31 +89,180 @@ test_that(".splitTerms", {
                       ) 
       expect_equal(.splitTerms(two_or_one_pop_pat, two_pop_token, "A+/-B+"), expectRes)                      
       
-      #A+/-
-      .splitTerms(two_or_one_pop_pat, two_pop_token, popName = "A+/-B-")
     })
 
+#used by multiple test cases
+template_row <- data.table(alias = "TH", pop = "cd4+cd8-"
+                          , parent = "cd3", dims = "cd4,cd8"
+                          , gating_method = "mindensity", gating_args = ""
+                          , collapseDataForGating = "TRUE", groupBy = "4"
+                          , preprocessing_method = "", preprocessing_args = ""
+                      )
+                      
 test_that(".gen_1dgate", {
       
-      .preprocess_csv(df)
+      #A+B+                            
+      this_row <- copy(template_row)
+      expectRes <- rbindlist(list(this_row, this_row))
+      expectRes[1, alias := "cd4+"]
+      expectRes[1, pop := "cd4+"]
+      expectRes[1, dims := "cd4"]
+      expectRes[2, alias := "cd8+"]
+      expectRes[2, pop := "cd8+"]
+      expectRes[2, dims := "cd8"]
+      
+      thisRes <- .gen_1dgate(c("cd4+", "cd8+"), this_row, one_pop_token, two_pop_token)
+      expect_equal(thisRes, expectRes)
+
+      #A-/B+/-
+      this_row <- copy(template_row)
+      this_row[, pop := "cd4-cd8+/-"]
+      thisRes <- .gen_1dgate(c("cd4-", "cd8+/-"), this_row, one_pop_token, two_pop_token)
+      expect_equal(thisRes, expectRes)
+      
     })
 
 test_that(".gen_refGate", {
       
-      .preprocess_csv(df)
-    })
-
-test_that(".gen_refGate", {
       
-      .preprocess_csv(df)
-    })
-
-test_that(".addToDf", {
+      #A+B+                            
+      this_row <- copy(template_row)
+      expectRes <- copy(this_row)
+      expectRes[, gating_method := "refGate"]
+      expectRes[, gating_args := "cd3/cd4+:cd3/cd8+"]
+      expectRes[, collapseDataForGating := ""]
+      expectRes[, groupBy := ""]
       
-      .addToDf(res,this_row, new_df)
+      thisRes <- .gen_refGate(c("cd4+", "cd8-"), this_row, c("cd4+", "cd8+"), this_row[, alias])
+      expect_equal(thisRes, expectRes)
+      
+      #A-/B+/-
+      this_row <- copy(template_row)
+      this_row[, pop := "cd4-cd8+/-"]
+      expectRes <- rbindlist(list(this_row, this_row))
+      expectRes[1, alias := "cd4-cd8+"]
+      expectRes[1, pop := "cd4-cd8+"]
+      expectRes[1, gating_method := "refGate"]
+      expectRes[1, gating_args := "cd3/cd4+:cd3/cd8+"]
+      expectRes[1, collapseDataForGating := ""]
+      expectRes[1, groupBy := ""]
+      expectRes[2, alias := "cd4-cd8-"]
+      expectRes[2, pop := "cd4-cd8-"]
+      expectRes[2, gating_method := "refGate"]
+      expectRes[2, gating_args := "cd3/cd4+:cd3/cd8+"]
+      expectRes[2, collapseDataForGating := ""]
+      expectRes[2, groupBy := ""]
+      thisRes <- .gen_refGate(list("cd4-", c("cd8+" ,"cd8-")), this_row, c("cd4+", "cd8+"))
+      expect_equivalent(thisRes, expectRes)
+      
+      
     })
 
-expectResults[["gt1"]] <- thisRes
+test_that(".preprocess_row", {
+      
+      #return as it is
+      this_row <- copy(template_row)
+      this_row[, pop := "cd4+"]
+      expectRes <- this_row
+      expect_equal(.preprocess_row(this_row), expectRes)
+      
+      #invalid pop name
+      this_row <- copy(template_row)
+      this_row[, pop := "cd3++"]
+      expect_error(.preprocess_row(this_row), "invalid population pattern ")
+      
+      #A+/-
+      this_row <- copy(template_row)
+      this_row[, pop := "cd4+/-"]
+      
+      expectRes <- rbindlist(list(this_row, this_row))
+      expectRes[1, alias := "cd4+"]
+      expectRes[1, pop := "cd4+"]
+      expectRes[2, alias := "cd4-"]
+      expectRes[2, pop := "cd4-"] 
+      expectRes[2, gating_method := "refGate"]
+      expectRes[2, gating_args := "cd3/cd4+"]
+      
+      expect_equal(suppressMessages(.preprocess_row(this_row)), expectRes)
+      
+      #A+B+ 
+      this_row <- copy(template_row)
+      this_row[, pop := "cd4+cd8-"]
+      this_row[, dims := "cd4,cd8"]
+      
+      expectRes <- rbindlist(list(this_row, this_row, this_row))
+      expectRes[1, alias := "cd4+"]
+      expectRes[1, pop := "cd4+"]
+      expectRes[1, dims := "cd4"]
+      expectRes[2, alias := "cd8+"]
+      expectRes[2, pop := "cd8+"]
+      expectRes[2, dims := "cd8"]
+      expectRes[3, gating_method := "refGate"]
+      expectRes[3, gating_args := "cd3/cd4+:cd3/cd8+"]
+      expectRes[3, collapseDataForGating := ""]
+      expectRes[3, groupBy := ""]
+      expect_equal(suppressMessages(.preprocess_row(this_row)), expectRes)
+      
+      #A+B+ (refGate)
+      
+      this_row <- copy(template_row)
+      this_row[, pop := "cd4+cd8-"]
+      this_row[, dims := "cd4,cd8"]
+      this_row[, gating_method := "refGate"]
+      expect_equal(.preprocess_row(this_row), this_row)
+      
+      #A+/-B+/-
+      this_row <- copy(template_row)
+      this_row[, pop := "cd4+/-cd8-"]
+      this_row[, dims := "cd4,cd8"]
+      
+      expectRes <- rbindlist(list(this_row, this_row, this_row, this_row))
+      expectRes[1, alias := "cd4+"]
+      expectRes[1, pop := "cd4+"]
+      expectRes[1, dims := "cd4"]
+      expectRes[2, alias := "cd8+"]
+      expectRes[2, pop := "cd8+"]
+      expectRes[2, dims := "cd8"]
+      expectRes[3, alias := "cd4+cd8-"]
+      expectRes[3, pop := "cd4+cd8-"]
+      expectRes[3, gating_method := "refGate"]
+      expectRes[3, gating_args := "cd3/cd4+:cd3/cd8+"]
+      expectRes[3, collapseDataForGating := ""]
+      expectRes[3, groupBy := ""]
+      expectRes[4, alias := "cd4-cd8-"]
+      expectRes[4, pop := "cd4-cd8-"]
+      expectRes[4, gating_method := "refGate"]
+      expectRes[4, gating_args := "cd3/cd4+:cd3/cd8+"]
+      expectRes[4, collapseDataForGating := ""]
+      expectRes[4, groupBy := ""]
+      expect_equal(suppressMessages(.preprocess_row(this_row)), expectRes)
+      
+      #TODO: invalid parent
+#      this_row[["parent"]] <- "lymph1"
+      
+      
+      #flowClust.1d
+      this_row <- copy(template_row)
+      this_row[, pop := "cd4"]
+      this_row[, dims := "cd4"]
+      this_row[, gating_method := "flowClust"]
+      
+      expectRes <- copy(this_row)
+      expectRes[, gating_method := "flowClust.1d"]
+      expectRes[, pop := "cd4+"]
+      expect_equal(.preprocess_row(this_row), expectRes)
+      
+      #flowClust.2d
+      this_row <- copy(template_row)
+      this_row[, pop := "cd4+"]
+      this_row[, gating_method := "flowClust"]
+      expectRes <- copy(this_row)
+      expectRes[, gating_method := "flowClust.2d"]
+      expect_equal(.preprocess_row(this_row), expectRes)
+      
+    })
+
+#expectResults[["gt1"]] <- thisRes
 
 test_that("gatingTemplate constructor", {
     

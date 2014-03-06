@@ -326,12 +326,12 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' 
 #' @importFrom data.table fread
 setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
-      df <- as.data.frame(fread(x))
-      df <- .preprocess_csv(df)
-      .gatingTemplate(df, ...)
+      dt <- fread(x)
+      dt <- .preprocess_csv(dt)
+      .gatingTemplate(dt, ...)
     })
 #' @importFrom graph nodeDataDefaults<- edgeDataDefaults<- nodeData<- edgeData<-
-.gatingTemplate <- function(df, name="default"){  
+.gatingTemplate <- function(dt, name="default"){  
 #  browser()
   # create graph with root node
 #  browser()
@@ -346,24 +346,24 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
   nodeData(g, "root", "pop") <- new("gtPopulation", id = "root", name = "root", alias = "root")
 
   # parse each row
-  nEdges <- nrow(df)
+  nEdges <- nrow(dt)
   edgs <- vector("list", nEdges)
   for (i in 1:nEdges) {
     
-    thisRow <- df[i,]
+    thisRow <- dt[i,]
     # extract info from dataframe
-    parent <- thisRow[,"parent"][[1]]
+    parent <- thisRow[,parent][[1]]
     
     # get parent ID
     
-    curPop <- thisRow[,"alias"][[1]]
+    curPop <- thisRow[,alias][[1]]
     
     if(grepl("/", curPop))
       stop("Population name(or alias) '", curPop , "' contains '/', which is reserved as gating path delimiter!")
     
     curNodePath <- paste(parent, curPop, sep = "/")
     curNodePath <- sub("root", "", curNodePath)
-    curPopName <- thisRow[,"pop"][[1]]
+    curPopName <- thisRow[, pop][[1]]
 
     # create pop object
     curNode <- new("gtPopulation", id = curNodePath, name = curPopName, 
@@ -371,11 +371,11 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
                 )
                       
     # create gating method object
-    cur_method <- thisRow[,"gating_method"][[1]]
-    cur_args <- thisRow[,"gating_args"][[1]]
-    cur_dims <- thisRow[,"dims"][[1]]
+    cur_method <- thisRow[, gating_method][[1]]
+    cur_args <- thisRow[, gating_args][[1]]
+    cur_dims <- thisRow[, dims][[1]]
     
-    cur_collapse <- thisRow[,"collapseDataForGating"][[1]]
+    cur_collapse <- thisRow[, collapseDataForGating][[1]]
     if(cur_collapse == "")
       cur_collapse <- FALSE
     cur_collapse <- as.logical(cur_collapse)
@@ -383,7 +383,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
     if(is.na(cur_collapse))
       stop("Invalid `collapseDataForGating` flag!")
     
-    cur_groupBy <- thisRow[,"groupBy"][[1]]
+    cur_groupBy <- thisRow[, groupBy][[1]]
     # do not parse args for refGate-like gate since they might break the current
     # parse due to the +/- | &,! symbols
     if (any(grepl(cur_method,  c("boolGate", "polyfunctions", "refGate"), ignore.case = TRUE))) {
@@ -414,8 +414,8 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
     }
 
     #preprocessing object
-    cur_pp_Method <- thisRow[,"preprocessing_method"][[1]]
-    cur_pp_args <- thisRow[,"preprocessing_args"][[1]]
+    cur_pp_Method <- thisRow[, preprocessing_method][[1]]
+    cur_pp_args <- thisRow[, preprocessing_args][[1]]
     cur_pp_args <- .argParser(cur_pp_args, TRUE)
     
     if(nchar(cur_pp_Method) > 0)
@@ -472,10 +472,10 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
       for (ref_node in refNodes) {
         
         # add the edge from it
-        g_updated <- addEdge(.getFullPath(ref_node, df), curNodePath, g_updated)
+        g_updated <- addEdge(.getFullPath(ref_node, dt), curNodePath, g_updated)
 
         # flag the edge 
-        edgeData(g_updated, .getFullPath(ref_node, df), curNodePath, "isReference") <- TRUE
+        edgeData(g_updated, .getFullPath(ref_node, dt), curNodePath, "isReference") <- TRUE
       }
     }
     
