@@ -126,6 +126,19 @@ templateGen <- function(gh){
   for (i in 1:nrow(df)) {
     this_row <- df[i, , drop = FALSE]
     
+    res <- .preprocess_row(this_row, new_df)
+    new_df <- .addToDf(res, this_row, new_df)
+  }
+#  browser()
+  
+  new_df[is.na(new_df)] <- ""
+  new_df
+  
+}    
+
+.preprocess_row <- function(this_row, new_df){
+      
+
     .check_alias(new_df, this_row[1, "alias"], this_row[1, "parent"])
     
     popName <- this_row[1, "pop"]
@@ -174,7 +187,7 @@ templateGen <- function(gh){
       }
       
       res <- this_row
-      new_df <- .addToDf(res, this_row, new_df)
+#      new_df <- .addToDf(res, this_row, new_df)
     } else if (grepl(paste("^", two_pop_pat, "$", sep = ""), popName)) {
       # A+/-
       
@@ -196,14 +209,15 @@ templateGen <- function(gh){
       res_1d <- c(alias = new_pops[1], pop = new_pops[1], parent = this_row[1, "parent"], 
                     dims, this_row[1, "gating_method"], this_row["gating_args"]
                   , this_row["collapseDataForGating"], this_row["groupBy"], this_row["preprocessing_method"], this_row["preprocessing_args"])
-      new_df <- .addToDf(res_1d, this_row, new_df)
+#      new_df <- .addToDf(res_1d, this_row, new_df)
       # create ref gate
   
       refNode <- file.path(this_row[1, "parent"], new_pops[1])
       .check_alias(new_df, new_pops[2], this_row[1, "parent"])
       res_ref <- c(alias = new_pops[2], pop = new_pops[2], parent = this_row[1, "parent"], 
                         dims, "refGate", refNode, this_row["collapseDataForGating"], this_row["groupBy"], NA,NA)
-      new_df <- .addToDf(res_ref, this_row, new_df)
+#      new_df <- .addToDf(res_ref, this_row, new_df)
+      res <- rbind(res_1d, res_ref)
 #      browser()
     } else if (grepl(paste("^(", one_pop_pat, "){2}$", sep = ""), popName)) {
       # A+B+
@@ -231,11 +245,11 @@ templateGen <- function(gh){
         # create 1d gate for each dim
         res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, 
           two_pop_token, new_df)
-        new_df <- .addToDf(res_1d, this_row, new_df)
+#        new_df <- .addToDf(res_1d, this_row, new_df)
         
         res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, "alias"], alias = this_row["alias"], new_df = new_df)
-        new_df <- .addToDf(res_ref, this_row, new_df)
-        
+#        new_df <- .addToDf(res_ref, this_row, new_df)
+        res <- rbind(res_1d, res_ref)
       }
     } else if (grepl(paste0("^(", two_pop_pat, "){2}$"), popName) ||
                grepl(paste0("^", two_pop_pat, one_pop_pat, "$"), popName) ||
@@ -264,23 +278,19 @@ templateGen <- function(gh){
         res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, 
           two_pop_token, new_df)
 #        browser()
-        new_df <- .addToDf(res_1d, this_row, new_df)
+#        new_df <- .addToDf(res_1d, this_row, new_df)
         
         res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, "alias"], new_df = new_df)
-        new_df <- .addToDf(res_ref, this_row, new_df)
+#        new_df <- .addToDf(res_ref, this_row, new_df)
+    
+        res <- rbind(res_1d, res_ref)
       }
       
-    } else {
+    } else 
       stop("invalid population pattern '", popName, "'")
-    }
-
-  }
-#  browser()
-
-   new_df[is.na(new_df)] <- ""
-   new_df
-  
+    res
 }
+  
 #' add the processed entries to the data.frame
 #' 
 #' the results from the csv expansion need to be coerced to the right format before inserting to the new template
@@ -363,7 +373,8 @@ templateGen <- function(gh){
   do.call(rbind, mapply(new_pops, alias, FUN = function(new_pop, cur_alias) {
     .check_alias(new_df, cur_alias, this_parent)
     data.frame(alias = cur_alias, pop = new_pop, parent = this_parent, this_row["dims"], 
-      method = "refGate", gating_args = ref_args, NA, NA, NA, NA)
+        gating_method = "refGate", gating_args = ref_args, collapseDataForGating = NA
+      , groupBy= NA, preprocessing_method = NA, preprocessing_args = NA)
   }, SIMPLIFY = FALSE))
 }
 

@@ -10,8 +10,10 @@ df <- as.data.frame(fread(gtFile))
 
 test_that(".preprocess_csv", {
       
-      suppressMessages(pre_csv <<- .preprocess_csv(df))
-      expect_equal(pre_csv, expectResults[["preprocess_csv"]])
+      suppressMessages(
+          pre_csv <<- .preprocess_csv(df)
+      )
+      expect_equivalent(pre_csv, expectResults[["preprocess_csv"]])
       
     })
 
@@ -104,6 +106,7 @@ test_that("gatingTemplate constructor", {
     
   for(tn in c("bcell", "treg", "ICS", "tcell")){
     thisPath <- system.file(package = "openCyto")
+#    thisPath <- file.path(thisPath, "inst")
     thisFile <- paste0("extdata/", tn, ".csv")
     suppressMessages(thisRes <- gatingTemplate(file.path(thisPath, thisFile)))
     expect_equal(thisRes, expectResults[[tn]])
