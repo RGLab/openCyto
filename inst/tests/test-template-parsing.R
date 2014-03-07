@@ -265,7 +265,7 @@ test_that(".preprocess_row", {
 
 test_that("gatingTemplate constructor", {
   thisPath <- system.file(package = "openCyto")
-  thisPath <- file.path(thisPath, "inst")
+#  thisPath <- file.path(thisPath, "inst")
   gtfiles <- list.files(file.path(thisPath, "extdata/gating_template"), full = TRUE)
   for(thisFile in gtfiles[4]){
     templateName <- file_path_sans_ext(basename(thisFile))
@@ -279,4 +279,4 @@ test_that("gatingTemplate constructor", {
   
 }) 
 
-#saveRDS(expectResults, file = system.file("tests/expectResults.rds", package = "openCyto"))
+#saveRDS(expectResults, file = system.file("inst/tests/expectResults.rds", package = "openCyto"))

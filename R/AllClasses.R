@@ -297,7 +297,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 #'  
 #' 'gating_method': the name of the gating function (e.g. 'flowClust'). It is invoked by a wrapper function that has the identical function name prefixed with a dot.(e.g. '.flowClust')
 #'     
-#' 'gating_args': the named arguments passed to gating function
+#' 'gating_args': the named arguments passed to gating function (Note that double quotes(\code{"}) are often used as text delimiter by some csv editors. So try to use single quote (\code{'}) instead if needed.)
 #'  
 #' 'collapseDataForGating': When TRUE, data is collapsed (within groups if 'groupBy' specified) before gating and the gate is replicated across collapsed samples.
 #'  When set FALSE (or blank),then 'groupBy' argument is only used by 'preprocessing' and ignored by gating.
@@ -309,6 +309,8 @@ setClass("gtSubsets", contains = "gtPopulation")
 #'  the preprocessing results are then passed to gating wrapper function through 'pps_res' argument.
 #'       
 #' 'preprocessing_args': the named arguments passed to preprocessing function.
+#' 
+#'     
 #' 
 #' @param x \code{character} csv file name
 #' @param ... other argumentss

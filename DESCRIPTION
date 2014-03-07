@@ -13,6 +13,7 @@ Collate:
     'AllGenerics.R'
     'AllClasses.R'
     'bayes-flowClust.R'
+    'csvTemplate-parser.R'
     'functions.R'
     'gating-methods.R'
     'gating-functions.R'
