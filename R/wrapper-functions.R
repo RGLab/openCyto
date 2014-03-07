@@ -33,10 +33,28 @@
 #' @inheritParams .prior_flowClust1d 
 #' 
 #' @return a \code{list} of priors, see \link{prior_flowClust} for more details
-.prior_flowClust <- function(fs, gs, gm, xChannel, yChannel
-                                , prior_source = NULL
-                                , K = NULL, neg, pos
-                                , min, max, ...){
+.prior_flowClust <- function(fs, gs, gm, xChannel, yChannel,  ...){
+    
+    args <- list(...)
+    
+    prior_source <- args[["prior_source"]]
+    args[["prior_source"]] <- NULL
+    
+    K <- args[["K"]]
+    args[["pK"]] <- NULL
+    
+    neg <- args[["neg"]]
+    args[["neg"]] <- NULL
+    
+    pos <- args[["pos"]]
+    args[["pos"]] <- NULL
+    
+    min <- args[["min"]]
+    args[["min"]] <- NULL
+    
+    max <- args[["max"]]
+    args[["max"]] <- NULL
+    
     prior_list <- list()
   
   # prior estimation is done separately from flowClust routine because
@@ -475,12 +493,13 @@
 #' 
 #' @return \code{NULL}
 #' @importFrom flowStats warpSet
-.warpSet <- function(fs, gs, gm, xChannel, yChannel, stains, ...){
-  
+.warpSet <- function(fs, gs, gm, xChannel, yChannel, ...){
+  args <- list(...)
+  stains <- args[["stains"]] 
   fs <- fs[, stains]
   if(class(fs) == "ncdfFlowSet")
-    flowStats:::warpSetNCDF(fs, stains = stains, ...)
+    flowStats:::warpSetNCDF(fs, ...)
   else
-    warpSet(fs, stains = stains, ...)
+    warpSet(fs, ...)
   return (NULL)
  }
