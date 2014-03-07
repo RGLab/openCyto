@@ -267,7 +267,7 @@ test_that("gatingTemplate constructor", {
   thisPath <- system.file(package = "openCyto")
   thisPath <- file.path(thisPath, "inst")
   gtfiles <- list.files(file.path(thisPath, "extdata/gating_template"), full = TRUE)
-  for(thisFile in gtfiles){
+  for(thisFile in gtfiles[4]){
     templateName <- file_path_sans_ext(basename(thisFile))
     suppressWarnings(suppressMessages(
         thisRes <- gatingTemplate(thisFile)
