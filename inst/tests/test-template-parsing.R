@@ -262,17 +262,21 @@ test_that(".preprocess_row", {
       
     })
 
-#expectResults[["gt1"]] <- thisRes
 
 test_that("gatingTemplate constructor", {
+  thisPath <- system.file(package = "openCyto")
+  thisPath <- file.path(thisPath, "inst")
+  gtfiles <- list.files(file.path(thisPath, "extdata/gating_template"), full = TRUE)
+  for(thisFile in gtfiles){
+    templateName <- file_path_sans_ext(basename(thisFile))
+    suppressWarnings(suppressMessages(
+        thisRes <- gatingTemplate(thisFile)
+    ))
     
-  for(tn in c("bcell", "treg", "ICS", "tcell")){
-    thisPath <- system.file(package = "openCyto")
-#    thisPath <- file.path(thisPath, "inst")
-    thisFile <- paste0("extdata/", tn, ".csv")
-    suppressMessages(thisRes <- gatingTemplate(file.path(thisPath, thisFile)))
-    expect_equal(thisRes, expectResults[[tn]])
+#    expectResults[[templateName]] <- thisRes
+    expect_equal(thisRes, expectResults[[templateName]])
   }
-
+  
 }) 
 
+#saveRDS(expectResults, file = system.file("tests/expectResults.rds", package = "openCyto"))

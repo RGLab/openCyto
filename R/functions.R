@@ -196,7 +196,7 @@ templateGen <- function(gh){
     dims <- this_row[1, dims]
     gm <- this_row[1, gating_method]
     
-    if (!grepl("[+-]", popName)) {
+    if (!grepl("[+-]$", popName)) {
       popName <- paste0(popName, "+")
       this_row[, pop := popName]
     }

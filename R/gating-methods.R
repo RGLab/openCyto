@@ -240,7 +240,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     if (is_1d_gate) {
       if (grepl("-$", popName)) {
         positive <- FALSE
-      } else if (grepl("+$", popName)) {
+      } else if (grepl("\\+$", QpopName)) {
         positive <- TRUE
       } else {
         stop("Invalid population name! Name should end with '+' or '-' symbol.")
