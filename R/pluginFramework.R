@@ -1,14 +1,12 @@
 #'The environment holding the names of registered methods
-.openCyto_gtmethod_lookup<-new.env()
+.openCyto_gtmethod_lookup <- new.env()
 .DEFAULTS <- c("quadrantGate", "quantileGate","rangeGate","flowClust.2d","mindensity","cytokine","flowClust.1d","boundary","singletGate", "tailgate")
 
 #'Print a list of the registered gating methods
 #'@return Does not return anything. Prints a list of the available gating methods.
 #'@export listgtMethods
 listgtMethods<-function(){
-  ns<-getNamespace("openCyto")
-  tbl<-getFromNamespace(".openCyto_gtmethod_lookup",ns=ns)
-  nms<-c(.DEFAULTS,(names(as.list(tbl))))
+  nms <- .getgtMethods()
   if(length(nms)>0){
     cat(nms,sep="\n")
   }else{
@@ -19,14 +17,14 @@ listgtMethods<-function(){
 #'Is the method registered
 #'
 #'This will strip the preceding dot.
-.isRegistered<-function(gtmethod){
+.isRegistered <- function(gtmethod){
   return(gsub("^\\.","",gtmethod)%in%.getgtMethods())
 }
 
 #'return a list of registered and default gating methods
-.getgtMethods<-function(x){
-  ns<-getNamespace("openCyto")
-  tbl<-getFromNamespace(".openCyto_gtmethod_lookup",ns=ns)
+.getgtMethods <- function(x){
+  ns <- getNamespace("openCyto")
+  tbl <- getFromNamespace(".openCyto_gtmethod_lookup", ns = ns)
   nms<-c(names(as.list(tbl)),.DEFAULTS)
   if(length(nms)>0){
     return(nms)
@@ -76,7 +74,7 @@ listgtMethods<-function(){
 #'Not all formal parameters need to be used. Additional arguments are passed via the ... and can be processed in the wrapper
 #'@import utils
 #'@importFrom R.utils isPackageInstalled
-registerGatingFunction<-function(fun=NA,methodName="myGatingMethod",dep=NA){
+registerGatingFunction <- function(fun=NA,methodName="myGatingMethod",dep=NA){
   if(!is.na(dep)){
     if(is.character(dep)){
       if(!isPackageInstalled(dep)){
@@ -104,18 +102,44 @@ registerGatingFunction<-function(fun=NA,methodName="myGatingMethod",dep=NA){
       return(FALSE)
     }
   }
+  return(TRUE)
 }
 
 #'Register a gating function for OpenCyto
 .register<-function(fun=NA,methodName="myGatingMethod"){
   methodName <- paste0(".",methodName)
+  
+  #insert to package namespace
   ENV <- getNamespace("openCyto")
   openCyto:::unlockNamespace(ENV)  
   try(unlockBinding(methodName,ENV),silent=TRUE)
   assign(methodName,fun,ENV)
-  e<-getFromNamespace(".openCyto_gtmethod_lookup",ns=getNamespace("openCyto"))
+  
+  #add to the gt method list
+  e <- getFromNamespace(".openCyto_gtmethod_lookup", ns = getNamespace("openCyto"))
   assign(gsub("^\\.","",methodName)," ",envir=e)
-  lockBinding(methodName,env=ENV)
+  
+  lockBinding(methodName, env = ENV)
+  lockEnvironment(ENV)
+  
+  return(TRUE)
+}
+
+#' only for internal usage (debug)
+.unregister <- function(methodName = "myGatingMethod"){
+
+  methodName <- paste0(".",methodName)
+  
+  e <- getFromNamespace(".openCyto_gtmethod_lookup", ns = getNamespace("openCyto"))
+  toRm <- gsub("^\\.","",methodName)
+  rm(list = toRm, envir = e)
+  
+  ENV <- getNamespace("openCyto")
+  openCyto:::unlockNamespace(ENV)
+  try(unlockBinding(methodName,ENV),silent=TRUE)
+  rm(list = methodName, envir = ENV)
+  
   lockEnvironment(ENV)
   return(TRUE)
 }
+
