@@ -91,19 +91,31 @@ registerGatingFunction <- function(fun=NA,methodName, dep=NA){
 #'@useDynLib openCyto
 #'@details The \code{fun} argument should be a wrapper function definition for the gating or preprocessing method. 
 #'                          Gating method must have formal arguments:
+#' 
 #'                           fr a \code{flowFrame}
+#' 
 #'                           pp_res a pre-processing result
+#' 
 #'                           xChannel \code{character} (optional)
+#' 
 #'                           yChannel \code{character} (required)
+#' 
 #'                           filter_id \code{character}
+#' 
 #'                           ... ellipses for the additional parameters.
 #' 
 #'                          Preprocessing method must have formal arguments:
+#' 
 #'                          fs a \code{flowSet} that stores the flow data (could be subgrouped data if \code{groupBy} column is defined in the csv template
-#'                          gs a \code{GatingSet} 
+#' 
+#'                          gs a \code{GatingSet}
+#'  
 #'                          gm a \code{gtMethod} object that stores the information from gating method
+#' 
 #'                          xChannel \code{character} (required)
+#' 
 #'                          yChannel \code{character} (required)
+#' 
 #'                           ... ellipses for the additional parameters.
 #' 
 #' The gating function must return a filter (i.e. polygonGate or other instance) from flowCore.

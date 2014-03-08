@@ -48,7 +48,9 @@
   '.flowClust')
 
   'gating_args': the named arguments passed to gating
-  function
+  function (Note that double quotes are often used as text
+  delimiter by some csv editors. So try to use single quote
+  instead if needed.)
 
   'collapseDataForGating': When TRUE, data is collapsed
   (within groups if 'groupBy' specified) before gating and
@@ -73,7 +75,7 @@
 }
 \examples{
 \dontrun{
-  gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+  gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
   plot(gt)
 }
 }
