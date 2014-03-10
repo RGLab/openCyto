@@ -6,7 +6,7 @@
 #' @param only.names \code{logical} specifiying whether user wants to get the entire \code{gtPopulation} object or just the name of the population node
 #'   
 #' @examples 
-#' gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#' gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #' getNodes(gt)[1:2]
 #' getNodes(gt, only.names = TRUE)
 #' getNodes(gt, "/nonDebris")
