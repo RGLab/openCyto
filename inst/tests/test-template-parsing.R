@@ -272,11 +272,10 @@ test_that("gatingTemplate constructor", {
     suppressWarnings(suppressMessages(
         thisRes <- gatingTemplate(thisFile)
     ))
-    
-#    expectResults[[templateName]] <- thisRes
+
     expect_equal(thisRes, expectResults[[templateName]])
   }
   
 }) 
 
-#saveRDS(expectResults, file = system.file("inst/tests/expectResults.rds", package = "openCyto"))
+
