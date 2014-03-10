@@ -20,7 +20,7 @@ test_that("registerPlugins", {
       expect_false(.isRegistered("flowDensity"))
       
       #invalid formal
-      myGatingFunc <- function(fr1, pp_res, yChannel, filterId, ...){
+      myGatingFunc <- function(fr1, pp_res, yChannel, ...){
         cat("dummy gating function")
       }
       expect_message(thisRes <- registerPlugins(fun = myGatingFunc,methodName="myGatingFunc"), "Formals of function don't match expected template")
@@ -28,7 +28,7 @@ test_that("registerPlugins", {
       expect_false(.isRegistered("myGatingFunc"))
 
       #successfully registered without rep
-      myGatingFunc <- function(fr, pp_res, yChannel, filterId, ...){
+      myGatingFunc <- function(fr, pp_res, yChannel, ...){
         cat("dummy gating function")
       }
       
@@ -40,7 +40,7 @@ test_that("registerPlugins", {
 
       
       #pp method
-      myPreprocessingFunc <- function(fr, pp_res, yChannel, filterId, ...){
+      myPreprocessingFunc <- function(fr, pp_res, yChannel, ...){
         cat("dummy preprocessing function")
       }
       

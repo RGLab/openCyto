@@ -33,7 +33,10 @@
 
   'pop': population patterns of 'A+/-` or 'A+/-B+/-', which
   tells the algorithm which side (postive or negative) of
-  1d gate or which quadrant of 2d gate to be kept
+  1d gate or which quadrant of 2d gate to be kept.  when it
+  is in the form of 'A+/-B+/-', 'A' and 'B' should be the
+  full name (or a substring as long as it is unqiuely
+  matched) of either channel or marker of the flow data.
 
   'parent': the parent population alias, its path has to be
   uniquely identifiable.

@@ -128,6 +128,7 @@ templateGen <- function(gh){
 #' It expands the definition of gates or construct reference gates when necessary
 #' @param dt \code{data.table} loaded directly from csv gating template
 #' @return a preprocessed(expanded when applicable) \code{data.frame}
+#' @import data.table
 .preprocess_csv <- function(dt) {
   
   #only parse these columns(other columns may be used by user for other purpose e.g. comments)

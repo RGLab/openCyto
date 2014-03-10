@@ -42,34 +42,38 @@ listgtMethods <- function(){
 .checkFormals <- function(frmls = NA, type = c("gating", "preprocessing")){
   
   type <- match.arg(type, c("gating", "preprocessing"))
-  
+  # we don't need to check ... since it is up to either
+  # wrapper function or the actual gating function to handle its 
+  # own formals
   if(type == "gating"){
-    expected <- c("fr","pp_res","yChannel","filterId", "...")
-    posn <- sapply(expected,function(x)which(names(frmls)%in%x))
-    frm1 <- c(fr = 1, pp_res = 2, yChannel = 4, filterId = 5, "..." = 6)
-    frm2 <- c(fr = 1, pp_res = 2, yChannel = 3, filterId = 4, "..." = 5)
-    isMatched <- isTRUE(all.equal(posn, frm1))|isTRUE(all.equal(posn, frm2))
+    expected <- c("fr","pp_res","yChannel")
+#    posn <- sapply(expected,function(x)which(names(frmls)%in%x))
+#    frm1 <- c(fr = 1, pp_res = 2, yChannel = 4)
+#    frm2 <- c(fr = 1, pp_res = 2, yChannel = 3)
+#    isMatched <- isTRUE(all.equal(posn, frm1))|isTRUE(all.equal(posn, frm2))
   }else{
     
-    expected <- c("fs","gs", "gm", "xChannel", "yChannel", "...")
-    posn <- sapply(expected,function(x)which(names(frmls)%in%x))
-    frm1 <- c(fs = 1, gs = 2, gm = 3, xChannel = 4, yChannel = 5, "..." = 6)
-    isMatched <- isTRUE(all.equal(posn, frm1))
+    expected <- c("fs","gs", "gm", "xChannel", "yChannel")
+#    posn <- sapply(expected,function(x)which(names(frmls)%in%x))
+#    frm1 <- c(fs = 1, gs = 2, gm = 3, xChannel = 4, yChannel = 5)
+#    isMatched <- isTRUE(all.equal(posn, frm1))
   }
-  
+  isMatched <- all(expected %in% names(frmls))
   if(!isMatched)
   {
-    message("Formals of function don't match expected template.")
+    message("Formals of function don't match expected template: ")
+    message("function(", paste(expected, collapse = ", "), ", ...)")
     return(FALSE)
-  }else{
-    if(type == "gating")
-      if(any(names(frmls)%in%"xChannel")){
-        if(which(names(frmls)%in%"xChannel")!=3){
-          message("Formals of function don't match expected template")
-          return(FALSE)
-        }
-      }
   }
+#  else{
+#    if(type == "gating")
+#      if(any(names(frmls)%in%"xChannel")){
+#        if(which(names(frmls)%in%"xChannel")!=3){
+#          message("Formals of function don't match expected template")
+#          return(FALSE)
+#        }
+#      }
+#  }
   return(TRUE)
 }
 
