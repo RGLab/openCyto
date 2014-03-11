@@ -10,9 +10,11 @@
 \arguments{
   \item{x}{\code{character} csv file name}
 
-  \item{...}{other argumentss
+  \item{name:}{\code{character} the label of the gating
+  template}
 
-  name: \code{character} the label of the gating template}
+  \item{...}{other arguments passed to
+  \code{data.table::fread}}
 }
 \description{
   Each cell population is stored in graph node and is
