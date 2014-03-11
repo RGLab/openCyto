@@ -1,6 +1,6 @@
 \name{registerPlugins}
 \alias{registerPlugins}
-\title{Register a gating function with OpenCyto}
+\title{Register a gating or preprocessing function with OpenCyto}
 \usage{
   registerPlugins(fun = NA, methodName, dep = NA, ...)
 }
