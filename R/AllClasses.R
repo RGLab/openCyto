@@ -314,9 +314,8 @@ setClass("gtSubsets", contains = "gtPopulation")
 #'     
 #' 
 #' @param x \code{character} csv file name
-#' @param ... other argumentss
-#' 
-#'  name: \code{character} the label of the gating template
+#' @param name: \code{character} the label of the gating template
+#' @param ... other arguments passed to \code{data.table::fread}
 #' @export 
 #' @importFrom graph graphNEL addEdge edges nodeDataDefaults nodeData edgeDataDefaults addEdge edgeData subGraph
 #' @rdname gatingTemplate-class
@@ -327,13 +326,13 @@ setClass("gtSubsets", contains = "gtPopulation")
 #'   plot(gt)
 #' }
 #' 
-setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
-      dt <- fread(x)
+setMethod("gatingTemplate", signature(x = "character"), function(x, name = "default", ...) {
+      dt <- fread(x, ...)
       dt <- .preprocess_csv(dt)
-      .gatingTemplate(dt, ...)
+      .gatingTemplate(dt, name = name)
     })
 #' @importFrom graph nodeDataDefaults<- edgeDataDefaults<- nodeData<- edgeData<-
-.gatingTemplate <- function(dt, name="default"){  
+.gatingTemplate <- function(dt, name = "default"){  
 #  browser()
   # create graph with root node
 #  browser()
