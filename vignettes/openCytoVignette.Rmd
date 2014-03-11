@@ -106,7 +106,7 @@ Here is the an example of the gating template.
 library(openCyto)
 library(data.table)
 gtFile <- system.file("extdata/gating_template/tcell.csv", package = "openCyto")
-dtTemplate <- fread(gtFile)
+dtTemplate <- fread(gtFile, autostart = 1L)
 dtTemplate
 ```
 Each row is usually corresponding to one cell population and the gating method that is used to get that population.
@@ -193,7 +193,7 @@ Sometimes we want to have the customized `alias` other than quadrant-like name (
 ----------------------------- 
 After the gating template is defined in the spread sheet, it can be loaded into R:  	 	
 ```{r load-gt, eval = T}
-gt_tcell <- gatingTemplate(gtFile)
+gt_tcell <- gatingTemplate(gtFile, autostart = 1L)
 gt_tcell
 ```
 Besides looking at the spread sheet, we can examine the gating scheme by visualizing it:
