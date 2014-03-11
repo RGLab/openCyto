@@ -14,7 +14,7 @@ two_or_one_pop_pat <- paste0("(", two_pop_pat, ")|(", one_pop_pat, ")")
 #      templateGen(gh)
 #    })
 
-dt <- fread(gtFile)
+dt <- fread(gtFile, autostart = 1L)
 
 
 test_that(".preprocess_csv", {
@@ -267,10 +267,12 @@ test_that("gatingTemplate constructor", {
   thisPath <- system.file(package = "openCyto")
 #  thisPath <- file.path(thisPath, "inst")
   gtfiles <- list.files(file.path(thisPath, "extdata/gating_template"), full = TRUE)
-  for(thisFile in gtfiles[4]){
+  for(thisFile in gtfiles){
+    
     templateName <- file_path_sans_ext(basename(thisFile))
+    message(templateName)
     suppressWarnings(suppressMessages(
-        thisRes <- gatingTemplate(thisFile)
+        thisRes <- gatingTemplate(thisFile, autostart = 1L)
     ))
 
     expect_equal(thisRes, expectResults[[templateName]])
