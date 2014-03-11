@@ -126,6 +126,7 @@ registerGatingFunction <- function(fun=NA,methodName, dep=NA){
 #' The preprocessing can return anything and it will be passed on to the gating function. So it is up to gating function to use and interpret the results of preprocessing.
 #' Not all formal parameters need to be used. Additional arguments are passed via the ... and can be processed in the wrapper
 #' 
+#' @aliases registerGatingFunction
 #'@import utils
 #'@importFrom R.utils isPackageInstalled
 registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
