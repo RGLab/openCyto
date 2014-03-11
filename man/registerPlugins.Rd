@@ -1,4 +1,5 @@
 \name{registerPlugins}
+\alias{registerGatingFunction}
 \alias{registerPlugins}
 \title{Register a gating or preprocessing function with OpenCyto}
 \usage{
