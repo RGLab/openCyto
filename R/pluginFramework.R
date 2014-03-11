@@ -78,7 +78,7 @@ listgtMethods <- function(){
 }
 
 registerGatingFunction <- function(fun=NA,methodName, dep=NA){
-  .Deprecated("registerPlugins")
+  .Defunct("registerPlugins")
 }
 #'Register a gating function with OpenCyto
 #'
