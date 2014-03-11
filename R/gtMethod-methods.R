@@ -20,7 +20,8 @@ setMethod("show", signature = c("boolMethod"), definition = function(object) {
 #' @export
 #' @aliases names,gtMethod-method
 #' @examples 
-#' gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#' \dontrun{
+#' gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #' 
 #' gtMthd <- getGate(gt, "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
 #' names(gtMthd) 
@@ -32,6 +33,7 @@ setMethod("show", signature = c("boolMethod"), definition = function(object) {
 #' gtPop <- getNodes(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
 #' names(gtPop)
 #' alias(gtPop)
+#' }
 #' 
 #' @rdname names
 setMethod("names", signature = c("gtMethod"), definition = function(x) {

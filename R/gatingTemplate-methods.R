@@ -6,7 +6,8 @@
 #' @param only.names \code{logical} specifiying whether user wants to get the entire \code{gtPopulation} object or just the name of the population node
 #'   
 #' @examples 
-#' gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#' \dontrun{
+#' gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #' getNodes(gt)[1:2]
 #' getNodes(gt, only.names = TRUE)
 #' getNodes(gt, "/nonDebris")
@@ -16,7 +17,7 @@
 #' ppMethod(gt,  "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
 #' plot(gt) #plot entire tree
 #' plot(gt, "lymph") #only plot the subtree rooted from "lymph"
-#' 
+#' }
 #' @export 
 #' @aliases getNodes,gatingTemplate-method
 #' @rdname getNodes
