@@ -56,6 +56,7 @@
   get population alias
 }
 \examples{
+\dontrun{
 gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 
 gtMthd <- getGate(gt, "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
@@ -68,5 +69,6 @@ groupBy(gtMthd)
 gtPop <- getNodes(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
 names(gtPop)
 alias(gtPop)
+}
 }
 

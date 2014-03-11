@@ -125,14 +125,14 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
 }
 
 
-# apply a \link[openCyto:gtMethod-class]{gtMethod} to the \code{GatingSet}
-# 
-# 
-# @inheritParams .gating_gtMethod
-# @param ... other arguments
-# @aliases
-# gating,gtMethod,GatingSet-method 
-# gating,gtMethod,GatingSetList-method
+#' apply a \link[openCyto:gtMethod-class]{gtMethod} to the \code{GatingSet}
+#' 
+#' 
+#' @inheritParams .gating_gtMethod
+#' @param ... other arguments
+#' @aliases
+#' gating,gtMethod,GatingSet-method 
+#' gating,gtMethod,GatingSetList-method
 setMethod("gating", signature = c("gtMethod", "GatingSet"),
     definition = function(x, y, ...) {
       .gating_gtMethod(x,y,...)
@@ -320,14 +320,14 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
   filterObj
 }
 
-# apply a \code{boolMethod} to the \code{GatingSet}
-# 
-# @param x \code{boolMethod}
-# @inheritParams .gating_boolMethod
-# @param ... other arguments
-# @aliases
-# gating,boolMethod,GatingSet-method
-# gating,boolMethod,GatingSetList-method
+#' apply a \code{boolMethod} to the \code{GatingSet}
+#' 
+#' @param x \code{boolMethod}
+#' @inheritParams .gating_boolMethod
+#' @param ... other arguments
+#' @aliases
+#' gating,boolMethod,GatingSet-method
+#' gating,boolMethod,GatingSetList-method
 setMethod("gating", signature = c("boolMethod", "GatingSet"),
     definition = function(x, y, ...) {
       .gating_boolMethod(x,y,...)      
@@ -365,17 +365,17 @@ setMethod("gating", signature = c("boolMethod", "GatingSetList"),
   NULL
 }
 
-# apply a \link{polyFunctions} gating method to the \code{GatingSet}
-# 
-# It generates a batch of \code{boolMethod}s based on the expression defined in \code{polyFunctions} objects.
-# It is a convenience way to generate different boolean combinations of cytokine gates. 
-# 
-# @param x \code{polyFunctions}
-# @inheritParams .gating_polyFunctions
-# @param ... other arguments
-# @aliases
-# gating,polyFunctions,GatingSet-method
-# gating,polyFunctions,GatingSetList-method
+#' apply a \link{polyFunctions} gating method to the \code{GatingSet}
+#' 
+#' It generates a batch of \code{boolMethod}s based on the expression defined in \code{polyFunctions} objects.
+#' It is a convenience way to generate different boolean combinations of cytokine gates. 
+#' 
+#' @param x \code{polyFunctions}
+#' @inheritParams .gating_polyFunctions
+#' @param ... other arguments
+#' @aliases
+#' gating,polyFunctions,GatingSet-method
+#' gating,polyFunctions,GatingSetList-method
 setMethod("gating", signature = c("polyFunctions", "GatingSet"),
     definition = function(x, y, ...) {
       .gating_polyFunctions(x,y,...)      
@@ -505,15 +505,16 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
     stop("nodeID are not identical across samples!")
   nodeID
 }
-# apply a \code{refGate} to the \code{GatingSet}
-# 
-# @param x \code{refGate}
-# @inheritParams .gating_refGate
-# @param .. other arguments
-# 
-# @aliases
-# gating,refGate,GatingSet-method
-# gating,refGate,GatingSetList-method
+
+#' apply a \code{refGate} to the \code{GatingSet}
+#' 
+#' @param x \code{refGate}
+#' @inheritParams .gating_refGate
+#' @param .. other arguments
+#' 
+#' @aliases
+#' gating,refGate,GatingSet-method
+#' gating,refGate,GatingSetList-method
 setMethod("gating", signature = c("refGate", "GatingSet"),
     definition = function(x, y, ...) {
       .gating_refGate(x, y, ...)

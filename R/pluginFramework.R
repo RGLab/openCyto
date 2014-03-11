@@ -78,9 +78,9 @@ listgtMethods <- function(){
 }
 
 registerGatingFunction <- function(fun=NA,methodName, dep=NA){
-  .Deprecated("registerPlugins")
+  .Defunct("registerPlugins")
 }
-#'Register a gating function with OpenCyto
+#'Register a gating or preprocessing function with OpenCyto
 #'
 #'Function registers a new gating or preprocessing method with openCyto so that it may be used in the 
 #'csv template.
