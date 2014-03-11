@@ -164,7 +164,7 @@ The forth row specifies `pop` as `cd4+/-cd8+/-`, which will be expanded this int
 dtTemplate[5,]
 ```
 ```{r gatingTemplate-expand, echo = F, results = F}
-expanded <- openCyto:::.preprocess_csv(gtFile)
+expanded <- openCyto:::.preprocess_csv(dtTemplate)
 rownames(expanded) <- NULL
 ```
 
