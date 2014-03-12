@@ -94,12 +94,14 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
       }
         
     }
-#    browser()
+    
     parent <- getParent(gt, node)
     
     # extract gate method from one edge(since multiple edge to the same node is
     # redudant)
     this_gate <- getGate(gt, parent, node)
+    
+    
     
     #get preprocessing method
     this_ppm <- ppMethod(gt, parent, node)
@@ -119,7 +121,9 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
     # update fct
     if (!is.null(env_fct) && !is.null(filterObj)) {
       nodeData(env_fct$fct, node, "fList")[[1]] <- filterObj
-    }
+    }  
+    
+    
   }
   message("finished.")
 }
@@ -180,8 +184,14 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
   popName <- names(gtPop)
   popId <- gtPop@id
   gs_nodes <- basename(getChildren(y[[1]], parent))
-#  browser()
-  if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
+  
+  if (length(gs_nodes) == 0)
+    isGated <- FALSE
+  else
+    isGated <- any(popAlias %in% gs_nodes)
+    
+  if(!isGated)
+  {
     message("Gating for '", popAlias, "'")
     
     parent_data <- getData(y, parent)
@@ -301,10 +311,13 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     
     
     
-    #when Alias is meta character, then pass NULL
-    # to add method which uses filterId slot to name the populations
-    if(popAlias == "*")
-      popAlias <- NULL
+    
+    if(length(popAlias) == 1){
+      #when Alias is meta character, then pass NULL
+      # to add method which uses filterId slot to name the populations
+      if(popAlias == "*")
+        popAlias <- NULL  
+    }
     
     gs_node_id <- add(y, flist, parent = parent, name = popAlias)
     for(this_gs_id in gs_node_id)
@@ -312,10 +325,12 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     
     message("done.")
     
-  } else {
+  }else{
+    
     message("Skip gating! Population '", paste(popAlias, collapse = ","), "' already exists.")
     flist <- NULL
   }
+    
   
   if (plot) {
     print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
@@ -526,6 +541,26 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
 setMethod("gating", signature = c("refGate", "GatingSetList"),
     definition = function(x, y, ...) {
       .gating_refGate(x, y, ...)
+    })
+
+#' apply a \code{dummyMethod}
+#' 
+#' It does nothing.
+#' 
+#' @param x \code{dummyMethod}
+#' @param y \code{GatingSet} or \code{GatingSetList}
+#' @param .. other arguments
+#' 
+#' @aliases
+#' gating,dummyMethod,ANY-method
+setMethod("gating", signature = c("dummyMethod", "GatingSet"),
+    definition = function(x, y, ...) {
+      #do nothing
+    })
+
+setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
+    definition = function(x, y, ...) {
+      #do nothing
     })
 
 #' internal function (gating_refGate)

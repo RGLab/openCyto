@@ -186,6 +186,7 @@ setClass("gtMethod", representation(name = "character"
 #' }     
 setClass("ppMethod", contains = "gtMethod")
 
+
 #' A class to represent a reference gating method.
 #' 
 #' It extends \code{gtMethod} class.
@@ -196,6 +197,12 @@ setClass("ppMethod", contains = "gtMethod")
 #' }
 #' @name refGate-class      
 setClass("refGate", contains = "gtMethod", representation(refNodes = "character"))
+
+#' A class to represent a dummy gating method that does nothing but serves as reference to be refered by other population
+#' 
+#' It is generated automatically by the csv template preprocessing to handle the gating function that returns multiple gates. 
+setClass("dummyMethod", contains = "refGate")
+
 
 #' A class to represent a boolean gating method.
 #' 
@@ -329,6 +336,11 @@ setClass("gtSubsets", contains = "gtPopulation")
 setMethod("gatingTemplate", signature(x = "character"), function(x, name = "default", ...) {
       dt <- fread(x, ...)
       dt <- .preprocess_csv(dt)
+      
+      #append the isMultiPops column based on pop name
+      dt[, isMultiPops := FALSE]
+      dt[pop == "*", isMultiPops := TRUE]
+      
       .gatingTemplate(dt, name = name)
     })
 #' @importFrom graph nodeDataDefaults<- edgeDataDefaults<- nodeData<- edgeData<-
@@ -365,7 +377,10 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name = "defa
     curNodePath <- paste(parent, curPop, sep = "/")
     curNodePath <- sub("root", "", curNodePath)
     curPopName <- thisRow[, pop][[1]]
-
+    isMultiPops <- thisRow[, isMultiPops]
+    #try to split alias for the gating function that returns multi-pops
+    if(isMultiPops)
+        curPop <- flowWorkspace:::trimWhiteSpace(unlist(strsplit(split = ",", curPop)))
     # create pop object
     curNode <- new("gtPopulation", id = curNodePath, name = curPopName, 
                         alias = curPop
@@ -387,7 +402,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name = "defa
     cur_groupBy <- thisRow[, groupBy][[1]]
     # do not parse args for refGate-like gate since they might break the current
     # parse due to the +/- | &,! symbols
-    if (any(grepl(cur_method,  c("boolGate", "polyfunctions", "refGate"), ignore.case = TRUE))) {
+    if (any(grepl(cur_method,  c("boolGate", "polyfunctions", "refGate", "dummy_gate"), ignore.case = TRUE))) {
       split_args <- FALSE
     } else {
       split_args <- TRUE
@@ -413,7 +428,9 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name = "defa
         stop("No dimensions defined for refGate!")
       }
     }
-
+    if (grepl(names(gm) , "dummy_gate", ignore.case = TRUE)) 
+      gm <- as(gm, "dummyMethod")
+    
     #preprocessing object
     cur_pp_Method <- thisRow[, preprocessing_method][[1]]
     cur_pp_args <- thisRow[, preprocessing_args][[1]]
@@ -428,7 +445,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name = "defa
                   , groupBy = cur_groupBy
                 )
     
-    message("Adding population:", curPop)
+    message("Adding population:", basename(curNodePath))
 #    browser()
     # add current node to graph
     g_updated <- graph::addNode(curNodePath, g)
