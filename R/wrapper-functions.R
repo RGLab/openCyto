@@ -154,11 +154,11 @@
     }
     thisCall <- substitute(f(fr = fr, pp_res = pp_res, ...),list(f=as.symbol(gFunc)))
     filterRes <- try(eval(thisCall), silent = TRUE)
-    
-    if(extends(class(filterRes), "filter")){
-##    browser()
+        
+    if(extends(class(filterRes), "filter")||extends(class(filterRes), "filters")){
+
       #replicate the filter across samples
-      list(sapply(sampleNames(fs),function(i)filterRes))      
+      list(sapply(sampleNames(fs),function(i)filterRes, simplify = FALSE))      
     }else{
       stop("failed at ",paste0(sn), "\n", filterRes)
     }

@@ -273,7 +273,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
      }
 
     flist <- eval(thisCall)
-#browser()
+
     # Handles the case that 'flist' is a list of lists.
     #   The outer lists correspond to the split by pData factors.
     #   The inner lists contain the actual gates.
@@ -297,27 +297,31 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     
     if (extends(class(flist[[1]]), "fcFilter")) {
       flist <- fcFilterList(flist)
-    } else {
-      flist <- filterList(flist)
     }
     
-    filterObj <- flist
-    gs_node_id <- add(y, flist, parent = parent, name = popAlias)
     
-    invisible(recompute(y, gs_node_id, alwaysLoadData = TRUE))
+    
+    #when Alias is meta character, then pass NULL
+    # to add method which uses filterId slot to name the populations
+    if(popAlias == "*")
+      popAlias <- NULL
+    
+    gs_node_id <- add(y, flist, parent = parent, name = popAlias)
+    for(this_gs_id in gs_node_id)
+      invisible(recompute(y, this_gs_id, alwaysLoadData = TRUE))
     
     message("done.")
     
   } else {
     message("Skip gating! Population '", paste(popAlias, collapse = ","), "' already exists.")
-    filterObj <- NULL
+    flist <- NULL
   }
   
   if (plot) {
     print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
   }
   
-  filterObj
+  flist
 }
 
 #' apply a \code{boolMethod} to the \code{GatingSet}
