@@ -204,6 +204,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     yParam <- getChannelMarker(parent_data[[1]], yChannel)
     yChannel <- as.character(yParam$name)
 
+    channels <- c(xChannel, yChannel)
     # Splits the flow set into a list.
     # By default, each element in the list is a flowSet containg one flow frame,
     # corresponding to the invidual sample names.
@@ -243,7 +244,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     thisCall <- substitute(f1(fslist,pp_res))
     thisCall[["FUN"]] <- as.symbol(".gating_wrapper")
     args[["gFunc"]] <- gm  #set gating method
-    
+    args[["popAlias"]] <- popAlias  
+    args[["channels"]] <- channels #to deprecate x,y channel
     args[["xChannel"]] <- xChannel  #set x,y channel
     args[["yChannel"]] <- yChannel
     
