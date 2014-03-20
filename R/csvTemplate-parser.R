@@ -110,7 +110,10 @@ templateGen <- function(gh){
 #' @param this_parent \code{character} the full gating path of the parent node  
 #' @return NULL when pass the check, otherwise, throw the error
 .unique_check_alias <- function(new_dt, alias, this_parent) {
-  
+  #skip the unexpanded multi-pop pattern 
+  #since it is not supposed to be refered 
+  if(alias == "*")
+    return(NULL)
   siblings <- new_dt[parent == this_parent, alias]
   toMatch <- gsub("\\+", "\\\\\\+", alias)
   toMatch <- paste0("^",toMatch,"$")
@@ -193,10 +196,17 @@ templateGen <- function(gh){
   #make sure it doesn't tamper the input
   this_row <- copy(this_row)
   
+  alias <- this_row[1, alias]
   popName <- this_row[1, pop]
   dims <- this_row[1, dims]
   gm <- this_row[1, gating_method]
   
+  if(popName == "*" ){
+    if(alias == "*")
+      return(this_row)
+    else
+      return(.gen_dummy_ref_gate(this_row))
+    }
   if (!grepl("[+-]$", popName)) {
     popName <- paste0(popName, "+")
     this_row[, pop := popName]
@@ -343,6 +353,30 @@ templateGen <- function(gh){
         splitted_term
       })
   list(terms = terms, splitted_terms = splitted_terms)
+}
+
+#' generate some dummy rows that just serves as reference without any gating method associated
+.gen_dummy_ref_gate <- function(this_row){
+  
+  alias <- this_row[, alias]
+  
+  refNode <- file.path(this_row[, parent], alias)
+  
+  pops <- flowWorkspace:::trimWhiteSpace(unlist(strsplit(split = ",", alias)))
+  new_rows <- lapply(pops, function(thisPop){
+                          dummy_row <- copy(this_row)
+                          dummy_row[, alias := thisPop]
+                          dummy_row[, pop := ""]
+                          dummy_row[, gating_method := "dummy_gate"]
+                          dummy_row[, gating_args := refNode]
+                          dummy_row[, collapseDataForGating := ""]
+                          dummy_row[, groupBy := ""]
+                          dummy_row[, preprocessing_method := ""]
+                          dummy_row[, preprocessing_args := ""]
+                          dummy_row
+                        })
+  
+  rbindlist(list(this_row,rbindlist(new_rows)))    
 }
 #' convert to 1d gating based on the population pattern (A+/-B+/-)
 .gen_1dgate <- function(terms, this_row, one_pop_token, two_pop_token) {
