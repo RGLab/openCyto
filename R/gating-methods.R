@@ -554,7 +554,8 @@ setMethod("gating", signature = c("refGate", "GatingSetList"),
 #' @param .. other arguments
 #' 
 #' @aliases
-#' gating,dummyMethod,ANY-method
+#' gating,dummyMethod,GatingSet-method
+#' gating,dummyMethod,GatingSetList-method
 setMethod("gating", signature = c("dummyMethod", "GatingSet"),
     definition = function(x, y, ...) {
       #do nothing
