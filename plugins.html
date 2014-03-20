@@ -124,10 +124,10 @@ boundry &lt;-  function(xs) {
 <p>After writing your wrapper, you make it visible to OpenCyto by calling <code>registerGatingFunction</code>.</p>
 
 <pre><code>
-registerGatingFunction(fun=.dnaGate,methodName=&#39;dnaGate&#39;, dep=&#39;mvtnorm&#39;)
+registerPlugins(fun=.dnaGate,methodName=&#39;dnaGate&#39;, dep=&#39;mvtnorm&#39;,&quot;gating&quot;)
 </code></pre>
 
-<p>This tells openCyto that <code>.dnaGate</code> is my wrapper, I will call it <code>dnaGate</code> in my template, and it depends on the <code>mvtnorm</code> package. If the dependency is not installed, the function will not be registered. This is useful if you want to distribute your plugins to other users.</p>
+<p>This tells openCyto that <code>.dnaGate</code> is my wrapper, I will call it <code>dnaGate</code> in my template, and it depends on the <code>mvtnorm</code> package, and is a “gating” method (as opposed to a “preprocessing” method. If the dependency is not installed, the function will not be registered. This is useful if you want to distribute your plugins to other users.</p>
   </div>
 </div>
 
