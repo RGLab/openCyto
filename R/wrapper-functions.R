@@ -135,10 +135,11 @@
 #' @inheritParams .prior_flowClust
 #' @param pp_res preprocessing result produced by the \code{preprocessing} method
 #' @param gFunc \code{character} function name of the wrapper function to be invoked
+#' @param popAlias \code{character} the population names that are used to determine how many gates to be expected from the gating function 
 #' @param ... other arguments to be passed to wrapper function
 #' 
 #' @return a \code{list} of \code{filter}s
-.gating_wrapper <- function(fs, pp_res, gFunc, ...){
+.gating_wrapper <- function(fs, pp_res, gFunc, popAlias, channels, ...){
     require(openCyto)  #since it is going to be invoked by MPI, better load it
     #coercing
     sn <- sampleNames(fs)
@@ -147,18 +148,46 @@
     minEvents <- openCyto.options[["gating"]][["minEvents"]]
     if(is.null(minEvents))
       minEvents <- 0
-    if(nrow(fr) <= minEvents)
-      stop("Not enough events to proceed the gating!")
-    if(!.isRegistered(gFunc)){
-      stop(sprintf("Can't gate using unregistered method %s",gFunc))
+    if(nrow(fr) <= minEvents){
+      warning(paste(sn, collapse =","), ": Not enough events to proceed the data-driven gating!Returning a dummy gate instead.")
+      
+      #create dummy rectangleGate
+      #TODO: move channels to ... to deprecate x,y channel
+#      dots <- list(...)
+#      channels <- dots$channels
+      channels <- as.vector(na.omit(channels))
+      nDim <- length(channels) 
+      
+      if(nDim ==  1)
+        gate_coordinates <- list(c(-Inf, -Inf))
+      else if(nDim ==  2)
+        gate_coordinates <- list(c(-Inf, -Inf), c(-Inf, -Inf))
+      else
+        stop(nDim, " dimensional gating is not supported yet!")
+
+      names(gate_coordinates) <- channels
+      filterRes <- rectangleGate(gate_coordinates)
+      
+      nPop <- length(popAlias)
+      filterResType <- ifelse(nPop == 1, "filter", "filters")
+      if(filterResType == "filters"){
+        filterRes <- filters(lapply(1:nPop, function(i)filterRes))
+      }
+      
+    }else{
+      if(!.isRegistered(gFunc)){
+        stop(sprintf("Can't gate using unregistered method %s",gFunc))
+      }
+      thisCall <- substitute(f(fr = fr, pp_res = pp_res, ...),list(f=as.symbol(gFunc)))
+      filterRes <- try(eval(thisCall), silent = TRUE)  
     }
-    thisCall <- substitute(f(fr = fr, pp_res = pp_res, ...),list(f=as.symbol(gFunc)))
-    filterRes <- try(eval(thisCall), silent = TRUE)
+      
     
-    if(extends(class(filterRes), "filter")){
-##    browser()
+        
+    if(extends(class(filterRes), "filter")||extends(class(filterRes), "filters")){
+
       #replicate the filter across samples
-      list(sapply(sampleNames(fs),function(i)filterRes))      
+      list(sapply(sampleNames(fs),function(i)filterRes, simplify = FALSE))      
     }else{
       stop("failed at ",paste0(sn), "\n", filterRes)
     }

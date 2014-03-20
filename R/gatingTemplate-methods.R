@@ -221,9 +221,9 @@ setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
   nLtys <- LineType[nodeTypes]
   names(nLtys) <- n.colnames
   
-  nLabels <- unlist(lapply(nodeData(x, attr = "pop"), alias))
+  nLabels <- unlist(lapply(nodeData(x, attr = "pop"), function(thisPop)paste(alias(thisPop), collapse = ",")))
   nAttrs <- list(label = nLabels, fillcolor = nFillCol, lty = nLtys)
-#  browser()
+  
   plot(as(x,"graphNEL"), nodeAttrs = nAttrs, edgeAttrs = eAttrs
                   ,attrs = list(graph = graphAttr,node = nodeAttr)
     )

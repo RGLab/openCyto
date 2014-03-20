@@ -28,6 +28,8 @@ test_that(".preprocess_csv", {
 
 
 test_that(".gatingTemplate", {
+      preprocessed_dt[, isMultiPops := FALSE]
+      
       suppressMessages(thisRes <- .gatingTemplate(preprocessed_dt, name="default"))
       expect_equal(thisRes, expectResults[["tcell"]])
     })
@@ -50,6 +52,14 @@ test_that(".getFullPath", {
       
     })
 
+#used by multiple test cases
+template_row <- data.table(alias = "TH", pop = "cd4+cd8-"
+                          , parent = "cd3", dims = "cd4,cd8"
+                          , gating_method = "mindensity", gating_args = ""
+                          , collapseDataForGating = "TRUE", groupBy = "4"
+                          , preprocessing_method = "", preprocessing_args = ""
+                      )
+
 test_that(".validity_check_alias", {
       
       #illegal character |,&,:,/
@@ -67,7 +77,20 @@ test_that(".unique_check_alias", {
       parentPath <- "/nonDebris/singlets/lymph/cd3"
       
       expect_null(.unique_check_alias(preprocessed_dt, alias = "cd4", this_parent = parentPath))
-      expect_error(.unique_check_alias(preprocessed_dt, alias = "cd4+", this_parent = parentPath), , "not unique")
+      expect_error(.unique_check_alias(preprocessed_dt, alias = "cd4+", this_parent = parentPath),  "not unique")
+
+      #multi-pops
+      #with pop names specified
+      this_row <- copy(template_row)
+      this_row[, alias := "cd4,cd8"]
+      this_row[, pop := "*"]
+      
+      expect_error(.unique_check_alias(this_row, alias = "cd4,cd8", this_parent = "cd3"),  "not unique")
+      expect_null(.unique_check_alias(this_row, alias = "cd4", this_parent = "cd3"))
+      
+      #no pop names specified
+      this_row[, alias := "*"]
+      expect_null(.unique_check_alias(this_row, alias = "*", this_parent = "cd3"))
     })
 
 test_that(".splitTerms", {
@@ -91,14 +114,29 @@ test_that(".splitTerms", {
       
     })
 
-#used by multiple test cases
-template_row <- data.table(alias = "TH", pop = "cd4+cd8-"
-                          , parent = "cd3", dims = "cd4,cd8"
-                          , gating_method = "mindensity", gating_args = ""
-                          , collapseDataForGating = "TRUE", groupBy = "4"
-                          , preprocessing_method = "", preprocessing_args = ""
-                      )
-                      
+test_that(".gen_dummy_ref_gate", {
+      
+      this_row <- copy(template_row)
+      this_row[, alias := "cd4,cd8"]
+      this_row[, pop := "*"]
+      
+      dummy_row1 <- copy(this_row)
+      dummy_row1[, alias := "cd4"]
+      dummy_row1[, pop := ""]
+      dummy_row1[, gating_method := "dummy_gate"]
+      dummy_row1[, gating_args := file.path("cd3/cd4,cd8")]
+      dummy_row1[, collapseDataForGating := ""]
+      dummy_row1[, groupBy := ""]
+      dummy_row1[, preprocessing_method := ""]
+      dummy_row1[, preprocessing_args := ""]
+      
+      dummy_row2 <- copy(dummy_row1)
+      dummy_row2[, alias := "cd8"]
+      
+      expectRes <- rbindlist(list(this_row, dummy_row1, dummy_row2)) 
+      expect_equal(.gen_dummy_ref_gate(this_row), expectRes)
+    })
+
 test_that(".gen_1dgate", {
       
       #A+B+                            
@@ -260,6 +298,16 @@ test_that(".preprocess_row", {
       expectRes[, gating_method := "flowClust.2d"]
       expect_equal(.preprocess_row(this_row), expectRes)
       
+      #multi-pops
+      #no expansion    
+      this_row <- copy(template_row)
+      this_row[, alias := "*"]
+      this_row[, pop := "*"]
+      expect_equal(.preprocess_row(this_row), this_row)
+      
+      #with expansion
+      this_row[, alias := "cd4,cd8"]
+      expect_equal(.preprocess_row(this_row), .gen_dummy_ref_gate(this_row))
     })
 
 

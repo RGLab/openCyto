@@ -94,12 +94,14 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
       }
         
     }
-#    browser()
+    
     parent <- getParent(gt, node)
     
     # extract gate method from one edge(since multiple edge to the same node is
     # redudant)
     this_gate <- getGate(gt, parent, node)
+    
+    
     
     #get preprocessing method
     this_ppm <- ppMethod(gt, parent, node)
@@ -119,7 +121,9 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
     # update fct
     if (!is.null(env_fct) && !is.null(filterObj)) {
       nodeData(env_fct$fct, node, "fList")[[1]] <- filterObj
-    }
+    }  
+    
+    
   }
   message("finished.")
 }
@@ -180,8 +184,14 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
   popName <- names(gtPop)
   popId <- gtPop@id
   gs_nodes <- basename(getChildren(y[[1]], parent))
-#  browser()
-  if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
+  
+  if (length(gs_nodes) == 0)
+    isGated <- FALSE
+  else
+    isGated <- any(popAlias %in% gs_nodes)
+    
+  if(!isGated)
+  {
     message("Gating for '", popAlias, "'")
     
     parent_data <- getData(y, parent)
@@ -194,6 +204,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     yParam <- getChannelMarker(parent_data[[1]], yChannel)
     yChannel <- as.character(yParam$name)
 
+    channels <- c(xChannel, yChannel)
     # Splits the flow set into a list.
     # By default, each element in the list is a flowSet containg one flow frame,
     # corresponding to the invidual sample names.
@@ -233,7 +244,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     thisCall <- substitute(f1(fslist,pp_res))
     thisCall[["FUN"]] <- as.symbol(".gating_wrapper")
     args[["gFunc"]] <- gm  #set gating method
-    
+    args[["popAlias"]] <- popAlias  
+    args[["channels"]] <- channels #to deprecate x,y channel
     args[["xChannel"]] <- xChannel  #set x,y channel
     args[["yChannel"]] <- yChannel
     
@@ -273,7 +285,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
      }
 
     flist <- eval(thisCall)
-#browser()
+
     # Handles the case that 'flist' is a list of lists.
     #   The outer lists correspond to the split by pData factors.
     #   The inner lists contain the actual gates.
@@ -297,27 +309,36 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     
     if (extends(class(flist[[1]]), "fcFilter")) {
       flist <- fcFilterList(flist)
-    } else {
-      flist <- filterList(flist)
     }
     
-    filterObj <- flist
-    gs_node_id <- add(y, flist, parent = parent, name = popAlias)
     
-    invisible(recompute(y, gs_node_id, alwaysLoadData = TRUE))
+    
+    
+    if(length(popAlias) == 1){
+      #when Alias is meta character, then pass NULL
+      # to add method which uses filterId slot to name the populations
+      if(popAlias == "*")
+        popAlias <- NULL  
+    }
+    
+    gs_node_id <- add(y, flist, parent = parent, name = popAlias)
+    for(this_gs_id in gs_node_id)
+      invisible(recompute(y, this_gs_id, alwaysLoadData = TRUE))
     
     message("done.")
     
-  } else {
+  }else{
+    
     message("Skip gating! Population '", paste(popAlias, collapse = ","), "' already exists.")
-    filterObj <- NULL
+    flist <- NULL
   }
+    
   
   if (plot) {
     print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
   }
   
-  filterObj
+  flist
 }
 
 #' apply a \code{boolMethod} to the \code{GatingSet}
@@ -522,6 +543,27 @@ setMethod("gating", signature = c("refGate", "GatingSet"),
 setMethod("gating", signature = c("refGate", "GatingSetList"),
     definition = function(x, y, ...) {
       .gating_refGate(x, y, ...)
+    })
+
+#' apply a \code{dummyMethod}
+#' 
+#' It does nothing.
+#' 
+#' @param x \code{dummyMethod}
+#' @param y \code{GatingSet} or \code{GatingSetList}
+#' @param .. other arguments
+#' 
+#' @aliases
+#' gating,dummyMethod,GatingSet-method
+#' gating,dummyMethod,GatingSetList-method
+setMethod("gating", signature = c("dummyMethod", "GatingSet"),
+    definition = function(x, y, ...) {
+      #do nothing
+    })
+
+setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
+    definition = function(x, y, ...) {
+      #do nothing
     })
 
 #' internal function (gating_refGate)
