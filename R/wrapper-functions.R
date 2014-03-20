@@ -117,7 +117,7 @@
       if (!is.null(K)) {
         K <- as.integer(K)
       } else {
-        message("'K' argument is missing! Using default setting: K = 2")
+        message("'K' argument is missing in prior_flowClust! Using default setting: K = 2.\nYou should set this to the same value as 'K' in the call to flowClust.")
         K <- 2
       }
       
