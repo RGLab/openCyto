@@ -47,7 +47,7 @@ test_that("treg", {
       
       thisRes <- getPopStats(gs)
       expectRes <- gatingResults[["gating_treg"]]
-      expect_equal(thisRes, expectRes, tol = 0.006)
+      expect_equal(thisRes, expectRes, tol = 0.02)
       
     })
 
