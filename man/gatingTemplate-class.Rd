@@ -10,9 +10,11 @@
 \arguments{
   \item{x}{\code{character} csv file name}
 
-  \item{...}{other argumentss
+  \item{name:}{\code{character} the label of the gating
+  template}
 
-  name: \code{character} the label of the gating template}
+  \item{...}{other arguments passed to
+  \code{data.table::fread}}
 }
 \description{
   Each cell population is stored in graph node and is
@@ -33,7 +35,10 @@
 
   'pop': population patterns of 'A+/-` or 'A+/-B+/-', which
   tells the algorithm which side (postive or negative) of
-  1d gate or which quadrant of 2d gate to be kept
+  1d gate or which quadrant of 2d gate to be kept.  when it
+  is in the form of 'A+/-B+/-', 'A' and 'B' should be the
+  full name (or a substring as long as it is unqiuely
+  matched) of either channel or marker of the flow data.
 
   'parent': the parent population alias, its path has to be
   uniquely identifiable.
@@ -48,7 +53,9 @@
   '.flowClust')
 
   'gating_args': the named arguments passed to gating
-  function
+  function (Note that double quotes are often used as text
+  delimiter by some csv editors. So try to use single quote
+  instead if needed.)
 
   'collapseDataForGating': When TRUE, data is collapsed
   (within groups if 'groupBy' specified) before gating and
@@ -73,7 +80,7 @@
 }
 \examples{
 \dontrun{
-  gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+  gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
   plot(gt)
 }
 }

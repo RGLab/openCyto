@@ -87,6 +87,7 @@ First of all, we need to describe the gating hierarchy in a spread sheet (a plai
 This spread sheet must have the following columns:
 * `alias`: a name used label the cell population, the path composed by the alias and its precedent nodes (e.g. /root/A/B/alias) has to be uniquely identifiable.
 * `pop`: population patterns of `A+/-` or `A+/-B+/-`, which tells the algorithm which side (postive or negative) of 1d gate or which quadrant of 2d gate to be kept
+         when it is in the form of 'A+/-B+/-', 'A' and 'B' should be the full name (or a substring as long as it is unqiuely matched) of either channel or marker of the flow data.
 * `parent`: the parent population alias, its path has to be uniquely identifiable.
 * `dims`: characters seperated by comma specifying the dimensions(1d or 2d) used for gating. It can be either channel name or stained marker name.
 * `gating_method`: the name of the gating function (e.g. `flowClust`). It is invoked by a wrapper function that has the identical function name prefixed with a dot.(e.g. `.flowClust`)
@@ -104,8 +105,8 @@ Here is the an example of the gating template.
 ```{r gatingTemplate, eval = T}
 library(openCyto)
 library(data.table)
-gtFile <- system.file("extdata/template_tcell.csv", package = "openCyto")
-dtTemplate <- fread(gtFile)
+gtFile <- system.file("extdata/gating_template/tcell.csv", package = "openCyto")
+dtTemplate <- fread(gtFile, autostart = 1L)
 dtTemplate
 ```
 Each row is usually corresponding to one cell population and the gating method that is used to get that population.
@@ -163,7 +164,7 @@ The forth row specifies `pop` as `cd4+/-cd8+/-`, which will be expanded this int
 dtTemplate[5,]
 ```
 ```{r gatingTemplate-expand, echo = F, results = F}
-expanded <- openCyto:::.preprocess_csv(gtFile)
+expanded <- openCyto:::.preprocess_csv(dtTemplate)
 rownames(expanded) <- NULL
 ```
 
@@ -192,7 +193,7 @@ Sometimes we want to have the customized `alias` other than quadrant-like name (
 ----------------------------- 
 After the gating template is defined in the spread sheet, it can be loaded into R:  	 	
 ```{r load-gt, eval = T}
-gt_tcell <- gatingTemplate(gtFile)
+gt_tcell <- gatingTemplate(gtFile, autostart = 1L)
 gt_tcell
 ```
 Besides looking at the spread sheet, we can examine the gating scheme by visualizing it:

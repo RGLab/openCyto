@@ -29,7 +29,7 @@
 }
 \examples{
 \dontrun{
-     gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+     gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
      getGate(gt, '2', '3')
 }
 }

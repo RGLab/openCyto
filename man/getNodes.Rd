@@ -73,7 +73,8 @@
   get gates saved in \code{fcTree}
 }
 \examples{
-gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+\dontrun{
+gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 getNodes(gt)[1:2]
 getNodes(gt, only.names = TRUE)
 getNodes(gt, "/nonDebris")
@@ -83,5 +84,6 @@ getGate(gt, "/nonDebris", "/nonDebris/singlets")
 ppMethod(gt,  "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
 plot(gt) #plot entire tree
 plot(gt, "lymph") #only plot the subtree rooted from "lymph"
+}
 }
 

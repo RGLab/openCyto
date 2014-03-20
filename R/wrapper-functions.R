@@ -1,5 +1,5 @@
 #flowDensity wrapper used as a dispatcher to either 1d or 2d gating function
-.flowDensity <- function(fr, pp_res, xChannel = NA, yChannel = NA, filterId="", ...){
+.flowDensity <- function(fr, pp_res, xChannel = NA, yChannel = NA, ...){
   
   chnls <- yChannel
   if(!is.na(xChannel)){
@@ -9,13 +9,13 @@
   if(length(chnls)==2)
     .flowDensity.2d(fr, channels = chnls, ...)
   else
-    .flowDensity.1d(fr, channel = chnls, filterId = filterId, ...)
+    .flowDensity.1d(fr, channel = chnls, ...)
   
 }
 
 .onAttach<-function(libname,pkgname){
 #register flowDensity
-  registerGatingFunction(fun=.flowDensity,methodName="flowDensity",dep="flowDensity")
+#  registerPlugins(fun=.flowDensity,methodName="flowDensity",dep="flowDensity")
 }
 # This file contains all wrapper methods for dispatching data and arguments to
 # gating/preprocessing algorithms.
@@ -34,9 +34,11 @@
 #' 
 #' @return a \code{list} of priors, see \link{prior_flowClust} for more details
 .prior_flowClust <- function(fs, gs, gm, xChannel, yChannel
-                                , prior_source = NULL
-                                , K = NULL, neg, pos
-                                , min, max, ...){
+                              , prior_source = NULL
+                              , K = NULL
+                              , neg, pos
+                              , min, max
+                              , ...){
     prior_list <- list()
   
   # prior estimation is done separately from flowClust routine because
@@ -133,10 +135,11 @@
 #' @inheritParams .prior_flowClust
 #' @param pp_res preprocessing result produced by the \code{preprocessing} method
 #' @param gFunc \code{character} function name of the wrapper function to be invoked
+#' @param popAlias \code{character} the population names that are used to determine how many gates to be expected from the gating function 
 #' @param ... other arguments to be passed to wrapper function
 #' 
 #' @return a \code{list} of \code{filter}s
-.gating_wrapper <- function(fs, pp_res, gFunc, ...){
+.gating_wrapper <- function(fs, pp_res, gFunc, popAlias, channels, ...){
     require(openCyto)  #since it is going to be invoked by MPI, better load it
     #coercing
     sn <- sampleNames(fs)
@@ -145,18 +148,46 @@
     minEvents <- openCyto.options[["gating"]][["minEvents"]]
     if(is.null(minEvents))
       minEvents <- 0
-    if(nrow(fr) <= minEvents)
-      stop("Not enough events to proceed the gating!")
-    if(!.isRegistered(gFunc)){
-      stop(sprintf("Can't gate using unregistered method %s",gFunc))
+    if(nrow(fr) <= minEvents){
+      warning(paste(sn, collapse =","), ": Not enough events to proceed the data-driven gating!Returning a dummy gate instead.")
+      
+      #create dummy rectangleGate
+      #TODO: move channels to ... to deprecate x,y channel
+#      dots <- list(...)
+#      channels <- dots$channels
+      channels <- as.vector(na.omit(channels))
+      nDim <- length(channels) 
+      
+      if(nDim ==  1)
+        gate_coordinates <- list(c(-Inf, -Inf))
+      else if(nDim ==  2)
+        gate_coordinates <- list(c(-Inf, -Inf), c(-Inf, -Inf))
+      else
+        stop(nDim, " dimensional gating is not supported yet!")
+
+      names(gate_coordinates) <- channels
+      filterRes <- rectangleGate(gate_coordinates)
+      
+      nPop <- length(popAlias)
+      filterResType <- ifelse(nPop == 1, "filter", "filters")
+      if(filterResType == "filters"){
+        filterRes <- filters(lapply(1:nPop, function(i)filterRes))
+      }
+      
+    }else{
+      if(!.isRegistered(gFunc)){
+        stop(sprintf("Can't gate using unregistered method %s",gFunc))
+      }
+      thisCall <- substitute(f(fr = fr, pp_res = pp_res, ...),list(f=as.symbol(gFunc)))
+      filterRes <- try(eval(thisCall), silent = TRUE)  
     }
-    thisCall <- substitute(f(fr = fr, pp_res = pp_res, ...),list(f=as.symbol(gFunc)))
-    filterRes <- try(eval(thisCall), silent = TRUE)
+      
     
-    if(inherits(filterRes, "filter")){
-##    browser()
+        
+    if(extends(class(filterRes), "filter")||extends(class(filterRes), "filters")){
+
       #replicate the filter across samples
-      list(sapply(sampleNames(fs),function(i)filterRes))      
+      list(sapply(sampleNames(fs),function(i)filterRes, simplify = FALSE))      
     }else{
       stop("failed at ",paste0(sn), "\n", filterRes)
     }
@@ -171,7 +202,7 @@
 #' @inheritParams .prior_flowClust
 #' @return a \code{filter} object
 #' @importFrom flowStats singletGate
-.singletGate <- function(fr, xChannel = "FSC-A", yChannel = "FSC-H", pp_res = NULL, ...) {
+.singletGate <- function(fr, pp_res = NULL, xChannel = "FSC-A", yChannel = "FSC-H", ...) {
   
   fr <- fr[, c(xChannel,yChannel)]
   # Creates a list of polygon gates based on the prediction bands at the minimum
@@ -191,7 +222,7 @@
 #' @param min,max the range input for constructing the \code{rectangleGate}
 #' @param ... other arguments (not used.)
 #' @return a \code{filter} object
-.boundary <- function(fr, xChannel = NULL, yChannel, min = NULL, max = NULL, ...) {
+.boundary <- function(fr, pp_res = NULL, xChannel = NULL, yChannel, min = NULL, max = NULL, ...) {
   
   if (is.na(xChannel)) {
     xChannel <- NULL
@@ -332,22 +363,20 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.cytokine <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", filterId = "", 
-                      ...) {
+.cytokine <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", ...) {
   
   #TODO:standardize data with pp_res
-  cytokine(fr, channel = yChannel, filter_id = filterId, ...)
+  cytokine(fr, channel = yChannel, ...)
 }
 
 #' @param ... arguments to be passed to \link{tailgate}
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.tailgate <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", filterId = "", 
-  ...) {
+.tailgate <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", ...) {
   
   #TODO:standardize data with pp_res
-  tailgate(fr, channel = yChannel, filter_id = filterId, ...)
+  tailgate(fr, channel = yChannel, ...)
 }
 
 #' wrapper for mindensity
@@ -359,10 +388,10 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.mindensity <- function(fr, pp_res, yChannel = "FSC-A", filterId = "", ...) {
+.mindensity <- function(fr, pp_res, yChannel = "FSC-A", ...) {
   
  
-  mindensity(flow_frame = fr, channel = yChannel, filter_id = filterId, ...)
+  mindensity(flow_frame = fr, channel = yChannel, ...)
 }
 #' wrapper for flowClust.2d
 #' 
@@ -476,7 +505,6 @@
 #' @return \code{NULL}
 #' @importFrom flowStats warpSet
 .warpSet <- function(fs, gs, gm, xChannel, yChannel, stains, ...){
-  
   fs <- fs[, stains]
   if(class(fs) == "ncdfFlowSet")
     flowStats:::warpSetNCDF(fs, stains = stains, ...)

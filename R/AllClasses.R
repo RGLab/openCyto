@@ -164,7 +164,7 @@ fcTree <- function(gt) {
 #' @name gtMethod-class
 #' @examples 
 #'  \dontrun{
-#'      gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'      gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #'      getGate(gt, '2', '3')
 #' }
 setClass("gtMethod", representation(name = "character"
@@ -181,10 +181,11 @@ setClass("gtMethod", representation(name = "character"
 #' @name ppMethod-class
 #' @examples 
 #'  \dontrun{
-#'      gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'      gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #'      ppMethod(gt, '3', '4')
 #' }     
 setClass("ppMethod", contains = "gtMethod")
+
 
 #' A class to represent a reference gating method.
 #' 
@@ -196,6 +197,12 @@ setClass("ppMethod", contains = "gtMethod")
 #' }
 #' @name refGate-class      
 setClass("refGate", contains = "gtMethod", representation(refNodes = "character"))
+
+#' A class to represent a dummy gating method that does nothing but serves as reference to be refered by other population
+#' 
+#' It is generated automatically by the csv template preprocessing to handle the gating function that returns multiple gates. 
+setClass("dummyMethod", contains = "refGate")
+
 
 #' A class to represent a boolean gating method.
 #' 
@@ -226,7 +233,7 @@ setClass("polyFunctions", contains = "boolMethod")
 #' @name gtPopulation-class
 #' @examples 
 #'  \dontrun{
-#'      gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'      gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #'       
 #'      getNodes(gt, '2')
 #' }
@@ -289,15 +296,16 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' 'alias': a name used label the cell population, the path composed by the alias and its precedent nodes (e.g. /root/A/B/alias) has to be uniquely identifiable.
 #'          So alias can not contain '/' character, which is reserved as path delimiter.
 #'  
-#' 'pop': population patterns of 'A+/-` or 'A+/-B+/-', which tells the algorithm which side (postive or negative) of 1d gate or which quadrant of 2d gate to be kept
-#' 
+#' 'pop': population patterns of 'A+/-` or 'A+/-B+/-', which tells the algorithm which side (postive or negative) of 1d gate or which quadrant of 2d gate to be kept.
+#'        when it is in the form of 'A+/-B+/-', 'A' and 'B' should be the full name (or a substring as long as it is unqiuely matched) of either channel or marker of the flow data.
+#'                         
 #' 'parent': the parent population alias, its path has to be uniquely identifiable.
 #'  
 #' 'dims': characters seperated by comma specifying the dimensions(1d or 2d) used for gating. It can be either channel name or stained marker name.
 #'  
 #' 'gating_method': the name of the gating function (e.g. 'flowClust'). It is invoked by a wrapper function that has the identical function name prefixed with a dot.(e.g. '.flowClust')
 #'     
-#' 'gating_args': the named arguments passed to gating function
+#' 'gating_args': the named arguments passed to gating function (Note that double quotes are often used as text delimiter by some csv editors. So try to use single quote instead if needed.)
 #'  
 #' 'collapseDataForGating': When TRUE, data is collapsed (within groups if 'groupBy' specified) before gating and the gate is replicated across collapsed samples.
 #'  When set FALSE (or blank),then 'groupBy' argument is only used by 'preprocessing' and ignored by gating.
@@ -310,27 +318,33 @@ setClass("gtSubsets", contains = "gtPopulation")
 #'       
 #' 'preprocessing_args': the named arguments passed to preprocessing function.
 #' 
-#' @param x \code{character} csv file name
-#' @param ... other argumentss
+#'     
 #' 
-#'  name: \code{character} the label of the gating template
+#' @param x \code{character} csv file name
+#' @param name: \code{character} the label of the gating template
+#' @param ... other arguments passed to \code{data.table::fread}
 #' @export 
 #' @importFrom graph graphNEL addEdge edges nodeDataDefaults nodeData edgeDataDefaults addEdge edgeData subGraph
 #' @rdname gatingTemplate-class
 #' @aliases gatingTemplate,character-method
 #' @examples
 #' \dontrun{ 
-#'   gt <- gatingTemplate(system.file("extdata/template_tcell.csv",package = "openCyto"))
+#'   gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
 #'   plot(gt)
 #' }
 #' 
-setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
-      df <- .preprocess_csv(x)
-      df<-.validateFlowClustArgs(df)
-      .gatingTemplate(df, ...)
+setMethod("gatingTemplate", signature(x = "character"), function(x, name = "default", ...) {
+      dt <- fread(x, ...)
+      dt <- .preprocess_csv(dt)
+      
+      #append the isMultiPops column based on pop name
+      dt[, isMultiPops := FALSE]
+      dt[pop == "*", isMultiPops := TRUE]
+      
+      .gatingTemplate(dt, name = name)
     })
 #' @importFrom graph nodeDataDefaults<- edgeDataDefaults<- nodeData<- edgeData<-
-.gatingTemplate <- function(df, name="default"){  
+.gatingTemplate <- function(dt, name = "default"){  
 #  browser()
   # create graph with root node
 #  browser()
@@ -345,36 +359,39 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
   nodeData(g, "root", "pop") <- new("gtPopulation", id = "root", name = "root", alias = "root")
 
   # parse each row
-  nEdges <- nrow(df)
+  nEdges <- nrow(dt)
   edgs <- vector("list", nEdges)
   for (i in 1:nEdges) {
     
-    thisRow <- df[i,]
+    thisRow <- dt[i,]
     # extract info from dataframe
-    parent <- thisRow[,"parent"][[1]]
+    parent <- thisRow[,parent][[1]]
     
     # get parent ID
     
-    curPop <- thisRow[,"alias"][[1]]
+    curPop <- thisRow[,alias][[1]]
     
     if(grepl("/", curPop))
       stop("Population name(or alias) '", curPop , "' contains '/', which is reserved as gating path delimiter!")
     
     curNodePath <- paste(parent, curPop, sep = "/")
     curNodePath <- sub("root", "", curNodePath)
-    curPopName <- thisRow[,"pop"][[1]]
-
+    curPopName <- thisRow[, pop][[1]]
+    isMultiPops <- thisRow[, isMultiPops]
+    #try to split alias for the gating function that returns multi-pops
+    if(isMultiPops)
+        curPop <- flowWorkspace:::trimWhiteSpace(unlist(strsplit(split = ",", curPop)))
     # create pop object
     curNode <- new("gtPopulation", id = curNodePath, name = curPopName, 
                         alias = curPop
                 )
                       
     # create gating method object
-    cur_method <- thisRow[,"gating_method"][[1]]
-    cur_args <- thisRow[,"gating_args"][[1]]
-    cur_dims <- thisRow[,"dims"][[1]]
+    cur_method <- thisRow[, gating_method][[1]]
+    cur_args <- thisRow[, gating_args][[1]]
+    cur_dims <- thisRow[, dims][[1]]
     
-    cur_collapse <- thisRow[,"collapseDataForGating"][[1]]
+    cur_collapse <- thisRow[, collapseDataForGating][[1]]
     if(cur_collapse == "")
       cur_collapse <- FALSE
     cur_collapse <- as.logical(cur_collapse)
@@ -382,10 +399,10 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
     if(is.na(cur_collapse))
       stop("Invalid `collapseDataForGating` flag!")
     
-    cur_groupBy <- thisRow[,"groupBy"][[1]]
+    cur_groupBy <- thisRow[, groupBy][[1]]
     # do not parse args for refGate-like gate since they might break the current
     # parse due to the +/- | &,! symbols
-    if (any(grepl(cur_method,  c("boolGate", "polyfunctions", "refGate"), ignore.case = TRUE))) {
+    if (any(grepl(cur_method,  c("boolGate", "polyfunctions", "refGate", "dummy_gate"), ignore.case = TRUE))) {
       split_args <- FALSE
     } else {
       split_args <- TRUE
@@ -411,10 +428,12 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
         stop("No dimensions defined for refGate!")
       }
     }
-
+    if (grepl(names(gm) , "dummy_gate", ignore.case = TRUE)) 
+      gm <- as(gm, "dummyMethod")
+    
     #preprocessing object
-    cur_pp_Method <- thisRow[,"preprocessing_method"][[1]]
-    cur_pp_args <- thisRow[,"preprocessing_args"][[1]]
+    cur_pp_Method <- thisRow[, preprocessing_method][[1]]
+    cur_pp_args <- thisRow[, preprocessing_args][[1]]
     cur_pp_args <- .argParser(cur_pp_args, TRUE)
     
     if(nchar(cur_pp_Method) > 0)
@@ -426,7 +445,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
                   , groupBy = cur_groupBy
                 )
     
-    cat("Adding population:", curPop, "\n")
+    message("Adding population:", basename(curNodePath))
 #    browser()
     # add current node to graph
     g_updated <- graph::addNode(curNodePath, g)
@@ -471,10 +490,10 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, ...) {
       for (ref_node in refNodes) {
         
         # add the edge from it
-        g_updated <- addEdge(.getFullPath(ref_node, df), curNodePath, g_updated)
+        g_updated <- addEdge(.getFullPath(ref_node, dt), curNodePath, g_updated)
 
         # flag the edge 
-        edgeData(g_updated, .getFullPath(ref_node, df), curNodePath, "isReference") <- TRUE
+        edgeData(g_updated, .getFullPath(ref_node, dt), curNodePath, "isReference") <- TRUE
       }
     }
     
