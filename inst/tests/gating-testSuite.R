@@ -15,7 +15,7 @@ test_that("tcell", {
       thisRes <- getPopStats(gs)
       expectRes <- gatingResults[["gating_tcell"]]
       expect_equal(thisRes, expectRes, tol = 0.006)
-      
+       
     })
 
 test_that("ICS", {

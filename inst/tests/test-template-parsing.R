@@ -22,6 +22,7 @@ test_that(".preprocess_csv", {
       suppressMessages(
           preprocessed_dt <<- .preprocess_csv(dt)
       )
+      
       expect_equivalent(preprocessed_dt, expectResults[["preprocess_csv"]])
       
     })
