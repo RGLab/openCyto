@@ -1,0 +1,141 @@
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{How to write a csv gating template}
+-->
+
+
+How to write a csv gating template
+=======================================
+
+
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="center", message = FALSE, warning = FALSE, knitr.table.format = "markdown")
+assign("depthtrigger", 60, data.table:::.global)
+```
+
+
+The  **openCyto** package is uses a spreadsheet to compose the gating schemes. Basically each row corresponds to one population node
+in the gating hierarchy tree. However sometime it is verbose to describe every single population.
+So here we will explain how to make the template more succinct to easier to compose by using `pop` and `alias` pattern.      
+
+
+1. `pop` = `A+/-`
+------------   
+For the 1d/2d gating function, we are normally interested in either positive(representing cell events within gate) or negative(or negated, representing cell events outside of the gate) by setting `pop` column 
+in the form of `A+` or `A-`. But sometime we want to do the downstream gating for both.
+By specifying `pop` as `A+/-`, the `template parser` will expand it into two rows internally.
+  
+```{r init, echo=F}
+library(openCyto)
+library(data.table)
+
+template_row <- data.table(alias = "TH", pop = "cd4+cd8-"
+                          , parent = "cd3", dims = "cd4,cd8"
+                          , gating_method = "mindensity", gating_args = ""
+                          , collapseDataForGating = "TRUE", groupBy = "4"
+                          , preprocessing_method = "", preprocessing_args = ""
+                      )
+
+
+```
+For example, this row will be expanded automatically
+
+```{r A+/-(before), echo = F, results = "asis"}
+	this_row <- copy(template_row)	
+	this_row[, pop := "cd4+/-"]
+	this_row[, alias := "*"]
+	this_row[, dims := "cd4"]
+	kable(this_row[, 1:6, with = F])
+```
+
+to two rows:
+      
+```{r A+/-(after), echo = F, results = "asis"}
+      kable(openCyto:::.preprocess_row(this_row)[, 1:6, with = F])
+      
+```
+Note that the second row uses `refGate` which simply copies the gate coordinates computed by `mindensity` in the first row,
+and assign the negative sign to the `pop` column indicating the population of interest is `cd4 negative`.  
+
+
+2. `pop` = `A+B+`
+------------   
+Often time we need to apply 1d gating function on two dimensions separately and then 
+use the two cutting points to construct `rectangleGate` to capture the cell events falling into one particular quadrant on the 2-d projections
+For example, `T helper` cells are usually represented as `CD4+CD8-`.
+Instead of writing three rows in the template, simply using `A+B+` pattern in the `pop` column.  
+e.g
+
+```{r A+B+(before), echo = F, results = "asis"}
+	this_row <- copy(template_row)	
+	this_row[, pop := "cd4+cd8-"]
+	this_row[, alias := "T helper"]
+	kable(this_row[, 1:6, with = F])
+```
+And the template parser will take care of the expansion automatically.
+      
+```{r A+B+(after), echo = F, results = "asis"}
+      kable(openCyto:::.preprocess_row(this_row)[, 1:6, with = F])
+```
+As we see, first two rows do the actual gating by `mindensity` and the third row simply makes use the coordinates of that two 1d gates (`cd4+` and `cd8+`) and 
+construct a `rectangleGate` (T helper) by using `refGate` as `gating_method`. And the `+` and `-` sign along with dimensions determines which quadrant to keep.  
+
+3. `pop` = `A+/-B+/-`
+------------   
+Apparently, we may want to get more than one quadrants by using the same mechanism.
+For example, we can set `pop` to `CD4+/-CD8+/-` to keep all of four quadrants.
+
+```{r A+/-B+/-(before), echo = F, results = "asis"}
+	this_row <- copy(template_row)	
+	this_row[, pop := "cd4+/-cd8+/-"]
+	this_row[, alias := "*"]
+	kable(this_row[, 1:6, with = F])
+```
+It will be expanded to six rows:
+      
+```{r A+/-B+/-(after), echo = F, results = "asis"}
+      kable(openCyto:::.preprocess_row(this_row)[, 1:6, with = F])
+```
+First two does the actual gating, and rest of four uses two 1d gates to construct four different `rectangleGate`s to represent
+four different quadrants.
+
+4. `pop` = `*`
+------------   
+So far, we've been talking about the gating functions that only returns one gate object( `S4 class` that extends `flowCore::filter`).
+If we want to apply the gating function(e.g. `curv2filter` or `flowClust::tmixFilter`) that returns more than one gates, 
+we can set `pop` to `*` and specify multiple population names within `alias` with comma-separated characters. 
+
+```{r multiPop(before), echo = F, results = "asis"}
+	this_row <- copy(template_row)	
+	this_row[, pop := "*"]
+	this_row[, alias := "CD4,CD8"]
+	this_row[, gating_method := "curv2gate"]
+	kable(this_row[, 1:6, with = F])
+```
+Here we assume `curv1gate` always returns `two` gates in the order of `c("cd4", "cd8")`, then the population names in `alias` column
+will be matched to these two gates and two `dummy_gate` rows are generated that simply serves as a reference to be used  
+as `parent` node of the downstream gates.  
+      
+```{r multiPop(after), echo = F, results = "asis"}
+      kable(openCyto:::.preprocess_row(this_row)[, 1:6, with = F])
+```
+
+5. `pop` = `*` and `alias` = `*`
+------------
+If we don't know how many gates will be returned by `curv2gate` or the order of gates are undetermined, thus we will not able to 
+name these populations. As long as they are not used as `parent` nodes for the further gating (i.e. `terminal gate`s), we can
+simply set `alias` to `*` .
+
+```{r multiPop_noExpand(before), echo = F, results = "asis"}
+	this_row[, alias := "*"]
+	kable(this_row[, 1:6, with = F])
+```
+
+This will not be expanded in the `openCyto` framework. However, multiple populations will be generated and added 
+to the `GatingSet` object. They are named by the `filterId` slot of `filter` objects.
+
+
+```{r finalizer, include=FALSE}
+assign("depthtrigger", 3, data.table:::.global)
+```
