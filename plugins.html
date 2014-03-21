@@ -27,7 +27,7 @@
     
 <div id="header_wrap" class="outer">
   <header class="inner">
-    <a id="forkme_banner" href="https://github.com/" target="_blank">View on GitHub</a>
+    <a id="forkme_banner" href="https://github.com/RGLab/openCyto" target="_blank">View on GitHub</a>
 
     <h1 id="project_title"><a href="index.html" style="color:rgb(255,255,255)"><font color="FFFFFF">OpenCyto</font></a></h1>
 <br>
@@ -36,8 +36,8 @@
 
     
     <section id="downloads">
-      <a class="zip_download_link" href="https://github.com/openCyto/zipball/master">Download this project as a .zip file</a>
-      <a class="tar_download_link" href="https://github.com/openCyto/tarball/master">Download this project as a tar.gz file</a>
+      <a class="zip_download_link" href="https://github.com/RGLab/openCyto/zipball/master">Download this project as a .zip file</a>
+      <a class="tar_download_link" href="https://github.com/RGLab/openCyto/tarball/master">Download this project as a tar.gz file</a>
     </section>
     
   </header>
@@ -60,7 +60,7 @@
 
 <p>It’s the responsibility of this wrapper function to return a <code>filter</code> object, which is a <code>polygonGate</code>, <code>rectangleGate</code> <code>tmixFilter</code>, or other object that inherits from the <code>flowCore</code> <code>filter-class</code>. These are just instantiations of a gate, with specific coordinates.</p>
 
-<h2 id="pluggin_in_your_gating_method">Pluggin in your gating method</h2>
+<h2 id="plugging_in_your_gating_method">Plugging in your gating method</h2>
 
 <p>Let’s take an example (contributed by Jacob Frelinger at FHCRC). You have CyTOF data and you want to plugin a gating method for gating on the DNA-DNA channels to identify single-cells.</p>
 
@@ -121,7 +121,7 @@ boundry &lt;-  function(xs) {
 
 <h3 id="registering_your_gating_function">Registering your gating function</h3>
 
-<p>After writing your wrapper, you make it visible to OpenCyto by calling <code>registerGatingFunction</code>.</p>
+<p>After writing your wrapper, you make it visible to OpenCyto by calling <code>registerPlugins</code>.</p>
 
 <pre><code>
 registerPlugins(fun=.dnaGate,methodName=&#39;dnaGate&#39;, dep=&#39;mvtnorm&#39;,&quot;gating&quot;)
