@@ -4,8 +4,8 @@ opencyto.org/atom.xml
 opencyto.org/categories.html
 opencyto.org/gating_using_opencyto.html
 opencyto.org/gatingFunctions.html
+opencyto.org/gen_results.html
 opencyto.org/index.html
-opencyto.org/openCytoVignette.html
 opencyto.org/pages.html
 opencyto.org/plugins.html
 opencyto.org/quadrantGate.html
