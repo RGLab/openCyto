@@ -1,0 +1,532 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    
+    <meta name="author" content="">
+    <meta name="description" content="OpenCyto : A Robust BioConductor Framework for Automated Flow Data Analysis" />
+
+    <!-- Enable responsive viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <link href="/assets/themes/gh-slate/css/stylesheet.css" rel="stylesheet" type="text/css" media="all">
+
+    <!-- atom & rss feed -->
+    <link href="/atom.xml" type="application/atom+xml" rel="alternate" title="Sitewide ATOM Feed">
+    <link href="/rss.xml" type="application/rss+xml" rel="alternate" title="Sitewide RSS Feed">
+
+  </head>
+
+  <body>
+    
+<div id="header_wrap" class="outer">
+  <header class="inner">
+    <a id="forkme_banner" href="https://github.com/RGLab/openCyto" target="_blank">View on GitHub</a>
+
+    <h1 id="project_title"><a href="index.html" style="color:rgb(255,255,255)"><font color="FFFFFF">OpenCyto</font></a></h1>
+<br>
+    <h2 id="project_tagline">A Robust BioConductor Framework for Automated Flow Data Analysis
+</h2>
+
+    
+  </header>
+</div>
+
+    <div id="main_content_wrap" class="outer">
+  <section id="main_content" class="inner">
+    <!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>OpenCyto Automated Gating of HVTN080</title>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+<!-- MathJax scripts -->
+<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<h1>OpenCyto Automated Gating of HVTN080</h1>
+
+<p>We load required libraries.</p>
+
+<pre><code class="r">suppressPackageStartupMessages(
+{
+  library(flowWorkspace)
+  library(COMPASS)
+  require(data.table)
+  library(reshape2)
+  library(plyr)
+  })
+</code></pre>
+
+<p>The HVTN080 study flow cytometry data has been preprocessed (loaded in R from the raw FCS files and the FlowJo workspaces). The gating set is available <a href="https://www.dropbox.com/sh/oovsrq6ltku1t1h/nvjp2I01wx">here</a>, and has been gated using OpenCyto.</p>
+
+<p>We have gated the data using this <a href="https://www.dropbox.com/s/jdigjss903q3sgu/gt_080.csv">OpenCyto template</a>.  </p>
+
+<p>The manually gated data is available <a href="https://www.dropbox.com/sh/y4mxysgioqwxme0/V51oxs-wco">here</a>, and contains the manual gates from the FlowJo workspaces.</p>
+
+<p>The raw FCS files are available from <a href="http://flowrepository.org/id/FR-FCM-ZZ7U">flowrepository.org/id/FR-FCM-ZZ7U</a>. </p>
+
+<p>The data in the gating sets has already been compensated and transformed using the compensation and transformation information stored in the FlowJo workspaces. </p>
+
+<p>The FlowJo workspaces for this data will be posted soon.</p>
+
+<p>Below, we extract the feature information for the CD4+ and CD8+ cytokine producing cell subsets.</p>
+
+<h3>Loading the gated data</h3>
+
+<p>We can load these gating sets into R. </p>
+
+<pre><code class="r">WORKDIR&lt;-&quot;./&quot; #Set to path of local data
+setwd(WORKDIR)
+dataPath &lt;- &quot;./&quot;
+gsNames &lt;- c(&quot;manual&quot;, &quot;auto&quot;) 
+gslist &lt;- sapply(gsNames, function(thisGSName, dataPath){
+      thisFolder &lt;- paste(&quot;gs&quot;, thisGSName,  &quot;clean&quot;, sep = &quot;_&quot;)
+      load_gs(file.path(dataPath, thisFolder))
+    }, dataPath)    
+pd &lt;- pData(gslist[[1]])
+</code></pre>
+
+<h3>How to reproduce the OpenCyto automated gating</h3>
+
+<p>If you want to regenerate the automated gating results, you can do so starting from the template. Load the gating set with the already gated data, delete all nodes, and re-run the gating. Like so:</p>
+
+<pre><code class="r">Rm(&quot;boundary&quot;,gslist$auto[[1]])  #The boundary filter is the first gate in the GatingSet. We remove it and thus all downstream gates.
+
+#Next load the template
+hvtn080_ics&lt;-gatingTemplate(&quot;gt_080.csv&quot;) #Load the template file. Download it from the link above and put it in the current directory.
+
+#And now run the gating
+gating(hvtn080_ics, gslist$auto) #apply the template to the data.
+</code></pre>
+
+<h3>Some filtering for paired subjects</h3>
+
+<p>Next we remove unparied subjects (that only have one visit), since we want to compare pre-vaccine to post-vaccine.</p>
+
+<pre><code class="r">pd&lt;-data.table(pd)
+toremove&lt;-subset(ddply(pd,.(pub_id),function(x)with(x,nlevels(factor(VISITNO))==1)),V1==TRUE)$pub_id
+if(length(toremove)!=0){
+  pd &lt;- subset(pd, pub_id != toremove) 
+}
+  pub_id&lt;-pd[,pub_id:=factor(pub_id)]
+  pd&lt;-pd[,name:=factor(name)] 
+</code></pre>
+
+<p>Once we&#39;ve identified those subjects, we filter the automated gating set (and the manually gated data) to keep only complete samples.</p>
+
+<pre><code class="r">gslist &lt;- llply(gslist, function(gs)gs[as.character(pd$name)])
+</code></pre>
+
+<h3>Extract data matrices for further analysis.</h3>
+
+<p>Then we extract data matrcies from the gating set. We&#39;re focusing on the cytokine expressing CD4 and CD8 T-cell subsets.</p>
+
+<pre><code class="r">ics_markers &lt;- c(&quot;57&quot;, &quot;Perforin&quot;, &quot;Granzyme B&quot;, &quot;IFNg&quot;, &quot;IL2&quot;, &quot;TNFa&quot;)
+parentNodes &lt;- c(&quot;4+&quot;, &quot;8+&quot;)
+#&#39; ## Extract the data
+#+ eval=F
+data_mat_list &lt;- sapply(gsNames, function(thisGSName){
+      gs &lt;- gslist[[thisGSName]]
+
+      # Construct expresion from all ics markers
+      #exclude Perforin altogether since it was not gated correctly
+      ics_markers &lt;- ics_markers[-2]
+      this_expr &lt;- paste(ics_markers, &quot;+&quot;, sep = &quot;&quot;)
+      sapply(parentNodes, function(thisParent){
+
+          this_expr &lt;- paste(thisParent, this_expr, sep = &quot;/&quot;)
+          this_expr &lt;- paste(this_expr, collapse = &quot;|&quot;)
+          this_expr &lt;- as.symbol(this_expr)
+
+
+            popVSmarker &lt;- list(&quot;CD57&quot;)
+            names(popVSmarker) &lt;- paste(thisParent,&quot;57+&quot;, sep = &quot;/&quot;)
+            res &lt;- getData(gs,this_expr, popVSmarker)
+            parent_counts &lt;- sapply(sampleNames(gs),function(this_sample)getTotal(gs[[this_sample]], thisParent, flowJo = F))
+            list(res = res, parent_counts = parent_counts)
+          }, simplify = FALSE, USE.NAMES = TRUE)   
+    }, simplify = FALSE, USE.NAMES = TRUE)
+</code></pre>
+
+<p>Use COMPASS to get the % of all non-empty combinations</p>
+
+<pre><code class="r">pop_stats &lt;- lapply(data_mat_list, function(data_mat){#for each gs
+
+      countList &lt;- lapply(names(data_mat), function(thisParent){#for each parent population
+              thisData &lt;- data_mat[[thisParent]]
+              thisCounts &lt;- thisData$parent_counts
+              thisRes &lt;- thisData$res
+
+
+              comp &lt;- COMPASSContainer(thisRes
+                                      , thisCounts
+                                      , pd
+                                      , individual_id = &quot;pub_id&quot;
+                                      , sample_id = &quot;name&quot;
+                                      ) 
+
+              boolSubsets &lt;- UniqueCombinations(comp, F)                                   
+              subset_counts &lt;- CellCounts(comp$data, boolSubsets)
+
+              #add samplenames and boolean combination names
+              sn &lt;- names(thisCounts)
+              rownames(subset_counts) &lt;- sn
+              thisMarkers &lt;- as.vector(colnames(thisRes[[1]]))
+              popNames &lt;- unname(unlist(lapply(boolSubsets, function(thisSub){
+                    notOp &lt;- ifelse(thisSub&gt;0, &quot;&quot;, &quot;!&quot;)
+                    paste(paste(notOp, thisMarkers, sep = &quot;&quot;), collapse = &quot;&amp;&quot;)
+                  })))
+
+              colnames(subset_counts) &lt;- popNames
+              subset_counts &lt;- as.data.frame(subset_counts)
+              #add IL2/IFNg (by subtracting the negated components from total)
+              toSubtract &lt;- c(&quot;IL2&quot;, &quot;IFNg&quot;)
+              patternTOExclude &lt;- paste(&quot;!&quot;, toSubtract, sep = &quot;&quot;)
+              logicalInd &lt;- lapply(patternTOExclude, grepl, x = popNames)
+              toExclude &lt;- Reduce(`&amp;`,logicalInd)
+              toExclude &lt;- popNames[toExclude]
+              toExclude &lt;- rowSums(subset_counts[,toExclude])
+              total &lt;- rowSums(subset_counts)
+              toAdd &lt;- total - toExclude
+              newPop &lt;- paste(toSubtract, collapse = &quot;|&quot;)
+              subset_counts[, newPop] &lt;- toAdd
+
+              #prepend the parent name to each pop
+              colnames(subset_counts) &lt;- paste(thisParent, colnames(subset_counts), sep = &quot;_&quot;)
+
+              # compute the %
+              #append parent count  
+              # is this gurantee to be column-wise division? 
+              subset_props &lt;- subset_counts/thisCounts
+              subset_props &lt;- as.data.frame(subset_props)
+#              subset_props[, thisParent] &lt;- thisParentProp
+              subset_props
+
+          })  
+
+      do.call(cbind, countList)
+  })
+</code></pre>
+
+<ul>
+<li>Exclude features where all cells are negative<br/></li>
+<li>Exclude Perforin, CD57, Granzyme B expressed alone without other cytokines.</li>
+<li>Exclude combinations of these markers expressed without other cytokines.</li>
+</ul>
+
+<pre><code class="r">cytokines &lt;- c(&quot;IFNg&quot;, &quot;IL2&quot;, &quot;TNFa&quot;)
+pop_stats &lt;- sapply(gsNames, function(thisGSName){
+
+      data_mat &lt;- pop_stats[[thisGSName]]
+
+      thisFeatureSet &lt;- colnames(data_mat)
+
+      patternTOExclude &lt;- paste(&quot;!&quot;, cytokines, sep = &quot;&quot;)
+      logicalInd &lt;- lapply(patternTOExclude, grepl, x = thisFeatureSet)
+      toExclude &lt;- logicalInd[[1]]
+      for(thisInd in logicalInd[-1]){
+        toExclude &lt;- toExclude &amp; thisInd
+      }
+      data_mat[, !toExclude]
+    }, simplify = FALSE, USE.NAMES = TRUE)
+</code></pre>
+
+<p>Subtract the background (mean % of negctrl)</p>
+
+<pre><code class="r">pd&lt;-data.frame(pd)
+features &lt;- lapply(pop_stats, function(stats){
+
+      #uniform the stim name for negctrl
+      thisStim &lt;- as.vector(pd[, &quot;Stim&quot;])
+      thisStim[grepl(&quot;negctrl*&quot;, thisStim)] &lt;- &quot;negctrl&quot;
+      pd[, &quot;Stim&quot;] &lt;- as.factor(thisStim)
+      #change pop stats from wide to long
+      stats &lt;- name_rows(stats)
+      stats &lt;- melt(stats)
+      # merge with pdata
+      stats &lt;- merge(stats, pd, by.x = &quot;.rownames&quot;, by.y = &quot;name&quot;)
+#      browser()
+      # average % for negctrl
+      stats &lt;- ddply(stats, .(variable,Stim,pub_id,VISITNO), summarise, value = mean(value))
+      # move Stim from long to wide
+      stats &lt;- dcast(stats, variable + pub_id + VISITNO ~ Stim, value.var = &quot;value&quot;)
+      #perform background subtraction
+      allStims &lt;- levels(pd[, &quot;Stim&quot;])
+      allStims &lt;- allStims[!allStims%in%&quot;negctrl&quot;]
+      for(thisStim in allStims){
+        stats[, thisStim] &lt;- stats[, thisStim] - stats[, &quot;negctrl&quot;]  
+      }
+
+      #move Stim back to long
+      stats &lt;- melt(stats, id.vars = c(&quot;variable&quot;, &quot;pub_id&quot; , &quot;VISITNO&quot;), variable_name = &quot;Stim&quot;) 
+      #move pop stats back to wide
+      stats &lt;- dcast(stats,  Stim + pub_id + VISITNO ~ variable, value.var = &quot;value&quot;)
+
+      subset(stats, Stim != &quot;negctrl&quot;)
+    })
+</code></pre>
+
+<p>Save the results matrix.</p>
+
+<pre><code class="r">saveRDS(features, file.path(&quot;.&quot;, &quot;features2.rds&quot;))
+features2 &lt;- readRDS(file.path(dataPath, &quot;features2.rds&quot;))
+</code></pre>
+
+<h3>SessionInfo</h3>
+
+<pre><code class="r">sessionInfo()
+</code></pre>
+
+<pre><code>## R Under development (unstable) (2014-02-06 r64933)
+## Platform: x86_64-apple-darwin13.0.0 (64-bit)
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## attached base packages:
+## [1] parallel  grid      stats     graphics  grDevices utils     datasets 
+## [8] methods   base     
+## 
+## other attached packages:
+##  [1] scales_0.2.3              ggplot2_0.9.3.1          
+##  [3] reshape_0.8.4             plyr_1.8                 
+##  [5] reshape2_1.3.0.99         Kmisc_0.5.1              
+##  [7] COMPASS_1.1.5-1           pheatmap_0.7.8           
+##  [9] RColorBrewer_1.0-5        mvtnorm_0.9-9997         
+## [11] Rgraphviz_2.7.0           graph_1.41.2             
+## [13] data.table_1.8.11         openCyto_1.1.15          
+## [15] flowWorkspace_3.9.65      gridExtra_0.9.1          
+## [17] ncdfFlow_2.9.19           flowViz_1.27.16          
+## [19] lattice_0.20-27           flowCore_1.29.23         
+## [21] flowWorkspaceData_1.99.13 knitr_1.5.22             
+## 
+## loaded via a namespace (and not attached):
+##  [1] abind_1.4-0           Biobase_2.23.4        BiocGenerics_0.9.3   
+##  [4] car_2.0-19            clue_0.3-47           cluster_1.14.4       
+##  [7] coda_0.16-1           colorspace_1.2-4      compositions_1.30-2  
+## [10] corpcor_1.6.6         DEoptimR_1.0-1        dichromat_2.0-0      
+## [13] digest_0.6.4          energy_1.6.0          evaluate_0.5.1       
+## [16] fastmatch_1.0-4       fda_2.4.0             feature_1.2.10       
+## [19] flowClust_3.3.7       flowStats_3.19.10     formatR_0.10         
+## [22] GFMisc_1.0            gtable_0.1.2          gtools_3.2.1         
+## [25] hexbin_1.26.3         IDPmisc_1.1.17        KernSmooth_2.23-10   
+## [28] ks_1.8.13             labeling_0.2          latticeExtra_0.6-26  
+## [31] markdown_0.6.4        MASS_7.3-29           Matrix_1.1-2         
+## [34] MCMCpack_1.3-3        munsell_0.4.2         mvoutlier_2.0.3      
+## [37] nnet_7.3-7            pcaPP_1.9-49          pls_2.4-3            
+## [40] proto_0.3-10          R.methodsS3_1.6.1     R.oo_1.17.0          
+## [43] R.utils_1.29.8        RBGL_1.39.1           Rcpp_0.11.0.2        
+## [46] rgl_0.93.996          robCompositions_1.7.0 robustbase_0.90-2    
+## [49] rrcov_1.3-4           RSVGTipsDevice_1.0-4  sgeostat_1.0-25      
+## [52] stats4_3.1.0          stringr_0.6.2         tensorA_0.36         
+## [55] tools_3.1.0           XML_3.98-1.1          zlibbioc_1.9.0
+</code></pre>
+
+</body>
+
+</html>
+
+  </section>
+</div>
+
+    <div id="footer_wrap" class="outer">
+  <footer class="inner">
+    <p> Follow <a href="http://www.twitter.com/OpenCyto">@OpenCyto</a> on twitter </p>
+    <p class="copyright">OpenCyto maintained by <a href="https://github.com/RGLab">RGLab</a></p>
+    <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+  </footer>
+</div>
+
+
+    
+  </body>
+</html>
+
