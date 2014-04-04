@@ -56,7 +56,7 @@
 #' @return matrix containing the points of the ellipse from the flowClust contour
 #' @importFrom flowClust rbox
 .getEllipse <- function(filter = NULL, include = seq_len(filter@K), ecol = 1, elty = 1, 
-  quantile = NULL, npoints = 501, subset = c(1, 2),...) {
+  quantile = NULL, npoints = 50, subset = c(1, 2),...) {
   
   # Sets the quantile of the ellipse.
   if (is.null(quantile)) {
