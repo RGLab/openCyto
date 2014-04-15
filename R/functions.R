@@ -57,7 +57,7 @@
 #' @importFrom flowClust rbox
 .getEllipse <- function(filter = NULL, include = seq_len(filter@K), ecol = 1, elty = 1, 
   quantile = NULL, npoints = 50, subset = c(1, 2),...) {
-  
+  .Defunct(".getEllipseGate")
   # Sets the quantile of the ellipse.
   if (is.null(quantile)) {
     quantile <- filter@ruleOutliers[2]
@@ -119,8 +119,84 @@
   }
   res
 }
-
-
+#' revised based on .getEllipse.
+#' try to construct ellipsoidGate directly from tmixFilter result instead of polygon fitting
+#' when trans = 0  
+.getEllipseGate <- function(filter = NULL, include = seq_len(filter@K), ecol = 1, elty = 1, 
+    quantile = NULL, npoints = 50, subset = c(1, 2),...) {
+  
+  # Sets the quantile of the ellipse.
+  if (is.null(quantile)) {
+    quantile <- filter@ruleOutliers[2]
+  } else {
+    if (!is.numeric(quantile) || quantile < 0 || quantile > 1) {
+      stop("The 'quantile' must be a numeric value between 0 and 1.")
+    }
+  }
+  
+  # py is the degrees of freedom?
+  py <- 2
+  ecol <- matrix(ecol, length(include))
+  elty <- matrix(elty, length(include))
+  
+  if (all(filter@nu != Inf)) {
+    if (filter@ruleOutliers[1] == 0) {
+      # 0 means quantile
+      cc <- py * qf(p = quantile, py, filter@nu)
+    } else {
+      # 1 means u.cutoff
+      cc <- ((filter@nu + py)/quantile - filter@nu)
+    }
+  } else {
+    cc <- qchisq(p = quantile, py)
+  }
+  
+  j <- 0
+  
+  #Does trans exist in the extra parameter list?
+  #If not, set it to true by default
+  ellipsis<-as.environment(list(...))
+  if(exists("trans",envir=ellipsis)){
+    trans<-get("trans",ellipsis)
+  }else{
+    trans<-1
+  }
+  
+  #Test for trans==0 when lambda is defined to get around the off 
+  #by one bug due to the reverse box-cox transformation
+  if ((length(filter@lambda) > 0)&&trans==0) {
+    lambda <- rep(filter@lambda, length.out = filter@K)
+  } else {
+    lambda <- numeric(0)
+  }
+  cc <- rep(cc, length.out = filter@K)
+  cc <- sqrt(cc)
+  coln <- as.vector(filter@varNames)
+  for (i in include) {
+    cov.mat <- filter@sigma[i,subset, subset]
+    
+    #fit polygon points 
+    if ((length(lambda) > 0)&trans==1) {
+      eigenPair <- eigen(cov.mat)
+      l1 <- sqrt(eigenPair$values[1]) * cc 
+      l2 <- sqrt(eigenPair$values[2]) * cc
+      angle <- atan(eigenPair$vectors[2, 1]/eigenPair$vectors[1, 1]) * 180/pi
+      
+      contour_ellipse <- rbox(flowClust:::.ellipsePoints(a = l1[i], b = l2[i], alpha = angle, 
+              loc = filter@mu[i, subset], n = npoints), lambda[i])
+      
+      res <- polygonGate(.gate = matrix(contour_ellipse, ncol = 2,
+                        dimnames = list(NULL, coln)),
+                      filterId = filter@filterId)
+    } else {
+      #construct ellipsoidGate directly from covaraince matrix and mu
+      dimnames(cov.mat) <- list(coln, coln)
+      res <- ellipsoidGate(cov.mat, mean = filter@mu[i, subset], distance = cc[1])
+      
+    }
+  }
+  res
+}
 
 #' Removes any observation from the given flowFrame object that has values
 #' outside the given range for the specified channels
