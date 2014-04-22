@@ -422,11 +422,9 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   }
 
   if (!transitional) {
-    contour_ellipse <- .getEllipse(filter = tmix_results, include = cluster_selected,
+    flowClust_gate <- .getEllipseGate(filter = tmix_results, include = cluster_selected,
                                    quantile = quantile,trans=trans)
-    flowClust_gate <- polygonGate(.gate = matrix(contour_ellipse, ncol = 2,
-                                    dimnames = list(NULL, tmix_results@varNames)),
-                                  filterId = filterId)
+    
   } else {
     chisq_quantile <- qchisq(quantile, df = 2)
     tol <- sqrt(.Machine$double.eps)
@@ -598,8 +596,11 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
       points(polygon_gate, col = "red", pch = 16)
     }
   }
-
-  fcPolygonGate(flowClust_gate, prior, posteriors)
+  if(class(flowClust_gate) == "polygonGate")
+    fcPolygonGate(flowClust_gate, prior, posteriors)
+  else
+    fcEllipsoidGate(flowClust_gate, prior, posteriors)
+    
 }
 
 quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE,
