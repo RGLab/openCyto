@@ -40,7 +40,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
     prior_method <- match.arg(prior_method)
     if (prior_method == "kmeans") {
       prior_list <- .prior_kmeans(flow_set = flow_set, channels = channels, K = K,
-                                 nu0 = nu0, w0 = w0, ...)
+                                 nu0 = nu0, w0 = w0[1], ...) #pass only the first element of w0 since .prior_kmeans will replicate it.. 
     }
     # In the rare case a covariance matrix is singular, we shrink the eigenvalues
     # of the matrix. The amount of shrinkage is controlled in 'shrink'.
