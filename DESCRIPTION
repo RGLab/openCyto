@@ -1,7 +1,7 @@
 Package: openCyto
 Type: Package
 Title: Hierarchical Gating Pipeline for flow cytometry data
-Version: 1.2.0
+Version: 1.2.1
 Date: 2012-06-11
 Author: Mike Jiang, John Ramey, Greg Finak, Raphael Gottardo
 Maintainer: Mike Jiang <wjiang2@fhcrc.org>
