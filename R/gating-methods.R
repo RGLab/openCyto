@@ -106,7 +106,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
     #get preprocessing method
     this_ppm <- ppMethod(gt, parent, node)
     
-    parentInd <- match(parent,getNodes(y[[1]]))
+    parentInd <- match(parent, getNodes(y[[1]], showHidden = TRUE))
     if (is.na(parentInd)) 
       stop("parent node '", parent, "' not gated yet!")
     
