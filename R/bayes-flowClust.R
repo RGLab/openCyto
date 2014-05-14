@@ -23,7 +23,7 @@
 #' @param prior_method the method to elicit the prior parameters
 #' @param K the number of mixture components to identify
 #' @param nu0 prior degrees of freedom of the Student's t mixture components.
-#' @param w0 the number of prior pseudocounts of the Student's t mixture components.
+#' @param w0 the number of prior pseudocounts of the Student's t mixture components. (only the first element is used and the rest is ignored at the moment)
 #' @param shrink the amount of eigenvalue shrinkage to add in the case the prior
 #' covariance matrices are singular. See details.
 #' @param ... Additional arguments passed to the prior elicitation method selected
@@ -32,15 +32,16 @@
 #' @importFrom plyr aaply
 prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...) {
-
+  #pass only the first element of w0 since it will be replicated ..
+  #that said, the second element never gets used at this moment
   if (length(channels) == 1) {
     prior_list <- .prior_flowClust1d(flow_set = flow_set, channel = channels,
-                                    K = K, nu0 = nu0, w0 = w0, ...)
+                                    K = K, nu0 = nu0, w0 = w0[1], ...)
   } else {
     prior_method <- match.arg(prior_method)
     if (prior_method == "kmeans") {
       prior_list <- .prior_kmeans(flow_set = flow_set, channels = channels, K = K,
-                                 nu0 = nu0, w0 = w0[1], ...) #pass only the first element of w0 since .prior_kmeans will replicate it.. 
+                                 nu0 = nu0, w0 = w0[1], ...)  
     }
     # In the rare case a covariance matrix is singular, we shrink the eigenvalues
     # of the matrix. The amount of shrinkage is controlled in 'shrink'.
