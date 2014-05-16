@@ -26,12 +26,13 @@
 #' @param w0 the number of prior pseudocounts of the Student's t mixture components. (only the first element is used and the rest is ignored at the moment)
 #' @param shrink the amount of eigenvalue shrinkage to add in the case the prior
 #' covariance matrices are singular. See details.
+#' @param isCollapse \code{logical} indicates whether the gating is done on collapsed data. If so, the prior does not need to be replicated across samples.
 #' @param ... Additional arguments passed to the prior elicitation method selected
 #' @return list of the necessary prior parameters
 #' @export 
 #' @importFrom plyr aaply
 prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
-                            K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...) {
+                            K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, isCollapse, ...) {
   #pass only the first element of w0 since it will be replicated ..
   #that said, the second element never gets used at this moment
   if (length(channels) == 1) {
@@ -70,8 +71,11 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
     })
     prior_list$Omega0 <- unname(prior_list$Omega0)
   }
-
-  prior_list
+ 
+  if(isCollapse)
+    prior_list
+  else# when collapse is FALSE, gating is done at sample level, thus we need to replicate priors across samples so that it matches with the gating input
+    sapply(sampleNames(flow_set), function(i)prior_list, simplify = FALSE) 
 }
 
 #' Elicits data-driven priors from a flowSet object for a specified channel

@@ -72,7 +72,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          cutpoint_max = NULL, min = NULL, max = NULL,
                          quantile = 0.99, quantile_interval = c(0, 10),
                          plot = FALSE, ...) {
-
+  options("cores" = 1L) #suppress parallelism for 1d gating   
   cutpoint_method <- match.arg(cutpoint_method)
 
   # TODO: Determine if Bayesian flowClust works when 'K' is specified and has a
@@ -130,7 +130,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                             usePrior = usePrior, prior = prior,
                             criterion = criterion, ...)
 
-  tmix_results <- try(filter(fr, tmix_filter), silent = TRUE)
+  tmix_results <- suppressMessages(try(filter(fr, tmix_filter), silent = TRUE))
   
   # In the case an error occurs when applying 'flowClust', the gate is
   # constructed from the density of the prior distributions. This error
@@ -367,9 +367,8 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          plot = FALSE, target = NULL, transitional = FALSE,
                          quantile = 0.9, translation = 0.25, transitional_angle = NULL,
                          min = NULL, max = NULL, ...) {
-#  if(is.null(prior))
-#    prior <- list(NA)
-                       
+  options("cores" = 1L) ##suppress parallelism since it may lock the process due to the lack of resource when parallel gating was already using up the cores. 
+  
   if (!is.null(target)) {
     target <- as.numeric(target)
     if (length(target) != 2) {
@@ -737,7 +736,6 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 }
 
 #' Gates the tail of a density using the derivative of a kernel density estimate
-#' after standardizing and collapsing flowFrames
 #'
 #' @param fr a \code{flowFrame} object
 #' @param channel the channel from which the cytokine gate is constructed
@@ -761,109 +759,37 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 #'  gate <- tailgate(fr, Channel = "APC-A") # fr is a flowFrame
 #' }
 tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
-    ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right", ...) {
+    ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right",  ...) {
   
-  # Standardizes the flowFrame's for a given channel using the mode of the kernel
-  # density estimate and the Huber estimator of the standard deviation
-  standardize_out <- .standardize_flowset(as(fr,"flowSet"), channel = channel)
   
-  # Coerces the standardized flowSet into a single flowFrame from which a single
   # cutpoint is calculated using the first derivative of the kernel density
   # estimate. 
-  cutpoint <- .cytokine_cutpoint(flow_frame = as(standardize_out$flow_set, "flowFrame"),
-      channel = channel, num_peaks = num_peaks,
+  cutpoint <- .cytokine_cutpoint(flow_frame = fr, channel = channel, num_peaks = num_peaks,
       ref_peak = ref_peak, tol = tol, side = side, ...)
   
-  # Backtransforms the cutpoint with respect to each sample to place
-  # them on the scales of the original samples
-  cutpoints <- lapply(standardize_out$transformation, function(transf_i) {
-        with(transf_i, center + scale * cutpoint)
-      })
-  
-  # If a sample has no more than 1 observation when the 'cytokine' gate is
-  # attempted, the 'center' and/or 'scale' will result be NA, in which case we
-  # replace the resulting NA cutpoints with the average of the remaining
-  # cutpoints. If all of the cutpoints are NA, we set the mean to 0, so that
-  # all of the cutpoints are 0.
-  cutpoints_unlisted <- unlist(cutpoints)
-  if (sum(!is.na(cutpoints_unlisted)) > 0) {
-    mean_cutpoints <- mean(cutpoints_unlisted, na.rm = TRUE)
+  # After the 1D cutpoint is set, we set the gate coordinates used in the
+  # rectangleGate that is returned. If the `positive` argument is set to TRUE,
+  # then the gate consists of the entire real line to the right of the cut point.
+  # Otherwise, the gate is the entire real line to the left of the cut point.
+  if (positive) {
+    gate_coordinates <- list(c(cutpoint, Inf))
   } else {
-    mean_cutpoints <- 0
+    gate_coordinates <- list(c(-Inf, cutpoint))
   }
-  cutpoints <- as.list(replace(cutpoints_unlisted, is.na(cutpoints_unlisted),
-          mean_cutpoints))
-  
-  # Creates a list of filters for each set of cutpoints.
-  # Note that the gate consists of the entire real line to the right of the
-  # cutpoint.
-  cytokine_gates <- lapply(cutpoints, function(cutpoint) {
-        # After the 1D cutpoint is set, we set the gate coordinates used in the
-        # rectangleGate that is returned. If the `positive` argument is set to TRUE,
-        # then the gate consists of the entire real line to the right of the cut point.
-        # Otherwise, the gate is the entire real line to the left of the cut point.
-        if (positive) {
-          gate_coordinates <- list(c(cutpoint, Inf))
-        } else {
-          gate_coordinates <- list(c(-Inf, cutpoint))
-        }
-        names(gate_coordinates) <- channel
-        rectangleGate(gate_coordinates, filterId = filter_id)
-      })
-  
-  cytokine_gates[[1]]
+  names(gate_coordinates) <- channel
+  rectangleGate(gate_coordinates, filterId = filter_id)
 }
 
 #' @rdname tailgate
 #' @export
 cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
   ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right", ...) {
+  .Deprecated("tailgate")
   return (tailgate(fr=fr, channel=channel, filter_id=filter_id,
     num_peaks=num_peaks, ref_peak=ref_peak, tol=tol, positive=positive,
     side=side, ...))
 }
 
-#' Standardizes a channel within a \code{flowSet} object using the mode of the
-#' kernel density estimate and the Huber estimator of the standard deviation
-#' 
-#' @param flow_set a \code{flowSet} object
-#' @param channel the channel to standardize
-#' @return list containing the transformed \code{flowSet} object along with the
-#' \code{transformation} list, where each element contains the transformation
-#' parameters for each \code{flowFrame}
-.standardize_flowset <- function(flow_set, channel = "FSC-A") {
-  transform_out <- fsApply(flow_set, function(flow_frame) {
-        x <- exprs(flow_frame)[, channel]
-        
-        if (length(x) >= 2) {
-          # First, centers the values by the mode of the kernel density estimate.
-          x <- .center_mode(x)
-          mode <- attr(x, "mode")
-          
-          # Scales the marker cells by the Huber estimator of the standard deviation.
-          x <- .scale_huber(x, center = FALSE)
-          sd_huber <- attr(x, "scale")
-          
-          exprs(flow_frame)[, channel] <- x
-        } else {
-          mode <- NA
-          sd_huber <- NA
-        }
-        
-        list(flow_frame = flow_frame, center = mode, scale = sd_huber)
-      })
-  
-  # Creates a flowSet object from the transformed flowFrame objects
-  flow_set <- flowSet(lapply(transform_out, function(x) x$flow_frame))
-  
-  # Extracts the transformation parameters
-  transformation <- lapply(transform_out, function(x) {
-        x$flow_frame <- NULL
-        x
-      })
-  
-  list(flow_set = flow_set, transformation = transformation)
-}
 
 #' Constructs a cutpoint for a flowFrame by using a derivative of the kernel
 #' density estimate
@@ -1000,63 +926,6 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 }
 
 
-#' Centers a vector of data using the mode of the kernel density estimate
-#'
-#' @param x numeric vector
-#' @param ... additional arguments passed to \code{\link{density}}
-#' @return numeric vector containing the centered data
-.center_mode <- function(x, ...) {
-  x <- as.vector(x)
-  density_x <- density(x, ...)
-  mode <- density_x$x[which.max(density_x$y)]
-  
-  x <- as.vector(scale(x, center = mode, scale = FALSE))
-  attributes(x) <- list(`mode` = mode)
-  x
-}
-
-#' Scales a vector of data using the Huber robust estimator for mean and
-#' standard deviation
-#'
-#' This function is an analog to \code{\link{scale}} but using Huber robust
-#' estimators instead of the usual sample mean and standard deviation.
-#'
-#' @param x numeric vector
-#' @param center logical value. Should \code{x} be centered?
-#' @param scale logical value. Should \code{x} be scaled?
-#' @return numeric vector containing the scaled data
-#' @importFrom MASS huber
-.scale_huber <- function(x, center = TRUE, scale = TRUE) {
-  
-  
-  x <- as.vector(x)
-  huber_x <- huber(x)
-  
-  # If 'center' is set to TRUE, we center 'x' by the Huber robust location
-  # estimator.
-  center_x <- FALSE
-  if (center) {
-    center_x <- huber_x$mu
-  }
-  
-  # If 'scale' is set to TRUE, we scale 'x' by the Huber robust standard
-  # deviation estimator.
-  scale_x <- FALSE
-  if (scale) {
-    scale_x <- huber_x$s
-  }
-  
-  x <- as.vector(base::scale(x, center = center_x, scale = scale_x))
-  
-  if (!center) {
-    center_x <- NULL
-  }
-  if (!scale) {
-    scale_x <- NULL
-  }
-  attributes(x) <- list(center = center_x, scale = scale_x)
-  x
-}
 
 #' a wrapper for flowDensity::deGate
 .flowDensity.1d <- function(fr, channel, filterId = "", positive, ...){
