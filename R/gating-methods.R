@@ -316,7 +316,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
       
     }
     
-    
+    #this is flowClust-specific operation, which
+    # be abstracted out of this framework
     if (extends(class(flist[[1]]), "fcFilter")) {
       flist <- fcFilterList(flist)
     }
@@ -662,8 +663,13 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           
           
           if (grepl(pos_pop_pat,popName)) {
+            #handle all infinite coordinates
+            if(length(cut.y) == 0)
+              cut.y <- -Inf
             gate_coordinates <- list(c(cut.y, Inf))
           } else if(grepl(neg_pop_pat,popName)){
+            if(length(cut.y) == 0)
+              cut.y <- Inf
             gate_coordinates <- list(c(-Inf, cut.y))
           }else{
             stop("unknown population pattern, ",popName)
@@ -717,12 +723,32 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           
           # construct rectangleGate from reference cuts
           if (quadInd == 1) {
+            #handle all infinite coordinates
+            if(length(cut.x) == 0)
+              cut.x <- Inf
+            if(length(cut.y) == 0)
+              cut.y <- -Inf
             coord <- list(c(-Inf, cut.x), c(cut.y, Inf))
           } else if (quadInd == 2) {
+            #handle all infinite coordinates
+            if(length(cut.x) == 0)
+              cut.x <- -Inf
+            if(length(cut.y) == 0)
+              cut.y <- -Inf
             coord <- list(c(cut.x, Inf), c(cut.y, Inf))
           } else if (quadInd == 3) {
+            #handle all infinite coordinates
+            if(length(cut.x) == 0)
+              cut.x <- -Inf
+            if(length(cut.y) == 0)
+              cut.y <- Inf
             coord <- list(c(cut.x, Inf), c(-Inf, cut.y))
           } else if (quadInd == 4) {
+            #handle all infinite coordinates
+            if(length(cut.x) == 0)
+              cut.x <- Inf
+            if(length(cut.y) == 0)
+              cut.y <- Inf
             coord <- list(c(-Inf, cut.x), c(-Inf, cut.y))
           } else stop("Pop names does not match to any quadrant pattern!")
           

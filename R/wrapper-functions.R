@@ -62,6 +62,12 @@
 
       names(gate_coordinates) <- channels
       filterRes <- rectangleGate(gate_coordinates)
+    
+      #this is flowClust-specific operation, which
+      # be abstracted out of this framework
+      
+      if(grepl("flowClust\\.[12]d", gFunc))
+        filterRes <- fcRectangleGate(filterRes, priors = list(), posts = list())
       
       nPop <- length(popAlias)
       filterResType <- ifelse(nPop == 1, "filter", "filters")
