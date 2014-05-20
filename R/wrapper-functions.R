@@ -532,12 +532,12 @@
      if (!is.na(xChannel)) {
        prior_list[[xChannel]] <- prior_flowClust(flow_set = prior_data,
            channels = xChannel, K = K,
-           min = min_values, max = max_values, isCollapse = isCollapse, ...)
+           min = min_values, max = max_values, ...)
      }
      
      prior_list[[yChannel]] <- prior_flowClust(flow_set = prior_data,
          channels = yChannel, K = K,
-         min = min_values, max = max_values, isCollapse = isCollapse, ...)
+         min = min_values, max = max_values, ...)
      
    } else {
      # get the value of neg and pos
@@ -549,10 +549,13 @@
      }
      
      prior_list <- prior_flowClust(flow_set = prior_data, channels = c(xChannel, 
-             yChannel), K = K, isCollapse = isCollapse, ...)
+             yChannel), K = K, ...)
    }
+   if(isCollapse)
+     prior_list
+   else# when collapse is FALSE, gating is done at sample level, thus we need to replicate priors across samples so that it matches with the gating input
+     sapply(sampleNames(prior_data), function(i)prior_list, simplify = FALSE)
    
-   prior_list
 }
 
  #' preprocessing wrapper for .standardize_flowFrame
