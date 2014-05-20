@@ -530,7 +530,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' plot(density(y))
 #' peaks <- .find_peaks(y)
 #' abline(v = peaks, col = "red")
-.find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, ...) {
+.find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, plot = FALSE, ...) {
   x <- as.vector(x)
 
   if (length(x) < 2) {
@@ -559,7 +559,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 
   # Next, we sort the peaks in descending order based on the density heights.
   which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
-
+  
   # Returns the local maxima. If there are none, we return 'NA' instead.
   if (length(which_maxima) > 0) {
     peaks <- dens$x[which_maxima]
@@ -570,7 +570,12 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
   } else {
     peaks <- NA
   }
-
+  
+  if(plot){
+    plot(dens, main = paste("adjust =" ,  adjust))
+    points(dens$x[which_maxima], dens$y[which_maxima],col = "red")  
+  }
+  
   peaks  
 }
 
