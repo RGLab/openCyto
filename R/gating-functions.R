@@ -744,6 +744,8 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 #' any peaks that are artifacts of smoothing
 #' @param ref_peak After \code{num_peaks} are found, this argument provides the
 #' index of the reference population from which a gate will be obtained.
+#' @param strict \code{logical} when the actual number of peaks detected is less than \code{ref_peak}. 
+#'                               an error is reported by default. But if \code{strict} is set to FALSE, then the reference peak will be reset to the peak of the far right.      
 #' @param tol the tolerance value used to construct the cytokine gate from the
 #' derivative of the kernel density estimate
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
@@ -759,13 +761,13 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 #'  gate <- tailgate(fr, Channel = "APC-A") # fr is a flowFrame
 #' }
 tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
-    ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right",  ...) {
+    ref_peak = 1, strict = TRUE, tol = 1e-2, positive = TRUE, side = "right",  ...) {
   
   
   # cutpoint is calculated using the first derivative of the kernel density
   # estimate. 
   cutpoint <- .cytokine_cutpoint(flow_frame = fr, channel = channel, num_peaks = num_peaks,
-      ref_peak = ref_peak, tol = tol, side = side, ...)
+      ref_peak = ref_peak, tol = tol, side = side, strict = strict, ...)
   
   # After the 1D cutpoint is set, we set the gate coordinates used in the
   # rectangleGate that is returned. If the `positive` argument is set to TRUE,
@@ -817,6 +819,8 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' @param ref_peak After \code{num_peaks} are found, this argument provides the
 #' index of the reference population from which a gate will be obtained. By
 #' default, the peak farthest to the left is used.
+#' @param strict \code{logical} when the actual number of peaks detected is less than \code{ref_peak}. 
+#'                               an error is reported by default. But if \code{strict} is set to FALSE, then the reference peak will be reset to the peak of the far right.      
 #' @param method the method used to select the cutpoint. See details.
 #' @param tol the tolerance value
 #' @param adjust the scaling adjustment applied to the bandwidth used in the
@@ -827,15 +831,19 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' @return the cutpoint along the x-axis
 .cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
     method = c("first_deriv", "second_deriv"),
-    tol = 1e-2, adjust = 1, side = "right", ...) {
+    tol = 1e-2, adjust = 1, side = "right", strict = TRUE, ...) {
   
   method <- match.arg(method)
   
   x <- as.vector(exprs(flow_frame)[, channel])
   peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust))
   
+  #update peak count since it can be less than num_peaks
+  num_peaks <- length(peaks)
+  
   if (ref_peak > num_peaks) {
-    warning("The reference peak is larger than the number of peaks found.",
+    outFunc <- ifelse(strict, stop, warning)
+    outFunc("The reference peak is larger than the number of peaks found.",
         "Setting the reference peak to 'num_peaks'...",
         call. = FALSE)
     ref_peak <- num_peaks
