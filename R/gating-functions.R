@@ -656,6 +656,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' maximum value of the range otherwise.
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
+#' @peaks \code{numeric} vector. If not given , then perform peak detection first by .find_peaks
 #' @param ... Additional arguments for peak detection.
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 #' @export
@@ -665,7 +666,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' }
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
                        pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
-                       ...) {
+                       peaks = NULL, ...) {
   
   if (missing(channel) || length(channel) != 1) {
     stop("A single channel must be specified.")
@@ -679,15 +680,18 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   }
   # Grabs the data matrix that is being gated.
   x <- exprs(flow_frame)[, channel]
-
+  
+  if(is.null(peaks))
+    peaks <- .find_peaks(x, ...)[, "x"]
+  
   if (is.null(gate_range)) {
     gate_range <- c(min(x), max(x))
   } else {
     gate_range <- sort(gate_range)
   }
 
-  peaks <- .find_peaks(x, ...)
-
+  
+  
   # In the special case that there is only one peak, we are conservative and set
   # the cutpoint as min(x) if 'positive' is TRUE, and max(x) otherwise.
   if (length(peaks) == 1) {
@@ -836,7 +840,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
   method <- match.arg(method)
   
   x <- as.vector(exprs(flow_frame)[, channel])
-  peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust))
+  peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust)[, "x"])
   
   #update peak count since it can be less than num_peaks
   num_peaks <- length(peaks)
@@ -884,12 +888,12 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
     deriv_out <- .deriv_density(x = x, adjust = adjust, deriv = 2, ...)
     
     if (side == "right") {
-      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust))
+      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust)[, "x"])
       deriv_peaks <- deriv_peaks[deriv_peaks > peaks[ref_peak]]
       cutpoint <- sort(deriv_peaks)[1]
     } else if (side == "left") {
       deriv_out$y <- -deriv_out$y
-      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust))
+      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust)[, "x"])
       deriv_peaks <- deriv_peaks[deriv_peaks < peaks[ref_peak]]
       cutpoint <- sort(deriv_peaks, decreasing=TRUE)[length(deriv_peaks)]
     } else {
@@ -1056,4 +1060,107 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
   colnames(filter) <- channels
   polygonGate(.gate = filter)
   
+}
+
+#' sequential quadrant gating function
+#' 
+#' The order of 1d-gating is determined so that the gates better capture the 
+#' distributions of flow data.
+#' 
+#' @param fr \code{flowFrame}
+#' @param channels \code{character} two channels used for gating
+#' @gFunc the name of the 1d-gating function to be used for either dimension
+#' @return a \code{filters} that contains four rectangleGates
+quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
+  if (missing(channels) || length(channels) != 2) {
+    stop("two channels must be specified.")
+  }
+  
+  # Filter out values less than the minimum and above the maximum, if they are
+  # given.
+  if (!(is.null(min) && is.null(max))) {
+    fr <- .truncate_flowframe(fr, channels = channels, min = min,max = max)
+  }
+  
+  res <- sapply(channels, function(channel){
+        
+        x <- exprs(fr)[, channel]
+        
+        peaks <-.find_peaks(x,..., num_peaks = 2)
+        #get peak and scores
+        if(nrow(peaks)<2)
+          score <- 0
+        else
+          score <- abs(diff(peaks[, "x"]))
+        list(peaks = peaks[, "x"], score = score)
+      }, simplify = FALSE)
+  
+  #order channel by scores
+  channels.ordered <- names(sort(sapply(res, `[[`, "score"), decreasing = T))
+  x.first <- all(channels == channels.ordered)
+    
+  #get first cut
+  chnl <- channels.ordered[1]
+  thisFunc <- function(fr, chnl, ...){
+    thisCall <- substitute(f(data, channel
+                          , peaks = p
+                        , ...)
+                    ,list(f=as.symbol(gFunc), data = fr
+                        , channel = chnl
+                      , p = res[[chnl]][["peaks"]]
+                    )
+    )  
+  
+    eval(thisCall)
+  }
+  
+  g1 <- thisFunc(fr, chnl, ...)
+  
+  coord1 <- c(g1@min, g1@max)
+  cut.1 <- coord1[!is.infinite(coord1)]
+#  if(length(cut.1) == 0)
+#    cut.1 <- Inf
+  
+  
+  
+  #get ind
+  fres <- filter(fr, g1)
+  ind <- as(fres, "logical")
+  
+  #gate on the second channel
+  chnl <- channels.ordered[2]
+  
+  #+
+  g2 <- thisFunc(fr[ind, ], chnl, ...)
+  coord2 <- c(g2@min, g2@max)
+  cut.2.pos <- coord2[!is.infinite(coord2)]
+  
+#  if(length(cut.2.pos) == 0)
+#    cut.2.pos<- Inf
+  #-
+  g3 <- thisFunc(fr[!ind, ], chnl, ...)
+  coord3 <- c(g3@min, g3@max)
+  cut.2.neg <- coord3[!is.infinite(coord3)]
+  
+  if(x.first)
+    coords <-list(q1 = list(c(-Inf, cut.1), c(cut.2.neg, Inf))
+                  , q2 = list(c(cut.1, Inf), c(cut.2.pos, Inf))
+                  , q3 = list(c(cut.1, Inf), c(-Inf, cut.2.pos))
+                  , q4 = list(c(-Inf, cut.1), c(-Inf, cut.2.neg))
+                  )
+  else
+    coords <-list(q1 = list(c(-Inf, cut.2.pos), c(cut.1, Inf))
+                  , q2 = list(c(cut.2.pos, Inf), c(cut.1, Inf))
+                  , q3 = list(c(cut.2.neg, Inf), c(-Inf, cut.1))
+                  , q4 = list(c(-Inf, cut.2.neg), c(-Inf, cut.1))
+                )
+    
+  
+  gates <- lapply(coords, function(coord){
+            
+      names(coord) <- as.character(channels)
+      rectangleGate(coord)
+    })
+  
+  filters(gates)
 }

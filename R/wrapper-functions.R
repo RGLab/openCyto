@@ -275,6 +275,9 @@
 #' 
 #' @return a \code{filter} object
 .tailgate <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", ...) {
+#  if(keyword(fr)[["$FIL"]] == "DC,2f,MONO,2f,NK 22013_12828_003.fcs")
+#    browser()  
+  
   
   #pps_res may contains the standardized and collapsed data and transformation
   if(isTRUE(attr(pp_res, "openCyto_preprocessing") == "standardize")){
@@ -579,6 +582,8 @@
    isGroup <- nchar(groupBy) > 0
    
    if(isGroup){
+#     if(pData(fs)$Center == "UCLA" && pData(fs)$Sample == "12828")
+#       browser()
      #standardize multiple flowFrames within the sub-group
      transform_out <- fsApply(fs, .standardize_flowFrame, channel = yChannel, data = TRUE)
      

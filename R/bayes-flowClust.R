@@ -157,7 +157,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 .prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
                               clust_method = c("kmeans", "hclust"),
                               hclust_method = "complete", artificial = NULL,
-                              nu0 = 4, w0 = 10, adjust = 2, min = NULL,
+                              nu0 = 4, w0 = 10, adjust = 2, min = -200,
                               max = NULL, vague = TRUE) {
 
   channel <- as.character(channel)
@@ -172,8 +172,8 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
   # For each sample in 'flow_set', we identify the peaks after smoothing.
   peaks <- fsApply(flow_set, function(flow_frame, adjust) {
     x <- exprs(flow_frame)[, channel]
-    peaks_found <- .find_peaks(x, adjust = adjust)
-
+    peaks_found <- .find_peaks(x, adjust = adjust)[, "x"]
+    
     # If K is specified and is smaller than the number of peaks found,
     # we keep only the K largest peaks from the sample.
     if (!is.null(K) && length(peaks_found) > K) {
@@ -520,7 +520,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' @param adjust the bandwidth to use in the kernel density estimation. See
 #' \code{\link{density}} for more information.
 #' @param ... additional arguments passed to the \code{\link{density}} function
-#' @return the values where the peaks are attained. The peaks are sorted in
+#' @return a \code{data.frame} that contains the peaks(and their density heights) attained. The peaks are sorted in
 #' descending order based on the density heights.
 #' @examples
 #' library(flowClust)
@@ -529,7 +529,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' y <- SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
 #' plot(density(y))
 #' peaks <- .find_peaks(y)
-#' abline(v = peaks, col = "red")
+#' abline(v = peaks[, "x"], col = "red")
 .find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, plot = FALSE, ...) {
   x <- as.vector(x)
 
@@ -571,9 +571,10 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
     peaks <- NA
   }
   
+  peaks <- data.frame(x = peaks, y = dens$y[which_maxima][seq_len(num_peaks)])
   if(plot){
     plot(dens, main = paste("adjust =" ,  adjust))
-    points(dens$x[which_maxima], dens$y[which_maxima],col = "red")  
+    points(peaks, ,col = "red")  
   }
   
   peaks  
