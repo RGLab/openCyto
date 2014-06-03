@@ -1164,3 +1164,119 @@ quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
   
   filters(gates)
 }
+
+##TODO: come up a more general design so that polygonGates can be derived from any two quadrants
+#' quadGate based on flowClust::tmixFiler
+#' 
+#' This gating method identifies two quadrants (first, and third quadrants) by fitting the data with tmixture model.
+#' It is particually useful when the two markers are not well resolved thus the regular quadGate method
+#' based on 1d gating will not find the perfect cut points on both dimensions.
+#' 
+#'  
+#' @param fr \code{flowFrame}
+#' @param channels \code{character} vector specifies two channels
+#' @param usePrior, prior, trans, B: see \link{flowClust.2d}
+#' @param quantile1, quantile3 \code{numeric} specifies the  quantile level see 'level' in \link{flowClust}
+#' @param ... other arguments passed to \link{flowClust}
+#' @return a \code{filters} object that contains four \code{polygonGate}s following the order of (-+,++,+-,--)
+quadGate.tmix <- function(fr, channels, K, usePrior = "yes", prior = list(NA)
+    , quantile1 = 0.8, quantile3 = 0.8
+    , trans = 0, B = 10
+    , ...){
+  
+  max.v <- .Machine$double.xmax
+  min.v <- - max.v
+  
+  # fit tmix models 
+  tmix_filter <- tmixFilter(parameters = channels
+      , K = K
+      , usePrior = usePrior, prior = prior, B = B , trans = trans
+      , ...)
+
+  tmix_results <- try(filter(fr, tmix_filter), silent = F)
+#      plot(tmix_results, data = fr, level = 0.85)
+  #find the 1st and 3rd quads
+  fitted_means <- getEstimates(tmix_results)$locations
+  q1.ind <- which.max(fitted_means[,2])
+  q3.ind <- which.max(fitted_means[,1])
+  
+  #construct polygon gates 
+  q1.gate <- flowViz:::ell2Polygon(.getEllipseGate(filter = tmix_results
+          , include = q1.ind,
+          quantile = quantile1
+          ,trans = 0))
+  q3.gate <- flowViz:::ell2Polygon(.getEllipseGate(filter = tmix_results
+          , include = q3.ind,
+          quantile = quantile3
+          ,trans = 0))
+  #find intersection of 1,3 quad gates
+  q1.bottom <- min(q1.gate@boundaries[, 2])
+  q1.right <- max(q1.gate@boundaries[, 1])
+  
+  q3.top <- max(q3.gate@boundaries[, 2])
+  q3.left <- min(q3.gate@boundaries[, 1])
+  
+  #two gates overlap on both dimensions
+  p.BL <- c(q3.left, q1.bottom)
+  p.TR <- c(q1.right, q3.top)
+  if(q1.bottom >= q3.top){
+    thisY <- mean(c(q1.bottom , q3.top))
+    p.BL[2] <- p.TR[2] <- thisY
+  }
+  
+  if(q3.left >= q1.right){
+    thisX <- mean(c(q1.right , q3.left))
+    p.BL[1] <- p.TR[1] <- thisX
+  }
+  
+  
+  #construct four quadGates based on these two points
+  q1.coord <- matrix(c(min.v, max.v
+          , min.v, p.BL[2]
+          , p.BL
+          , p.TR
+          , p.TR[1], max.v
+      )
+      , 5, 2
+      , byrow = TRUE
+  )  
+  colnames(q1.coord) <- channels    
+  q1.g <- polygonGate(q1.coord, filterId = paste(paste0(channels, c("-", "+")), collapse = ""))
+  
+  
+  q2.coord <- matrix(c(p.TR
+          , max.v, p.TR[2]
+          , max.v, max.v
+          , p.TR[1], max.v
+      )
+      , 5, 2
+      , byrow = TRUE
+  )  
+  colnames(q2.coord) <- channels    
+  q2.g <- polygonGate(q2.coord, filterId = paste(paste0(channels, c("+", "+")), collapse = ""))
+  
+  q3.coord <- matrix(c(p.TR
+          , max.v, p.TR[2]
+          , max.v, min.v
+          , p.BL[1], min.v
+          ,p.BL
+      )
+      , 5, 2
+      , byrow = TRUE
+  )
+  colnames(q3.coord) <- channels    
+  q3.g <- polygonGate(q3.coord, filterId = paste(paste0(channels, c("+", "-")), collapse = ""))
+  
+  q4.coord <- matrix(c(min.v, p.BL[2]
+          , p.BL
+          , p.BL[1], min.v
+          , min.v, min.v
+      )
+      , 5, 2
+      , byrow = TRUE
+  )
+  colnames(q4.coord) <- channels    
+  q4.g <- polygonGate(q4.coord, filterId = paste(paste0(channels, c("-", "-")), collapse = ""))
+  
+  filters(list(q1.g, q2.g, q3.g,q4.g))
+}

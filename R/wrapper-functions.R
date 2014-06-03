@@ -402,6 +402,9 @@
   quantileGate(fr = fr, stain = yChannel, ...)
 }
 
+.quadGate.tmix <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
+  quadGate.tmix(fr, c(xChannel, yChannel), ...)
+}
 #' deprecated
 #' @importFrom flowStats quadrantGate
 .quadrantGate <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
