@@ -333,7 +333,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     }
     
     gs_node_id <- add(y, flist, parent = parent, name = popAlias)
-    for(this_gs_id in gs_node_id)
+    
+    for(this_gs_id in getNodes(y)[gs_node_id])
       invisible(recompute(y, this_gs_id, alwaysLoadData = TRUE))
     
     message("done.")
@@ -387,7 +388,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSetList"),
     bf <- eval(substitute(booleanFilter(x), list(x = args)))
     bf@filterId <- tNodes
     invisible(gs_node_id <- add(y, bf, parent = parent, name = popAlias))
-    invisible(recompute(y, gs_node_id))
+    invisible(recompute(y, getNodes(y)[gs_node_id]))
     message("done.")
   } else {
     message("Skip gating! Population '", popAlias, "' already exists.")
@@ -760,10 +761,10 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
     
     flist <- filterList(flist)
     gs_node_id <- add(y, flist, parent = parent, name = popAlias)
-    invisible(recompute(y, gs_node_id, alwaysLoadData = TRUE))
+    invisible(recompute(y, getNodes(y)[gs_node_id], alwaysLoadData = TRUE))
     
     if (plot) {
-      print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
+      print(plotGate(y, getNodes(y)[gs_node_id], xbin = xbin, pos = c(0.5, 0.8)))
     }
   } else {
     message("Skip gating! Population '", popAlias, "' already exists.")
