@@ -333,7 +333,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     }
     
     gs_node_id <- add(y, flist, parent = parent, name = popAlias)
-    for(this_gs_id in gs_node_id)
+    
+    for(this_gs_id in getNodes(y[[1]])[gs_node_id])
       invisible(recompute(y, this_gs_id, alwaysLoadData = TRUE))
     
     message("done.")
@@ -387,7 +388,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSetList"),
     bf <- eval(substitute(booleanFilter(x), list(x = args)))
     bf@filterId <- tNodes
     invisible(gs_node_id <- add(y, bf, parent = parent, name = popAlias))
-    invisible(recompute(y, gs_node_id))
+    invisible(recompute(y, getNodes(y[[1]])[gs_node_id]))
     message("done.")
   } else {
     message("Skip gating! Population '", popAlias, "' already exists.")
@@ -547,6 +548,8 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
 #' @aliases
 #' gating,refGate,GatingSet-method
 #' gating,refGate,GatingSetList-method
+#' gating,dummyMethod,GatingSet-method
+#' gating,dummyMethod,GatingSetList-method
 setMethod("gating", signature = c("refGate", "GatingSet"),
     definition = function(x, y, ...) {
       .gating_refGate(x, y, ...)
@@ -556,17 +559,6 @@ setMethod("gating", signature = c("refGate", "GatingSetList"),
       .gating_refGate(x, y, ...)
     })
 
-#' apply a \code{dummyMethod}
-#' 
-#' It does nothing.
-#' 
-#' @param x \code{dummyMethod}
-#' @param y \code{GatingSet} or \code{GatingSetList}
-#' @param .. other arguments
-#' 
-#' @aliases
-#' gating,dummyMethod,GatingSet-method
-#' gating,dummyMethod,GatingSetList-method
 setMethod("gating", signature = c("dummyMethod", "GatingSet"),
     definition = function(x, y, ...) {
       #do nothing
@@ -760,10 +752,10 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
     
     flist <- filterList(flist)
     gs_node_id <- add(y, flist, parent = parent, name = popAlias)
-    invisible(recompute(y, gs_node_id, alwaysLoadData = TRUE))
+    invisible(recompute(y, getNodes(y[[1]])[gs_node_id], alwaysLoadData = TRUE))
     
     if (plot) {
-      print(plotGate(y, gs_node_id, xbin = xbin, pos = c(0.5, 0.8)))
+      print(plotGate(y, getNodes(y[[1]])[gs_node_id], xbin = xbin, pos = c(0.5, 0.8)))
     }
   } else {
     message("Skip gating! Population '", popAlias, "' already exists.")

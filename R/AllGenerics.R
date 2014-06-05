@@ -1,4 +1,4 @@
-setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
+
 setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
 setGeneric("posteriors", function(x, y, ...) standardGeneric("posteriors"))
 setGeneric("priors", function(x, y, ...) standardGeneric("priors"))

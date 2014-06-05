@@ -352,6 +352,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 #'   plot(gt)
 #' }
 #' 
+setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
 setMethod("gatingTemplate", signature(x = "character"), function(x, name = "default", ...) {
       dt <- fread(x, ...)
       dt <- .preprocess_csv(dt)

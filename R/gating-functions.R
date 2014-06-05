@@ -656,7 +656,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' maximum value of the range otherwise.
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
-#' @peaks \code{numeric} vector. If not given , then perform peak detection first by .find_peaks
+#' @param peaks \code{numeric} vector. If not given , then perform peak detection first by .find_peaks
 #' @param ... Additional arguments for peak detection.
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 #' @export
@@ -1069,7 +1069,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' 
 #' @param fr \code{flowFrame}
 #' @param channels \code{character} two channels used for gating
-#' @gFunc the name of the 1d-gating function to be used for either dimension
+#' @param gFunc the name of the 1d-gating function to be used for either dimension
 #' @return a \code{filters} that contains four rectangleGates
 quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
   if (missing(channels) || length(channels) != 2) {
