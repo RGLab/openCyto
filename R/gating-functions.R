@@ -1070,6 +1070,10 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' @param fr \code{flowFrame}
 #' @param channels \code{character} two channels used for gating
 #' @param gFunc the name of the 1d-gating function to be used for either dimension
+#' @param min a numeric vector that sets the lower bounds for data filtering
+#' @param max a numeric vector that sets the upper bounds for data filtering
+#' @param ... other arguments passed to \code{.find_peak} (e.g. 'num_peaks' and 'adjust'). see \link{tailgate}
+#' @export 
 #' @return a \code{filters} that contains four rectangleGates
 quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
   if (missing(channels) || length(channels) != 2) {
@@ -1175,10 +1179,16 @@ quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
 #'  
 #' @param fr \code{flowFrame}
 #' @param channels \code{character} vector specifies two channels
-#' @param usePrior, prior, trans, B: see \link{flowClust.2d}
-#' @param quantile1, quantile3 \code{numeric} specifies the  quantile level see 'level' in \link{flowClust}
+#' @param usePrior see \link{flowClust.2d}
+#' @param K see \link{flowClust.2d}
+#' @param prior see \link{flowClust.2d}
+#' @param trans see \link{flowClust.2d}
+#' @param B see \link{flowClust.2d}
+#' @param quantile1 \code{numeric} specifies the  quantile level(see 'level' in \link{flowClust}) for the first quadrant (x-y+)
+#' @param quantile3 \code{numeric} specifies the  quantile level see 'level' in \link{flowClust} for third quadrant (x+y-)
 #' @param ... other arguments passed to \link{flowClust}
 #' @return a \code{filters} object that contains four \code{polygonGate}s following the order of (-+,++,+-,--)
+#' @export 
 quadGate.tmix <- function(fr, channels, K, usePrior = "yes", prior = list(NA)
     , quantile1 = 0.8, quantile3 = 0.8
     , trans = 0, B = 10

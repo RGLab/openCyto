@@ -4,23 +4,18 @@
 \alias{gatingTemplate}
 \alias{gatingTemplate,character-method}
 \alias{gatingTemplate-class}
-\alias{show,boolMethod-method}
-\alias{show,fcFilter-method}
-\alias{show,gatingTemplate-method}
 \title{a class storing the gating method and population information in a graphNEL object}
 \usage{
 gatingTemplate(x, ...)
 
-\S4method{show}{gatingTemplate}(object)
+\S4method{gatingTemplate}{character}(x, name = "default", ...)
 }
 \arguments{
 \item{x}{\code{character} csv file name}
 
-\item{name:}{\code{character} the label of the gating template}
+\item{name}{\code{character} the label of the gating template}
 
 \item{...}{other arguments passed to \code{data.table::fread}}
-
-\item{object}{Any R object}
 }
 \description{
 Each cell population is stored in graph node and is connected with its parent population
@@ -58,7 +53,7 @@ This csv must have the following columns:
 }
 \examples{
 \dontrun{
-  gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
+  gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
   plot(gt)
 }
 }

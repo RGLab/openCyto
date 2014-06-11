@@ -8,7 +8,7 @@ It extends \code{gtMethod} class.
 }
 \examples{
 \dontrun{
-     gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
+     gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
      ppMethod(gt, '3', '4')
 }
 }

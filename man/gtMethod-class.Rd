@@ -2,7 +2,6 @@
 \docType{class}
 \name{gtMethod-class}
 \alias{gtMethod-class}
-\alias{show,gtMethod-method}
 \title{A class to represent a gating method.}
 \description{
 A gating method object contains the specifics for generating the gates.
@@ -27,7 +26,7 @@ A gating method object contains the specifics for generating the gates.
 }
 \examples{
 \dontrun{
-     gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
+     gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
      getGate(gt, '2', '3')
 }
 }
