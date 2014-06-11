@@ -1,8 +1,10 @@
-#' apply a \link{ppMethod} to the \code{GatingSet}
+setGeneric("preprocessing", function(x, y, ...) standardGeneric("preprocessing"))
+
+#' apply a \link[openCyto:ppMethod-class]{ppMethod} to the \code{GatingSet}
 #' 
 #' @param x \code{ppMethod}
-#' @param x \code{GatingSet}
-#' ... other arguments
+#' @param y \code{GatingSet} or \code{GatingSetList}
+#' @param ... other arguments
 #' 
 #' @inheritParams .preprocessing
 #' 
@@ -139,7 +141,7 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
   res
   
 }
-#' copied from AnnotationDbi that does not mangle the name
+# copied from AnnotationDbi that does not mangle the name
 unlist2 <- function (x, recursive = TRUE, use.names = TRUE, what.names = "inherited") 
 {
   ans <- unlist(x, recursive, FALSE)
@@ -152,7 +154,7 @@ unlist2 <- function (x, recursive = TRUE, use.names = TRUE, what.names = "inheri
       recursive, FALSE)
   ans
 }
-#' copied from AnnotationDbi that does not mangle the name
+# copied from AnnotationDbi that does not mangle the name
 make.name.tree <- function (x, recursive, what.names) 
 {
   if (!is.character(what.names) || length(what.names) != 1) 
