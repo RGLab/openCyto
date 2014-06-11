@@ -1,20 +1,20 @@
-"alias"	"pop"	"parent"	"dims"	"gating_method"	"gating_args"	"collapseDataForGating"	"groupBy"	"preprocessing_method"	"preprocessing_args"
-"boundary"	"boundary"	"root"	"FSC-A,SSC-A"	"boundary"	"max=c(2.5e5,2.5e5)"				
-"nonDebris"	"nonDebris+"	"boundary"	"FSC-A"	"mindensity"	"gate_range=c(5e4,1e5),adjust=1.5"				
-"lymph"	"lymph"	"nonDebris"	"FSC-A,SSC-A"	"flowClust"	"K=2,quantile=0.95,target=c(1e5,5e4)"			"prior_flowClust"	"K=2"
-"Live"	"Live-"	"lymph"	"Live"	"cytokine"	"tol=5e-2"				
-"CD3gate"	"CD3-"	"Live"	"CD3"	"mindensity"					
-"CD19gate"	"CD19+"	"Live"	"CD19"	"mindensity"					
-"CD20gate"	"CD20+"	"CD3gate"	"CD20"	"mindensity"					
-"CD3"	"CD3+CD19-"	"Live"	"CD3,CD19"	"refGate"	"CD3gate:CD19gate"				
-"CD19"	"CD3-CD19+"	"Live"	"CD3,CD19"	"refGate"	"CD3gate:CD19gate"				
-"CD20"	"CD3-CD20+"	"Live"	"CD3,CD20"	"refGate"	"CD3gate:CD20gate"				
-"CD19!CD20"	"CD19&!CD20"	"Live"		"boolGate"	"CD19&!CD20"				
-"CD19CD20"	"CD19&CD20"	"Live"		"boolGate"	"CD19&CD20"				
-"Transitional"	"Transitional"	"CD19CD20"	"CD38,CD24"	"flowClust"	"K=6,transitional=TRUE,target=c(3.5e3,3.5e3),quantile=0.95,translation=0.15"			"prior_flowClust"	"K=6"
-"CD27gate"	"CD27+"	"CD19CD20"	"CD27"	"flowClust"	"K=2"			"prior_flowClust"	"K=2"
-"IgDgate"	"IgD+"	"CD19CD20"	"IgD"	"flowClust"	"K=2,min=500"			"prior_flowClust"	"K=2"
-"*"	"IgD+/-CD27+/-"	"CD19CD20"	"IgD,CD27"	"refGate"	"CD27gate:IgDgate"				
-"plasma_CD27gate"	"CD27+"	"CD19!CD20"	"CD27"	"flowClust"	"K=2"			"prior_flowClust"	"K=2"
-"plasma_CD38gate"	"CD38+"	"CD19!CD20"	"CD38"	"flowClust"	"K=2"			"prior_flowClust"	"K=2"
-"Plasmablasts"	"CD27+CD38+"	"CD19!CD20"	"CD27,CD38"	"refGate"	"plasma_CD27gate:plasma_CD38gate"				
+alias,pop,parent,dims,gating_method,gating_args,collapseDataForGating,groupBy,preprocessing_method,preprocessing_args
+boundary,boundary,root,"FSC-A,SSC-A",boundary,"max=c(2.5e5,2.5e5)",,,,
+nonDebris,nonDebris+,boundary,FSC-A,mindensity,"gate_range=c(5e4,1e5),adjust=1.5",,,,
+lymph,lymph,nonDebris,"FSC-A,SSC-A",flowClust,"K=2,quantile=0.95,target=c(1e5,5e4)",,,prior_flowClust,K=2
+Live,Live-,lymph,Live,cytokine,tol=5e-2,,,standardize_flowset,
+CD3gate,CD3-,Live,CD3,mindensity,,,,,
+CD19gate,CD19+,Live,CD19,mindensity,,,,,
+CD20gate,CD20+,CD3gate,CD20,mindensity,,,,,
+CD3,CD3+CD19-,Live,"CD3,CD19",refGate,CD3gate:CD19gate,,,,
+CD19,CD3-CD19+,Live,"CD3,CD19",refGate,CD3gate:CD19gate,,,,
+CD20,CD3-CD20+,Live,"CD3,CD20",refGate,CD3gate:CD20gate,,,,
+CD19!CD20,CD19&!CD20,Live,,boolGate,CD19&!CD20,,,,
+CD19CD20,CD19&CD20,Live,,boolGate,CD19&CD20,,,,
+Transitional,Transitional,CD19CD20,"CD38,CD24",flowClust,"K=6,transitional=TRUE,target=c(3.5e3,3.5e3),quantile=0.95,translation=0.15",,,prior_flowClust,K=6
+CD27gate,CD27+,CD19CD20,CD27,flowClust,K=2,,,prior_flowClust,K=2
+IgDgate,IgD+,CD19CD20,IgD,flowClust,"K=2,min=500",,,prior_flowClust,K=2
+*,IgD+/-CD27+/-,CD19CD20,"IgD,CD27",refGate,CD27gate:IgDgate,,,,
+plasma_CD27gate,CD27+,CD19!CD20,CD27,flowClust,K=2,,,prior_flowClust,K=2
+plasma_CD38gate,CD38+,CD19!CD20,CD38,flowClust,K=2,,,prior_flowClust,K=2
+Plasmablasts,CD27+CD38+,CD19!CD20,"CD27,CD38",refGate,plasma_CD27gate:plasma_CD38gate,,,,

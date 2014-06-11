@@ -1,3 +1,7 @@
+#' show method for gtMethod
+#' 
+#' show method for gtMethod
+#' @export 
 setMethod("show", signature = c("gtMethod"), definition = function(object) {
   # cat('Gating Method: ')
   cat(names(object))
@@ -8,7 +12,10 @@ setMethod("show", signature = c("gtMethod"), definition = function(object) {
 #  cat(parameters(object))
 })
 
-
+#' show method for boolMethod
+#' 
+#' show method for boolMethod
+#' @export 
 setMethod("show", signature = c("boolMethod"), definition = function(object) {
   cat(paste(class(object), "(", parameters(object), ")", sep = ""))
   cat("\n")
@@ -16,12 +23,12 @@ setMethod("show", signature = c("boolMethod"), definition = function(object) {
 
 #' get gating method name
 #' 
-#' @param object \code{gtMethod} 
+#' @param x \code{gtMethod} 
 #' @export
 #' @aliases names,gtMethod-method
 #' @examples 
 #' \dontrun{
-#' gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
+#' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
 #' 
 #' gtMthd <- getGate(gt, "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
 #' names(gtMthd) 
@@ -35,7 +42,6 @@ setMethod("show", signature = c("boolMethod"), definition = function(object) {
 #' alias(gtPop)
 #' }
 #' 
-#' @rdname names
 setMethod("names", signature = c("gtMethod"), definition = function(x) {
   x@name
 })
@@ -46,7 +52,6 @@ setMethod("names", signature = c("gtMethod"), definition = function(x) {
 #' @export 
 #' @importFrom Biobase dims
 #' @aliases dims,gtMethod-method
-#' @rdname names
 setMethod("dims", signature = c("gtMethod"), definition = function(object) {
   dims <- strsplit(object@dims, ",")[[1]]
   if (length(dims) == 1) 
@@ -61,10 +66,11 @@ setMethod("dims", signature = c("gtMethod"), definition = function(object) {
 #' @param object \code{gtMethod}
 #' @export 
 #' @aliases parameters,gtMethod-method
-#' @rdname names
 setMethod("parameters", signature = c("gtMethod"), definition = function(object) {
   object@args
 })
+
+setGeneric("isCollapse",function(object,...)standardGeneric("isCollapse"))
 
 #' get the flag that determines whether gating method is applied on collapsed data 
 #' 
@@ -73,12 +79,12 @@ setMethod("parameters", signature = c("gtMethod"), definition = function(object)
 #'   
 #' @return \code{logical} 
 #' @param object \code{gtMethod} 
-#' @export 
 #' @aliases isCollapse,gtMethod-method
-#' @rdname names
 setMethod("isCollapse", signature = c("gtMethod"), definition = function(object) {
       object@collapse
     })
+
+setGeneric("groupBy",function(object,...)standardGeneric("groupBy"))
 #' get the grouping variable for the gating method
 #' 
 #' When specified, the flow data is grouped by the grouping variable (column names in pData).
@@ -88,9 +94,7 @@ setMethod("isCollapse", signature = c("gtMethod"), definition = function(object)
 #' 
 #' @param object \code{gtMethod}
 #' 
-#' @export 
 #' @aliases groupBy,gtMethod-method
-#' @rdname names
 setMethod("groupBy", signature = c("gtMethod"), definition = function(object) {
       object@groupBy
     })

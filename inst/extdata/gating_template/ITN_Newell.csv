@@ -1,20 +1,20 @@
-"alias"	"pop"	"parent"	"dims"	"gating_method"	"gating_args"	"collapseDataForGating"	"groupBy"	"preprocessing_method"	"preprocessing_args"
-"s1"	"singlet1"	"root"	"FSC-A,FSC-H"	"singletGate"	"prediction_level = 0.99"				
-"s2"	"singlet2"	"s1"	"SSC-A,SSC-H"	"singletGate"	"prediction_level = 0.99"				
-"live"	"live-"	"s2"	"<Violet B 525/50-A>"	"flowClust"	"neg=1,pos=1"			"prior_flowClust"	"neg=1,pos=1"
-"lymph"	"lymph"	"live"	"FSC-A,SSC-A"	"flowClust"	"K=3,quantile=0.8,target=c(1e5,1.2e5)"			"prior_flowClust"	"K=3"
-"cd3"	"cd3-"	"lymph"	"cd3"	"mindensity"					
-"Bcell"	"cd19+"	"cd3"	"cd19"	"mindensity"	"min=100"				
-"IgDgate"	"IgD-"	"Bcell"	"IgD"	"mindensity"	"min=0"			"warpSet"	"stains=c('<Violet A 610/20-A>','<Blue F 525/50-A>'),peakNr=2"
-"cd27gate"	"cd27+"	"Bcell"	"cd27"	"cytokine"	"num_peaks=2,ref_peak=1"	"TRUE"	3		
-"SM"	"IgD-cd27+"	"Bcell"	"IgD,cd27"	"refGate"	"cd27gate:IgDgate"				
-"UM"	"IgD+cd27+"	"Bcell"	"IgD,cd27"	"refGate"	"cd27gate:IgDgate"				
-"N+T"	"IgD+cd27-"	"Bcell"	"IgD,cd27"	"refGate"	"cd27gate:IgDgate"				
-"DN"	"IgD-cd27-"	"Bcell"	"IgD,cd27"	"refGate"	"cd27gate:IgDgate"				
-"MTG_gate"	"MTG_gate"	"Bcell"	"MTG"	"cytokine"	"num_peaks=2,ref_peak=1"	"TRUE"	3		
-"MTG+"	"MTG+"	"N+T"	"MTG"	"refGate"	"MTG_gate"				
-"MTG-"	"MTG-"	"N+T"	"MTG"	"refGate"	"MTG_gate"				
-"T1T2"	"Tgate+"	"MTG+"	"cd38,cd24"	"flowClust"	"K=5,target=c(2000,2000),transitional=TRUE,translation=0.75"	"TRUE"	3	"prior_flowClust"	"K=5"
-"T3"	"T3"	"MTG+"		"boolGate"	"!T1T2"				
-"naiveGate"	"naiveGate"	"MTG-"	"cd38,cd24"	"refGate"	"T1T2"				
-"naive"	"naive"	"MTG-"		"boolGate"	"!naiveGate"				
+"alias","pop","parent","dims","gating_method","gating_args","collapseDataForGating","groupBy","preprocessing_method","preprocessing_args"
+"s1","singlet1","root","FSC-A,FSC-H","singletGate","prediction_level = 0.99",,,,
+"s2","singlet2","s1","SSC-A,SSC-H","singletGate","prediction_level = 0.99",,,,
+"live","live-","s2","<Violet B 525/50-A>","flowClust","neg=1,pos=1",,,"prior_flowClust","neg=1,pos=1"
+"lymph","lymph","live","FSC-A,SSC-A","flowClust","K=3,quantile=0.8,target=c(1e5,1.2e5)",,,"prior_flowClust","K=3"
+"cd3","cd3-","lymph","cd3","mindensity",,,,,
+"Bcell","cd19+","cd3","cd19","mindensity","min=100",,,,
+"IgDgate","IgD-","Bcell","IgD","mindensity","min=0",,,"warpSet","stains=c('<Violet A 610/20-A>','<Blue F 525/50-A>'),peakNr=2"
+"cd27gate","cd27+","Bcell","cd27","cytokine","num_peaks=2,ref_peak=1","TRUE",3,,
+"SM","IgD-cd27+","Bcell","IgD,cd27","refGate","cd27gate:IgDgate",,,,
+"UM","IgD+cd27+","Bcell","IgD,cd27","refGate","cd27gate:IgDgate",,,,
+"N+T","IgD+cd27-","Bcell","IgD,cd27","refGate","cd27gate:IgDgate",,,,
+"DN","IgD-cd27-","Bcell","IgD,cd27","refGate","cd27gate:IgDgate",,,,
+"MTG_gate","MTG_gate","Bcell","MTG","cytokine","num_peaks=2,ref_peak=1","TRUE",3,,
+"MTG+","MTG+","N+T","MTG","refGate","MTG_gate",,,,
+"MTG-","MTG-","N+T","MTG","refGate","MTG_gate",,,,
+"T1T2","Tgate+","MTG+","cd38,cd24","flowClust","K=5,target=c(2000,2000),transitional=TRUE,translation=0.75","TRUE",3,"prior_flowClust","K=5"
+"T3","T3","MTG+",,"boolGate","!T1T2",,,,
+"naiveGate","naiveGate","MTG-","cd38,cd24","refGate","T1T2",,,,
+"naive","naive","MTG-",,"boolGate","!naiveGate",,,,
