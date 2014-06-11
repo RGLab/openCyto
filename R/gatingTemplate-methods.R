@@ -1,4 +1,4 @@
-#' get nodes from \link{gatingTemplate} object
+#' get nodes from \link[openCyto:gatingTemplate-class]{gatingTemplate} object
 #' 
 #' @param x \code{gatingTemplate}
 #' @param y \code{character} node index. When \code{missing}, return all the nodes
@@ -7,16 +7,10 @@
 #'   
 #' @examples 
 #' \dontrun{
-#' gt <- gatingTemplate(system.file("extdata/tcell.csv",package = "openCyto"))
+#' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
 #' getNodes(gt)[1:2]
 #' getNodes(gt, only.names = TRUE)
 #' getNodes(gt, "/nonDebris")
-#' getChildren(gt, "/nonDebris")
-#' getParent(gt, "/nonDebris/singlets") 
-#' getGate(gt, "/nonDebris", "/nonDebris/singlets")
-#' ppMethod(gt,  "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
-#' plot(gt) #plot entire tree
-#' plot(gt, "lymph") #only plot the subtree rooted from "lymph"
 #' }
 #' @export 
 #' @aliases getNodes,gatingTemplate-method
@@ -48,20 +42,40 @@ setMethod("getNodes", signature = c("gatingTemplate"),
 })
 
 #' get children nodes
+#'
+#' @param obj \code{gatingTemplate}
+#' @param y \code{character} parent node path  
 #' @export 
 #' @aliases getChildren,gatingTemplate,character-method
-#' @rdname getNodes
+#' @examples 
+#' \dontrun{
+#' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
+#' 
+#' getNodes(gt, "/nonDebris")
+#' getChildren(gt, "/nonDebris") 
+#' }
 setMethod("getChildren", signature = c("gatingTemplate", "character"),
           definition = function(obj, y) {
   edges(obj, y)[[1]]
 })
 
 #' get parent nodes
+#' 
+#' @param obj \code{gatingTemplate}
+#' @param y \code{character} child node path
+#' @param isRef \code{logical} whether show the reference node besides the parent node
+#' 
 #' @export 
 #' @importFrom plyr laply
 #' @importFrom graph inEdges
 #' @aliases getParent,gatingTemplate,character-method
-#' @rdname getNodes
+#' @examples 
+#' \dontrun{
+#' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
+#' 
+#' getNodes(gt, "/nonDebris")
+#' getParent(gt, "/nonDebris/singlets") 
+#' }
 setMethod("getParent", signature = c("gatingTemplate", "character"),
           definition = function(obj, y, isRef = FALSE) {
 #            browser()
@@ -78,29 +92,49 @@ setMethod("getParent", signature = c("gatingTemplate", "character"),
 })
 
 #' get gating method from the node
-#' @export 
+#' 
+#' @param obj \code{gatingTemplate}
+#' @param y \code{character} parent node path
+#' @param z \code{character} child node path
 #' @aliases getGate,gatingTemplate,character-method
-#' @rdname getNodes
+#' @examples 
+#' \dontrun{
+#' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
+#' getNodes(gt, only.names = TRUE)
+#' getNodes(gt, "/nonDebris")
+#' getChildren(gt, "/nonDebris")
+#' getGate(gt, "/nonDebris", "/nonDebris/singlets")
+#' }
+#' @export 
 setMethod("getGate", signature = c("gatingTemplate", "character"),
           definition = function(obj, y, z) {
   edgeData(obj, from = y, to = z, attr = "gtMethod")[[1]]
 })
 
+setGeneric("ppMethod", function(obj, y, ...) standardGeneric("ppMethod"))
 #' get preprocessing method from the node
-#' @export 
+#' 
+#' get preprocessing method from the node
+#' @param obj \code{gatingTemplate}
+#' @param y \code{character} parent node path
+#' @param z \code{character} child node path
 #' @aliases ppMethod,gatingTemplate,character-method
-#' @rdname getNodes
+#' @examples 
+#' \dontrun{
+#' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
+#' ppMethod(gt,  "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
+#' }
 setMethod("ppMethod", signature = c("gatingTemplate", "character"),
     definition = function(obj, y, z) {
       edgeData(obj, from = y, to = z, attr = "ppMethod")[[1]]
     })
 
-
+#' show method for gatingTemplate
+#' 
+#' show method for gatingTemplate
+#' 
 #' @aliases 
 #' show,gatingTemplate-method
-#' show,boolMethod-method 
-#' show,fcFilter-method
-#' @rdname gatingTemplate-class
 #' @export 
 setMethod("show", signature = c("gatingTemplate"),
           definition = function(object) {
@@ -130,10 +164,13 @@ setMethod("show", signature = c("gatingTemplate"),
 #' plot,gatingTemplate,character-method
 #' plot,gatingTemplate-method
 #' plot,gatingTemplate,ANY-method
-#' plot,fcFilterList,ANY-method
-#' plot,filterList,ANY-method
-#' plot,fcTree,character-method
-#' @rdname getNodes
+#' @examples 
+#' \dontrun{
+#' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
+#' plot(gt) #plot entire tree
+#' plot(gt, "lymph") #only plot the subtree rooted from "lymph"
+#' }
+
 setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
       .plotTree(x,...)
       

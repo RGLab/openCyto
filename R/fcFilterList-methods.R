@@ -94,7 +94,3 @@ setMethod("plot", sig = c("fcFilterList", "ANY"),
   
 })
 
-setMethod("plot", sig = c("filterList", "ANY"),
-          definition = function(x, y, samples = NULL, posteriors = FALSE, ...) {
-  message("Not valid flowClust filter results!")
-}) 

@@ -20,113 +20,7 @@
 # This file contains all wrapper methods for dispatching data and arguments to
 # gating/preprocessing algorithms.
 
-#'  wrapper for prior_flowClust
-#' 
-#'  This wrapper does some parameter preprocessing before calls \link{prior_flowClust}
-#' 
-#' @param fs \code{flowSet} or \code{ncdfFlowSet} object
-#' @param gs \code{GatingSet}
-#' @param gm \code{gtMethod}
-#' @param xChannel,yChannel \code{character} specifying the dimensions of flow data used by \code{prior_flowClust}
-#' @param prior_source \code{character} specifying the ancester node from where the prior is elicited.
-#' @param neg,pos \code{numeric} specifying how many peaks are expected on positive and negative sides from 1d density profile
-#' @inheritParams .prior_flowClust1d 
-#' 
-#' @return a \code{list} of priors, see \link{prior_flowClust} for more details
-.prior_flowClust <- function(fs, gs, gm, xChannel, yChannel
-                              , prior_source = NULL
-                              , K = NULL
-                              , neg, pos
-                              , min, max
-                              , ...){
-    prior_list <- list()
-  
-  # prior estimation is done separately from flowClust routine because
-  # .prior_flowClust1d requires the entire parent flowSet yet flowClust only
-  # takes one flowFrame
-    
-    if (is.null(prior_source)) {
-      prior_data <- fs
-    } else {
-      prior_data <- getData(gs, prior_source)
-    }
-#    browser()
-    
-    if (names(gm) == "flowClust.1d") {
-      # If any of 'K, 'neg' or 'pos' are given, we extract them from the
-      # 'args' and coerce them as integers. Otherwise, they are defaulted to
-      # NULL.
-      
-      neg_cluster <- pos_cluster <- NULL
-      
-      if(!is.null(K)) {
-        K <- as.integer(K)
-      }
-      if(!missing(neg)) {
-        neg_cluster <- as.integer(neg)
-      }
-      if(!missing(pos)) {
-        pos_cluster <- as.integer(pos)
-      }
-      
-      # Examines the various cases of pos, neg and K.
-      # In the case that K is not given, we automatically select it.
-      # Exception: If both 'pos' and 'neg' are given, we set: K <- pos + neg
-      if (is.null(K)) {
-        if (!is.null(neg_cluster) && !is.null(pos_cluster)) {
-          K <- neg_cluster + pos_cluster
-        }
-      } else {
-        # If pos and neg are given, throw a warning and set: K <- pos + neg
-        # In the case that one of pos and neg are given and either exceeds K,
-        # we throw an error.         
-        if (!is.null(neg_cluster) && !is.null(pos_cluster)) {
-          warning("Values given for 'K', 'neg', and 'pos'. Setting K = neg + pos")
-          K <- neg_cluster + pos_cluster
-        } else if (!is.null(pos_cluster) && K < pos_cluster) {
-          stop("The number of positive clusters exceeds 'K'.")
-        } else if (!is.null(neg_cluster) && K < neg_cluster) {
-          stop("The number of negative clusters exceeds 'K'.")
-        }
-      }
-      
-      # If 'min' and/or 'max' are given, we pass this value along to the
-      # prior-elicitation method as well as flowClust. Otherwise, these values
-      # are set to NULL.
-      min_values <- -Inf
-      max_values <- Inf
-      if (!missing(min)) {
-        min_values <- as.numeric(min)
-      }
-      if (!missing(max)) {
-        max_values <- as.numeric(max)
-      }                          
-      
-      if (!is.na(xChannel)) {
-        prior_list[[xChannel]] <- prior_flowClust(flow_set = prior_data,
-            channels = xChannel, K = K,
-            min = min_values, max = max_values, ...)
-      }
-      
-      prior_list[[yChannel]] <- prior_flowClust(flow_set = prior_data,
-          channels = yChannel, K = K,
-          min = min_values, max = max_values, ...)
-      
-    } else {
-      # get the value of neg and pos
-      if (!is.null(K)) {
-        K <- as.integer(K)
-      } else {
-        message("'K' argument is missing in prior_flowClust! Using default setting: K = 2.\nYou should set this to the same value as 'K' in the call to flowClust.")
-        K <- 2
-      }
-      
-      prior_list <- prior_flowClust(flow_set = prior_data, channels = c(xChannel, 
-              yChannel), K = K,  ...)
-    }
-    
-    prior_list
-}
+
 #' An adapter to connect the gating wrapper function with the \link{gating} method
 #' 
 #' It coerce the input (\code{flowSet}) to a single \code{flowFrame} and apply the gating wrapper function
@@ -146,6 +40,7 @@
     fr <- as(fs,"flowFrame")
     openCyto.options <- getOption("openCyto")
     minEvents <- openCyto.options[["gating"]][["minEvents"]]
+    
     if(is.null(minEvents))
       minEvents <- 0
     if(nrow(fr) <= minEvents){
@@ -167,6 +62,12 @@
 
       names(gate_coordinates) <- channels
       filterRes <- rectangleGate(gate_coordinates)
+    
+      #this is flowClust-specific operation, which
+      # be abstracted out of this framework
+      
+      if(grepl("flowClust\\.[12]d", gFunc))
+        filterRes <- fcRectangleGate(filterRes, priors = list(), posts = list())
       
       nPop <- length(popAlias)
       filterResType <- ifelse(nPop == 1, "filter", "filters")
@@ -364,9 +265,9 @@
 #' 
 #' @return a \code{filter} object
 .cytokine <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", ...) {
-  
+  .Deprecated("tailgate")
   #TODO:standardize data with pp_res
-  cytokine(fr, channel = yChannel, ...)
+  .tailgate(fr, pp_res = pp_res, yChannel = yChannel, ...)
 }
 
 #' @param ... arguments to be passed to \link{tailgate}
@@ -374,9 +275,48 @@
 #' 
 #' @return a \code{filter} object
 .tailgate <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", ...) {
+#  if(keyword(fr)[["$FIL"]] == "DC,2f,MONO,2f,NK 22013_12828_003.fcs")
+#    browser()  
   
-  #TODO:standardize data with pp_res
-  tailgate(fr, channel = yChannel, ...)
+  
+  #pps_res may contains the standardized and collapsed data and transformation
+  if(isTRUE(attr(pp_res, "openCyto_preprocessing") == "standardize")){
+      transformedData <- pp_res[["flow_frame"]]
+     
+      #if no flow data passed in, need to tranform original fr first
+     if(is.null(transformedData)){
+      data <- exprs(fr)[, yChannel]
+      exprs(fr)[, yChannel] <- with(pp_res, (data - center)/scale) 
+      transformedData <- fr
+     }
+     
+    g <- tailgate(transformedData, channel = yChannel, ...)
+    gate_coordinates <- c(g@min, g@max)
+
+    # Backtransforms the gate 
+    gate_coordinates <- with(pp_res, center + scale * gate_coordinates)
+    gate_coordinates <- list(gate_coordinates)
+    names(gate_coordinates) <- parameters(g)
+    rectangleGate(gate_coordinates, filterId = g@filterId)
+          
+  }else
+    tailgate(fr, channel = yChannel, ...)
+
+  
+  # If a sample has no more than 1 observation when the 'cytokine' gate is
+  # attempted, the 'center' and/or 'scale' will result be NA, in which case we
+  # replace the resulting NA cutpoints with the average of the remaining
+  # cutpoints. If all of the cutpoints are NA, we set the mean to 0, so that
+  # all of the cutpoints are 0.
+#  cutpoints_unlisted <- unlist(cutpoints)
+#  if (sum(!is.na(cutpoints_unlisted)) > 0) {
+#    mean_cutpoints <- mean(cutpoints_unlisted, na.rm = TRUE)
+#  } else {
+#    mean_cutpoints <- 0
+#  }
+#  cutpoints <- as.list(replace(cutpoints_unlisted, is.na(cutpoints_unlisted),
+#          mean_cutpoints))
+  
 }
 
 #' wrapper for mindensity
@@ -462,6 +402,9 @@
   quantileGate(fr = fr, stain = yChannel, ...)
 }
 
+.quadGate.tmix <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
+  quadGate.tmix(fr, c(xChannel, yChannel), ...)
+}
 #' deprecated
 #' @importFrom flowStats quadrantGate
 .quadrantGate <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
@@ -497,6 +440,10 @@
   
   gateList
 }
+
+############################
+# preprocessing wrappers
+#########################
 #'  wrapper for \link[flowStats:warpSet]{warpSet}
 #' 
 #' @param stains \code{character} passed to \link[flowStats:warpSet]{warpSet} 
@@ -504,7 +451,7 @@
 #' 
 #' @return \code{NULL}
 #' @importFrom flowStats warpSet
-.warpSet <- function(fs, gs, gm, xChannel, yChannel, stains, ...){
+.warpSet <- function(fs, gs, gm, xChannel, yChannel, groupBy, isCollapse, stains, ...){
   fs <- fs[, stains]
   if(class(fs) == "ncdfFlowSet")
     flowStats:::warpSetNCDF(fs, stains = stains, ...)
@@ -512,3 +459,155 @@
     warpSet(fs, stains = stains, ...)
   return (NULL)
  }
+#'  wrapper for prior_flowClust
+#' 
+#'  This wrapper does some parameter preprocessing before calls \link{prior_flowClust}
+#' 
+#' @param fs \code{flowSet} or \code{ncdfFlowSet} object
+#' @param gs \code{GatingSet}
+#' @param gm \code{gtMethod}
+#' @param xChannel,yChannel \code{character} specifying the dimensions of flow data used by \code{prior_flowClust}
+#' @param prior_source \code{character} specifying the ancester node from where the prior is elicited.
+#' @param neg,pos \code{numeric} specifying how many peaks are expected on positive and negative sides from 1d density profile
+#' @inheritParams .prior_flowClust1d 
+#' 
+#' @return a \code{list} of priors, see \link{prior_flowClust} for more details
+.prior_flowClust <- function(fs, gs, gm, xChannel, yChannel, groupBy, isCollapse
+     , prior_source = NULL
+     , K = NULL
+     , neg, pos
+     , min, max
+     , ...){
+   prior_list <- list()
+   
+   # prior estimation is done separately from flowClust routine because
+   # .prior_flowClust1d requires the entire parent flowSet yet flowClust only
+   # takes one flowFrame
+   
+   if (is.null(prior_source)) {
+     prior_data <- fs
+   } else {
+     prior_data <- getData(gs, prior_source)
+   }
+#    browser()
+   
+   if (names(gm) == "flowClust.1d") {
+     # If any of 'K, 'neg' or 'pos' are given, we extract them from the
+     # 'args' and coerce them as integers. Otherwise, they are defaulted to
+     # NULL.
+     
+     neg_cluster <- pos_cluster <- NULL
+     
+     if(!is.null(K)) {
+       K <- as.integer(K)
+     }
+     if(!missing(neg)) {
+       neg_cluster <- as.integer(neg)
+     }
+     if(!missing(pos)) {
+       pos_cluster <- as.integer(pos)
+     }
+     
+     # Examines the various cases of pos, neg and K.
+     # In the case that K is not given, we automatically select it.
+     # Exception: If both 'pos' and 'neg' are given, we set: K <- pos + neg
+     if (is.null(K)) {
+       if (!is.null(neg_cluster) && !is.null(pos_cluster)) {
+         K <- neg_cluster + pos_cluster
+       }
+     } else {
+       # If pos and neg are given, throw a warning and set: K <- pos + neg
+       # In the case that one of pos and neg are given and either exceeds K,
+       # we throw an error.         
+       if (!is.null(neg_cluster) && !is.null(pos_cluster)) {
+         warning("Values given for 'K', 'neg', and 'pos'. Setting K = neg + pos")
+         K <- neg_cluster + pos_cluster
+       } else if (!is.null(pos_cluster) && K < pos_cluster) {
+         stop("The number of positive clusters exceeds 'K'.")
+       } else if (!is.null(neg_cluster) && K < neg_cluster) {
+         stop("The number of negative clusters exceeds 'K'.")
+       }
+     }
+     
+     # If 'min' and/or 'max' are given, we pass this value along to the
+     # prior-elicitation method as well as flowClust. Otherwise, these values
+     # are set to NULL.
+     min_values <- -Inf
+     max_values <- Inf
+     if (!missing(min)) {
+       min_values <- as.numeric(min)
+     }
+     if (!missing(max)) {
+       max_values <- as.numeric(max)
+     }                          
+     
+     if (!is.na(xChannel)) {
+       prior_list[[xChannel]] <- prior_flowClust(flow_set = prior_data,
+           channels = xChannel, K = K,
+           min = min_values, max = max_values, ...)
+     }
+     
+     prior_list[[yChannel]] <- prior_flowClust(flow_set = prior_data,
+         channels = yChannel, K = K,
+         min = min_values, max = max_values, ...)
+     
+   } else {
+     # get the value of neg and pos
+     if (!is.null(K)) {
+       K <- as.integer(K)
+     } else {
+       message("'K' argument is missing in prior_flowClust! Using default setting: K = 2.\nYou should set this to the same value as 'K' in the call to flowClust.")
+       K <- 2
+     }
+     
+     prior_list <- prior_flowClust(flow_set = prior_data, channels = c(xChannel, 
+             yChannel), K = K, ...)
+   }
+   if(isCollapse)
+     prior_list
+   else# when collapse is FALSE, gating is done at sample level, thus we need to replicate priors across samples so that it matches with the gating input
+     sapply(sampleNames(prior_data), function(i)prior_list, simplify = FALSE)
+   
+}
+
+ #' preprocessing wrapper for .standardize_flowFrame
+#' 
+#' @param fs a \code{flowSet} object
+#' @param xChannel not used
+#' @param yChannel the channel to standardize
+#' @param groupBy \code{character} tells whether 'groupBy' column in csv template has been set
+#' @param isCollapse \code{logical} indicates whether the gating is done on collapsed data. If so, the prior does not need to be replicated across samples.
+ .standardize_flowset <- function(fs, gs, gm, xChannel = NA, yChannel, groupBy, isCollapse, ...) {
+   
+   if(isCollapse)
+     stop("'collapse = TRUE' is not applicable to 'standardize_flowset'!")
+   
+   isGroup <- nchar(groupBy) > 0
+   
+   if(isGroup){
+#     if(pData(fs)$Center == "UCLA" && pData(fs)$Sample == "12828")
+#       browser()
+     #standardize multiple flowFrames within the sub-group
+     transform_out <- fsApply(fs, .standardize_flowFrame, channel = yChannel, data = TRUE)
+     
+     # Creates a flowSet object from the transformed flowFrame objects
+     fs <- flowSet(lapply(transform_out, function(x) x$flow_frame))
+     collapsedFr <- as(fs, "flowFrame")
+     
+     # update each flow_frame with collapsed flowFrame
+     transform_out <- lapply(transform_out, function(x) {
+           x$flow_frame <- collapsedFr
+           x
+         })
+     
+   }else{
+     #standarize within the single flowFrame
+     # fs is now the entire data set
+     # and we only pass the transformation back to gating function without the flow data (to save memory)
+     transform_out <- fsApply(fs, .standardize_flowFrame, channel = yChannel, data = FALSE)
+   }
+   
+   
+   transform_out
+ }
+ 
