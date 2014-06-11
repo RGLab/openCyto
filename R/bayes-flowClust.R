@@ -23,7 +23,7 @@
 #' @param prior_method the method to elicit the prior parameters
 #' @param K the number of mixture components to identify
 #' @param nu0 prior degrees of freedom of the Student's t mixture components.
-#' @param w0 the number of prior pseudocounts of the Student's t mixture components.
+#' @param w0 the number of prior pseudocounts of the Student's t mixture components. (only the first element is used and the rest is ignored at the moment)
 #' @param shrink the amount of eigenvalue shrinkage to add in the case the prior
 #' covariance matrices are singular. See details.
 #' @param ... Additional arguments passed to the prior elicitation method selected
@@ -32,15 +32,16 @@
 #' @importFrom plyr aaply
 prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...) {
-
+  #pass only the first element of w0 since it will be replicated ..
+  #that said, the second element never gets used at this moment
   if (length(channels) == 1) {
     prior_list <- .prior_flowClust1d(flow_set = flow_set, channel = channels,
-                                    K = K, nu0 = nu0, w0 = w0, ...)
+                                    K = K, nu0 = nu0, w0 = w0[1], ...)
   } else {
     prior_method <- match.arg(prior_method)
     if (prior_method == "kmeans") {
       prior_list <- .prior_kmeans(flow_set = flow_set, channels = channels, K = K,
-                                 nu0 = nu0, w0 = w0[1], ...) #pass only the first element of w0 since .prior_kmeans will replicate it.. 
+                                 nu0 = nu0, w0 = w0[1], ...)  
     }
     # In the rare case a covariance matrix is singular, we shrink the eigenvalues
     # of the matrix. The amount of shrinkage is controlled in 'shrink'.
@@ -69,8 +70,9 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
     })
     prior_list$Omega0 <- unname(prior_list$Omega0)
   }
-
+ 
   prior_list
+   
 }
 
 #' Elicits data-driven priors from a flowSet object for a specified channel
@@ -155,7 +157,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 .prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
                               clust_method = c("kmeans", "hclust"),
                               hclust_method = "complete", artificial = NULL,
-                              nu0 = 4, w0 = 10, adjust = 2, min = NULL,
+                              nu0 = 4, w0 = 10, adjust = 2, min = -200,
                               max = NULL, vague = TRUE) {
 
   channel <- as.character(channel)
@@ -170,8 +172,8 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
   # For each sample in 'flow_set', we identify the peaks after smoothing.
   peaks <- fsApply(flow_set, function(flow_frame, adjust) {
     x <- exprs(flow_frame)[, channel]
-    peaks_found <- .find_peaks(x, adjust = adjust)
-
+    peaks_found <- .find_peaks(x, adjust = adjust)[, "x"]
+    
     # If K is specified and is smaller than the number of peaks found,
     # we keep only the K largest peaks from the sample.
     if (!is.null(K) && length(peaks_found) > K) {
@@ -518,7 +520,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' @param adjust the bandwidth to use in the kernel density estimation. See
 #' \code{\link{density}} for more information.
 #' @param ... additional arguments passed to the \code{\link{density}} function
-#' @return the values where the peaks are attained. The peaks are sorted in
+#' @return a \code{data.frame} that contains the peaks(and their density heights) attained. The peaks are sorted in
 #' descending order based on the density heights.
 #' @examples
 #' library(flowClust)
@@ -527,8 +529,8 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' y <- SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
 #' plot(density(y))
 #' peaks <- .find_peaks(y)
-#' abline(v = peaks, col = "red")
-.find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, ...) {
+#' abline(v = peaks[, "x"], col = "red")
+.find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, plot = FALSE, ...) {
   x <- as.vector(x)
 
   if (length(x) < 2) {
@@ -557,7 +559,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 
   # Next, we sort the peaks in descending order based on the density heights.
   which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
-
+  
   # Returns the local maxima. If there are none, we return 'NA' instead.
   if (length(which_maxima) > 0) {
     peaks <- dens$x[which_maxima]
@@ -568,7 +570,13 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
   } else {
     peaks <- NA
   }
-
+  
+  peaks <- data.frame(x = peaks, y = dens$y[which_maxima][seq_len(num_peaks)])
+  if(plot){
+    plot(dens, main = paste("adjust =" ,  adjust))
+    points(peaks, ,col = "red")  
+  }
+  
   peaks  
 }
 

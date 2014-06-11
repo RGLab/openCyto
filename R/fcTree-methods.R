@@ -14,8 +14,8 @@ setMethod("getNodes", signature = c("fcTree"), definition = function(x, y) {
 #'
 #' @param obj \code{fcTree}
 #' @param y \code{character} node name
+#' @param ... other arguments (not used)
 #' @aliases getGate,fcTree,character-method
-#' @rdname getNodes
 setMethod("getGate", sig = c("fcTree", "character"),
     definition = function(obj, y,  ...) {
       # get filterList

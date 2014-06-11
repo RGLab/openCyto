@@ -436,3 +436,100 @@
   }
   df
 }
+
+#' Centers a vector of data using the mode of the kernel density estimate
+#'
+#' @param x numeric vector
+#' @param ... additional arguments passed to \code{\link{density}}
+#' @return numeric vector containing the centered data
+.center_mode <- function(x, ...) {
+  x <- as.vector(x)
+  density_x <- density(x, ...)
+  mode <- density_x$x[which.max(density_x$y)]
+  
+  x <- as.vector(scale(x, center = mode, scale = FALSE))
+  attributes(x) <- list(`mode` = mode)
+  x
+}
+
+#' Scales a vector of data using the Huber robust estimator for mean and
+#' standard deviation
+#'
+#' This function is an analog to \code{\link{scale}} but using Huber robust
+#' estimators instead of the usual sample mean and standard deviation.
+#'
+#' @param x numeric vector
+#' @param center logical value. Should \code{x} be centered?
+#' @param scale logical value. Should \code{x} be scaled?
+#' @return numeric vector containing the scaled data
+#' @importFrom MASS huber
+.scale_huber <- function(x, center = TRUE, scale = TRUE) {
+  
+  
+  x <- as.vector(x)
+  huber_x <- huber(x)
+  
+  # If 'center' is set to TRUE, we center 'x' by the Huber robust location
+  # estimator.
+  center_x <- FALSE
+  if (center) {
+    center_x <- huber_x$mu
+  }
+  
+  # If 'scale' is set to TRUE, we scale 'x' by the Huber robust standard
+  # deviation estimator.
+  scale_x <- FALSE
+  if (scale) {
+    scale_x <- huber_x$s
+  }
+  
+  x <- as.vector(base::scale(x, center = center_x, scale = scale_x))
+  
+  if (!center) {
+    center_x <- NULL
+  }
+  if (!scale) {
+    scale_x <- NULL
+  }
+  attributes(x) <- list(center = center_x, scale = scale_x)
+  x
+}
+
+#' Standardizes a channel within a \code{flowSet} object using the mode of the
+#' kernel density estimate and the Huber estimator of the standard deviation
+#' 
+#' @param fs a \code{flowSet} object
+#' @param channel the channel to standardize
+#' @param data \code{logical} indicating whether to return the transformed flow data.
+#' 
+#' @return the \code{transformation} list, center, scale and optionally the transformed \code{flowFrame}
+.standardize_flowFrame <- function(fr, channel, data = TRUE) {
+  
+  x <- exprs(fr)[, channel]
+  
+  if (length(x) >= 2) {
+    # First, centers the values by the mode of the kernel density estimate.
+    x <- .center_mode(x)
+    mode <- attr(x, "mode")
+    
+    # Scales the marker cells by the Huber estimator of the standard deviation.
+    x <- .scale_huber(x, center = FALSE)
+    sd_huber <- attr(x, "scale")
+    
+    exprs(fr)[, channel] <- x
+  } else {
+    mode <- NA
+    sd_huber <- NA
+  }
+  res <- list(center = mode, scale = sd_huber)
+  
+  if(data)
+    res$flow_frame <- fr
+  
+  attr(res, "openCyto_preprocessing") <- "standardize"  
+  
+  
+  res
+  
+}
+

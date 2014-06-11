@@ -72,7 +72,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          cutpoint_max = NULL, min = NULL, max = NULL,
                          quantile = 0.99, quantile_interval = c(0, 10),
                          plot = FALSE, ...) {
-
+  options("cores" = 1L) #suppress parallelism for 1d gating   
   cutpoint_method <- match.arg(cutpoint_method)
 
   # TODO: Determine if Bayesian flowClust works when 'K' is specified and has a
@@ -130,7 +130,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                             usePrior = usePrior, prior = prior,
                             criterion = criterion, ...)
 
-  tmix_results <- try(filter(fr, tmix_filter), silent = TRUE)
+  tmix_results <- suppressMessages(try(filter(fr, tmix_filter), silent = TRUE))
   
   # In the case an error occurs when applying 'flowClust', the gate is
   # constructed from the density of the prior distributions. This error
@@ -367,9 +367,8 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          plot = FALSE, target = NULL, transitional = FALSE,
                          quantile = 0.9, translation = 0.25, transitional_angle = NULL,
                          min = NULL, max = NULL, ...) {
-#  if(is.null(prior))
-#    prior <- list(NA)
-                       
+  options("cores" = 1L) ##suppress parallelism since it may lock the process due to the lack of resource when parallel gating was already using up the cores. 
+  
   if (!is.null(target)) {
     target <- as.numeric(target)
     if (length(target) != 2) {
@@ -657,6 +656,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' maximum value of the range otherwise.
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
+#' @param peaks \code{numeric} vector. If not given , then perform peak detection first by .find_peaks
 #' @param ... Additional arguments for peak detection.
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 #' @export
@@ -666,7 +666,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' }
 mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
                        pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
-                       ...) {
+                       peaks = NULL, ...) {
   
   if (missing(channel) || length(channel) != 1) {
     stop("A single channel must be specified.")
@@ -680,15 +680,18 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   }
   # Grabs the data matrix that is being gated.
   x <- exprs(flow_frame)[, channel]
-
+  
+  if(is.null(peaks))
+    peaks <- .find_peaks(x, ...)[, "x"]
+  
   if (is.null(gate_range)) {
     gate_range <- c(min(x), max(x))
   } else {
     gate_range <- sort(gate_range)
   }
 
-  peaks <- .find_peaks(x, ...)
-
+  
+  
   # In the special case that there is only one peak, we are conservative and set
   # the cutpoint as min(x) if 'positive' is TRUE, and max(x) otherwise.
   if (length(peaks) == 1) {
@@ -737,7 +740,6 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 }
 
 #' Gates the tail of a density using the derivative of a kernel density estimate
-#' after standardizing and collapsing flowFrames
 #'
 #' @param fr a \code{flowFrame} object
 #' @param channel the channel from which the cytokine gate is constructed
@@ -746,6 +748,8 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 #' any peaks that are artifacts of smoothing
 #' @param ref_peak After \code{num_peaks} are found, this argument provides the
 #' index of the reference population from which a gate will be obtained.
+#' @param strict \code{logical} when the actual number of peaks detected is less than \code{ref_peak}. 
+#'                               an error is reported by default. But if \code{strict} is set to FALSE, then the reference peak will be reset to the peak of the far right.      
 #' @param tol the tolerance value used to construct the cytokine gate from the
 #' derivative of the kernel density estimate
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
@@ -761,109 +765,37 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
 #'  gate <- tailgate(fr, Channel = "APC-A") # fr is a flowFrame
 #' }
 tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
-    ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right", ...) {
+    ref_peak = 1, strict = TRUE, tol = 1e-2, positive = TRUE, side = "right",  ...) {
   
-  # Standardizes the flowFrame's for a given channel using the mode of the kernel
-  # density estimate and the Huber estimator of the standard deviation
-  standardize_out <- .standardize_flowset(as(fr,"flowSet"), channel = channel)
   
-  # Coerces the standardized flowSet into a single flowFrame from which a single
   # cutpoint is calculated using the first derivative of the kernel density
   # estimate. 
-  cutpoint <- .cytokine_cutpoint(flow_frame = as(standardize_out$flow_set, "flowFrame"),
-      channel = channel, num_peaks = num_peaks,
-      ref_peak = ref_peak, tol = tol, side = side, ...)
+  cutpoint <- .cytokine_cutpoint(flow_frame = fr, channel = channel, num_peaks = num_peaks,
+      ref_peak = ref_peak, tol = tol, side = side, strict = strict, ...)
   
-  # Backtransforms the cutpoint with respect to each sample to place
-  # them on the scales of the original samples
-  cutpoints <- lapply(standardize_out$transformation, function(transf_i) {
-        with(transf_i, center + scale * cutpoint)
-      })
-  
-  # If a sample has no more than 1 observation when the 'cytokine' gate is
-  # attempted, the 'center' and/or 'scale' will result be NA, in which case we
-  # replace the resulting NA cutpoints with the average of the remaining
-  # cutpoints. If all of the cutpoints are NA, we set the mean to 0, so that
-  # all of the cutpoints are 0.
-  cutpoints_unlisted <- unlist(cutpoints)
-  if (sum(!is.na(cutpoints_unlisted)) > 0) {
-    mean_cutpoints <- mean(cutpoints_unlisted, na.rm = TRUE)
+  # After the 1D cutpoint is set, we set the gate coordinates used in the
+  # rectangleGate that is returned. If the `positive` argument is set to TRUE,
+  # then the gate consists of the entire real line to the right of the cut point.
+  # Otherwise, the gate is the entire real line to the left of the cut point.
+  if (positive) {
+    gate_coordinates <- list(c(cutpoint, Inf))
   } else {
-    mean_cutpoints <- 0
+    gate_coordinates <- list(c(-Inf, cutpoint))
   }
-  cutpoints <- as.list(replace(cutpoints_unlisted, is.na(cutpoints_unlisted),
-          mean_cutpoints))
-  
-  # Creates a list of filters for each set of cutpoints.
-  # Note that the gate consists of the entire real line to the right of the
-  # cutpoint.
-  cytokine_gates <- lapply(cutpoints, function(cutpoint) {
-        # After the 1D cutpoint is set, we set the gate coordinates used in the
-        # rectangleGate that is returned. If the `positive` argument is set to TRUE,
-        # then the gate consists of the entire real line to the right of the cut point.
-        # Otherwise, the gate is the entire real line to the left of the cut point.
-        if (positive) {
-          gate_coordinates <- list(c(cutpoint, Inf))
-        } else {
-          gate_coordinates <- list(c(-Inf, cutpoint))
-        }
-        names(gate_coordinates) <- channel
-        rectangleGate(gate_coordinates, filterId = filter_id)
-      })
-  
-  cytokine_gates[[1]]
+  names(gate_coordinates) <- channel
+  rectangleGate(gate_coordinates, filterId = filter_id)
 }
 
 #' @rdname tailgate
 #' @export
 cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
   ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right", ...) {
+  .Deprecated("tailgate")
   return (tailgate(fr=fr, channel=channel, filter_id=filter_id,
     num_peaks=num_peaks, ref_peak=ref_peak, tol=tol, positive=positive,
     side=side, ...))
 }
 
-#' Standardizes a channel within a \code{flowSet} object using the mode of the
-#' kernel density estimate and the Huber estimator of the standard deviation
-#' 
-#' @param flow_set a \code{flowSet} object
-#' @param channel the channel to standardize
-#' @return list containing the transformed \code{flowSet} object along with the
-#' \code{transformation} list, where each element contains the transformation
-#' parameters for each \code{flowFrame}
-.standardize_flowset <- function(flow_set, channel = "FSC-A") {
-  transform_out <- fsApply(flow_set, function(flow_frame) {
-        x <- exprs(flow_frame)[, channel]
-        
-        if (length(x) >= 2) {
-          # First, centers the values by the mode of the kernel density estimate.
-          x <- .center_mode(x)
-          mode <- attr(x, "mode")
-          
-          # Scales the marker cells by the Huber estimator of the standard deviation.
-          x <- .scale_huber(x, center = FALSE)
-          sd_huber <- attr(x, "scale")
-          
-          exprs(flow_frame)[, channel] <- x
-        } else {
-          mode <- NA
-          sd_huber <- NA
-        }
-        
-        list(flow_frame = flow_frame, center = mode, scale = sd_huber)
-      })
-  
-  # Creates a flowSet object from the transformed flowFrame objects
-  flow_set <- flowSet(lapply(transform_out, function(x) x$flow_frame))
-  
-  # Extracts the transformation parameters
-  transformation <- lapply(transform_out, function(x) {
-        x$flow_frame <- NULL
-        x
-      })
-  
-  list(flow_set = flow_set, transformation = transformation)
-}
 
 #' Constructs a cutpoint for a flowFrame by using a derivative of the kernel
 #' density estimate
@@ -891,6 +823,8 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' @param ref_peak After \code{num_peaks} are found, this argument provides the
 #' index of the reference population from which a gate will be obtained. By
 #' default, the peak farthest to the left is used.
+#' @param strict \code{logical} when the actual number of peaks detected is less than \code{ref_peak}. 
+#'                               an error is reported by default. But if \code{strict} is set to FALSE, then the reference peak will be reset to the peak of the far right.      
 #' @param method the method used to select the cutpoint. See details.
 #' @param tol the tolerance value
 #' @param adjust the scaling adjustment applied to the bandwidth used in the
@@ -901,15 +835,19 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' @return the cutpoint along the x-axis
 .cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
     method = c("first_deriv", "second_deriv"),
-    tol = 1e-2, adjust = 1, side = "right", ...) {
+    tol = 1e-2, adjust = 1, side = "right", strict = TRUE, ...) {
   
   method <- match.arg(method)
   
   x <- as.vector(exprs(flow_frame)[, channel])
-  peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust))
+  peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust)[, "x"])
+  
+  #update peak count since it can be less than num_peaks
+  num_peaks <- length(peaks)
   
   if (ref_peak > num_peaks) {
-    warning("The reference peak is larger than the number of peaks found.",
+    outFunc <- ifelse(strict, stop, warning)
+    outFunc("The reference peak is larger than the number of peaks found.",
         "Setting the reference peak to 'num_peaks'...",
         call. = FALSE)
     ref_peak <- num_peaks
@@ -950,12 +888,12 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
     deriv_out <- .deriv_density(x = x, adjust = adjust, deriv = 2, ...)
     
     if (side == "right") {
-      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust))
+      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust)[, "x"])
       deriv_peaks <- deriv_peaks[deriv_peaks > peaks[ref_peak]]
       cutpoint <- sort(deriv_peaks)[1]
     } else if (side == "left") {
       deriv_out$y <- -deriv_out$y
-      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust))
+      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust)[, "x"])
       deriv_peaks <- deriv_peaks[deriv_peaks < peaks[ref_peak]]
       cutpoint <- sort(deriv_peaks, decreasing=TRUE)[length(deriv_peaks)]
     } else {
@@ -1000,63 +938,6 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 }
 
 
-#' Centers a vector of data using the mode of the kernel density estimate
-#'
-#' @param x numeric vector
-#' @param ... additional arguments passed to \code{\link{density}}
-#' @return numeric vector containing the centered data
-.center_mode <- function(x, ...) {
-  x <- as.vector(x)
-  density_x <- density(x, ...)
-  mode <- density_x$x[which.max(density_x$y)]
-  
-  x <- as.vector(scale(x, center = mode, scale = FALSE))
-  attributes(x) <- list(`mode` = mode)
-  x
-}
-
-#' Scales a vector of data using the Huber robust estimator for mean and
-#' standard deviation
-#'
-#' This function is an analog to \code{\link{scale}} but using Huber robust
-#' estimators instead of the usual sample mean and standard deviation.
-#'
-#' @param x numeric vector
-#' @param center logical value. Should \code{x} be centered?
-#' @param scale logical value. Should \code{x} be scaled?
-#' @return numeric vector containing the scaled data
-#' @importFrom MASS huber
-.scale_huber <- function(x, center = TRUE, scale = TRUE) {
-  
-  
-  x <- as.vector(x)
-  huber_x <- huber(x)
-  
-  # If 'center' is set to TRUE, we center 'x' by the Huber robust location
-  # estimator.
-  center_x <- FALSE
-  if (center) {
-    center_x <- huber_x$mu
-  }
-  
-  # If 'scale' is set to TRUE, we scale 'x' by the Huber robust standard
-  # deviation estimator.
-  scale_x <- FALSE
-  if (scale) {
-    scale_x <- huber_x$s
-  }
-  
-  x <- as.vector(base::scale(x, center = center_x, scale = scale_x))
-  
-  if (!center) {
-    center_x <- NULL
-  }
-  if (!scale) {
-    scale_x <- NULL
-  }
-  attributes(x) <- list(center = center_x, scale = scale_x)
-  x
-}
 
 #' a wrapper for flowDensity::deGate
 .flowDensity.1d <- function(fr, channel, filterId = "", positive, ...){
@@ -1179,4 +1060,233 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
   colnames(filter) <- channels
   polygonGate(.gate = filter)
   
+}
+
+#' sequential quadrant gating function
+#' 
+#' The order of 1d-gating is determined so that the gates better capture the 
+#' distributions of flow data.
+#' 
+#' @param fr \code{flowFrame}
+#' @param channels \code{character} two channels used for gating
+#' @param gFunc the name of the 1d-gating function to be used for either dimension
+#' @param min a numeric vector that sets the lower bounds for data filtering
+#' @param max a numeric vector that sets the upper bounds for data filtering
+#' @param ... other arguments passed to \code{.find_peak} (e.g. 'num_peaks' and 'adjust'). see \link{tailgate}
+#' @export 
+#' @return a \code{filters} that contains four rectangleGates
+quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
+  if (missing(channels) || length(channels) != 2) {
+    stop("two channels must be specified.")
+  }
+  
+  # Filter out values less than the minimum and above the maximum, if they are
+  # given.
+  if (!(is.null(min) && is.null(max))) {
+    fr <- .truncate_flowframe(fr, channels = channels, min = min,max = max)
+  }
+  
+  res <- sapply(channels, function(channel){
+        
+        x <- exprs(fr)[, channel]
+        
+        peaks <-.find_peaks(x,..., num_peaks = 2)
+        #get peak and scores
+        if(nrow(peaks)<2)
+          score <- 0
+        else
+          score <- abs(diff(peaks[, "x"]))
+        list(peaks = peaks[, "x"], score = score)
+      }, simplify = FALSE)
+  
+  #order channel by scores
+  channels.ordered <- names(sort(sapply(res, `[[`, "score"), decreasing = T))
+  x.first <- all(channels == channels.ordered)
+    
+  #get first cut
+  chnl <- channels.ordered[1]
+  thisFunc <- function(fr, chnl, ...){
+    thisCall <- substitute(f(data, channel
+                          , peaks = p
+                        , ...)
+                    ,list(f=as.symbol(gFunc), data = fr
+                        , channel = chnl
+                      , p = res[[chnl]][["peaks"]]
+                    )
+    )  
+  
+    eval(thisCall)
+  }
+  
+  g1 <- thisFunc(fr, chnl, ...)
+  
+  coord1 <- c(g1@min, g1@max)
+  cut.1 <- coord1[!is.infinite(coord1)]
+#  if(length(cut.1) == 0)
+#    cut.1 <- Inf
+  
+  
+  
+  #get ind
+  fres <- filter(fr, g1)
+  ind <- as(fres, "logical")
+  
+  #gate on the second channel
+  chnl <- channels.ordered[2]
+  
+  #+
+  g2 <- thisFunc(fr[ind, ], chnl, ...)
+  coord2 <- c(g2@min, g2@max)
+  cut.2.pos <- coord2[!is.infinite(coord2)]
+  
+#  if(length(cut.2.pos) == 0)
+#    cut.2.pos<- Inf
+  #-
+  g3 <- thisFunc(fr[!ind, ], chnl, ...)
+  coord3 <- c(g3@min, g3@max)
+  cut.2.neg <- coord3[!is.infinite(coord3)]
+  
+  if(x.first)
+    coords <-list(q1 = list(c(-Inf, cut.1), c(cut.2.neg, Inf))
+                  , q2 = list(c(cut.1, Inf), c(cut.2.pos, Inf))
+                  , q3 = list(c(cut.1, Inf), c(-Inf, cut.2.pos))
+                  , q4 = list(c(-Inf, cut.1), c(-Inf, cut.2.neg))
+                  )
+  else
+    coords <-list(q1 = list(c(-Inf, cut.2.pos), c(cut.1, Inf))
+                  , q2 = list(c(cut.2.pos, Inf), c(cut.1, Inf))
+                  , q3 = list(c(cut.2.neg, Inf), c(-Inf, cut.1))
+                  , q4 = list(c(-Inf, cut.2.neg), c(-Inf, cut.1))
+                )
+    
+  
+  gates <- lapply(coords, function(coord){
+            
+      names(coord) <- as.character(channels)
+      rectangleGate(coord)
+    })
+  
+  filters(gates)
+}
+
+##TODO: come up a more general design so that polygonGates can be derived from any two quadrants
+#' quadGate based on flowClust::tmixFiler
+#' 
+#' This gating method identifies two quadrants (first, and third quadrants) by fitting the data with tmixture model.
+#' It is particually useful when the two markers are not well resolved thus the regular quadGate method
+#' based on 1d gating will not find the perfect cut points on both dimensions.
+#' 
+#'  
+#' @param fr \code{flowFrame}
+#' @param channels \code{character} vector specifies two channels
+#' @param usePrior see \link{flowClust.2d}
+#' @param K see \link{flowClust.2d}
+#' @param prior see \link{flowClust.2d}
+#' @param trans see \link{flowClust.2d}
+#' @param B see \link{flowClust.2d}
+#' @param quantile1 \code{numeric} specifies the  quantile level(see 'level' in \link{flowClust}) for the first quadrant (x-y+)
+#' @param quantile3 \code{numeric} specifies the  quantile level see 'level' in \link{flowClust} for third quadrant (x+y-)
+#' @param ... other arguments passed to \link{flowClust}
+#' @return a \code{filters} object that contains four \code{polygonGate}s following the order of (-+,++,+-,--)
+#' @export 
+quadGate.tmix <- function(fr, channels, K, usePrior = "yes", prior = list(NA)
+    , quantile1 = 0.8, quantile3 = 0.8
+    , trans = 0, B = 10
+    , ...){
+  
+  max.v <- .Machine$double.xmax
+  min.v <- - max.v
+  
+  # fit tmix models 
+  tmix_filter <- tmixFilter(parameters = channels
+      , K = K
+      , usePrior = usePrior, prior = prior, B = B , trans = trans
+      , ...)
+
+  tmix_results <- try(filter(fr, tmix_filter), silent = F)
+#      plot(tmix_results, data = fr, level = 0.85)
+  #find the 1st and 3rd quads
+  fitted_means <- getEstimates(tmix_results)$locations
+  q1.ind <- which.max(fitted_means[,2])
+  q3.ind <- which.max(fitted_means[,1])
+  
+  #construct polygon gates 
+  q1.gate <- flowViz:::ell2Polygon(.getEllipseGate(filter = tmix_results
+          , include = q1.ind,
+          quantile = quantile1
+          ,trans = 0))
+  q3.gate <- flowViz:::ell2Polygon(.getEllipseGate(filter = tmix_results
+          , include = q3.ind,
+          quantile = quantile3
+          ,trans = 0))
+  #find intersection of 1,3 quad gates
+  q1.bottom <- min(q1.gate@boundaries[, 2])
+  q1.right <- max(q1.gate@boundaries[, 1])
+  
+  q3.top <- max(q3.gate@boundaries[, 2])
+  q3.left <- min(q3.gate@boundaries[, 1])
+  
+  #two gates overlap on both dimensions
+  p.BL <- c(q3.left, q1.bottom)
+  p.TR <- c(q1.right, q3.top)
+  if(q1.bottom >= q3.top){
+    thisY <- mean(c(q1.bottom , q3.top))
+    p.BL[2] <- p.TR[2] <- thisY
+  }
+  
+  if(q3.left >= q1.right){
+    thisX <- mean(c(q1.right , q3.left))
+    p.BL[1] <- p.TR[1] <- thisX
+  }
+  
+  
+  #construct four quadGates based on these two points
+  q1.coord <- matrix(c(min.v, max.v
+          , min.v, p.BL[2]
+          , p.BL
+          , p.TR
+          , p.TR[1], max.v
+      )
+      , 5, 2
+      , byrow = TRUE
+  )  
+  colnames(q1.coord) <- channels    
+  q1.g <- polygonGate(q1.coord, filterId = paste(paste0(channels, c("-", "+")), collapse = ""))
+  
+  
+  q2.coord <- matrix(c(p.TR
+          , max.v, p.TR[2]
+          , max.v, max.v
+          , p.TR[1], max.v
+      )
+      , 5, 2
+      , byrow = TRUE
+  )  
+  colnames(q2.coord) <- channels    
+  q2.g <- polygonGate(q2.coord, filterId = paste(paste0(channels, c("+", "+")), collapse = ""))
+  
+  q3.coord <- matrix(c(p.TR
+          , max.v, p.TR[2]
+          , max.v, min.v
+          , p.BL[1], min.v
+          ,p.BL
+      )
+      , 5, 2
+      , byrow = TRUE
+  )
+  colnames(q3.coord) <- channels    
+  q3.g <- polygonGate(q3.coord, filterId = paste(paste0(channels, c("+", "-")), collapse = ""))
+  
+  q4.coord <- matrix(c(min.v, p.BL[2]
+          , p.BL
+          , p.BL[1], min.v
+          , min.v, min.v
+      )
+      , 5, 2
+      , byrow = TRUE
+  )
+  colnames(q4.coord) <- channels    
+  q4.g <- polygonGate(q4.coord, filterId = paste(paste0(channels, c("-", "-")), collapse = ""))
+  
+  filters(list(q1.g, q2.g, q3.g,q4.g))
 }
