@@ -770,7 +770,8 @@ tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
   
   # cutpoint is calculated using the first derivative of the kernel density
   # estimate. 
-  cutpoint <- .cytokine_cutpoint(flow_frame = fr, channel = channel, num_peaks = num_peaks,
+  x <- as.vector(exprs(flow_frame)[, channel])
+  cutpoint <- .cytokine_cutpoint(x = x, num_peaks = num_peaks,
       ref_peak = ref_peak, tol = tol, side = side, strict = strict, ...)
   
   # After the 1D cutpoint is set, we set the gate coordinates used in the
@@ -816,8 +817,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' choose the cutpoint as the largest peak of the second derivative of the KDE
 #' density which is greater than the reference peak.
 #'
-#' @param flow_frame a \code{flowFrame} object
-#' @param channel the channel name
+#' @param x a \code{numeric} vector used as input data
 #' @param num_peaks the number of peaks expected to see. This effectively removes
 #' any peaks that are artifacts of smoothing
 #' @param ref_peak After \code{num_peaks} are found, this argument provides the
@@ -833,13 +833,11 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #'  \code{'right'} (default) or \code{'left'}?
 #' @param ... additional arguments passed to \code{\link{.deriv_density}}
 #' @return the cutpoint along the x-axis
-.cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
+.cytokine_cutpoint <- function(x, num_peaks = 1, ref_peak = 1,
     method = c("first_deriv", "second_deriv"),
     tol = 1e-2, adjust = 1, side = "right", strict = TRUE, ...) {
   
   method <- match.arg(method)
-  
-  x <- as.vector(exprs(flow_frame)[, channel])
   peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust)[, "x"])
   
   #update peak count since it can be less than num_peaks

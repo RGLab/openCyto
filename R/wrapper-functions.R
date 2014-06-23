@@ -86,7 +86,7 @@
 #' @importFrom flowStats singletGate
 .singletGate <- function(fr, pp_res = NULL, xChannel = "FSC-A", yChannel = "FSC-H", ...) {
   
-  fr <- fr[, c(xChannel,yChannel)]
+#  fr <- fr[, c(xChannel,yChannel)]
   # Creates a list of polygon gates based on the prediction bands at the minimum
   # and maximum x_channel observation using a robust linear model trained by
   # flowStats.

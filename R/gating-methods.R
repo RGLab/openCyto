@@ -212,14 +212,16 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     parent_data <- getData(y, parent)
     parallel_type <- match.arg(parallel_type)
     ## get the accurate channel name by matching to the fr
+    frm <- parent_data[[1, use.exprs = FALSE]]
     if (!is.na(xChannel)) {
-      xParam <- getChannelMarker(parent_data[[1]], xChannel)
+      xParam <- getChannelMarker(frm, xChannel)
       xChannel <- as.character(xParam$name)
     }
-    yParam <- getChannelMarker(parent_data[[1]], yChannel)
+    yParam <- getChannelMarker(frm, yChannel)
     yChannel <- as.character(yParam$name)
 
     channels <- c(xChannel, yChannel)
+    parent_data <- parent_data[, channels[!is.na(channels)]] #it is more efficient to only pass the channels of interest
     # Splits the flow set into a list.
     # By default, each element in the list is a flowSet containg one flow frame,
     # corresponding to the invidual sample names.
