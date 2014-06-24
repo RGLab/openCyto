@@ -532,4 +532,32 @@
   res
   
 }
-
+#' convert gate to a filterResult
+#' 
+#' used for computing the gate indices on the fly
+#' 
+#' @param fr flowFrame
+#' @param channel \code{character} channel to used for gate
+#' @param gate \code{filter} object
+#' @param positive \code{logical}
+.gateToFilterResult <- function(fr, channel, gate, positive){
+  x <- exprs(fr)[, channel]
+  gate_coordinates <- c(gate@min, gate@max)
+  cutpoint <- gate_coordinates[!is.infinite(gate_coordinates)]
+  nCount <- length(x)
+  #deal with dummy gate where both boundaries are Inf
+  if(length(cutpoint) == 0){
+    if(gate@min < gate@max){
+      ind <- rep(positive, nCount)  
+    }else{
+      ind <- rep(!positive, nCount)
+    }
+  }
+  if(positive)
+    ind <- x >= cutpoint
+  else
+    ind <- x < cutpoint
+  fres <- as(ind, "filterResult") 
+  filterDetails(fres, identifier(gate)) <- gate
+  fres  
+}

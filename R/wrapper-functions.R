@@ -144,7 +144,7 @@
 #' @inheritParams .prior_flowClust
 #' 
 #' @return a \code{filter} object
-.flowClust.1d <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
+.flowClust.1d <- function(fr, pp_res, xChannel = NA, yChannel, positive = TRUE,...) {
   
   
   prior <- pp_res
@@ -224,14 +224,16 @@
   
   if (is.na(xChannel)) {
     # 1d gate
-    do.call("flowClust.1d"
+  gate <- do.call("flowClust.1d"
             ,args = c(list(fr = fr
                         ,params = yChannel
                         ,prior = prior
+                        , positive = positive
                         )
                       ,args
                     )
            )
+  .gateToFilterResult(fr, yChannel, gate, positive)    
   } else {
     stop("flowClust1d does not support 2d gate!")
   }
@@ -255,7 +257,7 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.tailgate <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", ...) {
+.tailgate <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", positive = TRUE, ...) {
 #  if(keyword(fr)[["$FIL"]] == "DC,2f,MONO,2f,NK 22013_12828_003.fcs")
 #    browser()  
   
@@ -271,19 +273,20 @@
       transformedData <- fr
      }
      
-    g <- tailgate(transformedData, channel = yChannel, ...)
+    g <- tailgate(transformedData, channel = yChannel, positive = positive, ...)
     gate_coordinates <- c(g@min, g@max)
 
     # Backtransforms the gate 
     gate_coordinates <- with(pp_res, center + scale * gate_coordinates)
     gate_coordinates <- list(gate_coordinates)
     names(gate_coordinates) <- parameters(g)
-    rectangleGate(gate_coordinates, filterId = g@filterId)
+    gate <- rectangleGate(gate_coordinates, filterId = g@filterId)
           
   }else
-    tailgate(fr, channel = yChannel, ...)
-
+    gate <- tailgate(fr, channel = yChannel, positive = positive, ...)
   
+  #carry ind with gate
+  .gateToFilterResult(fr, yChannel, gate, positive)  
   # If a sample has no more than 1 observation when the 'cytokine' gate is
   # attempted, the 'center' and/or 'scale' will result be NA, in which case we
   # replace the resulting NA cutpoints with the average of the remaining
@@ -309,10 +312,11 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.mindensity <- function(fr, pp_res, yChannel = "FSC-A", ...) {
+.mindensity <- function(fr, pp_res, yChannel = "FSC-A", positive = TRUE, ...) {
   
  
-  mindensity(flow_frame = fr, channel = yChannel, ...)
+  gate <- mindensity(fr, channel = yChannel, positive = positive, ...)
+  .gateToFilterResult(fr, yChannel, gate, positive)
 }
 #' wrapper for flowClust.2d
 #' 

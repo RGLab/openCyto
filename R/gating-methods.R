@@ -341,17 +341,17 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
         popAlias <- NULL  
     }
     
-    gs_node_id <- add(y, flist, parent = parent, name = popAlias)
+    gs_node_id <- add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE)
     
     
     #fetch pop names if not given, which can possibly be extracted from filterId of flist as well 
-    if(is.null(popAlias))
-      popAlias <- sapply(gs_node_id, function(thisID)getNodes(y[[1]], showHidden = TRUE)[thisID])
-    
-    for(thisNode in popAlias){
-      thisNode <- file.path(parent, thisNode)
-      invisible(recompute(y, thisNode, alwaysLoadData = TRUE))
-    }    
+#    if(is.null(popAlias))
+#      popAlias <- sapply(gs_node_id, function(thisID)getNodes(y[[1]], showHidden = TRUE)[thisID])
+#    
+#    for(thisNode in popAlias){
+#      thisNode <- file.path(parent, thisNode)
+#      invisible(recompute(y, thisNode, alwaysLoadData = TRUE))
+#    }    
     
     message("done.")
     
