@@ -541,6 +541,7 @@
 #' @param gate \code{filter} object
 #' @param positive \code{logical}
 .gateToFilterResult <- function(fr, channel, gate, positive){
+  return(gate)
   x <- exprs(fr)[, channel]
   gate_coordinates <- c(gate@min, gate@max)
   cutpoint <- gate_coordinates[!is.infinite(gate_coordinates)]
@@ -557,7 +558,11 @@
     ind <- x >= cutpoint
   else
     ind <- x < cutpoint
-  fres <- as(ind, "filterResult") 
-  filterDetails(fres, identifier(gate)) <- gate
+#  fres <- as(ind, "filterResult") 
+#  filterDetails(fres, identifier(gate)) <- gate
+  #pack into bit vector to ease the traffic
+  
+  fres <- as(gate, "ocRectangleGate")
+  fres@ind <- ncdfFlow:::.makeBitVec(length(ind), ind) 
   fres  
 }
