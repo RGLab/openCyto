@@ -749,10 +749,10 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           
           names(coord) <- as.character(dim_params)
           fres <- rectangleGate(coord)
-#          if(isSameParent){
-#            fres <- ocRectRefGate(fres, paste0(x_ref, "&", y_ref))
-#            fres
-#          }
+          if(isSameParent){
+            fres <- ocRectRefGate(fres, paste0(x_ref, "&", y_ref))
+            fres
+          }
           
         fres  
       }

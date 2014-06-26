@@ -13,15 +13,27 @@ setMethod("add",
 
 setClass("ocRectangleGate", contains = "rectangleGate", representation(ind = "raw"))
 
+#' bypass the default flowWorkspace:::.addGate 
+#' 
+#' to support adding gate along with indices without loading flow data and computing
+#' 
+#' however it is proven that logical indices are too big to be efficiently passed around
+#' 
 #' @export 
 #' @rdname add
 setMethod("add",
     signature=c("GatingHierarchy", "ocRectangleGate"),
-    definition=function(wf, action,... )
+    definition=function(wf, action, recompute, ... )
     {
       #unpack the bit vector
-      ind <- ncdfFlow:::.getBitStatus(action@ind)
-      .addGate_no_data(wf,filterObject(action), indices = ind, ...)
+      indices <- ncdfFlow:::.getBitStatus(action@ind)
+      #ignore the recompute flag and force it to be skipped
+      nodeID <- flowWorkspace:::.addGate(wf, filterObject(action), recompute = FALSE, ...)
+      sn <- sampleNames(wf)
+      ptr <- wf@pointer
+      .Call("R_setIndices", ptr, sn, nodeID-1, indices, PACKAGE = "flowWorkspace")
+      
+      
     })
 
 
@@ -32,21 +44,32 @@ setClass("ocRectRefGate", contains = c("rectangleGate", "booleanFilter"))
 #' @param boolExprs \code{character} boolean expression of reference nodes
 ocRectRefGate <- function(rectGate, boolExprs){
   
-  bf <- eval(substitute(booleanFilter(x), list(x = boolExprs)))
+  bf <- eval(substitute(booleanFilter(x), list(x = as.symbol(boolExprs))))
   g <- as(rectGate, "ocRectRefGate")
   g@expr <- bf@expr
   g@deparse <- bf@deparse
   g
 }
 
+#' byPass the default .addGate 
+#' 
+#' to support adding rectangleGate yet gating through boolean operations 
+#' without loading flow data
+#' 
 #' @export 
 #' @rdname add
 setMethod("add",
     signature=c("GatingHierarchy", "ocRectRefGate"),
-    definition=function(wf, action,... )
+    definition=function(wf, action, recompute, ... )
     {
-      #unpack the bit vector
-      flowWorkspace:::.addGate(wf,filterObject(action), indices = ind, ...)
+      rectFilterObj <- selectMethod("filterObject", signature = c("rectangleGate"))(action)
+      boolFilterObj <- selectMethod("filterObject", signature = c("booleanFilter"))(action)
+      #ignore the recompute flag and force it to be skipped
+      nodeID <- flowWorkspace:::.addGate(wf, rectFilterObj, recompute = FALSE, ...)
+      sn <- sampleNames(wf)
+      ptr <- wf@pointer
+      .Call("R_boolGating", ptr, sn, boolFilterObj, nodeID - 1, PACKAGE = "flowWorkspace")
+      nodeID
     })
 
 
@@ -57,33 +80,11 @@ setMethod("add",
 #    list(rect = rg_res, bool = bg_res, filterId = rg_res[["filterId"]])
 #    })
 
-#' extend flowWorkspace:::.addGate to support adding indices along with gate yet without loading flow data
-#' 
-#' @param indices \code{logical} vector used to pass the node indices directly
-#'                  or \code{expression} 
-.addGate_no_data <- function(gh, filterObject, indices, recompute, ...){
-  #ignore the recompute flag and force it to be skipped
-  
-  nodeID <- flowWorkspace:::.addGate(gh, filterObject, recompute = FALSE, ...)
-  sn <- sampleNames(gh)
-  ptr <- gh@pointer
-  if(is.logical(indices))
-    .Call("R_setIndices", ptr, sn, nodeID-1, indices, PACKAGE = "flowWorkspace")
-  else
-  {
-    stop("not supported!")
-    #for openCyto::ocRectRefGate
-#    .Call("R_boolGating", ptr, sn, ,nodeID, indices)
-  }
-    
-    
-  nodeID
-}
+
 #' fast version of add gates to gatingset (bypassing some R checks)
+#' 
+#' used by gating_polyFunctions
 .addGate_fast <- function(gs, filter, name = NULL, parent = NULL, negated = FALSE){
-  
-  
-  
   
   #preprocess filter
   filterObj <- flowWorkspace:::filterObject(filter)
