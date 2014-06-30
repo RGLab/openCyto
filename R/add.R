@@ -84,7 +84,7 @@ setMethod("add",
 #' fast version of add gates to gatingset (bypassing some R checks)
 #' 
 #' used by gating_polyFunctions
-.addGate_fast <- function(gs, filter, name = NULL, parent = NULL, negated = FALSE){
+.addGate_fast <- function(gs, filter, name = NULL, parent = "root", negated = FALSE){
   
   #preprocess filter
   filterObj <- flowWorkspace:::filterObject(filter)
@@ -102,15 +102,7 @@ setMethod("add",
   
   gh<-gs[[1]]
   ##get node ID
-  if(is.null(parent))
-    pid<-1
-  else
-  {
-    if(is.numeric(parent))
-      pid <- parent
-    else
-      pid <- flowWorkspace:::.getNodeInd(gh,parent)
-  }
+  
   filterObj$negated<-negated
   
   
@@ -119,7 +111,7 @@ setMethod("add",
           samples <- sampleNames(thisGS)
           lapply(samples,function(sample){
                 
-                nodeID <- .Call("R_addGate",thisGS@pointer,sample,filterObj,as.integer(pid-1),name)
+                nodeID <- .Call("R_addGate",thisGS@pointer,sample,filterObj, parent,name)
                 nodeID+1
               })
         }, level = 1)
@@ -129,7 +121,7 @@ setMethod("add",
     samples <- sampleNames(gs)
     nodeIDs<-lapply(samples,function(sample){
           
-          nodeID <- .Call("R_addGate",gs@pointer,sample,filterObj,as.integer(pid-1),name)
+          nodeID <- .Call("R_addGate",gs@pointer,sample,filterObj, parent,name)
           nodeID+1
         })  
   }
