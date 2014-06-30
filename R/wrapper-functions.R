@@ -233,7 +233,8 @@
                       ,args
                     )
            )
-  .gateToFilterResult(fr, yChannel, gate, positive)    
+#  .gateToFilterResult(fr, yChannel, gate, positive)
+  gate
   } else {
     stop("flowClust1d does not support 2d gate!")
   }
@@ -286,7 +287,9 @@
     gate <- tailgate(fr, channel = yChannel, positive = positive, ...)
   
   #carry ind with gate
-  .gateToFilterResult(fr, yChannel, gate, positive)  
+#  .gateToFilterResult(fr, yChannel, gate, positive)  
+  gate
+  
   # If a sample has no more than 1 observation when the 'cytokine' gate is
   # attempted, the 'center' and/or 'scale' will result be NA, in which case we
   # replace the resulting NA cutpoints with the average of the remaining
@@ -316,7 +319,8 @@
   
  
   gate <- mindensity(fr, channel = yChannel, positive = positive, ...)
-  .gateToFilterResult(fr, yChannel, gate, positive)
+#  .gateToFilterResult(fr, yChannel, gate, positive)
+  gate
 }
 #' wrapper for flowClust.2d
 #' 

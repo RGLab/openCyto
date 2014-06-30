@@ -541,7 +541,7 @@
 #' @param gate \code{filter} object
 #' @param positive \code{logical}
 .gateToFilterResult <- function(fr, channel, gate, positive){
-  return(gate)
+
   x <- exprs(fr)[, channel]
   gate_coordinates <- c(gate@min, gate@max)
   cutpoint <- gate_coordinates[!is.infinite(gate_coordinates)]
