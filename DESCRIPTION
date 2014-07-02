@@ -12,7 +12,7 @@ LazyLoad: yes
 Depends:
     methods,flowWorkspace(>= 3.11.10)
 Imports:
-    Biobase,gtools,flowCore,flowViz,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils
+    Biobase,gtools,flowCore,flowViz,flowStats,flowClust,MASS,clue,plyr,RBGL,Rgraphviz,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils,Rcpp
 Suggests:
     flowWorkspaceData,
     knitr,
@@ -21,3 +21,4 @@ Suggests:
     tools
 biocViews: FlowCytometry, DataImport, Preprocessing, DataRepresentation
 VignetteBuilder: knitr
+LinkingTo: Rcpp

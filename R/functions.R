@@ -566,3 +566,5 @@
   fres@ind <- ncdfFlow:::.makeBitVec(length(ind), ind) 
   fres  
 }
+
+
