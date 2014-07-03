@@ -19,6 +19,10 @@ setClass("ocRectangleGate", contains = "rectangleGate", representation(ind = "ra
 #' 
 #' however it is proven that logical indices are too big to be efficiently passed around
 #' 
+#' @param wf \code{GatingHierarchy} see \link[flowWorkspace]{add} in \code{flowWorkspace} package
+#' @param action \code{ocRectangleGate} or \code{logicalFilterResult}
+#' @param recompute \code{logical} see \link[flowWorkspace]{add} in \code{flowWorkspace} package
+#' @param ... see \link[flowWorkspace]{add} in \code{flowWorkspace} package
 #' @export 
 #' @rdname add
 setMethod("add",
@@ -87,7 +91,7 @@ setMethod("add",
 .addGate_fast <- function(gs, filter, name = NULL, parent = "root", negated = FALSE){
   
   #preprocess filter
-  filterObj <- flowWorkspace:::filterObject(filter)
+  filterObj <- filterObject(filter)
 #  browser()
   if(is.null(name))
     name<-filterObj$filterId
