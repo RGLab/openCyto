@@ -91,7 +91,7 @@ setMethod("add",
 .addGate_fast <- function(gs, filter, name = NULL, parent = "root", negated = FALSE){
   
   #preprocess filter
-  filterObj <- flowWorkspace:::filterObject(filter)
+  filterObj <- filterObject(filter)
 #  browser()
   if(is.null(name))
     name<-filterObj$filterId
