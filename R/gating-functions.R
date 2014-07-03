@@ -53,6 +53,8 @@
 #' ignored.
 #' @param plot logical value indicating that the fitted \code{\link{flowClust}}
 #' model should be plotted along with the cutpoint
+#' @param debug \code{logical} indicating whether to carry the prior and posterious with the gate
+#'                               for debugging purpose. Default is FALSE.
 #' @param ... additional arguments that are passed to \code{\link{flowClust}}
 #' @return a \code{rectangleGate} object consisting of all values beyond the
 #' cutpoint calculated
@@ -71,7 +73,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          neg_cluster = 1, cutpoint_min = NULL,
                          cutpoint_max = NULL, min = NULL, max = NULL,
                          quantile = 0.99, quantile_interval = c(0, 10),
-                         plot = FALSE, ...) {
+                         plot = FALSE, debug = FALSE, ...) {
   options("cores" = 1L) #suppress parallelism for 1d gating   
   cutpoint_method <- match.arg(cutpoint_method)
 
@@ -238,27 +240,29 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   names(gate_coordinates) <- params
   
   fres <- rectangleGate(gate_coordinates, filterId = filterId)
-
-  # Saves posterior point estimates
-  # In the case that an error is thrown, the posterior is set to the prior
-  # because no prior updating was performed.
-  postList <- list()
-  if (class(tmix_results) != "try-error") {
-    posteriors <- list(mu = tmix_results@mu, lambda = tmix_results@lambda,
-                       sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x)
-                      ,w = tmix_results@w
-                    , max = max(x))
-  } else {
-    posteriors <- prior
-    posteriors$min <- NA
-    posteriors$max <- NA
+  if(debug){
+    # Saves posterior point estimates
+    # In the case that an error is thrown, the posterior is set to the prior
+    # because no prior updating was performed.
+    postList <- list()
+    if (class(tmix_results) != "try-error") {
+      posteriors <- list(mu = tmix_results@mu, lambda = tmix_results@lambda,
+          sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x)
+          ,w = tmix_results@w
+          , max = max(x))
+    } else {
+      posteriors <- prior
+      posteriors$min <- NA
+      posteriors$max <- NA
+    }
+    postList[[params[1]]] <- posteriors
+    
+    # Saves prior point estimates
+    priorList <- list()
+    priorList[[params[1]]] <- prior
+    fres <- fcRectangleGate(fres, priorList, postList)
   }
-  postList[[params[1]]] <- posteriors
-
-  # Saves prior point estimates
-  priorList <- list()
-  priorList[[params[1]]] <- prior
-  
+    
   if (plot) {
     gate_pct <- round(100 * mean(x > cutpoint), 3)
     plot_title <- paste0(filterId, " (", gate_pct, "%)")
@@ -286,8 +290,8 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
       }
     }
   }
+  fres
 
-  fcRectangleGate(fres, priorList, postList)
 }
 
 #' Automatic identification of a population of interest via flowClust based on
@@ -642,7 +646,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' the cutpoint as the \code{min(x)} if \code{positive} is \code{TRUE}, and the
 #' \code{max(x)} otherwise.
 #'
-#' @param flow_frame a \code{flowFrame} object
+#' @param fr a \code{flowFrame} object
 #' @param channel TODO
 #' @param filter_id TODO
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
@@ -664,7 +668,8 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #' \dontrun{
 #'  gate <- mindensity(fr, channel = "APC-A") # fr is a flowFrame
 #' }
-mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
+#' @importFrom flowCore %in% identifier filterDetails<-
+mindensity <- function(fr, channel, filter_id = "", positive = TRUE,
                        pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
                        peaks = NULL, ...) {
   
@@ -675,11 +680,11 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   # Filter out values less than the minimum and above the maximum, if they are
   # given.
   if (!(is.null(min) && is.null(max))) {
-    flow_frame <- .truncate_flowframe(flow_frame, channels = channel, min = min,
+    fr <- .truncate_flowframe(fr, channels = channel, min = min,
                                      max = max)
   }
   # Grabs the data matrix that is being gated.
-  x <- exprs(flow_frame)[, channel]
+  x <- exprs(fr)[, channel]
   
   if(is.null(peaks))
     peaks <- .find_peaks(x, ...)[, "x"]
@@ -737,6 +742,7 @@ mindensity <- function(flow_frame, channel, filter_id = "", positive = TRUE,
   names(gate_coordinates) <- channel
   
   rectangleGate(gate_coordinates, filterId = filter_id)
+  
 }
 
 #' Gates the tail of a density using the derivative of a kernel density estimate
@@ -770,7 +776,8 @@ tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
   
   # cutpoint is calculated using the first derivative of the kernel density
   # estimate. 
-  cutpoint <- .cytokine_cutpoint(flow_frame = fr, channel = channel, num_peaks = num_peaks,
+  x <- as.vector(exprs(fr)[, channel])
+  cutpoint <- .cytokine_cutpoint(x = x, num_peaks = num_peaks,
       ref_peak = ref_peak, tol = tol, side = side, strict = strict, ...)
   
   # After the 1D cutpoint is set, we set the gate coordinates used in the
@@ -784,6 +791,7 @@ tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
   }
   names(gate_coordinates) <- channel
   rectangleGate(gate_coordinates, filterId = filter_id)
+  
 }
 
 #' @rdname tailgate
@@ -801,12 +809,10 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' density estimate
 #'
 #' We determine a gating cutpoint using either the first or second derivative of
-#' the kernel density estimate (KDE) of the \code{channel} specified within the
-#' \code{flow_frame}.
+#' the kernel density estimate (KDE) of the \code{x}.
 #'
-#' By default, we compute the first derivative of the kernel density estimate
-#' from the channel specified within the given \code{flow_frame}. Next, we
-#' determine the lowest valley from the derivative, which corresponds to the
+#' By default, we compute the first derivative of the kernel density estimate. 
+#' Next, we determine the lowest valley from the derivative, which corresponds to the
 #' density's mode for cytokines. We then contruct a gating cutpoint as the value
 #' less than the tolerance value \code{tol} in magnitude and is also greater
 #' than the lowest valley.
@@ -816,8 +822,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' choose the cutpoint as the largest peak of the second derivative of the KDE
 #' density which is greater than the reference peak.
 #'
-#' @param flow_frame a \code{flowFrame} object
-#' @param channel the channel name
+#' @param x a \code{numeric} vector used as input data
 #' @param num_peaks the number of peaks expected to see. This effectively removes
 #' any peaks that are artifacts of smoothing
 #' @param ref_peak After \code{num_peaks} are found, this argument provides the
@@ -833,13 +838,11 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #'  \code{'right'} (default) or \code{'left'}?
 #' @param ... additional arguments passed to \code{\link{.deriv_density}}
 #' @return the cutpoint along the x-axis
-.cytokine_cutpoint <- function(flow_frame, channel, num_peaks = 1, ref_peak = 1,
+.cytokine_cutpoint <- function(x, num_peaks = 1, ref_peak = 1,
     method = c("first_deriv", "second_deriv"),
     tol = 1e-2, adjust = 1, side = "right", strict = TRUE, ...) {
   
   method <- match.arg(method)
-  
-  x <- as.vector(exprs(flow_frame)[, channel])
   peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust)[, "x"])
   
   #update peak count since it can be less than num_peaks

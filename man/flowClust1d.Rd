@@ -9,7 +9,7 @@ flowClust.1d(fr, params, filterId = "", K = NULL, trans = 0,
   cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean",
   "prior_density"), neg_cluster = 1, cutpoint_min = NULL,
   cutpoint_max = NULL, min = NULL, max = NULL, quantile = 0.99,
-  quantile_interval = c(0, 10), plot = FALSE, ...)
+  quantile_interval = c(0, 10), plot = FALSE, debug = FALSE, ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
@@ -70,6 +70,9 @@ ignored.}
 
 \item{plot}{logical value indicating that the fitted \code{\link{flowClust}}
 model should be plotted along with the cutpoint}
+
+\item{debug}{\code{logical} indicating whether to carry the prior and posterious with the gate
+for debugging purpose. Default is FALSE.}
 
 \item{...}{additional arguments that are passed to \code{\link{flowClust}}}
 }
