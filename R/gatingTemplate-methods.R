@@ -54,6 +54,7 @@ setMethod("getNodes", signature = c("gatingTemplate"),
 #' getNodes(gt, "/nonDebris")
 #' getChildren(gt, "/nonDebris") 
 #' }
+#' @importClassesFrom methods character ANY data.frame environment list logical matrix missing numeric oldClass
 setMethod("getChildren", signature = c("gatingTemplate", "character"),
           definition = function(obj, y) {
   edges(obj, y)[[1]]
@@ -136,6 +137,7 @@ setMethod("ppMethod", signature = c("gatingTemplate", "character"),
 #' @aliases 
 #' show,gatingTemplate-method
 #' @export 
+#' @importFrom methods show
 setMethod("show", signature = c("gatingTemplate"),
           definition = function(object) {
   cat("--- Gating Template: ")

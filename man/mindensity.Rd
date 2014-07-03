@@ -4,12 +4,11 @@
 \title{Determines a cutpoint as the minimum point of a kernel density estimate
 between two peaks}
 \usage{
-mindensity(flow_frame, channel, filter_id = "", positive = TRUE,
-  pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
-  peaks = NULL, ...)
+mindensity(fr, channel, filter_id = "", positive = TRUE, pivot = FALSE,
+  gate_range = NULL, min = NULL, max = NULL, peaks = NULL, ...)
 }
 \arguments{
-\item{flow_frame}{a \code{flowFrame} object}
+\item{fr}{a \code{flowFrame} object}
 
 \item{channel}{TODO}
 
