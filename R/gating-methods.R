@@ -189,9 +189,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
   gm <- paste0(".", names(x))
   
   dims <- dims(x)
-  xChannel <- unname(dims["xChannel"])
-  yChannel <- unname(dims["yChannel"])
-  is_1d_gate <- any(is.na(dims))
+  
+  is_1d_gate <- length(dims) == 1
   
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
@@ -211,15 +210,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     parallel_type <- match.arg(parallel_type)
     ## get the accurate channel name by matching to the fr
     frm <- parent_data[[1, use.exprs = FALSE]]
-    if (!is.na(xChannel)) {
-      xParam <- getChannelMarker(frm, xChannel)
-      xChannel <- as.character(xParam$name)
-    }
-    yParam <- getChannelMarker(frm, yChannel)
-    yChannel <- as.character(yParam$name)
-
-    channels <- c(xChannel, yChannel)
-    parent_data <- parent_data[, channels[!is.na(channels)]] #it is more efficient to only pass the channels of interest
+    channels <- sapply(dims, function(channel)as.character(getChannelMarker(frm, channel)$name))
+    
+    parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
     # Splits the flow set into a list.
     # By default, each element in the list is a flowSet containg one flow frame,
     # corresponding to the invidual sample names.
@@ -262,9 +255,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     thisCall[["FUN"]] <- as.symbol(".gating_wrapper")
     args[["gFunc"]] <- gm  #set gating method
     args[["popAlias"]] <- popAlias  
-    args[["channels"]] <- channels #to deprecate x,y channel
-    args[["xChannel"]] <- xChannel  #set x,y channel
-    args[["yChannel"]] <- yChannel
+    args[["channels"]] <- channels 
+    
     
     if (is_1d_gate) {
       if (grepl("-$", popName)) {
@@ -525,8 +517,7 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   dims <- dims(x)
-  xChannel <- dims[["xChannel"]]
-  yChannel <- dims[["yChannel"]]
+  names(dims) <- c("xChannel", "yChannel")
   my_gh <- y[[1]] 
   gs_nodes <- basename(getChildren(my_gh, parent))
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {

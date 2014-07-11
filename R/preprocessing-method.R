@@ -38,8 +38,6 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
   groupBy <- groupBy(x)
   isCollapse <- isCollapse(x)
   dims <- dims(x)
-  xChannel <- unname(dims["xChannel"])
-  yChannel <- unname(dims["yChannel"])
   is_1d_gate <- any(is.na(dims))
   
   popAlias <- alias(gtPop)
@@ -51,14 +49,7 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
     message("Preprocessing for '", popAlias, "'")
     
     parent_data <- getData(y, parent)
-#    parallel_type <- match.arg(parallel_type)
-    ## get the accurate channel name by matching to the fr
-    if (!is.na(xChannel)) {
-      xParam <- getChannelMarker(parent_data[[1]], xChannel)
-      xChannel <- as.character(xParam$name)
-    }
-    yParam <- getChannelMarker(parent_data[[1]], yChannel)
-    yChannel <- as.character(yParam$name)
+    channels <- sapply(dims, function(channel)as.character(getChannelMarker(parent_data[[1, use.exprs = FALSE]], channel)$name))
     
     # when groupBy is set distribute the subset for each group to preprocessing function
     # otherwise, the entire data set is passed (which is different from the way we handle gating function)
@@ -93,8 +84,7 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
     thisCall <- substitute(f1())
     thisCall[["X"]] <- quote(fslist)  #set data
     thisCall[["FUN"]] <- as.symbol(ppm)  #set gating method
-    thisCall[["xChannel"]] <- xChannel  #set x,y channel
-    thisCall[["yChannel"]] <- yChannel
+    thisCall[["channel"]] <- channels 
     thisCall[["gs"]] <- y
     thisCall[["gm"]] <- gm
     thisCall[["groupBy"]] <- groupBy

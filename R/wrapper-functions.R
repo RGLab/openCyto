@@ -60,7 +60,7 @@
       if(!.isRegistered(gFunc)){
         stop(sprintf("Can't gate using unregistered method %s",gFunc))
       }
-      thisCall <- substitute(f(fr = fr, pp_res = pp_res, ...),list(f=as.symbol(gFunc)))
+      thisCall <- substitute(f(fr = fr, pp_res = pp_res, channels = channels, ...),list(f=as.symbol(gFunc)))
       filterRes <- try(eval(thisCall), silent = TRUE)  
     }
       
@@ -84,14 +84,14 @@
 #' @inheritParams .prior_flowClust
 #' @return a \code{filter} object
 #' @importFrom flowStats singletGate
-.singletGate <- function(fr, pp_res = NULL, xChannel = "FSC-A", yChannel = "FSC-H", ...) {
+.singletGate <- function(fr, pp_res = NULL, channels, ...) {
   
-#  fr <- fr[, c(xChannel,yChannel)]
+
   # Creates a list of polygon gates based on the prediction bands at the minimum
   # and maximum x_channel observation using a robust linear model trained by
   # flowStats.
 
-  singletGate(fr, area = xChannel, height = yChannel, ...)
+  singletGate(fr, area = channels[1], height = channels[2], ...)
 }
 
 #' boundary gating function
@@ -105,12 +105,11 @@
 #' @param ... other arguments (not used.)
 #' @return a \code{filter} object
 .boundary <- function(fr, pp_res = NULL, xChannel = NULL, yChannel, min = NULL, max = NULL, ...) {
-  
-  if (is.na(xChannel)) {
-    xChannel <- NULL
-  }
-  channels <- c(xChannel, yChannel)
   num_channels <- length(channels)
+  
+  if(!num_channels %in%1:2)
+    stop("invalid number of channels for boundary!")
+  
   
   if (is.null(min)) {
     min <- rep(-Inf, num_channels)
@@ -248,33 +247,31 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.cytokine <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", ...) {
+.cytokine <- function(fr, pp_res, ...) {
   .Deprecated("tailgate")
   #TODO:standardize data with pp_res
-  .tailgate(fr, pp_res = pp_res, yChannel = yChannel, ...)
+  .tailgate(fr, pp_res = pp_res, ...)
 }
 
 #' @param ... arguments to be passed to \link{tailgate}
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.tailgate <- function(fr, pp_res, xChannel = NA, yChannel = "FSC-A", positive = TRUE, ...) {
-#  if(keyword(fr)[["$FIL"]] == "DC,2f,MONO,2f,NK 22013_12828_003.fcs")
-#    browser()  
-  
-  
+.tailgate <- function(fr, pp_res, channels, positive = TRUE, ...) {
+  if(length(channels) != 1)
+    stop("invalid number of channels for tailgate!")
   #pps_res may contains the standardized and collapsed data and transformation
   if(isTRUE(attr(pp_res, "openCyto_preprocessing") == "standardize")){
       transformedData <- pp_res[["flow_frame"]]
      
       #if no flow data passed in, need to tranform original fr first
      if(is.null(transformedData)){
-      data <- exprs(fr)[, yChannel]
-      exprs(fr)[, yChannel] <- with(pp_res, (data - center)/scale) 
+      data <- exprs(fr)[, channels]
+      exprs(fr)[, channels] <- with(pp_res, (data - center)/scale) 
       transformedData <- fr
      }
      
-    g <- tailgate(transformedData, channel = yChannel, positive = positive, ...)
+    g <- tailgate(transformedData, channel = channels, positive = positive, ...)
     gate_coordinates <- c(g@min, g@max)
 
     # Backtransforms the gate 
@@ -284,7 +281,7 @@
     gate <- rectangleGate(gate_coordinates, filterId = g@filterId)
           
   }else
-    gate <- tailgate(fr, channel = yChannel, positive = positive, ...)
+    gate <- tailgate(fr, channel = channels, positive = positive, ...)
   
   #carry ind with gate
 #  .gateToFilterResult(fr, yChannel, gate, positive)  
@@ -315,10 +312,11 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.mindensity <- function(fr, pp_res, yChannel = "FSC-A", positive = TRUE, ...) {
+.mindensity <- function(fr, pp_res, channels, positive = TRUE, ...) {
   
- 
-  gate <- mindensity(fr, channel = yChannel, positive = positive, ...)
+ if(length(channels) != 1)
+   stop("invalid number of channels for mindensity!")
+  gate <- mindensity(fr, channel = channels, positive = positive, ...)
 #  .gateToFilterResult(fr, yChannel, gate, positive)
   gate
 }
@@ -330,9 +328,11 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.flowClust.2d <- function(fr, pp_res, xChannel, yChannel, ...) {
-  
-  
+.flowClust.2d <- function(fr, pp_res, channels, ...) {
+  if(length(channels) != 2)
+    stop("invalid number of channels for flowClust.2d!")
+  xChannel <- channels[1]
+  yChannel <- channels[2]
   args <- list(...)
   # get the value of neg and pos
   if (is.element(c("K"), names(args))) {
@@ -374,9 +374,9 @@
 #' 
 #' @return a \code{filter} object
 #' @importFrom flowStats rangeGate
-.rangeGate <- function(fr, pp_res, xChannel = NA, yChannel,  ...) {
+.rangeGate <- function(fr, pp_res, channels,  ...) {
   
-  rangeGate(x = fr, stain = yChannel,  ...)
+  rangeGate(x = fr, stain = channels,  ...)
 }
 #' wrapper for quantileGate
 #' 
@@ -386,48 +386,17 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.quantileGate <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
+.quantileGate <- function(fr, pp_res, channels, ...) {
   
-  quantileGate(fr = fr, stain = yChannel, ...)
+  quantileGate(fr = fr, stain = channels, ...)
 }
 
-.quadGate.tmix <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
-  quadGate.tmix(fr, c(xChannel, yChannel), ...)
-}
-#' deprecated
-#' @importFrom flowStats quadrantGate
-.quadrantGate <- function(fr, pp_res, xChannel = NA, yChannel, ...) {
-  
-  qfilter <- quadrantGate(fr, stains = c(xChannel, yChannel), absolute = FALSE, 
-                 inBetween = TRUE, ...)
-  
-  ###############################################################     
-  #construct rectangleGates based on the cuts and popNames,clock-wise
-  ###############################################################
-  cut.x <- qfilter@boundary[xChannel]
-  cut.y <- qfilter@boundary[yChannel]
-  gateList <- new("filters")
-  
-  chnls <- c(xChannel, yChannel)
-  markers <- chnls
-  
-  coord <- list(c(-Inf, cut.x), c(cut.y, Inf))
-  names(coord) <- as.character(chnls)
-  gateList[[paste(paste0(markers, c("-", "+")), collapse = "")]] <- rectangleGate(coord)
-  
-  coord <- list(c(cut.x, Inf), c(cut.y, Inf))
-  names(coord) <- as.character(chnls)
-  gateList[[paste(paste0(markers, c("+", "+")), collapse = "")]] <- rectangleGate(coord)
-  
-  coord <- list(c(cut.x, Inf), c(-Inf, cut.y))
-  names(coord) <- as.character(chnls)
-  gateList[[paste(paste0(markers, c("+", "-")), collapse = "")]] <- rectangleGate(coord)
-  
-  coord <- list(c(-Inf, cut.x), c(-Inf, cut.y))
-  names(coord) <- as.character(chnls)
-  gateList[[paste(paste0(markers, c("-", "-")), collapse = "")]] <- rectangleGate(coord)
-  
-  gateList
+.quadGate.tmix <- function(fr, pp_res, channels, ...) {
+  if(length(channels) != 2)
+    stop("invalid number of channels for quadGate.tmix!")
+  xChannel <- channels[1]
+  yChannel <- channels[2]
+  quadGate.tmix(fr, channels, ...)
 }
 
 ############################
@@ -440,7 +409,7 @@
 #' 
 #' @return \code{NULL}
 #' @importFrom flowStats warpSet
-.warpSet <- function(fs, gs, gm, xChannel, yChannel, groupBy, isCollapse, stains, ...){
+.warpSet <- function(fs, gs, gm, channels, groupBy, isCollapse, stains, ...){
   fs <- fs[, stains]
   if(class(fs) == "ncdfFlowSet")
     flowStats:::warpSetNCDF(fs, stains = stains, ...)
@@ -461,14 +430,22 @@
 #' @inheritParams .prior_flowClust1d 
 #' 
 #' @return a \code{list} of priors, see \link{prior_flowClust} for more details
-.prior_flowClust <- function(fs, gs, gm, xChannel, yChannel, groupBy, isCollapse
+.prior_flowClust <- function(fs, gs, gm, channels, groupBy, isCollapse
      , prior_source = NULL
      , K = NULL
      , neg, pos
      , min, max
      , ...){
    prior_list <- list()
-   
+   nChannel <- length(channels)
+   if(nChannel == 1){
+     xChannel <- NULL
+     yChannel <- channels
+   }else if(nChannel == 2){
+     xChannel <- channels[1]
+     yChannel <- channels[2]  
+   }else
+     stop("invalid number of channels for prior_flowClust!")
    # prior estimation is done separately from flowClust routine because
    # .prior_flowClust1d requires the entire parent flowSet yet flowClust only
    # takes one flowFrame
@@ -481,6 +458,9 @@
 #    browser()
    
    if (names(gm) == "flowClust.1d") {
+     
+     
+     
      # If any of 'K, 'neg' or 'pos' are given, we extract them from the
      # 'args' and coerce them as integers. Otherwise, they are defaulted to
      # NULL.
@@ -566,8 +546,9 @@
 #' @param yChannel the channel to standardize
 #' @param groupBy \code{character} tells whether 'groupBy' column in csv template has been set
 #' @param isCollapse \code{logical} indicates whether the gating is done on collapsed data. If so, the prior does not need to be replicated across samples.
- .standardize_flowset <- function(fs, gs, gm, xChannel = NA, yChannel, groupBy, isCollapse, ...) {
-   
+ .standardize_flowset <- function(fs, gs, gm, channels, groupBy, isCollapse, ...) {
+   if(length(channels) != 1)
+     stop("invalid number of channels for standardize_flowset!")
    if(isCollapse)
      stop("'collapse = TRUE' is not applicable to 'standardize_flowset'!")
    
@@ -577,7 +558,7 @@
 #     if(pData(fs)$Center == "UCLA" && pData(fs)$Sample == "12828")
 #       browser()
      #standardize multiple flowFrames within the sub-group
-     transform_out <- fsApply(fs, .standardize_flowFrame, channel = yChannel, data = TRUE)
+     transform_out <- fsApply(fs, .standardize_flowFrame, channel = channels, data = TRUE)
      
      # Creates a flowSet object from the transformed flowFrame objects
      fs <- flowSet(lapply(transform_out, function(x) x$flow_frame))
@@ -593,7 +574,7 @@
      #standarize within the single flowFrame
      # fs is now the entire data set
      # and we only pass the transformation back to gating function without the flow data (to save memory)
-     transform_out <- fsApply(fs, .standardize_flowFrame, channel = yChannel, data = FALSE)
+     transform_out <- fsApply(fs, .standardize_flowFrame, channel = channels, data = FALSE)
    }
    
    
