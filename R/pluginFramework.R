@@ -166,7 +166,7 @@ registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
   
   if(length(current) == 0)
     found <- FALSE
-  else if(grepl(toAdd, current))
+  else if(any(grepl(toAdd, current)))
     found <- TRUE
   else
     found <- FALSE
