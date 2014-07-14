@@ -517,7 +517,7 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   dims <- dims(x)
-  names(dims) <- c("xChannel", "yChannel")
+  
   my_gh <- y[[1]] 
   gs_nodes <- basename(getChildren(my_gh, parent))
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
@@ -622,12 +622,12 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           quadPatterns <- c(".+-.+\\+$", ".+\\+.+\\+$", ".+\\+.+-$", ".+-.+-$")
           
           # check if popname is give as Y[*]X[*]
-          YX_pattern <- paste0(dims["yChannel"], ".+", dims["xChannel"], ".+")
-          XY_pattern <- paste0(dims["xChannel"], ".+", dims["yChannel"], ".+")
+          YX_pattern <- paste0(dims[2], ".+", dims[1], ".+")
+          XY_pattern <- paste0(dims[1], ".+", dims[2], ".+")
           
           # do the flipping if YX
           if (grepl(YX_pattern, popName)) {
-            pos <- regexpr(dims["xChannel"], popName)
+            pos <- regexpr(dims[1], popName)
             xterm <- substring(popName, pos, nchar(popName))
             yterm <- substring(popName, 1, pos - 1)
             toMatch <- paste(xterm, yterm, sep = "")

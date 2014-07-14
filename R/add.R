@@ -1,13 +1,59 @@
 #' @export 
 #' @rdname add
 setMethod("add",
-    signature=c("GatingHierarchy", "logicalFilterResult"),
-    definition=function(wf, action,... )
+    signature=c("GatingHierarchy", "multipleFilterResult"),
+    definition=function(wf, action, name = NULL, ...)
     {
-      g <- filterDetails(action)[[1]][["filter"]]
-      ind <- action@subSet
-      .addGate_no_data(wf,filterObject(g), indices = ind, ...)
+      popNames <- names(action)
+      if(!is.null(name)){
+        if(length(name) != length(popNames))
+          stop("name must be of the same length as the number of populations in multipleFilterResult!")
+      }
+      for(i in seq_along(popNames)){
+        
+        thisName <- name[i]
+        thisPop <- popNames[i]
+        if(is.null(thisName)){
+          pop <- thisPop
+        }else{
+          pop <- thisName
+        }
+        add(wf, action[[pop]], name = pop, ...)
+      }
     })
+
+
+
+#' @export 
+#' @rdname add
+setMethod("add",
+    signature=c("GatingHierarchy", "logicalFilterResult"),
+    definition=function(wf, action, parent, name, recompute, ... )
+    {
+      
+      #skip gating by ignoring recompute      
+      nodeID <- flowWorkspace:::.addGate(wf, filterObject(action), name = name, parent = parent, recompute = FALSE, ...)
+      
+      #fetch the indices from the fitler result
+      ind <- action@subSet
+      
+      #convert to global one by combining it with parent indice
+      pInd <- getIndices(wf, parent)
+      pInd[which(pInd)] <- ind
+      #added it to gating tree
+      sn <- sampleNames(wf)
+      ptr <- wf@pointer
+      .Call("R_setIndices", ptr, sn, nodeID-1, pInd, PACKAGE = "flowWorkspace")
+    })
+
+#' construct logicalGate obj
+setMethod("filterObject",signature=c("logicalFilterResult"),function(x){
+      
+      list(type=as.integer(6)
+          , negated = FALSE
+          ,filterId = "dummy_logicalGate") 
+    })
+      
 
 #' the class that carries event indices as well
 
@@ -77,12 +123,6 @@ setMethod("add",
     })
 
 
-#setMethod("filterObject",signature=c("ocRectRefGate"),function(x){
-#
-#    rg_res <- selectMethod("filterObject", signature = c("rectangleGate"))(x)
-#    bg_res <- selectMethod("filterObject", signature = c("booleanFilter"))(x)
-#    list(rect = rg_res, bool = bg_res, filterId = rg_res[["filterId"]])
-#    })
 
 
 #' fast version of add gates to gatingset (bypassing some R checks)

@@ -104,7 +104,7 @@
 #' @param min,max the range input for constructing the \code{rectangleGate}
 #' @param ... other arguments (not used.)
 #' @return a \code{filter} object
-.boundary <- function(fr, pp_res = NULL, xChannel = NULL, yChannel, min = NULL, max = NULL, ...) {
+.boundary <- function(fr, pp_res = NULL, channels, min = NULL, max = NULL, ...) {
   num_channels <- length(channels)
   
   if(!num_channels %in%1:2)
@@ -143,16 +143,15 @@
 #' @inheritParams .prior_flowClust
 #' 
 #' @return a \code{filter} object
-.flowClust.1d <- function(fr, pp_res, xChannel = NA, yChannel, positive = TRUE,...) {
+.flowClust.1d <- function(fr, pp_res, channels, positive = TRUE,...) {
   
-  
+  if(length(channels) != 1)
+    stop("invalid number of channels for flowClust.1d!")
   prior <- pp_res
   
-#  sname <- sampleNames(fs)
-#  fr <- fs[[sname]]
   priorList <- list()
   if(!is.null(prior))
-    prior <- prior[[yChannel]]
+    prior <- prior[[channels]]
   
   args <- list(...)
   # parse arguments for flowClust
@@ -221,22 +220,17 @@
   }
   
   
-  if (is.na(xChannel)) {
     # 1d gate
   gate <- do.call("flowClust.1d"
             ,args = c(list(fr = fr
-                        ,params = yChannel
+                        ,params = channels
                         ,prior = prior
                         , positive = positive
                         )
                       ,args
                     )
            )
-#  .gateToFilterResult(fr, yChannel, gate, positive)
-  gate
-  } else {
-    stop("flowClust1d does not support 2d gate!")
-  }
+  
 }
 #' wrapper for cytokine
 #' 
@@ -509,8 +503,8 @@
      if (!missing(max)) {
        max_values <- as.numeric(max)
      }                          
-     
-     if (!is.na(xChannel)) {
+#     browser()
+     if (!is.null(xChannel)) {
        prior_list[[xChannel]] <- prior_flowClust(flow_set = prior_data,
            channels = xChannel, K = K,
            min = min_values, max = max_values, ...)
