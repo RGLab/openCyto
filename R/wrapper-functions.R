@@ -14,7 +14,7 @@
 #' @param ... other arguments to be passed to wrapper function
 #' 
 #' @return a \code{list} of \code{filter}s
-.gating_wrapper <- function(fs, pp_res, gFunc, popAlias, channels, ...){
+.gating_adaptor <- function(fs, pp_res, gFunc, popAlias, channels, ...){
     require(openCyto)  #since it is going to be invoked by MPI, better load it
     #coercing
     sn <- sampleNames(fs)
@@ -139,7 +139,7 @@
 #' @param xChannel must be \code{NA}.
 #' @param yChannel the dimension used for gating
 #'  
-#' @inheritParams .gating_wrapper 
+#' @inheritParams .gating_adaptor 
 #' @inheritParams .prior_flowClust
 #' 
 #' @return a \code{filter} object
