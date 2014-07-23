@@ -609,7 +609,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE,
                          filterId = "", ...) {
   x <- exprs(fr[, stain])
-  cutpoint <- quantile(x, probs = probs)
+  cutpoint <- quantile(x, probs = probs, ...)
 
   if (positive) {
     gate_coordinates <- list(c(cutpoint, Inf))

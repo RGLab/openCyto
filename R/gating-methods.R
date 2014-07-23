@@ -69,22 +69,40 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
     }
     
   }
+  
+  nodePaths <- names(sapply(getNodes(gt),alias))
     #validity check for stop.at argument
   if(!is.null(stop.at)){
-    if(is.na(match(stop.at,sapply(getNodes(gt),alias))))
+    #escape meta character
+    stop.pat <- gsub("\\+", "\\\\+", stop.at)
+    stop.pat <- paste0(stop.pat, "$")
+    if(substr(stop.at, 1,1) != "/")
+      stop.pat <- paste0("/", stop.pat) #prepend path delimiter to avoid partial node name matching
+    
+    matchInd <- grep(stop.pat, nodePaths)
+    if(length(matchInd) == 0)
       stop("Can't find stop point: ", stop.at)
+    else if(length(matchInd) > 1)
+      stop("ambiguous stop point: ", stop.at)
   }
   # gate each node 
   gt_nodes <- tsort(gt)[-1]#by the topological order
 
   #try to skip some nodes to save time
   if(start != "root"){
-    startID <- match(start, basename(gt_nodes))
-    if(length(startID) > 1)
-      stop("multiple nodes matched to 'start': ", start)
-    if(length(startID) == 0)
-      stop("No node matched to 'start': ", start)
-    gt_nodes <- gt_nodes[startID:length(gt_nodes)]
+    #escape meta character
+    start.pat <- gsub("\\+", "\\\\+", start)
+    start.pat <- paste0(start.pat, "$") #treat it as terminal node
+    if(substr(start, 1,1) != "/")
+      start.pat <- paste0("/", start.pat) #prepend path delimiter to avoid partial node name matching
+    matchInd <- grep(start.pat, nodePaths)
+    
+    if(length(matchInd) == 0)
+      stop("Can't find start point: ", start)
+    else if(length(matchInd) > 1)
+      stop("ambiguous start point: ", start)
+    
+    gt_nodes <- gt_nodes[matchInd:length(gt_nodes)]
   }  
     
                    
@@ -92,23 +110,22 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
     
     # get parent node to gate
     gt_node_pop <- getNodes(gt, node)
-    if(!is.null(stop.at)){
+    parent <- getParent(gt, node)
     
-      if(alias(gt_node_pop) == stop.at)
+    if(!is.null(stop.at)){
+      nodeName <- alias(gt_node_pop)
+      nodePath <- file.path(parent, nodeName)
+      matchInd <- grep(stop.pat, nodePath)
+      if(length(matchInd) == 1)
       {
         message("stop at: ",stop.at)
         break
       }
-        
-    }
-    
-    parent <- getParent(gt, node)
-    
+      
+    }    
     # extract gate method from one edge(since multiple edge to the same node is
     # redudant)
     this_gate <- getGate(gt, parent, node)
-    
-    
     
     #get preprocessing method
     this_ppm <- ppMethod(gt, parent, node)
