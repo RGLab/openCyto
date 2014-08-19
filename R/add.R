@@ -76,7 +76,7 @@ setMethod("add",
     definition=function(wf, action, recompute, ... )
     {
       #unpack the bit vector
-      indices <- ncdfFlow:::.getBitStatus(action@ind)
+      indices <- ncdfFlow:::toLogical(action@ind)
       #ignore the recompute flag and force it to be skipped
       nodeID <- flowWorkspace:::.addGate(wf, filterObject(action), recompute = FALSE, ...)
       sn <- sampleNames(wf)

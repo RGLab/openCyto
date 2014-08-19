@@ -563,7 +563,7 @@
   #pack into bit vector to ease the traffic
   
   fres <- as(gate, "ocRectangleGate")
-  fres@ind <- ncdfFlow:::.makeBitVec(length(ind), ind) 
+  fres@ind <- ncdfFlow:::toBitVec(ind) 
   fres  
 }
 
