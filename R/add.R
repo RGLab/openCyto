@@ -23,7 +23,7 @@ setMethod("add",
     })
 
 
-
+#' @param parent \code{character} parent node path (full or partial)
 #' @export 
 #' @rdname add
 setMethod("add",
