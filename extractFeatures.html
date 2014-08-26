@@ -278,7 +278,7 @@ pd &lt;- pData(gslist[[1]])
 
 <p>If you want to regenerate the automated gating results, you can do so starting from the template. Load the gating set with the already gated data, delete all nodes, and re-run the gating. Like so:</p>
 
-<pre><code class="r">Rm(&quot;boundary&quot;,gslist$auto[[1]])  #The boundary filter is the first gate in the GatingSet. We remove it and thus all downstream gates.
+<pre><code class="r">Rm(&quot;boundary&quot;,gslist$auto)  #The boundary filter is the first gate in the GatingSet. We remove it and thus all downstream gates.
 
 #Next load the template
 hvtn080_ics&lt;-gatingTemplate(&quot;gt_080.csv&quot;) #Load the template file. Download it from the link above and put it in the current directory.
