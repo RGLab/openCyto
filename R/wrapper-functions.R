@@ -19,6 +19,25 @@
     #coercing
     sn <- sampleNames(fs)
     fr <- as(fs,"flowFrame")
+    total <- nrow(fr)
+    #parse the subSample argument from the gating function argument list
+    args <- list(...)
+    subSample <- args[["subSample"]]
+    args[["subSample"]] <- NULL #prevent it from passing down to the gFunc
+    if(!is.null(subSample)){
+      if(is.numeric(subSample)){
+        if(subSample > 1){
+          samp.ind <- sample.int(total, subSample)
+          fr <- fr[samp.ind]
+        }else if(subSample >0 ){
+          samp.ind <- sample.int(total, subSample * total)
+          fr <- fr[samp.ind]
+        }else
+          stop("invalid 'subSample' argument: ", subSample)
+      }else
+        stop("invalid 'subSample' argument: ", subSample)
+    }
+    
     openCyto.options <- getOption("openCyto")
     minEvents <- openCyto.options[["gating"]][["minEvents"]]
     
@@ -60,8 +79,23 @@
       if(!.isRegistered(gFunc)){
         stop(sprintf("Can't gate using unregistered method %s",gFunc))
       }
-      thisCall <- substitute(f(fr = fr, pp_res = pp_res, channels = channels, ...),list(f=as.symbol(gFunc)))
-      filterRes <- try(eval(thisCall), silent = TRUE)  
+#      browser()
+      thisCall <- substitute(f(fr = fr
+                                , pp_res = pp_res
+                                , channels = channels
+                              )
+                              ,list(f = as.symbol(gFunc))
+                            )
+      filterRes <- try(do.call(gFunc, c(list(fr = fr
+                            , pp_res = pp_res
+                            , channels = channels
+                            )
+                        , args
+                        )
+                      )              
+          , silent = TRUE
+          )
+        
     }
       
     

@@ -90,7 +90,9 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
     thisCall[["groupBy"]] <- groupBy
     thisCall[["isCollapse"]] <- isCollapse
     
-    
+    #we don't want to deal with subSampling in preprocessing
+    #since it will increase the IO overhead in order to determine 
+    #total number of events
     if(!(all(is.na(args)))){
       for (arg in names(args)) {
         thisCall[[arg]] <- args[[arg]]
