@@ -175,7 +175,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
 #' 1. parse the gating parameters
 #' 2. group the data when applicable 
 #' 3. apply parallelism when applicable  
-#' 4. pass the flow data(maybe grouped) and preprocessing results to the adaptor function ".gating_wrapper"
+#' 4. pass the flow data(maybe grouped) and preprocessing results to the adaptor function ".gating_adaptor"
 #' 5. collect the gates and add to GatingSet object
 #' 
 #' 
@@ -206,9 +206,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
   gm <- paste0(".", names(x))
   
   dims <- dims(x)
-  xChannel <- unname(dims["xChannel"])
-  yChannel <- unname(dims["yChannel"])
-  is_1d_gate <- any(is.na(dims))
+  
+  is_1d_gate <- length(dims) == 1
   
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
@@ -228,15 +227,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     parallel_type <- match.arg(parallel_type)
     ## get the accurate channel name by matching to the fr
     frm <- parent_data[[1, use.exprs = FALSE]]
-    if (!is.na(xChannel)) {
-      xParam <- getChannelMarker(frm, xChannel)
-      xChannel <- as.character(xParam$name)
-    }
-    yParam <- getChannelMarker(frm, yChannel)
-    yChannel <- as.character(yParam$name)
-
-    channels <- c(xChannel, yChannel)
-    parent_data <- parent_data[, channels[!is.na(channels)]] #it is more efficient to only pass the channels of interest
+    channels <- sapply(dims, function(channel)as.character(getChannelMarker(frm, channel)$name))
+    
+    parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
     # Splits the flow set into a list.
     # By default, each element in the list is a flowSet containg one flow frame,
     # corresponding to the invidual sample names.
@@ -245,8 +238,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     # For example, "PTID:VISITNO"
     # when split is numeric, do the grouping by every N samples
     groupBy <- groupBy(x)
-    if (groupBy != "" && x@collapse) { #when x@collapse == FALSE,then ignore groupBy argument since grouping is only used for collapsed gating
-      
+    isCollapse <- isCollapse(x)
+    if (groupBy != "" && isCollapse) {
+      #when x@collapse == FALSE,then ignore groupBy argument since grouping is only used for collapsed gating
       split_by <- as.character(groupBy)
       split_by_num <- as.numeric(split_by)
       #split by every N samples
@@ -276,12 +270,11 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
       pp_res <- pp_res[names(fslist)] #reorder pp_res to make sure it is consistent with fslist
     # construct method call
     thisCall <- substitute(f1(fslist,pp_res))
-    thisCall[["FUN"]] <- as.symbol(".gating_wrapper")
+    thisCall[["FUN"]] <- as.symbol(".gating_adaptor")
     args[["gFunc"]] <- gm  #set gating method
     args[["popAlias"]] <- popAlias  
-    args[["channels"]] <- channels #to deprecate x,y channel
-    args[["xChannel"]] <- xChannel  #set x,y channel
-    args[["yChannel"]] <- yChannel
+    args[["channels"]] <- channels 
+    
     
     if (is_1d_gate) {
       if (grepl("-$", popName)) {
@@ -542,8 +535,7 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   dims <- dims(x)
-  xChannel <- dims[["xChannel"]]
-  yChannel <- dims[["yChannel"]]
+  
   my_gh <- y[[1]] 
   gs_nodes <- basename(getChildren(my_gh, parent))
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
@@ -648,12 +640,12 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           quadPatterns <- c(".+-.+\\+$", ".+\\+.+\\+$", ".+\\+.+-$", ".+-.+-$")
           
           # check if popname is give as Y[*]X[*]
-          YX_pattern <- paste0(dims["yChannel"], ".+", dims["xChannel"], ".+")
-          XY_pattern <- paste0(dims["xChannel"], ".+", dims["yChannel"], ".+")
+          YX_pattern <- paste0(dims[2], ".+", dims[1], ".+")
+          XY_pattern <- paste0(dims[1], ".+", dims[2], ".+")
           
           # do the flipping if YX
           if (grepl(YX_pattern, popName)) {
-            pos <- regexpr(dims["xChannel"], popName)
+            pos <- regexpr(dims[1], popName)
             xterm <- substring(popName, pos, nchar(popName))
             yterm <- substring(popName, 1, pos - 1)
             toMatch <- paste(xterm, yterm, sep = "")
