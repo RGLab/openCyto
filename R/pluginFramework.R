@@ -1,7 +1,7 @@
 #'The environment holding the names of registered methods
 .openCyto_plugin_method_lookup <- new.env()
 .openCyto_plugin_method_lookup[["registered_methods"]] <- list(gating = character(0), preprocessing = character(0))
-.DEFAULT_GT <- c("quadrantGate", "quantileGate","rangeGate","flowClust.2d","mindensity","cytokine","flowClust.1d","boundary","singletGate", "tailgate", "quadGate.tmix", "quadGate.seq")
+.DEFAULT_GT <- c("quantileGate","rangeGate","flowClust.2d","mindensity","cytokine","flowClust.1d","boundary","singletGate", "tailgate", "quadGate.tmix", "quadGate.seq")
 .DEFAULT_PP <- c("prior_flowClust", "warpSet", "standardize_flowset")
 #'Print a list of the registered gating methods
 #'@return Does not return anything. Prints a list of the available gating methods.
@@ -46,17 +46,10 @@ listgtMethods <- function(){
   # wrapper function or the actual gating function to handle its 
   # own formals
   if(type == "gating"){
-    expected <- c("fr","pp_res","yChannel")
-#    posn <- sapply(expected,function(x)which(names(frmls)%in%x))
-#    frm1 <- c(fr = 1, pp_res = 2, yChannel = 4)
-#    frm2 <- c(fr = 1, pp_res = 2, yChannel = 3)
-#    isMatched <- isTRUE(all.equal(posn, frm1))|isTRUE(all.equal(posn, frm2))
+    expected <- c("fr","pp_res","channels")
   }else{
     
-    expected <- c("fs","gs", "gm", "xChannel", "yChannel", "groupBy", "isCollapse")
-#    posn <- sapply(expected,function(x)which(names(frmls)%in%x))
-#    frm1 <- c(fs = 1, gs = 2, gm = 3, xChannel = 4, yChannel = 5)
-#    isMatched <- isTRUE(all.equal(posn, frm1))
+    expected <- c("fs","gs", "gm", "channels", "groupBy", "isCollapse")
   }
   isMatched <- all(expected %in% names(frmls))
   if(!isMatched)
@@ -65,15 +58,6 @@ listgtMethods <- function(){
     message("function(", paste(expected, collapse = ", "), ", ...)")
     return(FALSE)
   }
-#  else{
-#    if(type == "gating")
-#      if(any(names(frmls)%in%"xChannel")){
-#        if(which(names(frmls)%in%"xChannel")!=3){
-#          message("Formals of function don't match expected template")
-#          return(FALSE)
-#        }
-#      }
-#  }
   return(TRUE)
 }
 
@@ -182,7 +166,7 @@ registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
   
   if(length(current) == 0)
     found <- FALSE
-  else if(grepl(toAdd, current))
+  else if(any(grepl(toAdd, current)))
     found <- TRUE
   else
     found <- FALSE

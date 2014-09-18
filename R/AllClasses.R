@@ -292,8 +292,12 @@ setClass("gtSubsets", contains = "gtPopulation")
     paired_args <- as.list(as.list(paired_args)[[1]])[-1]
     names(paired_args) <- names(paired_args)
   } else {
-    paired_args <- as.symbol(txt)
-    paired_args <- list(paired_args)
+    if(nchar(txt) >0){
+      paired_args <- as.symbol(txt)
+      paired_args <- list(paired_args)  
+    }else
+      stop("argument is empty!")
+    
   }
   
   paired_args
@@ -420,9 +424,10 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name = "defa
       stop("Invalid `collapseDataForGating` flag!")
     
     cur_groupBy <- thisRow[, groupBy][[1]]
+    cur_method_name_pattern <- paste0("^", cur_method , "$")
     # do not parse args for refGate-like gate since they might break the current
     # parse due to the +/- | &,! symbols
-    if (any(grepl(cur_method,  c("boolGate", "polyfunctions", "refGate", "dummy_gate"), ignore.case = TRUE))) {
+    if (any(grepl(cur_method_name_pattern,  c("boolGate", "polyfunctions", "refGate", "dummy_gate"), ignore.case = TRUE))) {
       split_args <- FALSE
     } else {
       split_args <- TRUE
@@ -438,17 +443,17 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name = "defa
                 , groupBy = cur_groupBy
               )
     # specialize gtMethod as needed
-    if (grepl(names(gm) , "boolGate", ignore.case = TRUE)) {
+    if (grepl(cur_method_name_pattern , "boolGate", ignore.case = TRUE)) {
       gm <- as(gm, "boolMethod")
-    } else if (grepl(names(gm) , "polyFunctions", ignore.case = TRUE)) {
+    } else if (grepl(cur_method_name_pattern , "polyFunctions", ignore.case = TRUE)) {
       gm <- as(gm, "polyFunctions")
-    } else if (grepl(names(gm) , "refGate", ignore.case = TRUE)) {
+    } else if (grepl(cur_method_name_pattern , "refGate", ignore.case = TRUE)) {
       gm <- as(gm, "refGate")
       if(nchar(cur_dims) == 0){
         stop("No dimensions defined for refGate!")
       }
     }
-    if (grepl(names(gm) , "dummy_gate", ignore.case = TRUE)) 
+    if (grepl(cur_method_name_pattern , "dummy_gate", ignore.case = TRUE)) 
       gm <- as(gm, "dummyMethod")
     
     #preprocessing object
@@ -477,6 +482,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name = "defa
     #add preprcessing method to the edge
     if(nchar(cur_pp_Method) > 0)
       edgeData(g_updated, parent, curNodePath, "ppMethod") <- ppm
+    
     ##########################################
     # refGate-like methods need extra parsing
     ##########################################
