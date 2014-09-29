@@ -194,13 +194,13 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
   
   require("parallel")
 #  browser()
-  args <- parameters(x)
+  gFunc_args <- parameters(x)
 
   # HOTFIX: This resolve an error when args is a named list with name NA and object NA.
   # The resulting error occurs down below and is:
   # Error in thisCall[[arg]] <- args[[arg]] : subscript out of bounds
-  if (!is.null(names(args))) {
-    args <- args[!is.na(names(args))]
+  if (!is.null(names(gFunc_args))) {
+    gFunc_args <- gFunc_args[!is.na(names(gFunc_args))]
   }
     
   gm <- paste0(".", names(x))
@@ -227,7 +227,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     parallel_type <- match.arg(parallel_type)
     ## get the accurate channel name by matching to the fr
     frm <- parent_data[[1, use.exprs = FALSE]]
-    channels <- sapply(dims, function(channel)as.character(getChannelMarker(frm, channel)$name))
+    channels <-  unname(sapply(dims, function(channel)as.character(getChannelMarker(frm, channel)$name)))
     
     parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
     # Splits the flow set into a list.
@@ -271,6 +271,8 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     # construct method call
     thisCall <- substitute(f1(fslist,pp_res))
     thisCall[["FUN"]] <- as.symbol(".gating_adaptor")
+    # args to be passed to gating_adaptor
+    args <- list()
     args[["gFunc"]] <- gm  #set gating method
     args[["popAlias"]] <- popAlias  
     args[["channels"]] <- channels 
@@ -285,9 +287,9 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
         stop("Invalid population name! Name should end with '+' or '-' symbol.")
       }
       
-      args[["positive"]] <- positive
+      gFunc_args[["positive"]] <- positive
     }
-
+    args[["gFunc_args"]] <- gFunc_args
     
     thisCall[["MoreArgs"]] <- args
     
