@@ -421,11 +421,12 @@
 .quadGate.tmix <- function(fr, pp_res, channels, ...) {
   if(length(channels) != 2)
     stop("invalid number of channels for quadGate.tmix!")
-  xChannel <- channels[1]
-  yChannel <- channels[2]
-  quadGate.tmix(fr, channels, ...)
+    quadGate.tmix(fr, channels, ...)
 }
 
+.quadGate.seq <- function(fr, pp_res, channels, ...){
+  quadGate.seq(fr, channels, ...)
+}
 ############################
 # preprocessing wrappers
 #########################
@@ -607,4 +608,6 @@
    
    transform_out
  }
+ 
+ 
  
