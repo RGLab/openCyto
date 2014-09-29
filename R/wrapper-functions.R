@@ -11,19 +11,18 @@
 #' @param pp_res preprocessing result produced by the \code{preprocessing} method
 #' @param gFunc \code{character} function name of the wrapper function to be invoked
 #' @param popAlias \code{character} the population names that are used to determine how many gates to be expected from the gating function 
-#' @param ... other arguments to be passed to wrapper function
+#' @param gFunc_args arguments to be passed to wrapper function('gFunc')
 #' 
 #' @return a \code{list} of \code{filter}s
-.gating_adaptor <- function(fs, pp_res, gFunc, popAlias, channels, ...){
+.gating_adaptor <- function(fs, pp_res, gFunc, popAlias, channels, gFunc_args){
     require(openCyto)  #since it is going to be invoked by MPI, better load it
     #coercing
     sn <- sampleNames(fs)
     fr <- as(fs,"flowFrame")
     total <- nrow(fr)
     #parse the subSample argument from the gating function argument list
-    args <- list(...)
-    subSample <- args[["subSample"]]
-    args[["subSample"]] <- NULL #prevent it from passing down to the gFunc
+    subSample <- gFunc_args[["subSample"]]
+    gFunc_args[["subSample"]] <- NULL #prevent it from passing down to the gFunc
     if(!is.null(subSample)){
       if(is.numeric(subSample)){
         if(subSample > 1){
@@ -90,7 +89,7 @@
                             , pp_res = pp_res
                             , channels = channels
                             )
-                        , args
+                        , gFunc_args
                         )
                       )              
           , silent = TRUE
@@ -422,11 +421,12 @@
 .quadGate.tmix <- function(fr, pp_res, channels, ...) {
   if(length(channels) != 2)
     stop("invalid number of channels for quadGate.tmix!")
-  xChannel <- channels[1]
-  yChannel <- channels[2]
-  quadGate.tmix(fr, channels, ...)
+    quadGate.tmix(fr, channels, ...)
 }
 
+.quadGate.seq <- function(fr, pp_res, channels, ...){
+  quadGate.seq(fr, channels, ...)
+}
 ############################
 # preprocessing wrappers
 #########################
@@ -608,4 +608,6 @@
    
    transform_out
  }
+ 
+ 
  
