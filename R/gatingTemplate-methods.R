@@ -134,6 +134,7 @@ setMethod("ppMethod", signature = c("gatingTemplate", "character"),
 #' 
 #' show method for gatingTemplate
 #' 
+#' @param object \code{gatingTemplate}
 #' @aliases 
 #' show,gatingTemplate-method
 #' @export 

@@ -1,5 +1,6 @@
 #' show method for gtMethod
 #' 
+#' @param object \code{gtMethod}
 #' show method for gtMethod
 #' @export 
 setMethod("show", signature = c("gtMethod"), definition = function(object) {
@@ -15,6 +16,7 @@ setMethod("show", signature = c("gtMethod"), definition = function(object) {
 #' show method for boolMethod
 #' 
 #' show method for boolMethod
+#' @param object \code{boolMethod}
 #' @export 
 setMethod("show", signature = c("boolMethod"), definition = function(object) {
   cat(paste(class(object), "(", parameters(object), ")", sep = ""))
