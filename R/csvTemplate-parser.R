@@ -148,6 +148,18 @@ templateGen <- function(gh){
       )
   ]  
   
+  #coerce most columns to character 
+  #because data.table tends to read the empty columns as logical NAs which causes trouble in parsing later on
+  
+  for(col in colnames(dt))
+  {
+    if(col != "collapseDataForGating")
+    {
+      newCol <- dt[[col]]
+      dt[, col := as.character(newCol), with = FALSE]
+    }
+  }
+  
   new_dt <- dt[0, ]
   
   for (i in 1:nrow(dt)) {
