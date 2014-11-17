@@ -188,6 +188,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
 #'  @param  parallel_type \code{character} specifying the parallel type. The valid options are "none", "multicore", "cluster".
 #'  @param  cl \code{cluster} object passed to \code{parallel} package
 #'  @import flowWorkspace
+#'  @importFrom flowCore getChannelMarker
 .gating_gtMethod <- function(x, y, gtPop, parent, pp_res 
             , mc.cores = 1, parallel_type = c("none", "multicore", "cluster"), cl = NULL
             ,  ...) {

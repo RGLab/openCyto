@@ -1,5 +1,6 @@
 #' show method for fcFilter
 #' 
+#' @param object \code{fcFilter}
 #' show method for fcFilter
 #' @export 
 setMethod("show", sig = c("fcFilter"),
