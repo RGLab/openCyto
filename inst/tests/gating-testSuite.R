@@ -12,7 +12,7 @@ test_that("tcell", {
       
       gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore")
       
-      thisRes <- getPopStats(gs, path = "full")
+      thisRes <- getPopStats(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_tcell"]]
       expect_equal(thisRes, expectRes, tol = 0.04)
        
@@ -29,7 +29,7 @@ test_that("ICS", {
       Rm("s", gs)
       gating(gt, gs, mc.core = 2, parallel_type = "multicore")
       
-      thisRes <- getPopStats(gs, path = "full")
+      thisRes <- getPopStats(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_ICS"]]
       expect_equal(thisRes, expectRes, tol = 0.05)
       
@@ -45,7 +45,7 @@ test_that("treg", {
       Rm("boundary", gs)
       gating(gt, gs, mc.core = 3, parallel_type = "multicore")
       
-      thisRes <- getPopStats(gs, path = "full")
+      thisRes <- getPopStats(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_treg"]]
       expect_equal(thisRes, expectRes, tol = 0.25)
       
@@ -61,7 +61,7 @@ test_that("bcell", {
       Rm("boundary", gs)
       gating(gt, gs, mc.core = 3, parallel_type = "multicore")
       
-      thisRes <- getPopStats(gs, path = "full")
+      thisRes <- getPopStats(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_bcell"]]
       expect_equal(thisRes, expectRes, tol = 0.08)
       
