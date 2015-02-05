@@ -1,37 +1,3 @@
-#' generate a partially complete csv template from the existing gating hierarchy 
-#' 
-#' To ease the process of replicating the existing (usually a manual one) gating schemes, 
-#' this function populate an empty gating template with the 'alias', 'pop', 'parent' and 'dims' 
-#' columns that exacted from an \code{GatingHierarchy}, and leave the other columns (e.g. `gating_method`) blank.
-#' So users can make changes to that template instead of writing from scratch.
-#' 
-#' @param gh a \code{GatingHierarchy} likely parsed from a xml workspace
-#' @return a gating template in \code{data.frame} format that requires further edition after output to csv 
-#' @export 
-templateGen <- function(gh){
-  nodes <- getNodes(gh, order = "tsort")
-  ldply(nodes[-1], function(thisNode){
-        thisGate <- getGate(gh, thisNode)
-        dims <- paste(as.vector(parameters(thisGate)), collapse = ",")
-        parent <- getParent(gh, thisNode)
-        alias <- basename(thisNode)
-        pop <- alias
-        c(alias = alias
-            , pop = pop
-            , parent = parent
-            , dims = dims
-            , gating_method = NA
-            , gating_args = NA
-            , collapseDataForGating = NA
-            , groupBy = NA
-            , preprocessing_method = NA
-            , preprocessing_args = NA
-        )
-      })
-  
-  
-}
-
 #' prepend all ancester nodes to construct the full path for the given node 
 #' 
 #' @param ref_node \code{character} the node to work with
