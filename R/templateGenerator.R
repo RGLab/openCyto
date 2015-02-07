@@ -12,11 +12,13 @@ templateGen <- function(gs, ...){
   nodes <- getNodes(gs, order = "tsort", path = "auto")[-1]
   gh <- gs[[1]]
   mergedNodes <- flowWorkspace:::.mergeGates(gh, nodes, bool = FALSE, merge = TRUE, projections = list())
+  names(mergedNodes) <- NULL
   ldply(mergedNodes, function(nodes){
         S3Class(nodes) <- ifelse(is.list(nodes), "multiPopulations", "singlePopulation")
 #        browser()
         getGatingMethod(nodes, gs, ...)
   })
+
   
 }
 
@@ -39,16 +41,18 @@ getGatingMethod.singlePopulation <- function(nodes, gs, ...){
   
   
   res <- getGatingMethod(thisGate, fr, ...)
-  
-  c(alias = alias
-      , pop = pop
-      , parent = parent
-      , res
-      , collapseDataForGating = NA
-      , groupBy = NA
-      , preprocessing_method = NA
-      , preprocessing_args = NA
-  )  
+#  browser()
+  res <- c(alias = alias
+          , pop = pop
+          , parent = parent
+          , res
+          , collapseDataForGating = NA
+          , groupBy = NA
+          , preprocessing_method = NA
+          , preprocessing_args = NA
+          )
+          
+  as.data.frame(t(res))  
 }
 
 #' multiple populations that shares the same parent and projections
@@ -95,12 +99,12 @@ getGatingMethod.multiPopulations <- function(nodes, gs, ...){
       #if both have valid cut points
       #then construct quad gate 
       if(all(!is.na(cut.points))){
-        browser()
+        
         #two 1d helper gates on either dim
         helper_gates <- ldply(dims, function(dim){
                     helper_g <- getGatingMethod.1d(gate = "dummy", data[, dim], cut.points[dim], ...)
                     
-                    alias <- pop <- paste(parent, dim, sep = "_")
+                    alias <- pop <- paste(dim, "gate", sep = "_")
                     c(alias = alias
                         , pop = pop
                         , parent = parent
@@ -113,36 +117,43 @@ getGatingMethod.multiPopulations <- function(nodes, gs, ...){
                   })
         #four reference gates based on 1d gating
         #determine the quadrant locations of the original pops by the means of each gate coord
-        gates.mu <- ldply(coord_orig, colMeans)
-        #get 4 corners
-        top.left <- c(min(coord[,1]), max(coord[,2]))
-        top.right <- c(max(coord[,1]), max(coord[,2]))
-        bottom.right <- c(max(coord[,1]), min(coord[,2]))
-        bottom.left <- c(min(coord[,1]), min(coord[,2]))
+        gates.mu <- lapply(coord_orig, colMeans)
+        names(gates.mu) <- children  
+        #get 4 corners (as order of -+,++,+-,--)
+        corners <- list(top.left = c(min(coord[,1]), max(coord[,2]))
+                        , top.right = c(max(coord[,1]), max(coord[,2]))
+                        , bottom.right = c(max(coord[,1]), min(coord[,2]))
+                        , bottom.left = c(min(coord[,1]), min(coord[,2]))
+                        )
         
+        # compute the distance from mu to corners 
         mat <- matrix(c(min(coord[,1]), max(coord[,2])
                         , max(coord[,1]), max(coord[,2])
                         , max(coord[,1]), min(coord[,2])
                         , min(coord[,1]), min(coord[,2])         
                         ), byrow = T, ncol = 2)
                     
-        apply(gates.mu, 1, function())                    
-        
-        #x-y+
-        which.min(gates.mu[,1])
-        gates.mu
-        
-        c(alias = alias
-            , pop = pop
-            , parent = parent
-            , res
-            , collapseDataForGating = NA
-            , groupBy = NA
-            , preprocessing_method = NA
-            , preprocessing_args = NA
-        )
-        
-        
+        pop_order <- sapply(gates.mu, function(mu){
+              which.min(sapply(corners,function(corner)dist(rbind(corner,mu))))
+            })
+        #reorder the children nodes by clock-wise (start from -+)
+        pops <- basename(children[pop_order])
+        refNodes <- file.path(parent,helper_gates[["alias"]])
+        #reference gating
+        ref_gates <- c(alias = paste(pops, collapse = ",")
+                      , pop = "A+/-B+/-"
+                      , parent = parent
+                      , dims = paste(dims, collapse = ",")
+                      , gating_method = "refGate"
+                      , gating_args = paste(refNodes, collapse = ":")
+                      , collapseDataForGating = NA
+                      , groupBy = NA
+                      , preprocessing_method = NA
+                      , preprocessing_args = NA
+                  )
+                  
+        res <- rbind(helper_gates, ref_gates)          
+        return(data.frame(res))
           
       }                  
                   
