@@ -14,33 +14,34 @@ templateGen <- function(gs, ...){
   mergedNodes <- flowWorkspace:::.mergeGates(gh, nodes, bool = FALSE, merge = TRUE, projections = list())
   names(mergedNodes) <- NULL
   ldply(mergedNodes, function(nodes){
-        S3Class(nodes) <- ifelse(is.list(nodes), "multiPopulations", "singlePopulation")
-#        browser()
-        getGatingMethod(nodes, gs, ...)
+         if(is.list(nodes))
+           getGatingMethod.multiPopulations(nodes, gs, ...)
+         else
+           singlePopulation.singlePopulation(as.character(nodes), gs, ...)
   })
 
   
 }
 
-getGatingMethod <- function(x, ...){
-  UseMethod("getGatingMethod")
-}
-
 #' single population
-getGatingMethod.singlePopulation <- function(nodes, gs, ...){
-  
-  thisNode <- as.character(nodes)
-  alias <- basename(thisNode)
+getGatingMethod.singlePopulation <- function(node, gs, ...){
+   
+  alias <- basename(node)
   pop <- alias
   gh <- gs[[1]]
-  parent <- getParent(gh, thisNode, path = "auto")
+  parent <- getParent(gh, node, path = "auto")
   
-  thisGate <- getGate(gh, thisNode)
-  dims <- parameters(thisGate)
-  fr <- getData(gs, parent)[[1,dims]]
+  thisGate <- getGate(gh, node)
   
-  
-  res <- getGatingMethod(thisGate, fr, ...)
+  gateType <- class(thisGate)
+  if(gateType == "rectangleGate")
+    res <- getGatingMethod.rectangleGates(node, gs, ...)
+  else if(gateType == "polygonGate")
+    res <- getGatingMethod.polygonGates(node, gs, ...)
+  else if(gateType == "ellipsoidGate")
+    res <- getGatingMethod.ellipsoidGates(node, gs, ...)
+  else
+    stop("unkown gate type: ", gateType)
 #  browser()
   res <- c(alias = alias
           , pop = pop
@@ -53,6 +54,163 @@ getGatingMethod.singlePopulation <- function(nodes, gs, ...){
           )
           
   as.data.frame(t(res))  
+}
+
+getGatingMethod.rectangleGates<- function(node, gs, ...){
+  cut.points <- sapply(sampleNames(gs), function(sn){
+                        thisGate <- getGate(gs[[sn]], node)
+                        dims <- parameters(thisGate)
+                        fr <- getData(gs, parent)[[sn,dims]]
+                        getGatingMethod.rectangleGate(thisGate, fr, ...)
+                      })
+ null.points <- sapply(cut.points, is.null)
+ sum(null.points)/length(cut.points) < 0.5 #less than 50% of null points, then use the majority to derive 1d gate
+  
+}
+#' derive gating method from a \code{rectangleGate}
+#' trying to downgrade to 1d gate when applicable
+getGatingMethod.rectangleGate <- function(gate, fr, overlap_tol = 0.95, ...){
+  
+  dims <- parameters(gate)
+  data <- exprs(fr)[, dims]
+  
+  gate_range <- rbind(gate@min,  gate@max)
+  data_range <- apply(data, 2, range)
+  
+  isFullDataRange <- sapply(dims, function(dim){
+        
+        d_r <- data_range[, dim]
+        g_r <- gate_range[, dim]
+        
+        #get overlap range
+        overlap_r <- c(max(d_r[1], g_r[1]), min(d_r[2], g_r[2]))
+        
+        diff(overlap_r)/diff(d_r) >= overlap_tol
+      })
+  cut.point <- NULL
+  if(sum(isFullDataRange) == 2)
+  {
+    warning("Can't derive 1d gating method because the gate coordinates cover the full range of both dimesions (a dummy gate)!")
+#    getGatingMethod.default(gate, fr)
+    
+  }else if(sum(isFullDataRange) == 0){
+#    getGatingMethod.default(gate, fr)
+  }else{
+    dims <- dims[!isFullDataRange] #keep one dimension
+    #check if either side of the gate reaches(or beyond) to the data boundary
+    gate_range <- gate_range[, dims]
+    data_range <- data_range[, dims]
+    if(gate_range[1] <= data_range[1] || gate_range[2] >= data_range[2]){
+      
+      cut.point <- ifelse(gate_range[1] <= data_range[1], gate_range[2], gate_range[1])
+      
+#      getGatingMethod.1d(gate, fr[, dims], cut.point,...)      
+      
+      
+    }else{
+      warning("Can't derive 1d gating method because neither edge of ", dims,  " from the gate is at data boundary!")
+#      getGatingMethod.default(gate, fr)
+    }
+    
+    
+  }
+  return(cut.point)
+}
+
+#' determine 1d gating method
+#' It checks the 1d density and uses 'mindensity' when cut point falls between two modes or 'tailgate' otherwise.
+getGatingMethod.1d <- function(gate, fr, cut.point, ...){
+  dims <- colnames(fr)
+  opt <- options("openCyto")
+  gatingMethodName <- opt[["openCyto"]][["default.methods"]][["gating1D"]]
+  
+  if(is.null(gatingMethodName)){#using default openCyto builin toolsets
+    
+    x <- exprs(fr)[,1]
+#    browser()
+    peaks <- sort(openCyto:::.find_peaks(x)[, "x"])
+    nPeaks <- length(peaks)
+    
+    if (nPeaks == 1) {
+      getGatingMethod.tailgate(dims, x, cut.point, peaks) 
+    }else{
+      
+      if(cut.point < peaks[1])
+        getGatingMethod.tailgate(dims, x, cut.point, peaks[1])
+      else if(cut.point > peaks[nPeaks])
+        getGatingMethod.tailgate(dims, x, cut.point, peaks[nPeaks])
+      else
+        getGatingMethod.mindensity(dims, fr, cut.point, ...)
+      
+    }
+    
+  }else{#user defined method
+    func <- paste('getGatingMethod',gatingMethodName, sep = ".")
+    func <- as.symbol(func)
+    thisCall <- substitute(f(gate,fr, mu, ...), list(f = func))
+    eval(thisCall)  
+  }
+  
+}
+
+getGatingMethod.tailgate<- function(dims, x, cut.point, peak, ...){
+  nEvents <- length(x)
+  if(cut.point < peak){
+    tol <- length(which(x < cut.point))/nEvents
+    side <- "left"
+  }else{
+    tol <- length(which(x > cut.point))/nEvents
+    side <- "right"
+  }
+  
+  gating_args <- paste0("side='", side, "',tol=", tol, ")")
+  c(dims = dims
+      , gating_method = "tailgate"
+      , gating_args = gating_args)
+}
+
+getGatingMethod.mindensity<- function(dims, fr, cut.point, gate_tol = 0.1, ...){
+  data_range <- apply(exprs(fr), 2, range)
+  lbound <- cut.point - diff(data_range) * gate_tol
+  rbound <- cut.point + diff(data_range) * gate_tol
+  gate_range <- paste0("gate_range=c(", lbound, ",", rbound, ")")
+  c(dims = dims
+      , gating_method = "mindensity"
+      , gating_args = gate_range)
+}
+
+getGatingMethod.polygonGate <- function(gate,fr, ...){
+  rg <- as(gate, "rectangleGate")
+  if(!is.null(rg))
+    getGatingMethod(rg, fr, ...)
+  else
+  {
+    dims <- parameters(gate)
+    if(all(grepl("FSC", dims, ignore.case = TRUE)) || all(grepl("SSC", dims, ignore.case = TRUE))){
+      #singlet gate
+      c(dims = paste(as.vector(dims), collapse = ",")
+          , gating_method = "singletGate"
+          , gating_args = NA)
+    }else{
+      browser()
+      getGatingMethod.default(gate, fr)
+    }
+    
+  }
+  
+}
+
+#' dispatch to the default 2D gating method
+getGatingMethod.ellipsoidGate <- function(gate,fr, K = 2,...){
+  
+  opt <- options("openCyto")
+  gatingMethodName <- opt[["openCyto"]][["default.methods"]][["gating2D"]]
+  if(is.null(gatingMethodName))
+    gatingMethodName <- "flowClust"
+  func <- paste('getGatingMethod',gatingMethodName, sep = ".")
+  func <- as.symbol(func)
+  thisCall <- substitute(f(gate,fr, mu, K, ...), list(f = func, mu = gate@mean, K = K))
+  eval(thisCall)
 }
 
 #' multiple populations that shares the same parent and projections
@@ -127,12 +285,6 @@ getGatingMethod.multiPopulations <- function(nodes, gs, ...){
                         )
         
         # compute the distance from mu to corners 
-        mat <- matrix(c(min(coord[,1]), max(coord[,2])
-                        , max(coord[,1]), max(coord[,2])
-                        , max(coord[,1]), min(coord[,2])
-                        , min(coord[,1]), min(coord[,2])         
-                        ), byrow = T, ncol = 2)
-                    
         pop_order <- sapply(gates.mu, function(mu){
               which.min(sapply(corners,function(corner)dist(rbind(corner,mu))))
             })
@@ -169,120 +321,13 @@ getGatingMethod.multiPopulations <- function(nodes, gs, ...){
   
 }
 #' default method leaves 'gating_method' column as NA
-getGatingMethod.default <- function(gate,fr){
+getGatingMethod.default <- function(gate,gs){
   dims <- parameters(gate)
   dims <- paste(as.vector(dims), collapse = ",")
   c(dims = dims, gating_method = NA, gating_args = NA)
 }
 
-#' derive gating method from a \code{rectangleGate}
-#' trying to downgrade to 1d gate when applicable
-getGatingMethod.rectangleGate <- function(gate,fr, overlap_tol = 0.95, ...){
-  dims <- parameters(gate)
-  data <- exprs(fr)[, dims]
-  
-  gate_range <- rbind(gate@min,  gate@max)
-  data_range <- apply(data, 2, range)
-  
-  isFullDataRange <- sapply(dims, function(dim){
-                                  
-                                  d_r <- data_range[, dim]
-                                  g_r <- gate_range[, dim]
-                                  
-                                  #get overlap range
-                                  overlap_r <- c(max(d_r[1], g_r[1]), min(d_r[2], g_r[2]))
-                                  
-                                  diff(overlap_r)/diff(d_r) >= overlap_tol
-                                })
-                            
-  if(sum(isFullDataRange) == 2)
-  {
-    warning("Can't derive 1d gating method because the gate coordinates cover the full range of both dimesions (a dummy gate)!")
-    getGatingMethod.default(gate, fr)
-  }else if(sum(isFullDataRange) == 0){
-    getGatingMethod.default(gate, fr)
-  }else{
-    dims <- dims[!isFullDataRange] #keep one dimension
-    #check if either side of the gate reaches(or beyond) to the data boundary
-    gate_range <- gate_range[, dims]
-    data_range <- data_range[, dims]
-    if(gate_range[1] <= data_range[1] || gate_range[2] >= data_range[2]){
-      
-      cut.point <- ifelse(gate_range[1] <= data_range[1], gate_range[2], gate_range[1])
-      
-      getGatingMethod.1d(gate, fr[, dims], cut.point,...)      
-      
-      
-    }else{
-      warning("Can't derive 1d gating method because neither edge of ", dims,  " from the gate is at data boundary!")
-      getGatingMethod.default(gate, fr)
-    }
-      
-    
-  }
-}
 
-#' determine 1d gating method
-#' It checks the 1d density and uses 'mindensity' when there are two modes or 'tailgate' otherwise.
-getGatingMethod.1d <- function(gate, fr, cut.point, ...){
-  dims <- colnames(fr)
-  opt <- options("openCyto")
-  gatingMethodName <- opt[["openCyto"]][["default.methods"]][["gating1D"]]
-  
-  if(is.null(gatingMethodName)){#using default openCyto builin toolsets
-    
-    x <- exprs(fr)[,1]
-#    browser()
-    peaks <- sort(openCyto:::.find_peaks(x)[, "x"])
-    nPeaks <- length(peaks)
-    
-    if (nPeaks == 1) {
-      getGatingMethod.tailgate(dims, x, cut.point, peaks) 
-    }else{
-      
-      if(cut.point < peaks[1])
-        getGatingMethod.tailgate(dims, x, cut.point, peaks[1])
-      else if(cut.point > peaks[nPeaks])
-        getGatingMethod.tailgate(dims, x, cut.point, peaks[nPeaks])
-      else
-        getGatingMethod.mindensity(dims, fr, cut.point, ...)
-      
-    }
-    
-  }else{#user defined method
-    func <- paste('getGatingMethod',gatingMethodName, sep = ".")
-    func <- as.symbol(func)
-    thisCall <- substitute(f(gate,fr, mu, ...), list(f = func))
-    eval(thisCall)  
-  }
-  
-}
-
-getGatingMethod.tailgate<- function(dims, x, cut.point, peak, ...){
-  nEvents <- length(x)
-  if(cut.point < peak){
-    tol <- length(which(x < cut.point))/nEvents
-    side <- "left"
-  }else{
-    tol <- length(which(x > cut.point))/nEvents
-    side <- "right"
-  }
-  
-  gating_args <- paste0("side='", side, "',tol=", tol, ")")
-  c(dims = dims
-      , gating_method = "tailgate"
-      , gating_args = gating_args)
-}
-
-getGatingMethod.mindensity<- function(dims, fr, cut.point, gate_tol = 0.1, ...){
-  data_range <- apply(exprs(fr), 2, range)
-  lbound <- cut.point - diff(data_range) * gate_tol
-  rbound <- cut.point + diff(data_range) * gate_tol
-  gate_range <- paste0("gate_range=c(", lbound, ",", rbound, ")")
-  c(dims = dims
-      , gating_method = "mindensity"
-      , gating_args = gate_range)
-}
 
 setAs("polygonGate", "rectangleGate", function(from){
       dims <- parameters(from)
@@ -302,38 +347,6 @@ setAs("polygonGate", "rectangleGate", function(from){
 
 getGatingMethod.2d <- function(gate, fr, ...){
   
-}
-getGatingMethod.polygonGate <- function(gate,fr, ...){
-    rg <- as(gate, "rectangleGate")
-    if(!is.null(rg))
-      getGatingMethod(rg, fr, ...)
-    else
-    {
-      dims <- parameters(gate)
-      if(all(grepl("FSC", dims, ignore.case = TRUE)) || all(grepl("SSC", dims, ignore.case = TRUE))){
-        #singlet gate
-        c(dims = paste(as.vector(dims), collapse = ",")
-          , gating_method = "singletGate"
-          , gating_args = NA)
-      }else if(nrow(boundaries) > 10){
-        browser()
-      }else
-        getGatingMethod.default(gate, fr)
-    }
-
-}
-
-#' dispatch to the default 2D gating method
-getGatingMethod.ellipsoidGate <- function(gate,fr, K = 2,...){
-  
-  opt <- options("openCyto")
-  gatingMethodName <- opt[["openCyto"]][["default.methods"]][["gating2D"]]
-  if(is.null(gatingMethodName))
-    gatingMethodName <- "flowClust"
-  func <- paste('getGatingMethod',gatingMethodName, sep = ".")
-  func <- as.symbol(func)
-  thisCall <- substitute(f(gate,fr, mu, K, ...), list(f = func, mu = gate@mean, K = K))
-  eval(thisCall)
 }
 
 #' generate flowClust based 2d gating method definition
