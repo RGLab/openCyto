@@ -840,10 +840,10 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' @return the cutpoint along the x-axis
 .cytokine_cutpoint <- function(x, num_peaks = 1, ref_peak = 1,
     method = c("first_deriv", "second_deriv"),
-    tol = 1e-2, adjust = 1, side = "right", strict = TRUE, ...) {
+    tol = 1e-2, adjust = 1, side = "right", strict = TRUE, plot = FALSE, ...) {
   
   method <- match.arg(method)
-  peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust)[, "x"])
+  peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust, plot = plot)[, "x"])
   
   #update peak count since it can be less than num_peaks
   num_peaks <- length(peaks)
