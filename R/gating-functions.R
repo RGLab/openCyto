@@ -763,6 +763,8 @@ mindensity <- function(fr, channel, filter_id = "", positive = TRUE,
 #' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param side On which side of the density do we want to gate the tail, the
 #'  \code{'right'} (default) or \code{'left'}?
+#' @param min a numeric value that sets the lower boundary for data filtering
+#' @param max a numeric value that sets the upper boundary for data filtering
 #' @param ... additional arguments.
 #' @return a \code{filterList} containing the gates (cutpoints) for each sample
 #' @export
@@ -771,9 +773,12 @@ mindensity <- function(fr, channel, filter_id = "", positive = TRUE,
 #'  gate <- tailgate(fr, Channel = "APC-A") # fr is a flowFrame
 #' }
 tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
-    ref_peak = 1, strict = TRUE, tol = 1e-2, positive = TRUE, side = "right",  ...) {
+    ref_peak = 1, strict = TRUE, tol = 1e-2, positive = TRUE, side = "right", min = NULL, max = NULL, ...) {
   
-  
+  if (!(is.null(min) && is.null(max))) {
+    fr <- .truncate_flowframe(fr, channels = channel, min = min,
+        max = max)
+  }
   # cutpoint is calculated using the first derivative of the kernel density
   # estimate. 
   x <- as.vector(exprs(fr)[, channel])
