@@ -67,14 +67,14 @@
 <p>The gating function itself is shown below:</p>
 
 <pre><code>
-boundry &lt;-  function(xs) {
+boundary &lt;-  function(xs) {
     # xs is a matrix
-    # find the boundry events that are above a quantile and below a line
+    # find the boundary events that are above a quantile and below a line
     
     # scale data so that it can be compaired to the results from qnorm
     cxs &lt;- scale(xs)
  
-    # set a boundry level
+    # set a boundary level
     f &lt;- qnorm(0.95) 
 
     # and find the p(x) for that level
@@ -91,7 +91,7 @@ boundry &lt;-  function(xs) {
     # intersection of points below line and above threshold level
     pos_xs &lt;- xs[idxs&amp;idxs2,]
  
-    # find the boundry points of the intersection of cells
+    # find the boundary points of the intersection of cells
     hpts &lt;- chull(pos_xs) 
     return(pos_xs[hpts,])
 }
@@ -100,19 +100,19 @@ boundry &lt;-  function(xs) {
 <p>This returns the convex hull of a set of events that meet some criteria for this specific type of gate. The wrapper function, which is called by OpenCyto, should have the following signature:</p>
 
 <pre><code>
-.wrapper &lt;- function(fr, pp_res, xChannel=NA, yChannel=NA, filterId=&quot;&quot;,...){
+.wrapper &lt;- function(fr, pp_res, channels=NA, filterId=&quot;&quot;,...){
 	....
 }
 </code></pre>
 
-<p>where <code>fr</code> is a flowFrame, <code>pp_res</code> is the output of any preprocessing function (may be NULL), <code>xChannel</code>, and <code>yChannel</code> are channel names, <code>filterId</code> is a gate name assigned by OpenCyto from the template, and the <code>...</code> are additional arguments. The signature of the wrapper must look exactly like this, and the name of the wrapper function must contain a <code>.</code> (dot) prefix, like <code>.wrapper</code> above.</p>
+<p>where <code>fr</code> is a flowFrame, <code>pp_res</code> is the output of any preprocessing function (may be NULL), <code>channels</code> is a vector of channel names, <code>filterId</code> is a gate name assigned by OpenCyto from the template, and the <code>...</code> are additional arguments. The signature of the wrapper must look exactly like this, and the name of the wrapper function must contain a <code>.</code> (dot) prefix, like <code>.wrapper</code> above.</p>
 
 <p>The wrapper for the <code>boundary</code> gate above is the following:</p>
 
 <pre><code>
-.dnaGate &lt;- function(fr, pp_res, xChannel=NA, yChannel=NA, filterId=&quot;&quot;, ...){
-    xs &lt;- exprs(fr[,c(xChannel, yChannel)]) # extract just the parameter values being inspected
-    pnts &lt;- boundry(xs) # find the verticies of the gate
+.dnaGate &lt;- function(fr, pp_res, channels=NA, filterId=&quot;&quot;, ...){
+    xs &lt;- exprs(fr[,c(channels)]) # extract just the parameter values being inspected
+    pnts &lt;- boundary(xs) # find the verticies of the gate
     return(polygonGate(boundaries=pnts, filterId=filterId))
 }
 </code></pre>
