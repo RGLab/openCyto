@@ -213,7 +213,7 @@ templateGen <- function(gh){
   dims <- this_row[1, dims]
   gm <- this_row[1, gating_method]
   
-  if(gm == "dummy_gate") #skip dummy_gate since it doesn't need any processing
+  if(gm == "dummy") #skip dummy since it doesn't need any processing
     return(this_row)
   
   if(popName == "*" ){
