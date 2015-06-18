@@ -8,3 +8,7 @@ Enhancements
 + support multi-dimensions in framework by deprecating x,y with channels.
 bug fixes:
 + fix the bug that stop.at argument to gating doesn't recognize partial or full path
+
+CHANGES IN VERSION 1.7.1
+Enhancements
++ New API: add_pop function allows users to apply a single gating method to GatingSet without writing the compelete csv template 
