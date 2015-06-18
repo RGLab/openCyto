@@ -299,6 +299,10 @@ plot(gs[[1]])
 plotGate(gs[[1]])
 ```
 
+### 4.8. Apply a gating method without csv template
+Sometime it will be helpful (especially to work with an already gated data) to be able to interact with he GatingSet directly without the need to write the compelete csv gating template.
+
+
 5. Conclusion
 ------------
 The `openCyto` package allows user to specify their gating schemes and gate the data 
