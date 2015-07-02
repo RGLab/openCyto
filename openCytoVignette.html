@@ -326,19 +326,35 @@ plot(gh)
 
 <p>The above plot shows the gating scheme for one sample from the <code>T cell</code> staining panel. If we&#39;d like to extract the data for downstream analysis, this is also straightforward.</p>
 
-<pre><code class="r">head(getPopStats(gs,satistic=&quot;count&quot;))
+<pre><code class="r">head(getPopStats(gs,statistic=&quot;count&quot;, format=&quot;wide&quot;))
 </code></pre>
 
 <pre><code>##                                       CytoTrol_CytoTrol_1.fcs
-## /not debris                                           0.76733
-## /not debris/singlets                                  0.94878
-## /not debris/singlets/CD3+                             0.62837
-## /not debris/singlets/CD3+/CD4                         0.62470
-## /not debris/singlets/CD3+/CD4/38+ DR+                 0.03077
-## /not debris/singlets/CD3+/CD4/38+ DR-                 0.43088
+##CD3+                          54488
+##CD4                           34034
+##CD4/38+ DR+                    1045
+##CD4/38+ DR-                   14682
+##CD4/38- DR+                    1123
+##CD4/38- DR-                   17184
 </code></pre>
 
-<p>The above gives us the <em>counts</em>. By substituting <code>statistic=&quot;freq&quot;</code>, we get the proportions. If we want  the statistics that were computed by FlowJo, we pass <code>flowJo=TRUE</code>.<br/>
+<p>The above gives us the <em>counts</em>. By substituting <code>statistic=&quot;freq&quot;</code>, we get the proportions. Note that we must remain in <code>format=&quot;long&quot;</code> to view these frequencies. The other <code>format</code> available is format=&quot;long&quot; which returns results as shown:
+
+ 
+<pre><code class="r">head(getPopStats(gs,statistic=&quot;count&quot;, format=&quot;long&quot;))
+</code></pre>
+
+<pre><code>
+##                      name  Population     Parent Count ParentCount
+##1: CytoTrol_CytoTrol_1.fcs  not debris       root 91720      119531
+##2: CytoTrol_CytoTrol_1.fcs    singlets not debris 87022       91720
+##3: CytoTrol_CytoTrol_1.fcs        CD3+   singlets 54488       87022
+##4: CytoTrol_CytoTrol_1.fcs         CD4       CD3+ 34034       54488
+##5: CytoTrol_CytoTrol_1.fcs CD4/38- DR+        CD4  1123       34034
+##6: CytoTrol_CytoTrol_1.fcs CD4/38+ DR+        CD4  1045       34034
+</code></pre>
+
+If we want  the statistics that were computed by FlowJo, we use the parameter <code>flowJo=TRUE</code>.<br/>
 It&#39;s not unusual for these to differ by a few cells. However, if they are vastly different, that indicates a potential problem (perhaps the XML has changed), in which case, please <a href="https://github.com/RGLab/openCyto/issues?milestone=none&amp;state=open">contact us or file a bug report with a reproducible example</a>. We want to help.</p>
 
 <h3>Automated Gating</h3>
