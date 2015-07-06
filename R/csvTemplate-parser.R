@@ -130,9 +130,10 @@ templateGen <- function(gh){
 #'  
 #' It expands the definition of gates or construct reference gates when necessary
 #' @param dt \code{data.table} loaded directly from csv gating template
+#' @param strict whether validity check for pop alias. It is turned on in the normal template parsing. when used with add_pop it is turned off to bypass the check on some existing boolean gates (that has ! : symbols).  
 #' @return a preprocessed(expanded when applicable) \code{data.frame}
 #' @import data.table
-.preprocess_csv <- function(dt) {
+.preprocess_csv <- function(dt, strict = TRUE) {
   
   #only parse these columns(other columns may be used by user for other purpose e.g. comments)
   dt <- dt[, list(alias
@@ -164,11 +165,12 @@ templateGen <- function(gh){
   
   for (i in 1:nrow(dt)) {
     this_row <- dt[i, , drop = FALSE]
-    .validity_check_alias(this_row[, alias])
+    if(strict)
+      .validity_check_alias(this_row[, alias])
     #update parent with full path
     this_row[, parent := .getFullPath(this_row[, parent], new_dt)]
     #preprocess the current row
-    res <- .preprocess_row(this_row)
+    res <- .preprocess_row(this_row, strict = strict)
     
     #check the uniqueness of alias within res
     aliasVec <- res[,alias]
@@ -179,7 +181,8 @@ templateGen <- function(gh){
     #validity check of alias within the context of new_df
     apply(res, 1, function(row){
           thisAlias <- row[["alias"]]
-          .validity_check_alias(thisAlias)
+          if(strict)
+            .validity_check_alias(thisAlias)
           .unique_check_alias(new_dt, thisAlias, row[["parent"]])
         })
     
@@ -204,7 +207,7 @@ templateGen <- function(gh){
 #' 
 #' @param this_row a single-row \code{data.table}
 #' @return  \code{data.table}
-.preprocess_row <- function(this_row){
+.preprocess_row <- function(this_row, strict = TRUE){
   #make sure it doesn't tamper the input
   this_row <- copy(this_row)
   
@@ -308,8 +311,8 @@ templateGen <- function(gh){
       # needs to be split into two 1d gates and one refgate
       split_terms <- .splitTerms(pop_pat = one_pop_pat, two_pop_token,popName)
       # create 1d gate for each dim
-      res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, two_pop_token)
-      res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, alias], alias = this_row[, alias])
+      res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, two_pop_token, strict = strict)
+      res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, alias], alias = this_row[, alias], strict = strict)
       res <- rbindlist(list(res_1d, res_ref))
     }
   } else if (grepl(paste0("^(", two_pop_pat, "){2}$"), popName) ||
@@ -320,7 +323,7 @@ templateGen <- function(gh){
     two_or_one_pop_pat <- paste0("(", two_pop_pat, ")|(", one_pop_pat, ")")
     split_terms <- .splitTerms(pop_pat = two_or_one_pop_pat, two_pop_token, popName)
     if (gm == "refGate") {
-      res <- .gen_refGate(split_terms$splitted_terms, this_row = this_row)
+      res <- .gen_refGate(split_terms$splitted_terms, this_row = this_row, strict = strict)
       
     } else {
       
@@ -335,8 +338,8 @@ templateGen <- function(gh){
       }
       
       # create 1d gate for each dim
-      res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, two_pop_token)
-      res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, alias])
+      res_1d <- .gen_1dgate(split_terms$terms, this_row, one_pop_token, two_pop_token, strict = strict)
+      res_ref <- .gen_refGate(split_terms$splitted_terms, this_row, ref_nodes = res_1d[, alias], strict = strict)
       res <- rbindlist(list(res_1d, res_ref))
     }
     
@@ -394,14 +397,15 @@ templateGen <- function(gh){
   rbindlist(list(this_row,rbindlist(new_rows)))    
 }
 #' convert to 1d gating based on the population pattern (A+/-B+/-)
-.gen_1dgate <- function(terms, this_row, one_pop_token, two_pop_token) {
+.gen_1dgate <- function(terms, this_row, one_pop_token, two_pop_token, strict = TRUE) {
   
   res <- ldply(terms, function(cur_term) {
         toReplace <- paste("(", two_pop_token, ")|(", one_pop_token, ")", sep = "")
         cur_dim <- sub(toReplace, "", cur_term)
         new_pop_name <- paste(cur_dim, "+", sep = "")
         this_parent <- this_row[, parent]
-        .validity_check_alias(new_pop_name)
+        if(strict)
+          .validity_check_alias(new_pop_name)
         
         data.table(alias = new_pop_name
             , pop = new_pop_name
@@ -419,7 +423,7 @@ templateGen <- function(gh){
   as.data.table(res)
 }
 #' generate reference gate based on the splitted population patterns(A+/-B+/-) 
-.gen_refGate <- function(splitted_terms, this_row, ref_nodes = NULL, alias = NULL) {
+.gen_refGate <- function(splitted_terms, this_row, ref_nodes = NULL, alias = NULL, strict = TRUE) {
   this_parent <- this_row[, parent]
   
   if (is.null(ref_nodes)) {
@@ -441,7 +445,8 @@ templateGen <- function(gh){
   
   # create ref gate for each new_pop )
   do.call(rbind, mapply(new_pops, alias, FUN = function(new_pop, cur_alias) {
-            .validity_check_alias(cur_alias)
+            if(strict)
+              .validity_check_alias(cur_alias)
             data.table(alias = cur_alias
                 , pop = new_pop
                 , parent = this_parent
