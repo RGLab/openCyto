@@ -42,7 +42,7 @@ test_that("ICS", {
       expectRes <- gatingResults[["gating_ICS"]]
       expect_equal(thisRes, expectRes, tol = 0.05)
       
-      #test add_pop
+      #test add_pop with polyFunctions
       nodes <- getChildren(gs[[1]], "cd8")[-(1:4)]
       for(node in nodes)
         Rm(node, gs)
@@ -51,6 +51,13 @@ test_that("ICS", {
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
       
+      #test add_pop with boolean method
+      pop <- "IL2orIFNg"
+      Rm(pop, gs)
+      add_pop(gs, alias = pop, gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg")
+      
+      thisRes <- getPopStats(gs, path = "full", format = "wide")
+      expect_equal(thisRes, expectRes, tol = 0.04)
     })
 
 test_that("treg", {
