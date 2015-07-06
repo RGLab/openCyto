@@ -32,6 +32,9 @@ csv gating template.
 
 # polyfunctional gates (boolean combinations of exsiting marginal gates)
 add_pop(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
+
+#boolGate method
+add_pop(gs, alias = "IL2orIFNg", gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg")
 }
 }
 
