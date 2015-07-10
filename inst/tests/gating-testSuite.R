@@ -21,9 +21,11 @@ test_that("tcell", {
       for(node in nodes)
         Rm(node, gs)
       add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA", parent = "cd4-cd8+", pop = "CD38+HLA+", alias = "activated cd8", preprocessing_method = "standardize_flowset")
-      add_pop(gs, gating_method = "mindensity", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
+      #test new .mindensity2 wrapper
+      add_pop(gs, gating_method = "mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
+      
       
     })
 
