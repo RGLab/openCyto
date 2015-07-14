@@ -845,7 +845,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #' @return the cutpoint along the x-axis
 .cytokine_cutpoint <- function(x, num_peaks = 1, ref_peak = 1,
     method = c("first_deriv", "second_deriv"),
-    tol = 1e-2, adjust = 1, side = "right", strict = TRUE, plot = FALSE, ...) {
+    tol = 1e-2, adjust = 1, side = "right", strict = TRUE, plot = FALSE, auto_tol = FALSE, ...) {
   
   method <- match.arg(method)
   peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust, plot = plot)[, "x"])
@@ -868,7 +868,10 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
     # Finds the deepest valleys from the kernel density and sorts them.
     # The number of valleys identified is determined by 'num_peaks'
     deriv_out <- .deriv_density(x = x, adjust = adjust, deriv = 1, ...)
-    
+    if(auto_tol){
+      #Try to set the tolerance automatigically.
+      tol = 0.01*max(abs(deriv_out$y))
+    }
     if (side == "right") {
       
       deriv_valleys <- with(deriv_out, .find_valleys(x = x, y = y, adjust = adjust))
