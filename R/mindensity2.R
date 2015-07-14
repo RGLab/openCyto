@@ -5,17 +5,19 @@
 #' @param adjust smoothing for building the density
 #' @param range data range to search for the minimum, if NA all data is used
 #' @author Greg Finak, Phu T. Van
-.improvedMindensity <- function(D,adjust=2,range=NA, plot = FALSE, ...){
+.improvedMindensity <- function(D,adjust=2,gate_range=NA, plot = FALSE, ...){
   # construct the density from data and adjust params we were given
   dens <- density(D,adjust=adjust)
   
   # restrict data to range
-  if(!is.na(range)&length(range)==2 & range[1]<range[2]){
-    filter <- dens$x>range[1]&dens$x<range[2]
-    dens$x <- dens$x[filter]
-    dens$y <- dens$y[filter]
-  }else{
-    #no range provided, do nothing
+  if (!is.null(gate_range)) {
+    if (length(gate_range) == 2 & gate_range[1] < gate_range[2]) {
+      filter <- dens$x > gate_range[1] & dens$x < gate_range[2]
+      dens$x <- dens$x[filter]
+      dens$y <- dens$y[filter]
+    }else{
+      #no range provided, do nothing
+    }
   }
   
   sp <- smooth.spline(dens$x,dens$y)
@@ -115,7 +117,7 @@ mindensity2 <- function(fr, channel, filter_id = "", positive = TRUE, pivot = FA
   }
   x <- exprs(fr[,channel])
   # this line does the actual searching of the cut point
-  g <- .improvedMindensity(D=x,...)
+  g <- .improvedMindensity(D=x,gate_range=gate_range,...)
   
   # get the cut point
   if (positive) {
