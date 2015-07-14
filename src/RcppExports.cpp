@@ -9,15 +9,11 @@ using namespace Rcpp;
 NumericMatrix collapseData(List mat_list, StringVector colnames);
 RcppExport SEXP openCyto_collapseData(SEXP mat_listSEXP, SEXP colnamesSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< List >::type mat_list(mat_listSEXP );
-        Rcpp::traits::input_parameter< StringVector >::type colnames(colnamesSEXP );
-        NumericMatrix __result = collapseData(mat_list, colnames);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< List >::type mat_list(mat_listSEXP);
+    Rcpp::traits::input_parameter< StringVector >::type colnames(colnamesSEXP);
+    __result = Rcpp::wrap(collapseData(mat_list, colnames));
+    return __result;
 END_RCPP
 }

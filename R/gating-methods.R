@@ -190,7 +190,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
 #'  @import flowWorkspace
 #'  @importFrom flowCore getChannelMarker
 .gating_gtMethod <- function(x, y, gtPop, parent, pp_res 
-            , mc.cores = 1, parallel_type = c("none", "multicore", "cluster"), cl = NULL
+            , mc.cores = getOption("mc.cores", 2L), parallel_type = c("none", "multicore", "cluster"), cl = NULL
             ,  ...) {
   
   require("parallel")

@@ -10,7 +10,7 @@
 #' @export 
 templateGen <- function(gh){
   nodes <- getNodes(gh, order = "tsort")
-  ldply(nodes[-1], function(thisNode){
+  dt = ldply(nodes[-1], function(thisNode){
         thisGate <- getGate(gh, thisNode)
         dims <- paste(as.vector(parameters(thisGate)), collapse = ",")
         parent <- getParent(gh, thisNode)
@@ -28,8 +28,13 @@ templateGen <- function(gh){
             , preprocessing_args = NA
         )
       })
-  
-  
+  if(ncol(dt)==0){
+    cn = c("alias","pop","parent","dims","gating_method","gating_args","collapseDataForGating","groupBy","preprocessing_method","preprocessing_args")
+    dt = vector('list',10)
+    names(dt) = cn
+    dt = as.data.table(dt)
+  }
+  return(dt)
 }
 
 #' prepend all ancester nodes to construct the full path for the given node 
