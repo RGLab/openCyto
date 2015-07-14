@@ -837,6 +837,7 @@ cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
 #'                               an error is reported by default. But if \code{strict} is set to FALSE, then the reference peak will be reset to the peak of the far right.      
 #' @param method the method used to select the cutpoint. See details.
 #' @param tol the tolerance value
+#' @param auto_tol when TRUE, it tries to set the tolerance automatically.
 #' @param adjust the scaling adjustment applied to the bandwidth used in the
 #' first derivative of the kernel density estimate
 #' @param side On which side of the density do we want to gate the tail, the

@@ -316,6 +316,7 @@ test_that("gatingTemplate constructor", {
   thisPath <- system.file(package = "openCyto")
 #  thisPath <- file.path(thisPath, "inst")
   gtfiles <- list.files(file.path(thisPath, "extdata/gating_template"), full = TRUE)
+  options(scipen=999)
   for(thisFile in gtfiles){
     
     templateName <- file_path_sans_ext(basename(thisFile))
@@ -325,8 +326,32 @@ test_that("gatingTemplate constructor", {
     ))
 
     expect_equal(thisRes, expectResults[[templateName]])
+    
+    
+    #test as.data.table method
+    dt.orig <- fread(thisFile, autostart = 1L)
+    dt.orig <- openCyto:::.preprocess_csv(dt.orig)
+    
+    dt.new <- as.data.table(thisRes)
+    
+    #sort by alias
+    keys <- c("alias", "parent")
+    setkeyv(dt.orig, keys)
+    setkeyv(dt.new, keys)
+    #standardize collapseDataForGating col
+    dt.orig[, collapseDataForGating:=as.logical(ifelse(collapseDataForGating == "", FALSE, collapseDataForGating))]
+    
+    
+    #skip gating_args (for tcell panel) since there is format changes due to the scientifc notation (1e3 -->1000)
+    #and we don't want to change this csv since it is used elsewehere
+    if(templateName == "tcell")        
+      expect_equal(dt.orig[, -6, with = FALSE], dt.new[, -6, with = FALSE])
+    else
+      expect_equal(dt.orig, dt.new)
+
   }
   
 }) 
 
 
+        
