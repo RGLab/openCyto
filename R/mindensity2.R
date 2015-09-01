@@ -34,10 +34,15 @@
   maxima <- sign(d1$y[-1])<0&sign(d1$y[-length(d1$y)])>0
   shoulders <- sign(d3$y[-1])<0&sign(d3$y[-length(d3$y)])>0
   
-  
   if (length(which(minima == TRUE)) == 0){ # no minima found, look through shoulders
-    pt <- sp$x[median(which(shoulders))] # pick the median shoulder
-    
+    # if there is a peak, pick median shoulder to the right of peak  
+    if (length(which(maxima == TRUE)) == 1  ){ 
+          pkidx <- which(maxima == TRUE)
+          pt <- sp$x[median(which(shoulders)[which(shoulders) > pkidx])]
+        }  else {
+          # no peak (or multiple peaks), select overall median shoulder as cutpoint (for now...)
+          pt <- sp$x[median(which(shoulders))]    
+    }                                         
   } else if (length(which(minima == TRUE)) > 1) { # multiple minima, filter them
     pt <- sp$x[min(which(minima))]
     
@@ -47,11 +52,11 @@
   }
   
   .plots = function(){
-    abline(v = d2$x[which(inf1)],col="red")
-    abline(v = d2$x[which(inf2)],col="green")
-    abline(v = d2$x[which(maxima)],col="blue")
-    abline(v = d2$x[which(minima)],col="orange")
-    abline(v = d2$x[which(shoulders)],col="pink")
+    abline(v = d2$x[which(inf1)],col="red")       # red    == inflection point
+    abline(v = d2$x[which(inf2)],col="green")     # green  == inflection point
+    abline(v = d2$x[which(maxima)],col="blue")    # blue   == maxima
+    abline(v = d2$x[which(minima)],col="orange")  # orange == minima
+    abline(v = d2$x[which(shoulders)],col="pink") # pink   == shoulders
   }
   if(plot){
     par(mfrow=c(2,1))
