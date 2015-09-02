@@ -35,7 +35,7 @@
   shoulders <- sign(d3$y[-1])<0&sign(d3$y[-length(d3$y)])>0
   
   if (length(which(minima == TRUE)) == 0){ # no minima found, look through shoulders
-    # if there is a peak, pick median shoulder to the right of peak  
+    # if there is a peak, pick first shoulder to the right of peak  
     if (length(which(maxima == TRUE)) == 1  ){ 
           pkidx <- which(maxima == TRUE)
           pt <- sp$x[median(which(shoulders)[which(shoulders) > pkidx])]
@@ -63,7 +63,8 @@
     plot(sp,type="l",main="features")
     .plots()
     plot(sp,type="l",main="final_cut")
-    abline(v = pt, col="black", lwd=2)  
+    abline(v = pt, col="black", lwd=2)
+    par(mfrow=c(1,1)) # be nice, restore plot settings
   }    
   
 
