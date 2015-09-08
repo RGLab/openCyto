@@ -37,14 +37,17 @@
   if (length(which(minima == TRUE)) == 0){ # no minima found, look through shoulders
     # if there is a peak, pick first shoulder to the right of peak  
     if (length(which(maxima == TRUE)) == 1  ){ 
-          pkidx <- which(maxima == TRUE)
-          pt <- sp$x[median(which(shoulders)[which(shoulders) > pkidx])]
-        }  else {
-          # no peak (or multiple peaks), select overall median shoulder as cutpoint (for now...)
-          pt <- sp$x[median(which(shoulders))]    
+      pkidx <- which(maxima == TRUE)
+      pt <- sp$x[median(which(shoulders)[which(shoulders) > pkidx])]
+    }  else {
+      # no peak (or multiple peaks), select overall median shoulder as cutpoint (for now...)
+      pt <- sp$x[median(which(shoulders))]    
     }                                         
-  } else if (length(which(minima == TRUE)) > 1) { # multiple minima, filter them
-    pt <- sp$x[min(which(minima))]
+  } else if (length(which(minima == TRUE)) > 1) { # multiple minima
+    m <- sp$x[which(minima)]
+    m <- min(sp$y[which(sp$x %in% m)])  # pick the minima with lower y
+    pt <- sp$x[which(sp$y == m)]
+    
     
   } else if (length(which(minima == TRUE)) == 1){ # only 1 minima, use it as cut point
     pt <- sp$x[which(minima)]
@@ -67,8 +70,7 @@
     par(mfrow=c(1,1)) # be nice, restore plot settings
   }    
   
-
- return(list(density = sp,
+  return(list(density = sp,
               inf_rising = sp$x[which(inf1)],
               inf_falling = sp$x[which(inf2)],
               maxima = sp$x[which(maxima)],
