@@ -39,6 +39,11 @@
     if (length(which(maxima == TRUE)) == 1  ){ 
       pkidx <- which(maxima == TRUE)
       pt <- sp$x[median(which(shoulders)[which(shoulders) > pkidx])]
+      if (is.na(pt)){
+        # there is only one peak, and there is no shoulder to the right of it
+        # pick an inflection point as a last resort
+        pt <- sp$x[median(which(inf2)[which(inf2) > pkidx])]
+      }
     }  else {
       # no peak (or multiple peaks), select overall median shoulder as cutpoint (for now...)
       pt <- sp$x[median(which(shoulders))]    
