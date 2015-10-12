@@ -5,7 +5,12 @@
 #' @param adjust smoothing for building the density
 #' @param range data range to search for the minimum, if NA all data is used
 #' @author Greg Finak, Phu T. Van
-.improvedMindensity <- function(D,adjust=2,gate_range=NA, plot = FALSE, ...){
+#' @param D a \code{density} containing the data to operate on
+#' @param gate_range a \code{character} specifying the data range to operate on
+#' @param adjust a \code{numeric} specifying the amount of smoothing to be used
+#' @param plot a \code{boolean} specifying whether to output a plot
+
+improvedMindensity <- function(D,adjust=2,gate_range=NA, plot = FALSE, ...){
   # construct the density from data and adjust params we were given
   dens <- density(D,adjust=adjust)
   
@@ -34,6 +39,13 @@
   maxima <- sign(d1$y[-1])<0&sign(d1$y[-length(d1$y)])>0
   shoulders <- sign(d3$y[-1])<0&sign(d3$y[-length(d3$y)])>0
   
+  minima_xcoords <- sp$x[which(minima)] # x-coords of minima
+  maxima_xcoords <- sp$x[which(maxima)] # x-coords of maxima
+  
+  minima_ycoords <- sp$y[which(sp$x %in% minima_xcoords)] # y-coords of minima
+  maxima_ycoords <- sp$y[which(sp$x %in% maxima_xcoords)] # y-coords of maxima
+  
+  
   if (length(which(minima == TRUE)) == 0){ # no minima found, look through shoulders
     # if there is a peak, pick first shoulder to the right of peak  
     if (length(which(maxima == TRUE)) == 1  ){ 
@@ -44,13 +56,14 @@
         # pick an inflection point as a last resort
         pt <- sp$x[median(which(inf2)[which(inf2) > pkidx])]
       }
+      
     }  else {
       # no peak (or multiple peaks), select overall median shoulder as cutpoint (for now...)
       pt <- sp$x[median(which(shoulders))]    
     }                                         
   } else if (length(which(minima == TRUE)) > 1) { # multiple minima
-    m <- sp$x[which(minima)]
-    m <- min(sp$y[which(sp$x %in% m)])  # pick the minima with lower y
+    
+    m <- min(sp$y[which(sp$x %in% minima_xcoords)])  # pick the minima with lowest y
     pt <- sp$x[which(sp$y == m)]
     
     
@@ -60,8 +73,8 @@
   }
   
   .plots = function(){
-    abline(v = d2$x[which(inf1)],col="red")       # red    == inflection point
-    abline(v = d2$x[which(inf2)],col="green")     # green  == inflection point
+    #     abline(v = d2$x[which(inf1)],col="red")       # red    == inflection point
+    #     abline(v = d2$x[which(inf2)],col="green")     # green  == inflection point
     abline(v = d2$x[which(maxima)],col="blue")    # blue   == maxima
     abline(v = d2$x[which(minima)],col="orange")  # orange == minima
     abline(v = d2$x[which(shoulders)],col="pink") # pink   == shoulders
@@ -78,12 +91,15 @@
   return(list(density = sp,
               inf_rising = sp$x[which(inf1)],
               inf_falling = sp$x[which(inf2)],
-              maxima = sp$x[which(maxima)],
-              minima = sp$x[which(minima)],
+              maxima = maxima_xcoords,
+              minima = minima_xcoords,
+              maxima_heights = maxima_ycoords,
+              minima_heights = minima_ycoords,
               shoulders = sp$x[which(shoulders)], 
               final_cut = pt))
   
 }
+
 
 #' An improved version of mindensity used to determines a cutpoint as the minimum point 
 #' of a kernel density estimate between two peaks.
