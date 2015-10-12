@@ -1,9 +1,6 @@
 #' a function to find interesting features in density (most notably the minimum)
 #' as precursor to creating a 1D gate
 #' 
-#' @param D data to operate on
-#' @param adjust smoothing for building the density
-#' @param range data range to search for the minimum, if NA all data is used
 #' @author Greg Finak, Phu T. Van
 #' @param D a \code{density} containing the data to operate on
 #' @param gate_range a \code{character} specifying the data range to operate on
@@ -45,6 +42,11 @@ improvedMindensity <- function(D,adjust=2,gate_range=NA, plot = FALSE, ...){
   minima_ycoords <- sp$y[which(sp$x %in% minima_xcoords)] # y-coords of minima
   maxima_ycoords <- sp$y[which(sp$x %in% maxima_xcoords)] # y-coords of maxima
   
+  #### TO-DO: determine a range in X-coord where the peaks are tiny (< some data-derived threshold)
+  # exclude features from this range when considering where to cut. 
+  # this is motivated by cyTOF data, where there is a long tail of extreme values that 
+  # cannot be eliminated by higher `adjust` values, and shouldn't be eliminated by gate_range()
+  # 
   
   if (length(which(minima == TRUE)) == 0){ # no minima found, look through shoulders
     # if there is a peak, pick first shoulder to the right of peak  
