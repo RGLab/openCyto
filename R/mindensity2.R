@@ -7,7 +7,7 @@
 #' @param adjust a \code{numeric} specifying the amount of smoothing to be used
 #' @param plot a \code{boolean} specifying whether to output a plot
 
-improvedMindensity <- function(D,adjust=2,gate_range=NA, plot = FALSE, ...){
+.improvedMindensity <- function(D,adjust=2,gate_range=NA, plot = FALSE, ...){
   # construct the density from data and adjust params we were given
   dens <- density(D,adjust=adjust)
   
@@ -75,8 +75,8 @@ improvedMindensity <- function(D,adjust=2,gate_range=NA, plot = FALSE, ...){
   }
   
   .plots = function(){
-    #     abline(v = d2$x[which(inf1)],col="red")       # red    == inflection point
-    #     abline(v = d2$x[which(inf2)],col="green")     # green  == inflection point
+    abline(v = d2$x[which(inf1)],col="red")       # red    == inflection point
+    abline(v = d2$x[which(inf2)],col="green")     # green  == inflection point
     abline(v = d2$x[which(maxima)],col="blue")    # blue   == maxima
     abline(v = d2$x[which(minima)],col="orange")  # orange == minima
     abline(v = d2$x[which(shoulders)],col="pink") # pink   == shoulders
