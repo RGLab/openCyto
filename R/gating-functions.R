@@ -650,13 +650,14 @@ quantileGate <- function(fr, channel, probs = 0.999, plot = FALSE, positive = TR
   } else {
     gate_coordinates <- list(c(-Inf, cutpoint))
   }
-  names(gate_coordinates) <- stain
+  names(gate_coordinates) <- channel
   
   if (plot) {
     hist(x)
     plot(density(x))
     abline(v = cutpoint, col = "red")
-    text(y = 0.5, x = cutpoint, labels = paste("quantile:", probs))
+    actual_probs <- sum(x>cutpoint)/length(x)
+    text(y = 0.5, x = cutpoint, labels = paste("%:", actual_probs))
   }
   rectangleGate(gate_coordinates, filterId = filterId)
 }
