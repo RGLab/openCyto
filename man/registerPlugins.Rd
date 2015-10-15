@@ -36,7 +36,7 @@ The \code{fun} argument should be a wrapper function definition for the gating o
 
                           yChannel \code{character} (required)
 
-                          filter_id \code{character}
+                          filterId \code{character}
 
                           ... ellipses for the additional parameters.
 
