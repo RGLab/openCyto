@@ -5,7 +5,7 @@
 \title{Determine the cutpoint by the events quantile.}
 \usage{
 quantileGate(fr, channel, probs = 0.999, plot = FALSE, positive = TRUE,
-  filterId = "", ...)
+  filterId = "", min = NULL, max = NULL, ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
@@ -22,11 +22,11 @@ line to the left of the cutpoint. (Default: \code{TRUE})}
 
 \item{filterId}{the name of the filter}
 
-\item{...}{additional arguments passed to 'stats::quantile' function.}
-
 \item{min}{a numeric value that sets the lower boundary for data filtering}
 
 \item{max}{a numeric value that sets the upper boundary for data filtering}
+
+\item{...}{additional arguments passed to 'stats::quantile' function.}
 }
 \value{
 a \code{rectangleGate}

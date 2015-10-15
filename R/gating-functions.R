@@ -630,8 +630,19 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 #'  gate <- quantileGate(fr, Channel = "APC-A", probs = 0.995) # fr is a flowFrame
 #' }
 quantileGate <- function(fr, channel, probs = 0.999, plot = FALSE, positive = TRUE,
-                         filterId = "", ...) {
-  x <- exprs(fr[, stain])
+                         filterId = "", min = NULL, max = NULL, ...) {
+   if (missing(channel) || length(channel) != 1) {
+     stop("A single channel must be specified.")
+   }
+   
+   # Filter out values less than the minimum and above the maximum, if they are
+   # given.
+   if (!(is.null(min) && is.null(max))) {
+     fr <- .truncate_flowframe(fr, channels = channel, min = min,
+         max = max)
+   }
+                       
+  x <- exprs(fr)[, channel]
   cutpoint <- quantile(x, probs = probs, ...)
 
   if (positive) {
