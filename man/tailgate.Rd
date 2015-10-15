@@ -5,11 +5,11 @@
 \alias{tailgate}
 \title{Gates the tail of a density using the derivative of a kernel density estimate}
 \usage{
-tailgate(fr, channel, filter_id = "", num_peaks = 1, ref_peak = 1,
+tailgate(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
   strict = TRUE, tol = 0.01, positive = TRUE, side = "right",
   min = NULL, max = NULL, ...)
 
-cytokine(fr, channel, filter_id = "", num_peaks = 1, ref_peak = 1,
+cytokine(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
   tol = 0.01, positive = TRUE, side = "right", ...)
 }
 \arguments{
@@ -17,7 +17,7 @@ cytokine(fr, channel, filter_id = "", num_peaks = 1, ref_peak = 1,
 
 \item{channel}{the channel from which the cytokine gate is constructed}
 
-\item{filter_id}{the name of the filter}
+\item{filterId}{the name of the filter}
 
 \item{num_peaks}{the number of peaks expected to see. This effectively removes
 any peaks that are artifacts of smoothing}
