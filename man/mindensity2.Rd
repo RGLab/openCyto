@@ -5,7 +5,7 @@
 \title{An improved version of mindensity used to determines a cutpoint as the minimum point
 of a kernel density estimate between two peaks.}
 \usage{
-mindensity2(fr, channel, filter_id = "", positive = TRUE, pivot = FALSE,
+mindensity2(fr, channel, filterId = "", positive = TRUE, pivot = FALSE,
   gate_range = NULL, min = NULL, max = NULL, peaks = NULL, ...)
 }
 \arguments{
@@ -13,7 +13,7 @@ mindensity2(fr, channel, filter_id = "", positive = TRUE, pivot = FALSE,
 
 \item{channel}{the channel to operate on}
 
-\item{filter_id}{a name to refer to this filter}
+\item{filterId}{a name to refer to this filter}
 
 \item{positive}{If \code{TRUE}, then the gate consists of the entire real
 line to the right of the cutpoint. Otherwise, the gate is the entire real

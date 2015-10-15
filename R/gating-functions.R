@@ -606,7 +606,30 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     
 }
 
-quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE,
+#' Determine the cutpoint by the events quantile.
+#' 
+#' It is possible that the cutpoint calculated by quantile function may not 
+#' produce the exact the probability set by 'probs' argument if there are not enough
+#' cell events to reach that precision. Sometime the difference could be significant.
+#' 
+#' @param fr a \code{flowFrame} object
+#' @param channel the channel from which the cytokine gate is constructed
+#' @param filterId the name of the filter
+#' @param plot whether to plot the gate result
+#' @param probs probabilities passed to 'stats::quantile' function.
+#' @param positive If \code{TRUE}, then the gate consists of the entire real
+#' line to the right of the cutpoint. Otherwise, the gate is the entire real
+#' line to the left of the cutpoint. (Default: \code{TRUE})
+#' @param min a numeric value that sets the lower boundary for data filtering
+#' @param max a numeric value that sets the upper boundary for data filtering
+#' @param ... additional arguments passed to 'stats::quantile' function.
+#' @return a \code{rectangleGate} 
+#' @export
+#' @examples
+#' \dontrun{
+#'  gate <- quantileGate(fr, Channel = "APC-A", probs = 0.995) # fr is a flowFrame
+#' }
+quantileGate <- function(fr, channel, probs = 0.999, plot = FALSE, positive = TRUE,
                          filterId = "", ...) {
   x <- exprs(fr[, stain])
   cutpoint <- quantile(x, probs = probs, ...)
@@ -648,7 +671,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #'
 #' @param fr a \code{flowFrame} object
 #' @param channel TODO
-#' @param filter_id TODO
+#' @param filterId TODO
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
 #' line to the right of the cutpoint. Otherwise, the gate is the entire real
 #' line to the left of the cutpoint. (Default: \code{TRUE})
@@ -669,7 +692,7 @@ quantileGate <- function(fr, probs = 0.999, stain, plot = FALSE, positive = TRUE
 #'  gate <- mindensity(fr, channel = "APC-A") # fr is a flowFrame
 #' }
 #' @importFrom flowCore %in% identifier filterDetails<-
-mindensity <- function(fr, channel, filter_id = "", positive = TRUE,
+mindensity <- function(fr, channel, filterId = "", positive = TRUE,
                        pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
                        peaks = NULL, ...) {
   
@@ -741,7 +764,7 @@ mindensity <- function(fr, channel, filter_id = "", positive = TRUE,
 
   names(gate_coordinates) <- channel
   
-  rectangleGate(gate_coordinates, filterId = filter_id)
+  rectangleGate(gate_coordinates, filterId = filterId)
   
 }
 
@@ -749,7 +772,7 @@ mindensity <- function(fr, channel, filter_id = "", positive = TRUE,
 #'
 #' @param fr a \code{flowFrame} object
 #' @param channel the channel from which the cytokine gate is constructed
-#' @param filter_id the name of the filter
+#' @param filterId the name of the filter
 #' @param num_peaks the number of peaks expected to see. This effectively removes
 #' any peaks that are artifacts of smoothing
 #' @param ref_peak After \code{num_peaks} are found, this argument provides the
@@ -772,7 +795,7 @@ mindensity <- function(fr, channel, filter_id = "", positive = TRUE,
 #' \dontrun{
 #'  gate <- tailgate(fr, Channel = "APC-A") # fr is a flowFrame
 #' }
-tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
+tailgate <- function(fr, channel, filterId = "", num_peaks = 1,
     ref_peak = 1, strict = TRUE, tol = 1e-2, positive = TRUE, side = "right", min = NULL, max = NULL, ...) {
   
   if (!(is.null(min) && is.null(max))) {
@@ -795,16 +818,16 @@ tailgate <- function(fr, channel, filter_id = "", num_peaks = 1,
     gate_coordinates <- list(c(-Inf, cutpoint))
   }
   names(gate_coordinates) <- channel
-  rectangleGate(gate_coordinates, filterId = filter_id)
+  rectangleGate(gate_coordinates, filterId = filterId)
   
 }
 
 #' @rdname tailgate
 #' @export
-cytokine <- function(fr, channel, filter_id = "", num_peaks = 1,
+cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
   ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right", ...) {
   .Deprecated("tailgate")
-  return (tailgate(fr=fr, channel=channel, filter_id=filter_id,
+  return (tailgate(fr=fr, channel=channel, filterId=filterId,
     num_peaks=num_peaks, ref_peak=ref_peak, tol=tol, positive=positive,
     side=side, ...))
 }

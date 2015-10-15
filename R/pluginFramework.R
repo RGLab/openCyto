@@ -88,7 +88,7 @@ registerGatingFunction <- function(fun=NA,methodName, dep=NA){
 #' 
 #'                           yChannel \code{character} (required)
 #' 
-#'                           filter_id \code{character}
+#'                           filterId \code{character}
 #' 
 #'                           ... ellipses for the additional parameters.
 #' 

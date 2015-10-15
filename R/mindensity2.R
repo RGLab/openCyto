@@ -83,7 +83,7 @@
 #' 
 #' @param fr a \code{flowFrame} object
 #' @param channel the channel to operate on
-#' @param filter_id a name to refer to this filter
+#' @param filterId a name to refer to this filter
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
 #' line to the right of the cutpoint. Otherwise, the gate is the entire real
 #' line to the left of the cutpoint. (Default: \code{TRUE})
@@ -104,7 +104,7 @@
 #'  gate <- mindensity2(fr, channel = "APC-A") # fr is a flowFrame
 #' }
 #' 
-mindensity2 <- function(fr, channel, filter_id = "", positive = TRUE, pivot = FALSE, 
+mindensity2 <- function(fr, channel, filterId = "", positive = TRUE, pivot = FALSE, 
                          gate_range = NULL, min = NULL, max = NULL, peaks = NULL, 
                          ...) {
   if (missing(channel) || length(channel) != 1) {
@@ -128,7 +128,7 @@ mindensity2 <- function(fr, channel, filter_id = "", positive = TRUE, pivot = FA
   }
   # name the gate and return it
   names(coords) <- channel
-  return(rectangleGate(coords, filterId = filter_id)) 
+  return(rectangleGate(coords, filterId = filterId)) 
 }
 
 
