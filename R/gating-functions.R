@@ -955,7 +955,7 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
 #' Constructs the derivative specified of the kernel density estimate of a
 #' numeric vector
 #'
-#' The derivative is computed with \code{\link[ks:drvkde]{drvkde}}.
+#' The derivative is computed with \code{\link[feature:drvkde]{drvkde}} (feature package 1.2.13)
 #'
 #' For guidance on selecting the bandwidth, see this CrossValidated post:
 #' \url{http://bit.ly/12LkJWz}
@@ -969,9 +969,9 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
 #' @param adjust a numeric weight on the automatic bandwidth, analogous to the
 #' \code{adjust} parameter in \code{\link{density}}
 #' @param num_points the length of the derivative of the kernel density estimate
-#' @param ... additional arguments passed to \code{\link[ks:drvkde]{drvkde}}
+#' @param ... additional arguments passed to \code{drvkde}
 #' @return list containing the derivative of the kernel density estimate
-#' @importFrom ks hpi drvkde
+#' @importFrom ks hpi 
 .deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1,
     num_points = 10000, ...) {
   
@@ -979,7 +979,8 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
   if (is.null(bandwidth)) {
     bandwidth <- hpi(x, deriv.order = deriv)
   }
-  deriv_x <- drvkde(x = x, drv = deriv, bandwidth = adjust * bandwidth,
+  #we use the private version of drvkde in flowStats (copied from feature package) to avoid the tcltk dependency
+  deriv_x <- flowStats:::drvkde(x = x, drv = deriv, bandwidth = adjust * bandwidth,
       gridsize = num_points, ...)
   list(x = deriv_x$x.grid[[1]], y = deriv_x$est)
 }
