@@ -12,7 +12,7 @@ LazyLoad: yes
 Depends:
     flowWorkspace(>= 3.11.10)
 Imports:
-    methods,Biobase,gtools,flowCore(>= 1.31.17),flowViz,ncdfFlow(>= 2.11.34),flowStats(>= 3.23.7),flowClust,MASS,clue,plyr,RBGL,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils
+    methods,Biobase,gtools,flowCore(>= 1.31.17),flowViz,ncdfFlow(>= 2.11.34),flowStats(>= 3.29.1),flowClust,MASS,clue,plyr,RBGL,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils
 Suggests:
     flowWorkspaceData,
     knitr,
