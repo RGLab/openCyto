@@ -31,12 +31,10 @@
 #'  stopCluster ( cl1 )
 #' }
 #' @rdname gating-methods
+#' @importFrom flowWorkspace gating
 #' @export
-setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
-
 #' @aliases 
 #' gating,gatingTemplate,GatingSet-method
-#' @rdname gating-methods
 setMethod("gating", signature = c("gatingTemplate", "GatingSet"),
     definition = function(x, y, env_fct = NULL, ...) {
       .gating_gatingTemplate(x,y,env_fct,...)
