@@ -5,7 +5,7 @@
 \title{quadGate based on flowClust::tmixFiler}
 \usage{
 quadGate.tmix(fr, channels, K, usePrior = "yes", prior = list(NA),
-  quantile1 = 0.8, quantile3 = 0.8, trans = 0, B = 10, ...)
+  quantile1 = 0.8, quantile3 = 0.8, trans = 0, plot = FALSE, ...)
 }
 \arguments{
 \item{fr}{\code{flowFrame}}
@@ -24,7 +24,7 @@ quadGate.tmix(fr, channels, K, usePrior = "yes", prior = list(NA),
 
 \item{trans}{see \link{flowClust.2d}}
 
-\item{B}{see \link{flowClust.2d}}
+\item{plot}{logical whether to plot flowClust clustering results}
 
 \item{...}{other arguments passed to \link{flowClust}}
 }
