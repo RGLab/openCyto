@@ -1109,7 +1109,7 @@ quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
 #' @param K see \link{flowClust.2d}
 #' @param prior see \link{flowClust.2d}
 #' @param trans see \link{flowClust.2d}
-#' @param B see \link{flowClust.2d}
+#' @param plot logical whether to plot flowClust clustering results
 #' @param quantile1 \code{numeric} specifies the  quantile level(see 'level' in \link{flowClust}) for the first quadrant (x-y+)
 #' @param quantile3 \code{numeric} specifies the  quantile level see 'level' in \link{flowClust} for third quadrant (x+y-)
 #' @param ... other arguments passed to \link{flowClust}
@@ -1117,20 +1117,22 @@ quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
 #' @export 
 quadGate.tmix <- function(fr, channels, K, usePrior = "yes", prior = list(NA)
     , quantile1 = 0.8, quantile3 = 0.8
-    , trans = 0, B = 10
+    , trans = 0
+    , plot = FALSE
     , ...){
   
-  max.v <- .Machine$double.xmax
+  max.v <- .Machine$integer.max #.Machine$double.xmax double max no longer to be valid coordinates in the plot
   min.v <- - max.v
-  
+# browser()  
   # fit tmix models 
   tmix_filter <- tmixFilter(parameters = channels
       , K = K
-      , usePrior = usePrior, prior = prior, B = B , trans = trans
+      , usePrior = usePrior, prior = prior, trans = trans
       , ...)
 
   tmix_results <- try(filter(fr, tmix_filter), silent = F)
-#      plot(tmix_results, data = fr, level = 0.85)
+  if(plot)
+    plot(tmix_results, data = fr, level = 0.85)
   #find the 1st and 3rd quads
   fitted_means <- getEstimates(tmix_results)$locations
   q1.ind <- which.max(fitted_means[,2])
