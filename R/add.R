@@ -44,7 +44,7 @@ setMethod("add",
       #added it to gating tree
       sn <- sampleNames(wf)
       ptr <- wf@pointer
-      .Call("R_setIndices", ptr, sn, nodeID-1, pInd, PACKAGE = "flowWorkspace")
+      flowWorkspace:::.cpp_setIndices(ptr, sn, nodeID-1, pInd)
     })
 
 #' construct logicalGate obj
@@ -83,7 +83,7 @@ setMethod("add",
       nodeID <- flowWorkspace:::.addGate(wf, filterObject(action), recompute = FALSE, ...)
       sn <- sampleNames(wf)
       ptr <- wf@pointer
-      .Call("R_setIndices", ptr, sn, nodeID-1, indices, PACKAGE = "flowWorkspace")
+      flowWorkspace:::.cpp_setIndices(ptr, sn, nodeID-1, indices)
       
       
     })
@@ -120,7 +120,7 @@ setMethod("add",
       nodeID <- flowWorkspace:::.addGate(wf, rectFilterObj, recompute = FALSE, ...)
       sn <- sampleNames(wf)
       ptr <- wf@pointer
-      .Call("R_boolGating", ptr, sn, boolFilterObj, nodeID - 1, PACKAGE = "flowWorkspace")
+      flowWorkspace:::.cpp_boolGating(ptr, sn, boolFilterObj, nodeID - 1)
       nodeID
     })
 
@@ -157,7 +157,7 @@ setMethod("add",
           samples <- sampleNames(thisGS)
           lapply(samples,function(sample){
                 
-                nodeID <- .Call("R_addGate",thisGS@pointer,sample,filterObj, parent,name)
+                nodeID <- flowWorkspace:::.cpp_addGate(thisGS@pointer,sample,filterObj, parent,name)
                 nodeID+1
               })
         }, level = 1)
@@ -167,7 +167,7 @@ setMethod("add",
     samples <- sampleNames(gs)
     nodeIDs<-lapply(samples,function(sample){
           
-          nodeID <- .Call("R_addGate",gs@pointer,sample,filterObj, parent,name)
+          nodeID <- flowWorkspace:::.cpp_addGate(gs@pointer,sample,filterObj, parent,name)
           nodeID+1
         })  
   }
