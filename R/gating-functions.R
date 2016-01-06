@@ -1139,14 +1139,14 @@ quadGate.tmix <- function(fr, channels, K, usePrior = "yes", prior = list(NA)
   q3.ind <- which.max(fitted_means[,1])
   
   #construct polygon gates 
-  q1.gate <- flowViz:::ell2Polygon(.getEllipseGate(filter = tmix_results
+  q1.gate <- as(.getEllipseGate(filter = tmix_results
           , include = q1.ind,
           quantile = quantile1
-          ,trans = 0))
-  q3.gate <- flowViz:::ell2Polygon(.getEllipseGate(filter = tmix_results
+          ,trans = 0), "polygonGate")
+  q3.gate <- as(.getEllipseGate(filter = tmix_results
           , include = q3.ind,
           quantile = quantile3
-          ,trans = 0))
+          ,trans = 0), "polygonGate")
   #find intersection of 1,3 quad gates
   q1.bottom <- min(q1.gate@boundaries[, 2])
   q1.right <- max(q1.gate@boundaries[, 1])
