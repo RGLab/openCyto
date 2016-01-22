@@ -338,7 +338,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' \code{\link{flowClust}}, this value cannot be 2.
 #' @param plot a logical value indicating if the fitted mixture model should be
 #' plotted. By default, no.
-#' @param target a numeric vector of length \code{K} containing the location of
+#' @param target a numeric vector of length \code{2} (number of dimensions) containing the location of
 #' the cluster of interest. See details.
 #' @param transitional logical value indicating if a transitional gate should be
 #' constructed from the target \code{\link{flowClust}} cluster. By default, no.
