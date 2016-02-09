@@ -29,6 +29,40 @@ test_that("tcell", {
       
     })
 
+test_that("tcell--asinhtGml2", {
+  
+  fcs <- list.files(pattern = "CytoTrol*", system.file("extdata", package = "flowWorkspaceData"), full.names = TRUE)
+  fs <- read.ncdfFlowSet(fcs)  
+  gs <- GatingSet(fs)
+  #compensate
+  comp <- compensation(spillover(fs[[1]])[["SPILL"]])
+  gs <- compensate(gs, comp)
+  #transform
+  trans <- asinhtGml2_trans()
+  chnls <- as.vector(parameters(comp))
+  trans.list <- transformerList(chnls, trans)
+  gs <- transform(gs, trans.list)
+  
+  # autoplot(getData(gs), chnls[1])
+  
+  #load gating template
+  localPath <- "~/rglab/workspace/openCyto"
+  gtFile <- system.file("extdata/gating_template/tcell.csv", package = "openCyto")
+  #modify scale-specific parameters
+  dt <- fread(gtFile)
+  dt[c(5, 8), gating_args := NA]
+  tmp <- tempfile()
+  write.csv(dt, file = tmp, row.names = FALSE)
+  gt_tcell <- gatingTemplate(tmp, autostart = 1L)
+  gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore")
+  # autoplot(gs[[1]])  
+  
+  thisRes <- getPopStats(gs, path = "full")
+  expectRes <- gatingResults[["gating_tcell_asinhtGml2"]]
+  expect_equal(thisRes, expectRes)
+
+})
+
 test_that("ICS", {
       
       
