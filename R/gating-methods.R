@@ -725,12 +725,14 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
             #handle all infinite coordinates
             if(length(cut.x) == 0)
               cut.x <- -Inf
+            else
             {
               if(!x_ref_pos)#x+
                 x_ref <- paste0("!", x_ref) 
             }
             if(length(cut.y) == 0)
               cut.y <- Inf
+            else
             {
               if(y_ref_pos)#y-
                 y_ref <- paste0("!", y_ref) 
@@ -759,7 +761,7 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           
           names(coord) <- as.character(dim_params)
           fres <- rectangleGate(coord)
-          if(isSameParent){
+          if(isSameParent&&!is.null(x_ref)&&!is.null(y_ref)){
             fres <- ocRectRefGate(fres, paste0(x_ref, "&", y_ref))
             fres
           }
