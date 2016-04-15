@@ -1,3 +1,11 @@
+#' Apply the gates  to a GatingSet
+#' 
+#' It applies the gates to the GatingSet based on the population tree described in graphGML.
+#' 
+#' @export
+#' @rdname gating-methods
+setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
+
 #' Applies gatingTemplate to one GatingSet.
 #'
 #' It loads the gating methods by topological order and applies them to \code{GatingSet}.
@@ -31,7 +39,6 @@
 #'  stopCluster ( cl1 )
 #' }
 #' @rdname gating-methods
-#' @importFrom flowWorkspace gating
 #' @export
 #' @aliases 
 #' gating,gatingTemplate,GatingSet-method
