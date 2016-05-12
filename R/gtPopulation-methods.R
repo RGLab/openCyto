@@ -5,12 +5,12 @@ setMethod("names", signature = c("gtPopulation"), definition = function(x) {
   x@name
 })
 
-#' get population alias
-#' @param object \code{gtPopulation} 
-#' @export
-#' @aliases alias,gtPopulation-method 
-setMethod("alias", signature = c("gtPopulation"), definition = function(object) {
+# the original S4 method has been suffering from S4 masking issue,thus we keep it as private functioninstead
+# get population alias
+# @param object \code{gtPopulation} 
+#setMethod("alias", signature = c("gtPopulation"), definition = function(object) {
+alias <- function(object){
   object@alias
-})
+}
 
  
