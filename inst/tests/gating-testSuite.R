@@ -59,7 +59,7 @@ test_that("tcell--asinhtGml2", {
   
   thisRes <- getPopStats(gs, path = "full")
   expectRes <- gatingResults[["gating_tcell_asinhtGml2"]]
-  expect_equal(thisRes, expectRes)
+  expect_equal(thisRes, expectRes, tol = 0.005)
 
 })
 
