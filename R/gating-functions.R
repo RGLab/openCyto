@@ -1115,7 +1115,7 @@ quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
 #' @param ... other arguments passed to \link{flowClust}
 #' @return a \code{filters} object that contains four \code{polygonGate}s following the order of (-+,++,+-,--)
 #' @export 
-quadGate.tmix <- function(fr, channels, K, usePrior = "yes", prior = list(NA)
+quadGate.tmix <- function(fr, channels, K, usePrior = "no", prior = list(NA)
     , quantile1 = 0.8, quantile3 = 0.8
     , trans = 0
     , plot = FALSE
