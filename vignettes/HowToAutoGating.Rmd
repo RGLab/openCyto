@@ -23,7 +23,8 @@ Here we will illustrate how to choose and use the appropriate gating functions t
 ```{r}
 library(openCyto)
 library(ggcyto)
-gs <- load_gs("/fh/fast/gottardo_r/mike_working/lyoplate_out/gated_data/auto/gslist-bcell/cgRoygodqg/")
+
+gs <- load_gs(system.file("extdata/gs_bcell_auto", package = "flowWorkspaceData"))
 ```
 ## 1D gating methods
 ### `mindensity`
@@ -116,7 +117,7 @@ This gating method identifies two quadrants (first, and third quadrants) by fitt
 It is particually useful when the two markers are not well resolved thus the regular quadGate method
 that is based on `1d` gating will not find the perfect cut points on both dimensions.
 ```{r}
-gs <- load_gs("/fh/fast/gottardo_r/mike_working/lyoplate_out/gated_data/auto/gslist-DC/DKM455iBS1/")
+gs <- load_gs(system.file("extdata/gs_DC_auto", package = "flowWorkspaceData"))
 fr <- getData(gs[[3]], "HLADR+")
 chnl <- c("CD11c", "CD123")
 p <- autoplot(fr, chnl[1], chnl[2])
