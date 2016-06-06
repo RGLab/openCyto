@@ -176,7 +176,7 @@
 #' @inheritParams .prior_flowClust
 #' 
 #' @return a \code{filter} object
-.flowClust.1d <- function(fr, pp_res, channels, positive = TRUE,...) {
+.flowClust.1d <- function(fr, pp_res = NULL, channels, positive = TRUE,...) {
   
   if(length(channels) != 1)
     stop("invalid number of channels for flowClust.1d!")
@@ -275,7 +275,7 @@
 #' 
 #' @return a \code{filter} object
 .cytokine <- function(fr, pp_res, ...) {
-  .Deprecated("tailgate")
+  .Defunct("tailgate")
   #TODO:standardize data with pp_res
   .tailgate(fr, pp_res = pp_res, ...)
 }
@@ -284,7 +284,7 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.tailgate <- function(fr, pp_res, channels, positive = TRUE, ...) {
+.tailgate <- function(fr, pp_res = NULL, channels, positive = TRUE, ...) {
   if(length(channels) != 1)
     stop("invalid number of channels for tailgate!")
   #pps_res may contains the standardized and collapsed data and transformation
@@ -339,7 +339,7 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.mindensity <- function(fr, pp_res, channels, positive = TRUE, ...) {
+.mindensity <- function(fr, pp_res = NULL, channels, positive = TRUE, ...) {
   
  if(length(channels) != 1)
    stop("invalid number of channels for mindensity!")
@@ -355,7 +355,7 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.flowClust.2d <- function(fr, pp_res, channels, ...) {
+.flowClust.2d <- function(fr, pp_res = NULL, channels, ...) {
   if(length(channels) != 2)
     stop("invalid number of channels for flowClust.2d!")
   xChannel <- channels[1]
@@ -401,7 +401,7 @@
 #' 
 #' @return a \code{filter} object
 #' @importFrom flowStats rangeGate
-.rangeGate <- function(fr, pp_res, channels,  ...) {
+.rangeGate <- function(fr, pp_res = NULL, channels,  ...) {
   
   rangeGate(x = fr, stain = channels,  ...)
 }
@@ -413,18 +413,18 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.quantileGate <- function(fr, pp_res, channels, ...) {
+.quantileGate <- function(fr, pp_res = NULL, channels, ...) {
   
-  quantileGate(fr = fr, stain = channels, ...)
+  quantileGate(fr = fr, channel = channels, ...)
 }
 
-.quadGate.tmix <- function(fr, pp_res, channels, ...) {
+.quadGate.tmix <- function(fr, pp_res = NULL, channels, ...) {
   if(length(channels) != 2)
     stop("invalid number of channels for quadGate.tmix!")
     quadGate.tmix(fr, channels, ...)
 }
 
-.quadGate.seq <- function(fr, pp_res, channels, ...){
+.quadGate.seq <- function(fr, pp_res = NULL, channels, ...){
   quadGate.seq(fr, channels, ...)
 }
 ############################
