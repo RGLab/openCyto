@@ -4,14 +4,21 @@ Mike Jiang
 
 
 
-Here we will illustrate how to choose and use the appropriate gating functions that are natively provided by `openCyto` package. Apparently users can always define develop their own `gating` algorithms and use them as the `plugin` functions in `openCyto` framework, which are beyond the scope of this document.
+Here we will illustrate how to choose and use the appropriate gating methods that are pre-registered in `openCyto` package. And users can always define their own `gating` algorithms and register them as the `plugin` functions in `openCyto` framework, see `?registerPlugins` for more details.
 
+Note that all the function names illustrated below are prefixed with `.` indicating that they are simply the wrapper function registered in `openCyto`. The actual `gating engine` behind the wrapper can come from other packages (e.g. `flowCore`, `flowClust`). 
+All these wrappers have these common interfaces:
+* `fr`: a `flowFrame` object
+* `pp_res`: an optional `pre-preocessing` result, which can be ignored in this document
+* `channels`: channel names used for gating
+* `...`: any other gating parameters pass on to the actual gating engine
 
 
 ```r
 library(openCyto)
 library(ggcyto)
-gs <- load_gs("/fh/fast/gottardo_r/mike_working/lyoplate_out/gated_data/auto/gslist-bcell/cgRoygodqg/")
+
+gs <- load_gs(system.file("extdata/gs_bcell_auto", package = "flowWorkspaceData"))
 ```
 ## 1D gating methods
 ### `mindensity`
@@ -21,57 +28,52 @@ For example, it is usually easy to gate on `CD3` channel and no need to supply a
 
 
 ```r
-fr <- getData(gs[[1]], "Live")
+fr <- getData(gs[[2]], "Live")
 chnl <- "CD3"
-g <- mindensity(fr, channel = chnl)
+g <- openCyto:::.mindensity(fr, channels = chnl)
 autoplot(fr, chnl) + geom_gate(g)
+autoplot(fr, chnl, "SSC-A") + geom_gate(g)
 ```
 
-![](HowToAutoGating_files/figure-html/unnamed-chunk-3-1.png)
+![](HowToAutoGating_files/figure-html/unnamed-chunk-3-1.png)![](HowToAutoGating_files/figure-html/unnamed-chunk-3-2.png)
 
 However, it may need some guidance when there are more than `2` major peaks/populations detected in densit profile.
 
 ```r
 fr <- getData(gs[[1]], "boundary")
 chnl <- "FSC-A"
-g <- mindensity(fr, channel = chnl)
+g <- openCyto:::.mindensity(fr, channels = chnl)
 mylimits <- ggcyto_par_set(limits = "instrument")
 p <- autoplot(fr, chnl) + mylimits
 p + geom_gate(g)
+autoplot(fr, chnl, "SSC-A") + geom_gate(g)
 ```
 
-![](HowToAutoGating_files/figure-html/unnamed-chunk-4-1.png)
+![](HowToAutoGating_files/figure-html/unnamed-chunk-4-1.png)![](HowToAutoGating_files/figure-html/unnamed-chunk-4-2.png)
 
-Here we actually want to cut between the `2nd` and `3rd` peaks to remove the `debris cells` that are represented by those two negative peaks. So we can simply specify a `range` that will limit the locations where the cut point will be placed. 
+Here we actually want to remove the `debris cells` that are represented by the first negative peak. But `mindensity` cuts between the second and third peaks since they are more predorminant. So we can simply specify a `range` that will limit the locations where the cut point should be placed. 
 
 ```r
-g <- mindensity(fr, channel = "FSC-A", gate_range=c(5e4,1e5), adjust = 1.5)
+g <- openCyto:::.mindensity(fr, channels = chnl, gate_range=c(7e4,1e5), adjust = 1.5)
 p + geom_gate(g)
+autoplot(fr, chnl, "SSC-A") + geom_gate(g)
 ```
 
-![](HowToAutoGating_files/figure-html/unnamed-chunk-5-1.png)
+![](HowToAutoGating_files/figure-html/unnamed-chunk-5-1.png)![](HowToAutoGating_files/figure-html/unnamed-chunk-5-2.png)
 
 And as shown, we also changed the `kernal density`  smoothing factor `adjust` from  `2`(default value set in `openCtyo`) to `1.5` to avoid over-smoothing.
 
 Alternatively you can achieve the same effect by setting `min` or `max` to pre-filter the data before the `mindenstiy` works on it.
 
 ```r
-g <- mindensity(fr, channel = "FSC-A", min = 2e4)
+g <- openCyto:::.mindensity(fr, channels = chnl, min = 7e4, max = 1e5)
 p + geom_gate(g)
 ```
 
 ![](HowToAutoGating_files/figure-html/unnamed-chunk-6-1.png)
 
-
-
-```r
-g <- mindensity(fr, channel = "FSC-A", gate_range=c(5e4,1e5), adjust = 1.5)
-p + geom_gate(g)
-```
-
-![](HowToAutoGating_files/figure-html/unnamed-chunk-7-1.png)
-
 To choose one way or the other or combining both is highly dependent on how your data. The more contrains will give you more controls on how gating proceeds yet at cost of robustness of your gating pipeline sometime.
+
 
 ### `tailgate`
 This gating method is used in the senarios where there is only one major peak detected thus automatically disqualify the usage of `mindensity`. `tol` is to control how far the cut point should be placed away from the peak. 
@@ -80,16 +82,56 @@ This gating method is used in the senarios where there is only one major peak de
 ```r
 fr <- getData(gs[[1]], "lymph")
 chnl <- "Live"
-g <- tailgate(fr, channel = chnl, tol = 5e-2)
+g <- openCyto:::.tailgate(fr, channels = chnl, tol = 0.05)
 p <- autoplot(fr, chnl) + mylimits
 p + geom_gate(g)
+autoplot(fr, chnl, "SSC-A") + geom_gate(g)
 ```
 
-![](HowToAutoGating_files/figure-html/unnamed-chunk-8-1.png)
+![](HowToAutoGating_files/figure-html/unnamed-chunk-7-1.png)![](HowToAutoGating_files/figure-html/unnamed-chunk-7-2.png)
+
+### `quantileGate`
+This method is an alternative to `tailgate` and it determines the cutpoint by the events quantile.
+
+```r
+g <- openCyto:::.quantileGate(fr, channels = chnl, probs = 0.99)
+p <- autoplot(fr, chnl) + mylimits
+p + geom_gate(g)
+autoplot(fr, chnl, "SSC-A") + geom_gate(g)
+```
+
+![](HowToAutoGating_files/figure-html/unnamed-chunk-8-1.png)![](HowToAutoGating_files/figure-html/unnamed-chunk-8-2.png)
 
 This gating method is more commonly used in gating the `rare` populations when the target population is not prominent enough to stand out as the second peak. (e.g. `cytokine` gates in `ICS` assays.)
 
 ## 2D gating methods
+### `boundary Gate`
+It essentially constructs a rectangle gate from input range (min, max), which is useful for filtering out very extreme signals at the bounary.
+
+
+```r
+fr <- getData(gs[[1]], "root")
+chnl <- c("FSC-A", "SSC-A")
+g <- openCyto:::.boundary(fr, channels = chnl, min = c(0, 0), max=c(2.5e5,2.5e5))
+p <- autoplot(fr, x = chnl[1], y = chnl[2])
+p + geom_gate(g)
+```
+
+![](HowToAutoGating_files/figure-html/unnamed-chunk-9-1.png)
+
+### `singletGate`
+Use the `area` vs `height` to gate out the singlets. See details from `?singletGate`.
+
+```r
+fr <- read.FCS(system.file("extdata/CytoTrol_CytoTrol_1.fcs", package = "flowWorkspaceData"))
+chnl <- c("FSC-A", "FSC-H")
+g <- openCyto:::.singletGate(fr, channels = chnl)
+p <- autoplot(fr, x = chnl[1], y = chnl[2])
+p + geom_gate(g)
+```
+
+![](HowToAutoGating_files/figure-html/unnamed-chunk-10-1.png)
+
 ### `flowClust.2d`
 `flowClust` package in itself is not limited to 2-dimensional gating. But here we are talking about a dedicated wrapper function `.flowClust.2d` from `openCyto` package that leverages `flowClust` clustering engine to work on `2D` cases specifically. You won't need to write the full name of the function in `csv` gating template, simply put `flowClust` in the `gating_method` column, and then the template parser will automatically dispatch to the right function.
 
@@ -97,15 +139,16 @@ This gating method is more commonly used in gating the `rare` populations when t
 ```r
 fr <- getData(gs[[1]], "nonDebris")
 chnl <- c("FSC-A", "SSC-A")
-g <- openCyto:::.flowClust.2d(fr, channels = chnl, K=2, target=c(1e5,5e4), quantile=0.95, pp_res = NULL)
+g <- openCyto:::.flowClust.2d(fr, channels = chnl, K=2, target=c(1e5,5e4), quantile=0.95)
 p <- autoplot(fr, x = chnl[1], y = chnl[2]) + mylimits
 p + geom_gate(g)
 ```
 
-![](HowToAutoGating_files/figure-html/unnamed-chunk-9-1.png)
+![](HowToAutoGating_files/figure-html/unnamed-chunk-11-1.png)
 
 `K` is to tell the algorithm how many major clusters/populations are expected in the 2d profile. `target` specify the mean/center of the target population to get, which doesn't have to be precise. If not supplied, flowClust will pick the most prominent cluster as the target, which would be the right choice in most cases.
 `quantile` specify how large the `ellipse` should be. `pp_res` is used to provide the `prior` information for `flowClust`. (More details are in `?flowClust`)
+
 
 ### `Transitional gate`
 `flowClust.2d` can optionally construct a `Transitional gate`, which is a speical kind of polygon gate with one edge placed diagonally that is often seen in `flowJo`. Here is an example:
@@ -118,7 +161,7 @@ p <- autoplot(fr, x = chnl[1], y = chnl[2]) + mylimits
 p + geom_gate(g)
 ```
 
-![](HowToAutoGating_files/figure-html/unnamed-chunk-10-1.png)
+![](HowToAutoGating_files/figure-html/unnamed-chunk-12-1.png)
 
 The rational behind the algorithm is beyond the scope of this document. Please see its detailed explainations in `?flowClust.2d`.
 
@@ -128,13 +171,13 @@ It is particually useful when the two markers are not well resolved thus the reg
 that is based on `1d` gating will not find the perfect cut points on both dimensions.
 
 ```r
-gs <- load_gs("/fh/fast/gottardo_r/mike_working/lyoplate_out/gated_data/auto/gslist-DC/DKM455iBS1/")
-fr <- getData(gs[[3]], "HLADR+")
+gs <- load_gs(system.file("extdata/gs_DC_auto", package = "flowWorkspaceData"))
+fr <- getData(gs[[2]], "HLADR+")
 chnl <- c("CD11c", "CD123")
 p <- autoplot(fr, chnl[1], chnl[2])
-g <- quadGate.tmix(fr, chnl, K = 3, usePrior = "no")
+g <- openCyto:::.quadGate.tmix(fr, channels = chnl, K = 3, usePrior = "no")
 p + geom_gate(g)
 ```
 
-![](HowToAutoGating_files/figure-html/unnamed-chunk-11-1.png)
+![](HowToAutoGating_files/figure-html/unnamed-chunk-13-1.png)
 
