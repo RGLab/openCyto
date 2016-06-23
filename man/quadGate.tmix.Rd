@@ -4,7 +4,7 @@
 \alias{quadGate.tmix}
 \title{quadGate based on flowClust::tmixFiler}
 \usage{
-quadGate.tmix(fr, channels, K, usePrior = "yes", prior = list(NA),
+quadGate.tmix(fr, channels, K, usePrior = "no", prior = list(NA),
   quantile1 = 0.8, quantile3 = 0.8, trans = 0, plot = FALSE, ...)
 }
 \arguments{
