@@ -9,7 +9,7 @@ flowClust.2d(fr, xChannel, yChannel, filterId = "", K = 2,
   usePrior = "no", prior = list(NA), trans = 0, plot = FALSE,
   target = NULL, transitional = FALSE, quantile = 0.9,
   translation = 0.25, transitional_angle = NULL, min = NULL, max = NULL,
-  ...)
+  fast = FALSE, ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
@@ -61,6 +61,8 @@ ignored.}
 maximum value. The first value truncates the \code{xChannel}, and the second
 value truncates the \code{yChannel}. By default, this vector is \code{NULL}
 and is ignored.}
+
+\item{fast}{\code{logical} whether to run the fast version of flowClust}
 
 \item{...}{additional arguments that are passed to \code{\link{flowClust}}}
 }
