@@ -58,7 +58,8 @@ add_pop <- function(gs, alias = "*"
               , preprocessing_method = preprocessing_method
               , preprocessing_args = preprocessing_args
              )
-      
+      if(nrow(thisRow)>1)
+        stop("Can't add multiple rows!Please make sure each argument is of length 1.")
       #there's a weird bug where rbinding a 0-row dt and a non-zero row dt returns > 4M rows.
       if(nrow(dt)>0){       
         dt <- rbind(dt, thisRow)   
