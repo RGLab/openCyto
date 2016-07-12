@@ -357,6 +357,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' maximum value. The first value truncates the \code{xChannel}, and the second
 #' value truncates the \code{yChannel}. By default, this vector is \code{NULL}
 #' and is ignored.
+#' @param fast \code{logical} whether to run the fast version of flowClust
 #' @param ... additional arguments that are passed to \code{\link{flowClust}}
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
@@ -370,7 +371,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA), trans = 0,
                          plot = FALSE, target = NULL, transitional = FALSE,
                          quantile = 0.9, translation = 0.25, transitional_angle = NULL,
-                         min = NULL, max = NULL, ...) {
+                         min = NULL, max = NULL, fast = FALSE, ...) {
   options("cores" = 1L) ##suppress parallelism since it may lock the process due to the lack of resource when parallel gating was already using up the cores. 
   
   if (!is.null(target)) {
@@ -398,9 +399,18 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the
   # elements in the list `prior`.
-  tmix_filter <- tmixFilter(filterId, c(xChannel, yChannel), K = K, trans = trans,
-                        usePrior = usePrior, prior = prior, ...)
-  tmix_results <- try(filter(fr, tmix_filter), silent = TRUE)
+  if(fast){
+    tmix_results <- .flowClustFast(fr, c(xChannel, yChannel)
+                                      , K = K, trans = trans,
+                                      usePrior = usePrior
+                                      , prior = prior, ...)
+                    
+  }else{
+    tmix_filter <- tmixFilter(filterId, c(xChannel, yChannel), K = K, trans = trans,
+                              usePrior = usePrior, prior = prior, ...)
+    tmix_results <- try(filter(fr, tmix_filter), silent = TRUE)  
+  }
+  
 
   # In the case an error occurs when applying 'flowClust', the gate is
   # constructed from the prior distributions. Errors typically occur when there
