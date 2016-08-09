@@ -403,10 +403,12 @@ templateGen <- function(gh){
 }
 #' convert to 1d gating based on the population pattern (A+/-B+/-)
 .gen_1dgate <- function(terms, this_row, one_pop_token, two_pop_token, strict = TRUE) {
-  
-  res <- ldply(terms, function(cur_term) {
-        toReplace <- paste("(", two_pop_token, ")|(", one_pop_token, ")", sep = "")
-        cur_dim <- sub(toReplace, "", cur_term)
+  toReplace <- paste("(", two_pop_token, ")|(", one_pop_token, ")", sep = "")
+  pop.dims <- sapply(terms, function(cur_term){sub(toReplace, "", cur_term)}, USE.NAMES = FALSE)
+  dims.dims <- strsplit(split = ",", this_row[, dims])[[1]]
+  if(!setequal(pop.dims, dims.dims))
+    stop("dimensions do not match between 'dims'(", this_row[, dims], ") and 'pop'(", terms, ")")
+  res <- ldply(pop.dims, function(cur_dim) {
         new_pop_name <- paste(cur_dim, "+", sep = "")
         this_parent <- this_row[, parent]
         if(strict)

@@ -159,6 +159,11 @@ test_that(".gen_1dgate", {
       thisRes <- .gen_1dgate(c("cd4-", "cd8+/-"), this_row, one_pop_token, two_pop_token)
       expect_equal(thisRes, expectRes)
       
+      #inconsistency between dims and pops
+      this_row <- copy(template_row)
+      this_row[, pop := "A-cd8+"]
+      expect_error(.gen_1dgate(c("A-", "cd8+"), this_row, one_pop_token, two_pop_token)
+                   , regexp = "dimensions do not match")
     })
 
 test_that(".gen_refGate", {
