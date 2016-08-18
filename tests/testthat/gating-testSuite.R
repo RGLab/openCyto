@@ -1,6 +1,6 @@
 context("gating...")
 
-gatingResults <- readRDS(system.file("tests/gatingResults.rds", package = "openCyto"))
+gatingResults <- readRDS("gatingResults.rds")
 
 localPath <- "~/rglab/workspace/openCyto"
 
