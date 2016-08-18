@@ -1,7 +1,5 @@
 context("Gating Template")
 
-expectResults <- readRDS(system.file("tests/expectResults.rds", package = "openCyto"))
-
 one_pop_token <- "[\\+-]"
 pop_name_pat <- "[^\\+-]*"
 one_pop_pat <- paste(pop_name_pat, one_pop_token, sep = "")
