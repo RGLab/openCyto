@@ -26,7 +26,18 @@ test_that("tcell", {
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
       
-      
+      #use channel in pop and stains in dims
+      for(node in nodes[7:9])
+        Rm(node, gs)
+      expect_error(add_pop(gs, gating_method = "tailgate"
+                            , dims = "CD38,HLA"
+                            , parent = "cd4-cd8+"
+                            , pop = "R660-HLA+"
+                            , alias = "activated cd8"
+                            # , preprocessing_method = "standardize_flowset"
+                            )      
+                   , regexp = "dimensions do not match")
+                    
     })
 
 test_that("tcell--asinhtGml2", {
