@@ -20,7 +20,9 @@ test_that("tcell", {
       nodes <- getChildren(gs[[1]], "cd4-cd8+")
       for(node in nodes)
         Rm(node, gs)
-      add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA", parent = "cd4-cd8+", pop = "CD38+HLA+", alias = "activated cd8", preprocessing_method = "standardize_flowset")
+      add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA"
+              , parent = "cd4-cd8+", pop = "CD38+HLA+"
+              , alias = "activated cd8", preprocessing_method = "standardize_flowset")
       #test new .mindensity2 wrapper
       add_pop(gs, gating_method = "mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
       thisRes <- getPopStats(gs, path = "full", format = "wide")
@@ -29,14 +31,28 @@ test_that("tcell", {
       #use channel in pop and stains in dims
       for(node in nodes[7:9])
         Rm(node, gs)
-      expect_error(add_pop(gs, gating_method = "tailgate"
-                            , dims = "CD38,HLA"
-                            , parent = "cd4-cd8+"
-                            , pop = "R660-HLA+"
-                            , alias = "activated cd8"
-                            # , preprocessing_method = "standardize_flowset"
-                            )      
-                   , regexp = "dimensions do not match")
+      add_pop(gs, gating_method = "tailgate"
+              , dims = "CD38,HLA"
+              , parent = "cd4-cd8+"
+              , pop = "R660-HLA+"
+              , alias = "activated cd8"
+              , preprocessing_method = "standardize_flowset"
+      )      
+      thisRes <- getPopStats(gs, path = "full", format = "wide")
+      expect_equal(thisRes, expectRes, tol = 0.04)
+      
+      #pure +-
+      for(node in nodes[7:9])
+        Rm(node, gs)
+      add_pop(gs, gating_method = "tailgate"
+              , dims = "CD38,HLA"
+              , parent = "cd4-cd8+"
+              , pop = "-+"
+              , alias = "activated cd8"
+              , preprocessing_method = "standardize_flowset"
+      )      
+      thisRes <- getPopStats(gs, path = "full", format = "wide")
+      expect_equal(thisRes, expectRes, tol = 0.04)
                     
     })
 
