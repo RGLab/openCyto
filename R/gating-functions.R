@@ -706,6 +706,7 @@ quantileGate <- function(fr, channel, probs = 0.999, plot = FALSE, positive = TR
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
 #' @param peaks \code{numeric} vector. If not given , then perform peak detection first by .find_peaks
+#' @param plot logical whether to display the plots
 #' @param ... Additional arguments for peak detection.
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 #' @export
@@ -713,10 +714,11 @@ quantileGate <- function(fr, channel, probs = 0.999, plot = FALSE, positive = TR
 #' \dontrun{
 #'  gate <- mindensity(fr, channel = "APC-A") # fr is a flowFrame
 #' }
-#' @importFrom flowCore %in% identifier filterDetails<-
+#' @importFrom flowCore %in% identifier filterDetails<- getChannelMarker
+#' @import flowWorkspace
 mindensity <- function(fr, channel, filterId = "", positive = TRUE,
                        pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
-                       peaks = NULL, ...) {
+                       peaks = NULL, plot = FALSE, ...) {
   
   if (missing(channel) || length(channel) != 1) {
     stop("A single channel must be specified.")
@@ -731,8 +733,18 @@ mindensity <- function(fr, channel, filterId = "", positive = TRUE,
   # Grabs the data matrix that is being gated.
   x <- exprs(fr)[, channel]
   
-  if(is.null(peaks))
-    peaks <- .find_peaks(x, ...)[, "x"]
+  if(is.null(peaks)){
+    peaks.result <- .find_peaks(x, plot = FALSE,...)
+    peaks.info <- peaks.result[["peaks"]]
+    dens <- peaks.result[["dens"]]
+    peaks.x <- peaks.info[,x]
+  }else{
+    peaks.info <- NULL
+    dens <- NULL
+    peaks.x <- peaks
+  }
+    
+    
   
   if (is.null(gate_range)) {
     gate_range <- c(min(x), max(x))
@@ -744,36 +756,40 @@ mindensity <- function(fr, channel, filterId = "", positive = TRUE,
   
   # In the special case that there is only one peak, we are conservative and set
   # the cutpoint as min(x) if 'positive' is TRUE, and max(x) otherwise.
-  if (length(peaks) == 1) {
-    cutpoint <- ifelse(positive, gate_range[1], gate_range[2])
+  if (length(peaks.x) == 1) {
+    valley.x <- ifelse(positive, gate_range[1], gate_range[2])
+    valleys.info <- data.table(x = valley.x, y = 0)
   } else {
     # The cutpoint is the deepest valley between the two peaks selected. In the
     # case that there are no valleys (i.e., if 'x_between' has an insufficient
     # number of observations), we are conservative and set the cutpoint as the
     # minimum value if 'positive' is TRUE, and the maximum value otherwise.
-    valleys <- try(.find_valleys(x, ...), silent = TRUE)
-    valleys <- .between_interval(x = valleys, interval = gate_range)
+    valleys<- try(.find_valleys(x = dens[, x], y = dens[, y], plot = FALSE, ...)[["valleys"]], silent = TRUE)#pass the density to avoid recalculating it
+    valleys <- valleys[findInterval(valleys[, x], gate_range) == 1, ]
 
-    if (any(is.na(valleys))) {
+    if (nrow(valleys) == 0) {
     #FIXME:currently it is still returning the first peak,
     #we want to pass density instead of x_between to 'min'
     #because x_between is the signal values
-      cutpoint <- ifelse(positive, gate_range[1], gate_range[2])
-    } else if (length(valleys) == 1) {
-      cutpoint <- as.vector(valleys)
-    } else if (length(valleys) > 1) {
+      valley.x <- ifelse(positive, gate_range[1], gate_range[2])
+      valleys.info <- data.table(x = valley.x, y = 0)
+      
+    } else if (nrow(valleys) == 1) {
+      valleys.info <- valleys
+    } else if (nrow(valleys) > 1) {
       # If there are multiple valleys, we determine the deepest valley between
       # the two largest peaks.
-      peaks <- sort(peaks[1:2])
-      cutpoint <- .between_interval(valleys, peaks)[1]
-
+      peaks.range <- sort(peaks.x[1:2])
+      valleys.info <- valleys[findInterval(valleys[, x], peaks.range) == 1, ][1, ]
       # If none of the valleys detected are between the two largest peaks, we
       # select the deepest valley.
-      if (is.na(cutpoint)) {
-        cutpoint <- valleys[1]
+      if (nrow(valleys.info)==0) {
+        valley.info <- valleys[1, ]
       }      
     }
+    
   }
+  cutpoint <- as.vector(valleys.info[, x])
   # After the 1D cutpoint is set, we set the gate coordinates used in the
   # rectangleGate that is returned. If the `positive` argument is set to TRUE,
   # then the gate consists of the entire real line to the right of the cut point.
@@ -786,7 +802,16 @@ mindensity <- function(fr, channel, filterId = "", positive = TRUE,
 
   names(gate_coordinates) <- channel
   
-  rectangleGate(gate_coordinates, filterId = filterId)
+  g <- rectangleGate(gate_coordinates, filterId = filterId)
+  #attach the peak and valley info for the optional peak separation score calculatioooons
+  attr(g, "peaks") <- peaks.info
+  attr(g, "valley") <- valleys.info
+  if(plot){
+    plot(dens, type = "l")
+    points(peaks.info, col = "red")
+    abline(v = valleys.info[, x], col = "blue")
+  }
+  g
   
 }
 
@@ -894,7 +919,7 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
     tol = 1e-2, adjust = 1, side = "right", strict = TRUE, plot = FALSE, auto_tol = FALSE, ...) {
   
   method <- match.arg(method)
-  peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust, plot = plot)[, "x"])
+  peaks <- sort(.find_peaks(x, num_peaks = num_peaks, adjust = adjust, plot = plot)[["peaks"]][, x])
   
   #update peak count since it can be less than num_peaks
   num_peaks <- length(peaks)
@@ -920,7 +945,7 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
     }
     if (side == "right") {
       
-      deriv_valleys <- with(deriv_out, .find_valleys(x = x, y = y, adjust = adjust))
+      deriv_valleys <- with(deriv_out, .find_valleys(x = x, y = y, adjust = adjust)[["valleys"]])[,x]
       deriv_valleys <- deriv_valleys[deriv_valleys > peaks[ref_peak]]
       deriv_valleys <- sort(deriv_valleys)[1]
       cutpoint <- with(deriv_out, x[x > deriv_valleys & abs(y) < tol])
@@ -929,7 +954,7 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
     } else if (side == "left") {
       
       deriv_out$y <- -deriv_out$y
-      deriv_valleys <- with(deriv_out, .find_valleys(x = x, y = y, adjust = adjust))
+      deriv_valleys <- with(deriv_out, .find_valleys(x = x, y = y, adjust = adjust)[["valleys"]])[,x]
       deriv_valleys <- deriv_valleys[deriv_valleys < peaks[ref_peak]]
       deriv_valleys <- sort(deriv_valleys, decreasing=TRUE)[1]
       cutpoint <- with(deriv_out, x[x < deriv_valleys & abs(y) < tol])
@@ -945,12 +970,12 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
     deriv_out <- .deriv_density(x = x, adjust = adjust, deriv = 2, ...)
     
     if (side == "right") {
-      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust)[, "x"])
+      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust)[["peaks"]][, x])
       deriv_peaks <- deriv_peaks[deriv_peaks > peaks[ref_peak]]
       cutpoint <- sort(deriv_peaks)[1]
     } else if (side == "left") {
       deriv_out$y <- -deriv_out$y
-      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust)[, "x"])
+      deriv_peaks <- with(deriv_out, .find_peaks(x, y, adjust = adjust)[["peaks"]][, x])
       deriv_peaks <- deriv_peaks[deriv_peaks < peaks[ref_peak]]
       cutpoint <- sort(deriv_peaks, decreasing=TRUE)[length(deriv_peaks)]
     } else {
@@ -1026,13 +1051,13 @@ quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
         
         x <- exprs(fr)[, channel]
         
-        peaks <-.find_peaks(x,..., num_peaks = 2)
+        peaks <-.find_peaks(x,..., num_peaks = 2)[["peaks"]]
         #get peak and scores
         if(nrow(peaks)<2)
           score <- 0
         else
-          score <- abs(diff(peaks[, "x"]))
-        list(peaks = peaks[, "x"], score = score)
+          score <- abs(diff(peaks[, x]))
+        list(peaks = peaks[, x], score = score)
       }, simplify = FALSE)
   
   #order channel by scores

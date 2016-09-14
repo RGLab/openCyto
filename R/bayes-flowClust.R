@@ -172,7 +172,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
   # For each sample in 'flow_set', we identify the peaks after smoothing.
   peaks <- fsApply(flow_set, function(flow_frame, adjust) {
     x <- exprs(flow_frame)[, channel]
-    peaks_found <- .find_peaks(x, adjust = adjust)[, "x"]
+    peaks_found <- .find_peaks(x, adjust = adjust)[["peaks"]][, x]
     
     # If K is specified and is smaller than the number of peaks found,
     # we keep only the K largest peaks from the sample.
@@ -527,9 +527,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' set.seed(42)
 #' # 2 peaks with a minor hump
 #' y <- SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
-#' plot(density(y))
-#' peaks <- .find_peaks(y)
-#' abline(v = peaks[, "x"], col = "red")
+#' peaks <- .find_peaks(y, plot = TRUE)
 .find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, plot = FALSE, ...) {
   x <- as.vector(x)
 
@@ -547,7 +545,10 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
     }
     dens <- list(x = x, y = y)
   }
-
+  dens <- dens[c("x", "y")]
+  dens <- as.data.table(dens)
+  y <- dens[, y]
+  x <- dens[, x]
   # Discrete analogue to a second derivative applied to the KDE. See details.
   second_deriv <- diff(sign(diff(dens$y)))
   which_maxima <- which(second_deriv == -2) + 1
@@ -555,29 +556,28 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
   # The 'density' function can consider observations outside the observed range.
   # In rare cases, this can actually yield peaks outside this range.  We remove
   # any such peaks.
-  which_maxima <- which_maxima[findInterval(dens$x[which_maxima], range(x)) == 1]
+  which_maxima <- which_maxima[findInterval(x[which_maxima], range(x)) == 1]
 
   # Next, we sort the peaks in descending order based on the density heights.
-  which_maxima <- which_maxima[order(dens$y[which_maxima], decreasing = TRUE)]
+  which_maxima <- which_maxima[order(y[which_maxima], decreasing = TRUE)]
   
   # Returns the local maxima. If there are none, we return 'NA' instead.
   if (length(which_maxima) > 0) {
-    peaks <- dens$x[which_maxima]
-    if (is.null(num_peaks) || num_peaks > length(peaks)) {
-      num_peaks <- length(peaks)
+    peaks <- dens[which_maxima, ]
+    if (is.null(num_peaks) || num_peaks > nrow(peaks)) {
+      num_peaks <- nrow(peaks)
     }
-    peaks <- peaks[seq_len(num_peaks)]
+    peaks <- peaks[seq_len(num_peaks), ]
   } else {
     peaks <- NA
   }
   
-  peaks <- data.frame(x = peaks, y = dens$y[which_maxima][seq_len(num_peaks)])
   if(plot){
-    plot(dens, main = paste("adjust =" ,  adjust))
+    plot(dens, main = paste("adjust =" ,  adjust), type = "l")
     points(peaks, ,col = "red")  
   }
   
-  peaks  
+  list(dens = dens, peaks = peaks) #carry dens so that it doesn't need to be recomputed when needed 
 }
 
 #' Finds the local minima (valleys) in the given vector after smoothing the data
@@ -592,7 +592,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' \url{http://bit.ly/Zbl7LV}.
 #'
 #' @param x numeric vector
-#' @param y numeric vector. If given, it is treated as the density values for
+#' @param y numeric vector. If given, it is treated as the density values 
 #' \code{x}. The length of \code{y} must equal that of \code{x}.
 #' @param num_valleys the number of valleys to find. By default, all valleys are
 #' returned. See details.
@@ -605,10 +605,8 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' set.seed(42)
 #' # 3 peaks and 2 valleys
 #' y <- SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
-#' plot(density(y))
-#' valleys <- .find_valleys(y)
-#' abline(v = valleys, col = "red")
-.find_valleys <- function(x, y = NULL, num_valleys = NULL, adjust = 2, ...) {
+#' valleys <- .find_valleys(y, plot = TRUE)
+.find_valleys <- function(x, y = NULL, num_valleys = NULL, adjust = 2, plot = FALSE, ...) {
 
   x <- as.vector(x)
 
@@ -626,28 +624,37 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
     }
     dens <- list(x = x, y = y)
   }
-
+  dens <- dens[c("x", "y")]
+  dens <- as.data.table(dens)
+  y <- dens[, y]
+  x <- dens[, x]
   # Discrete analogue to a second derivative applied to the KDE. See details.
-  second_deriv <- diff(sign(diff(dens$y)))
+  second_deriv <- diff(sign(diff(y)))
   which_minima <- which(second_deriv == 2) + 1
 
   # The 'density' function can consider observations outside the observed range.
   # In rare cases, this can actually yield valleys outside this range. We remove
   # any such valleys.
-  which_minima <- which_minima[findInterval(dens$x[which_minima], range(x)) == 1]
+  which_minima <- which_minima[findInterval(x[which_minima], range(x)) == 1]
 
   # Next, we sort the valleys in descending order based on the density heights.
-  which_minima <- which_minima[order(dens$y[which_minima], decreasing = FALSE)]
+  which_minima <- which_minima[order(y[which_minima], decreasing = FALSE)]
 
   # Returns the local minima. If there are none, we return 'NA' instead.
   if (length(which_minima) > 0) {
-    valleys <- dens$x[which_minima]
-    if (is.null(num_valleys) || num_valleys > length(valleys)) {
-      num_valleys <- length(valleys)
+    valleys <- dens[which_minima, ]
+    if (is.null(num_valleys) || num_valleys > nrow(valleys)) {
+      num_valleys <- nrow(valleys)
     }
-    valleys <- valleys[seq_len(num_valleys)]
+    valleys <- valleys[seq_len(num_valleys), ]
   } else {
     valleys <- NA
   }
-  valleys
+  if(plot){
+    plot(dens, main = paste("adjust =" ,  adjust), type = "l")
+    points(valleys, ,col = "red")  
+  }
+  
+  list(dens = dens, valleys = valleys) #carry dens so that it doesn't need to be recomputed when needed 
+  
 }

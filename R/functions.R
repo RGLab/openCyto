@@ -381,23 +381,6 @@
   })
 } 
 
-#' Finds values of a vector in an interval
-#'
-#' @param x numeric vector
-#' @param interval numeric vector of length 2
-#' @return numeric vector containing the values of \code{x} between
-#' \code{interval}. If no values are found, \code{NA} is returned.
-#' @examples
-#' z <- seq.int(1, 9, by = 2)
-#' .between_interval(z, interval = c(2, 8))
-#' @export 
-.between_interval <- function(x, interval) {
-  x <- x[findInterval(x, interval) == 1]
-  if (length(x) == 0) {
-    x <- NA
-  }
-  x
-}
 
 #' Constructs a 2x2 rotation matrix for a given angle
 #' @param theta \code{numeric} the degree of rotation that ensures the angle between the x-axis and the eigenvector is between 0 and pi
