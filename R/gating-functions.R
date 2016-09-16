@@ -732,7 +732,7 @@ mindensity <- function(fr, channel, filterId = "", positive = TRUE,
   }
   # Grabs the data matrix that is being gated.
   x <- exprs(fr)[, channel]
-  
+  # range.x <- range(x)
   if(is.null(peaks)){
     peaks.result <- .find_peaks(x, plot = FALSE,...)
     peaks.info <- peaks.result[["peaks"]]
@@ -756,7 +756,7 @@ mindensity <- function(fr, channel, filterId = "", positive = TRUE,
   
   # In the special case that there is only one peak, we are conservative and set
   # the cutpoint as min(x) if 'positive' is TRUE, and max(x) otherwise.
-  if (length(peaks.x) == 1) {
+  if (length(peaks.x) <= 1) {
     valley.x <- ifelse(positive, gate_range[1], gate_range[2])
     valleys.info <- data.table(x = valley.x, y = 0)
   } else {
@@ -779,13 +779,15 @@ mindensity <- function(fr, channel, filterId = "", positive = TRUE,
     } else if (nrow(valleys) > 1) {
       # If there are multiple valleys, we determine the deepest valley between
       # the two largest peaks.
+      peaks.info <- peaks.info[1:2, ]
       peaks.range <- sort(peaks.x[1:2])
-      valleys.info <- valleys[findInterval(valleys[, x], peaks.range) == 1, ][1, ]
+      valleys.info <- valleys[findInterval(valleys[, x], peaks.range) == 1, ]
       # If none of the valleys detected are between the two largest peaks, we
       # select the deepest valley.
       if (nrow(valleys.info)==0) {
-        valley.info <- valleys[1, ]
-      }      
+        valleys.info <- valleys[1, ]
+      }else
+        valleys.info <- valleys.info[1, ]
     }
     
   }
@@ -803,14 +805,32 @@ mindensity <- function(fr, channel, filterId = "", positive = TRUE,
   names(gate_coordinates) <- channel
   
   g <- rectangleGate(gate_coordinates, filterId = filterId)
-  #attach the peak and valley info for the optional peak separation score calculatioooons
-  attr(g, "peaks") <- peaks.info
-  attr(g, "valley") <- valleys.info
+  
   if(plot){
     plot(dens, type = "l")
     points(peaks.info, col = "red")
     abline(v = valleys.info[, x], col = "blue")
   }
+  
+  
+  
+  # #attach the peak and valley info for the optional peak separation score calculations
+  # if(nrow(peaks.info) <= 1)
+  # {
+  #   peaks.dist <- 0
+  #   peaks.ratio <- 0
+  #   valley.peak.ratio <- 1
+  # }else{
+  #   peaks.dist <- abs(diff(peaks.info[, x])/diff(range.x))
+  #   peaks.ratio <- min(peaks.info[, y])/max(peaks.info[, y])
+  #   valley.peak.ratio <- min(valleys.info[, y])/min(peaks.info[, y])
+  # }
+  # attr(g, "peaks.dist") <- peaks.dist
+  # attr(g, "peaks.ratio") <- peaks.ratio
+  # attr(g, "valley.peak.ratio") <- valley.peak.ratio
+  
+  #peak separation scoring process should be independent from the gating process itself
+  #thus we no longer want to carry these peak and valley info with the gate
   g
   
 }

@@ -533,50 +533,50 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 
   if (length(x) < 2) {
     warning("At least 2 observations must be given in 'x' to find peaks.")
-    return(NA)
-  }
+    dens <- peaks <- data.table(x=numeric(),y=numeric())
+  }else{
 
-  if (is.null(y)) {
-    dens <- density(x, adjust = adjust, ...)
-  } else {
-    y <- as.vector(y)
-    if (length(x) != length(y)) {
-      stop("The lengths of 'x' and 'y' must be equal.")
+    if (is.null(y)) {
+      dens <- density(x, adjust = adjust, ...)
+    } else {
+      y <- as.vector(y)
+      if (length(x) != length(y)) {
+        stop("The lengths of 'x' and 'y' must be equal.")
+      }
+      dens <- list(x = x, y = y)
     }
-    dens <- list(x = x, y = y)
-  }
-  dens <- dens[c("x", "y")]
-  dens <- as.data.table(dens)
-  y <- dens[, y]
-  x <- dens[, x]
-  # Discrete analogue to a second derivative applied to the KDE. See details.
-  second_deriv <- diff(sign(diff(dens$y)))
-  which_maxima <- which(second_deriv == -2) + 1
-
-  # The 'density' function can consider observations outside the observed range.
-  # In rare cases, this can actually yield peaks outside this range.  We remove
-  # any such peaks.
-  which_maxima <- which_maxima[findInterval(x[which_maxima], range(x)) == 1]
-
-  # Next, we sort the peaks in descending order based on the density heights.
-  which_maxima <- which_maxima[order(y[which_maxima], decreasing = TRUE)]
+    dens <- dens[c("x", "y")]
+    dens <- as.data.table(dens)
+    y <- dens[, y]
+    x <- dens[, x]
+    # Discrete analogue to a second derivative applied to the KDE. See details.
+    second_deriv <- diff(sign(diff(dens$y)))
+    which_maxima <- which(second_deriv == -2) + 1
   
-  # Returns the local maxima. If there are none, we return 'NA' instead.
-  if (length(which_maxima) > 0) {
-    peaks <- dens[which_maxima, ]
-    if (is.null(num_peaks) || num_peaks > nrow(peaks)) {
-      num_peaks <- nrow(peaks)
+    # The 'density' function can consider observations outside the observed range.
+    # In rare cases, this can actually yield peaks outside this range.  We remove
+    # any such peaks.
+    which_maxima <- which_maxima[findInterval(x[which_maxima], range(x)) == 1]
+  
+    # Next, we sort the peaks in descending order based on the density heights.
+    which_maxima <- which_maxima[order(y[which_maxima], decreasing = TRUE)]
+    
+    # Returns the local maxima. If there are none, we return 'NA' instead.
+    if (length(which_maxima) > 0) {
+      peaks <- dens[which_maxima, ]
+      if (is.null(num_peaks) || num_peaks > nrow(peaks)) {
+        num_peaks <- nrow(peaks)
+      }
+      peaks <- peaks[seq_len(num_peaks), ]
+    } else {
+      peaks <- data.table(x=numeric(),y=numeric())
     }
-    peaks <- peaks[seq_len(num_peaks), ]
-  } else {
-    peaks <- NA
+    
+    if(plot){
+      plot(dens, main = paste("adjust =" ,  adjust), type = "l")
+      points(peaks, col = "red")  
+    }
   }
-  
-  if(plot){
-    plot(dens, main = paste("adjust =" ,  adjust), type = "l")
-    points(peaks, ,col = "red")  
-  }
-  
   list(dens = dens, peaks = peaks) #carry dens so that it doesn't need to be recomputed when needed 
 }
 
