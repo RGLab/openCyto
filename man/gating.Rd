@@ -3,17 +3,29 @@
 \docType{methods}
 \name{gating,GatingSet,missing-method}
 \alias{gating,GatingSet,missing-method}
-\alias{gating,character,GatingSet-method}
+\alias{gating.subnode}
 \title{automated gating}
 \usage{
 \S4method{gating}{GatingSet,missing}(x, y, ...)
 
-\S4method{gating}{character,GatingSet}(x, y, ...)
+gating.subnode(parent, gs, gating.function = mindensity,
+  marker.selection = best.separation, min.count = 1000, min.percent = 0.2,
+  debug.mode = FALSE, max.depth = -1, ...)
 }
 \arguments{
-\item{gs}{a GatingSet}
+\item{x}{a GatingSet}
 
-\item{peak.separation}{}
+\item{y}{either missing or a character specifying the starting node}
+
+\item{...}{other arguments passed to \link{density} function.}
+
+\item{gating.function}{the 1d gating function used for exaustive gating}
+
+\item{marker.selection}{a function that selectes the best marker that has the best bi-module separation based on the various peak statistics (e.g. peak area ratio, peak distance, peak/valley ratio, etc...)}
+
+\item{min.count}{the minimum number of cells that allows the gating proceed further}
+
+\item{max.depth}{the maximum depths of gating path. Default is -1, which is no limits.}
 }
 \description{
 The idea is pretty simple: start with the marker with the best separation between -/+ peaks, 
@@ -22,21 +34,22 @@ Different methods can be used for determining good/bad separation, such as the I
 heuristic method based on peak distance.
 }
 \examples{
+\dontrun{
 dataDir <- system.file("extdata",package="flowWorkspaceData")
 gs <- load_gs(list.files(dataDir, pattern = "gs_manual",full = TRUE))
 
 #clone the gating tree strucuture of the existing manually gated gs(through flowJo)
 gs2 <- clone(gs, isNew = FALSE, isEmpty = FALSE)
 
-#erase all the manual gates and start from root
-Rm("not debris", gs2)
-
-getNodes(gs2)
-
-gating(gs2)
-# specify a particular existing node to start with
-gs2 <- clone(gs, isNew = FALSE, isEmpty = FALSE)
+#erase all the acestor nodes of CD3+
 Rm("CD3+", gs2)
-gating("singlets", gs2, min.count = 2000,min.percent = 0.3)
+
+# run the exaustive gating from "singlets" node
+gating("singlets", gs2, min.count = 2000, min.percent = 0.3)
+
+# or proceed from any leaf nodes of the existing gating tree
+gating(gs2, debug.mode = TRUE) #turn on the debug mode to generate plots and messages (particularly in knitr report) for troubleshooting
+
+}
 }
 

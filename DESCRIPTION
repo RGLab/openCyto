@@ -42,6 +42,7 @@ Collate:
     'functions.R'
     'gating-functions.R'
     'gatingTemplate-methods.R'
+    'getMFI.R'
     'gtMethod-methods.R'
     'gtPopulation-methods.R'
     'mindensity2.R'
