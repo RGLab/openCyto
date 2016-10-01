@@ -146,6 +146,7 @@ gating.subnode <- function(parent, gs
 #' @param min.percent the minimum ratio of two peak areas. The marker will be disqualified automatically when its measurement is lower than this threshold
 #' @param ... passed to density function
 #' @return an integer as the index of the winner gate. When it returns 0, it indicates that no further gating should be proceeded
+#' @export
 #' @examples 
 #' data(GvHD)
 #' fr <- GvHD[[1]]
@@ -160,8 +161,12 @@ gating.subnode <- function(parent, gs
 #' flist <- sapply(channels, function(channel)mindensity(fr, channel))
 #' 
 #' #select the best marker
-#' ind <- best.separation(flist, fr, debug.mode = TRUE) #turn on the debug mode to display plots
+#' ind <- best.separation(flist, fr)
 #' channels[ind] #winner channel
+#' 
+#' objs <- best.separation(flist, fr, debug.mode = TRUE) #turn on the debug mode to display plots
+#' objs[["metrics"]]
+#' plot(objs[["plotObjs"]])
 best.separation <- function(flist, fr, min.percent = 0.2, debug.mode = FALSE, ...){
   mat <- exprs(fr)
   plotObjs <- new.env(parent = emptyenv())
@@ -277,20 +282,19 @@ best.separation <- function(flist, fr, min.percent = 0.2, debug.mode = FALSE, ..
       }
       
       
-      tbl <- round(metrics[, -1, with = FALSE], digits = 3)
-      tbl[, marker := metrics[, marker]]
+      # tbl <- round(metrics[, -1, with = FALSE], digits = 3)
+      # tbl[, marker := metrics[, marker]]
       # add metrics as table to top of the plot
-      tbl <- tableGrob(tbl
-                       , theme = ttheme_minimal(base_size = 7)
-                       , rows = NULL
-                       )
-      plotObjs[["metrics"]] <- tbl
+      # tbl <- tableGrob(tbl
+      #                  , theme = ttheme_minimal(base_size = 7)
+      #                  , rows = NULL
+      #                  )
+      # plotObjs[["metrics"]] <- tbl
       plotObjs <- arrangeGrob(grobs = plotObjs)
       
-      plot(plotObjs)
-    }
-    
-    return(ind)
+      return(list(plotObjs = plotObjs, metrics = metrics))
+    }else
+      return(ind)
   }
     
 }
