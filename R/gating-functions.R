@@ -246,6 +246,8 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   names(gate_coordinates) <- params
   
   fres <- rectangleGate(gate_coordinates, filterId = filterId)
+  gate_pct <- mean(x > cutpoint)
+  
   # if(debug){
     # Saves posterior point estimates
     # In the case that an error is thrown, the posterior is set to the prior
@@ -257,12 +259,15 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                           ,w = tmix_results@w
                           , max = max(x)
                          , ICL = tmix_results@ICL
+                         , gate_pct = gate_pct
                         )
     } else {
       posteriors <- prior
       posteriors$min <- NA
       posteriors$max <- NA
       posteriors$ICL <- NA
+      posteriors$gate_pct <- NA
+      
     }
     postList[[params[1]]] <- posteriors
     
@@ -273,8 +278,8 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   # }
     
   if (plot) {
-    gate_pct <- round(100 * mean(x > cutpoint), 3)
-    plot_title <- paste0(filterId, " (", gate_pct, "%)")
+    
+    plot_title <- paste0(filterId, " (", round(100 * gate_pct, 3), "%)")
     plot(fr, tmix_results, main = plot_title, labels = FALSE)
     abline(v = centroids_sorted, col = rainbow(K))
     abline(v = cutpoint, col = "black", lwd = 3, lty = 2)

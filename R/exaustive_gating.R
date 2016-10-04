@@ -32,10 +32,37 @@ NULL
 #' @rdname gating
 setMethod("gating", signature = c("GatingSet","missing"),
           definition = function(x, y, ...) {
+            
             gating.leafnodes(x,y,...)
           })
 
+init.openCyto.exaustive <- function(gsid){
+  
+  ops <- getOption("openCyto")
+  if(!"exaustive"%in%names(ops))
+    ops[["exaustive"]] <- list()
+  if(!gsid%in%names(ops[["exaustive"]]))
+    ops[["exaustive"]][[gsid]] <- new.env(parent = emptyenv())
+  options("openCyto" = ops)
+  
+}
+set.openCyto.exaustive <- function(gsid, node, winner, plotEnv, metrics){
+  if(is.null(node)||is.null(gsid))
+    stop("Can't record the marker selection process because gs id and node are not set!")
+  
+  #init global option if needed
+  init.openCyto.exaustive(gsid)
+  
+  #annotate the winner plot
+  if(!is.null(winner)) {
+    plotEnv[[winner]] <- plotEnv[[winner]] + theme_dark()  
+  }
+  
+  ops <- getOption("openCyto")
+  ops[["exaustive"]][[gsid]][[node]] <- list(winner = winner, plotEnv = plotEnv, metrics = metrics)
+}
 gating.leafnodes <- function(gs, ...){
+  
   
   nodes <- getLeafNode(gs)
   for(node in nodes){
@@ -60,8 +87,13 @@ gating.subnode <- function(parent, gs
                            , gating.function = mindensity
                            , marker.selection = best.separation
                            , min.count = 1000, min.percent = 0.2
-                           , debug.mode = FALSE, max.depth = -1, ...){
-  depths <- length(strsplit(getParent(gs, parent), "/")[[1]]) + 1 #ensure to get full path
+                           , debug.mode = FALSE, max.depth = -1
+                           , mc.cores = getOption("mc.cores", 2L)
+                           , parallel_type = c("none", "multicore", "cluster"), cl = NULL
+                           , ...){
+  parallel_type <- match.arg(parallel_type)
+  parent <- file.path(getParent(gs, parent), basename(parent))#ensure to get full path
+  depths <- length(strsplit(parent, "/")[[1]])
   if(max.depth >0 && depths >= max.depth)
     message("stop gating at ", parent, ". Reaching the maximum gating depths: ", max.depth)
   else
@@ -78,30 +110,73 @@ gating.subnode <- function(parent, gs
     nCell <- nrow(fr)
     if(nCell > min.count){#TODO: use options("openCyto")[[1]][["gating"]][["minEvents"]]
       # apply the gating on each channel
-      flist <- sapply(channels, function(channel){
-        marker <- getChannelMarker(fr, channel)[, "desc"]
-        #avoid gating on the same marker repeately on the same path
-        gated.markers <- strsplit(parent, split = "/")[[1]]
-        is.gated <- sapply(gated.markers, function(i){
-          i <- sub("[\\+\\-]", "", i)
-          grepl(i, marker)
-          })
-        if(any(is.gated)){
-          g <- NULL
-        }else
-          g <- gating.function(fr, channel, ...)
-        g
-      })
+      
+      # construct method call
+      
+      thisFunc <- function(channel){
+                            marker <- getChannelMarker(fr, channel)[, "desc"]
+                            #avoid gating on the same marker repeately on the same path
+                            gated.markers <- strsplit(parent, split = "/")[[1]]
+                            gated.markers <- gated.markers[-1] #rm the first empty string
+                            is.gated <- sapply(gated.markers, function(i){
+                              i <- sub("[\\+\\-]$", "", i)
+                              grepl(i, marker)
+                              })
+                            if(any(is.gated)){
+                              g <- NULL
+                            }else{
+                              g <- gating.function(fr, channel, ...)
+                            }
+                              
+                            g
+                          }
+      
+      thisCall <- substitute(sapply(channels))
+      thisCall[["FUN"]] <- as.symbol("thisFunc")
+      
+      
+      ## choose serial or parallel mode
+
+      if (parallel_type == "multicore") {
+        message("Running in parallel mode with ", mc.cores, " cores.")
+        thisCall[[1]] <- quote(mcmapply)
+        thisCall[["mc.cores"]] <- mc.cores
+        # thisCall[["mc.preschedule"]] <- FALSE #must set to FALSE to retain the names of the result list
+        
+      }else if(parallel_type == "cluster"){
+        if(is.null(cl))
+          stop("cluster object 'cl' is empty!")
+        thisCall[[1]] <- quote(parSapply)
+        thisCall[["cl"]] <- cl
+        # thisCall[["fun"]] <- thisCall[["FUN"]] 
+        # thisCall[["FUN"]] <- NULL
+        thisCall[["SIMPLIFY"]] <- FALSE
+      }
+      
+      flist <- eval(thisCall)
       flist <- flowWorkspace:::compact(flist)
       if(length(flist) > 0){
         message("parent: ", parent)
         #get measurements for the cutpoints
-        ind <- best.separation(flist, fr, debug.mode = debug.mode, min.percent = min.percent)
+        plotEnv <- new.env(parent = emptyenv())
+        metrics <- marker.selection(flist, fr, debug.mode = debug.mode, plotEnv = plotEnv)
+        metrics <- metrics[area.ratio >= min.percent, ] 
+          
         
-        if(ind > 0){
-          gate <- flist[[ind]]  
-          channel <- as.vector(parameters(gate))
-          marker <- getChannelMarker(fr, channel)[["desc"]]
+        if(nrow(metrics)==0){
+          chnl.selected <- NULL
+        }else{
+          ind <- which.max(metrics[, score])
+          chnl.selected <- metrics[ind, channel]  
+        }
+        if(debug.mode){
+          set.openCyto.exaustive(gs@guid, parent, winner = chnl.selected, plotEnv = plotEnv, metrics = metrics)
+          }
+        
+        if(!is.null(chnl.selected)){
+          gate <- flist[[chnl.selected]]  
+          # channel <- as.vector(parameters(gate))
+          marker <- getChannelMarker(fr, chnl.selected)[["desc"]]
           #clean the marker name(sometime it is in the form of 'antigen isotypecontrol',e.g 'CD38 APC')
           marker <- strsplit(marker, " ")[[1]][[1]]
           message("selected marker: ", marker)
@@ -167,9 +242,9 @@ gating.subnode <- function(parent, gs
 #' objs <- best.separation(flist, fr, debug.mode = TRUE) #turn on the debug mode to display plots
 #' objs[["metrics"]]
 #' plot(objs[["plotObjs"]])
-best.separation <- function(flist, fr, min.percent = 0.2, debug.mode = FALSE, ...){
+best.separation <- function(flist, fr, debug.mode = FALSE, plotEnv = new.env(parent = emptyenv()), ...){
   mat <- exprs(fr)
-  plotObjs <- new.env(parent = emptyenv())
+  
   #calculate the peak separation measurements
   res <- lapply(flist, function(gate){
     channel <- as.vector(parameters(gate))
@@ -192,7 +267,7 @@ best.separation <- function(flist, fr, min.percent = 0.2, debug.mode = FALSE, ..
       p <- p + geom_point(data = right.peak, col = "blue")
       p <- p + geom_point(data = data.frame(x = valley.x, y = valley.y), pch = "V", col = "brown", cex = 3)
       p <- p + xlab(marker) + theme(axis.text.y= element_blank(), axis.title.y = element_blank(), axis.ticks.y = element_blank())
-      plotObjs[[marker]] <- p
+      plotEnv[[channel]] <- p
     }
     
     if(is.na(left.peak[,x])||is.na(right.peak[, x]))
@@ -216,15 +291,15 @@ best.separation <- function(flist, fr, min.percent = 0.2, debug.mode = FALSE, ..
       
       valley.peak.ratio <- valley.y/peak.height.min
     }
-    data.table(marker, peak.dist, peak.ratio, valley.peak.ratio, area.ratio)
+    data.table(peak.dist, peak.ratio, valley.peak.ratio, area.ratio)
   })
-  res <- rbindlist(res)
+  res <- rbindlist(res, idcol = "channel")
   
   #standardize each metrics
   metrics <- sapply(colnames(res), function(cn){
     
     col <- res[[cn]]
-    if(cn%in%c("marker", "area.ratio")) #skip these two columns
+    if(cn%in%c("channel", "area.ratio")) #skip these two columns
       val <- col
     else{
       min.col <- min(col)
@@ -239,62 +314,34 @@ best.separation <- function(flist, fr, min.percent = 0.2, debug.mode = FALSE, ..
   }, simplify = FALSE)
   metrics <- as.data.table(metrics)
   metrics[, valley.peak.ratio:= 1- valley.peak.ratio] # invert v/p score
-  metrics[, valley.peak.ratio:= valley.peak.ratio] # reduce the weight of valley/peak ratio since it can be overweighted by the extreme low valley
+  # metrics[, valley.peak.ratio:= valley.peak.ratio] # reduce the weight of valley/peak ratio since it can be overweighted by the extreme low valley
   metrics[, score := rowMeans(.SD), .SDcols = c("valley.peak.ratio", "peak.dist", "peak.ratio", "area.ratio")]
   
-  # metrics[peak.ratio < min.peak.ratio, score:=0] #automatically rule out the one that has the metrics below the theshold
-  
-  metrics[area.ratio < min.percent, score:=0] #automatically rule out the one that has the metrics below the theshold
-  # metrics[, marker:=res[, marker]]
-  # if(debug.mode){
-  #   message("peak separation metrics:")
-  #   print(metrics)  
-  # }
-  
-  scores <- metrics[, score]
-  if(all(scores==0))
-    return(0)
-  else{
-    ind <- which.max(scores)
-    select <- metrics[ind, marker]
-    if(debug.mode){
-      require(gridExtra)
-      plotObjs <- as.list(plotObjs)
-      
-      for(this_marker in names(plotObjs)){
 
-        p <- plotObjs[[this_marker]]
-        # x.range <- layer_scales(p)[["x"]][["range"]][["range"]]
-        # x.range <- ggplot_build(p)$panel$ranges[[1]]$x.range
-        # x.diff <- diff(x.range)
-        # p <- p + annotation_custom(tbl
-        #                            # , ymin = max(p[["data"]][["y"]])
-        #                            # , xmin = x.range[2] - x.diff * 0.2
-        #                            # , xmax = x.range[2]
-        #                            )
-        
-        #highlight the winner
-        if(this_marker == select)
-          p <- p + theme_dark()  
-          
-        
-        plotObjs[[this_marker]] <- p
-      }
-      
-      
-      # tbl <- round(metrics[, -1, with = FALSE], digits = 3)
-      # tbl[, marker := metrics[, marker]]
-      # add metrics as table to top of the plot
-      # tbl <- tableGrob(tbl
-      #                  , theme = ttheme_minimal(base_size = 7)
-      #                  , rows = NULL
-      #                  )
-      # plotObjs[["metrics"]] <- tbl
-      plotObjs <- arrangeGrob(grobs = plotObjs)
-      
-      return(list(plotObjs = plotObjs, metrics = metrics))
-    }else
-      return(ind)
-  }
+  return(metrics)  
+}
+
+best.ICL <- function(flist, fr, debug.mode = FALSE, plotEnv = new.env(parent = emptyenv()), ...){
+  res <- sapply(flist, function(gate){
+    res <- posteriors(gate)[[1]]
+    score <- res[["ICL"]]
     
+    gate_pct <- res[["gate_pct"]]
+    area.ratio <- ifelse(gate_pct > 0.5, 1 - gate_pct, gate_pct)
+    data.table(score, area.ratio)
+  }, simplify = FALSE)
+  metrics <- rbindlist(res, idcol = "channel")
+    
+  
+  if(debug.mode){
+    #save plots and metrics to global hash table
+    for(cn in colnames(fr)){
+      p <- autoplot(fr,cn) + labs_cyto("marker") + labs(title = NULL)
+      plotEnv[[cn]] <- as.ggplot(p)
+    }
+      
+  }
+   
+  return(metrics)
+  
 }
