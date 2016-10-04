@@ -53,8 +53,7 @@
 #' ignored.
 #' @param plot logical value indicating that the fitted \code{\link{flowClust}}
 #' model should be plotted along with the cutpoint
-#' @param debug \code{logical} indicating whether to carry the prior and posterious with the gate
-#'                               for debugging purpose. Default is FALSE.
+#' @param fast \code{logical} whether to run the fast version of flowClust
 #' @param ... additional arguments that are passed to \code{\link{flowClust}}
 #' @return a \code{rectangleGate} object consisting of all values beyond the
 #' cutpoint calculated
@@ -73,7 +72,9 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
                          neg_cluster = 1, cutpoint_min = NULL,
                          cutpoint_max = NULL, min = NULL, max = NULL,
                          quantile = 0.99, quantile_interval = c(0, 10),
-                         plot = FALSE, debug = FALSE, ...) {
+                         plot = FALSE
+                         # , debug = FALSE
+                         , fast = FALSE, ...) {
   options("cores" = 1L) #suppress parallelism for 1d gating   
   cutpoint_method <- match.arg(cutpoint_method)
 
@@ -127,13 +128,18 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #                                      trans=trans,usePrior=usePrior,
 #                                      prior=list(prior),criterion=list(criterion),
 #                                      L))
- 
-  tmix_filter <- tmixFilter(filterId, params[1], K = K, trans = trans,
-                            usePrior = usePrior, prior = prior,
-                            criterion = criterion, ...)
-
-  tmix_results <- suppressMessages(try(filter(fr, tmix_filter), silent = TRUE))
-  
+  if(fast){
+    tmix_results <- suppressMessages(.flowClustFast(fr, params[1], K = K, trans = trans,
+        usePrior = usePrior, prior = prior, criterion = criterion, ...))
+    tmix_results <- as(tmix_results, "tmixFilterResult")
+  }else{
+    tmix_filter <- tmixFilter(filterId, params[1], K = K, trans = trans,
+        usePrior = usePrior, prior = prior, criterion = criterion, ...)
+    
+    tmix_results <- suppressMessages(try(filter(fr, tmix_filter), silent = TRUE))
+    
+  }
+    
   # In the case an error occurs when applying 'flowClust', the gate is
   # constructed from the density of the prior distributions. This error
   # typically occurs when there are less than 2 observations in the flow frame.
@@ -240,20 +246,23 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
   names(gate_coordinates) <- params
   
   fres <- rectangleGate(gate_coordinates, filterId = filterId)
-  if(debug){
+  # if(debug){
     # Saves posterior point estimates
     # In the case that an error is thrown, the posterior is set to the prior
     # because no prior updating was performed.
     postList <- list()
     if (class(tmix_results) != "try-error") {
       posteriors <- list(mu = tmix_results@mu, lambda = tmix_results@lambda,
-          sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x)
-          ,w = tmix_results@w
-          , max = max(x))
+                          sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x)
+                          ,w = tmix_results@w
+                          , max = max(x)
+                         , ICL = tmix_results@ICL
+                        )
     } else {
       posteriors <- prior
       posteriors$min <- NA
       posteriors$max <- NA
+      posteriors$ICL <- NA
     }
     postList[[params[1]]] <- posteriors
     
@@ -261,7 +270,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
     priorList <- list()
     priorList[[params[1]]] <- prior
     fres <- fcRectangleGate(fres, priorList, postList)
-  }
+  # }
     
   if (plot) {
     gate_pct <- round(100 * mean(x > cutpoint), 3)
@@ -270,7 +279,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
     abline(v = centroids_sorted, col = rainbow(K))
     abline(v = cutpoint, col = "black", lwd = 3, lty = 2)
 
-    if (!is.null(prior)) {
+    if (!is.na(prior[[1]])) {
       x_dens <- seq(min(x), max(x), length = 1000)
 
       for(k in seq_len(K)) {
@@ -404,6 +413,7 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                                       , K = K, trans = trans,
                                       usePrior = usePrior
                                       , prior = prior, ...)
+    tmix_results <- as(tmix_results, "tmixFilterResult")
                     
   }else{
     tmix_filter <- tmixFilter(filterId, c(xChannel, yChannel), K = K, trans = trans,
