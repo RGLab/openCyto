@@ -176,7 +176,7 @@
 #' @inheritParams .prior_flowClust
 #' 
 #' @return a \code{filter} object
-.flowClust.1d <- function(fr, pp_res = NULL, channels, positive = TRUE,...) {
+.flowClust.1d <- function(fr, channels, pp_res = NULL, positive = TRUE,...) {
   
   if(length(channels) != 1)
     stop("invalid number of channels for flowClust.1d!")
