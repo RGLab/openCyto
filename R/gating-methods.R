@@ -15,7 +15,7 @@ setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
 #' @param env_fct a \code{environment} that contains \code{fcTree} object named as 'fct'. If NULL (by default), no \code{fcTree} will be constructed. It is currently reserved for the internal debugging.
 #' @param ... 
 #'  \itemize{
-#'      \item{start}{ a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating prcoess will start from. It is useful to quickly skip some gates and go directly to the target population in the testing run. Default is "root".}
+#'      \item{start}{ a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating process will start from. It is useful to quickly skip some gates and go directly to the target population in the testing run. Default is "root".}
 #'      \item{stop.at}{ a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating prcoess will stop at. Default is NULL, indicating the end of gating tree.}
 #'      \item{mc.cores}{ passed to \code{multicore} package for parallel computing}
 #'      \item{parallel_type}{  \code{character} specifying the parallel type. The valid options are "none", "multicore", "cluster".}
