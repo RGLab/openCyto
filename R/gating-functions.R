@@ -15,10 +15,7 @@
 #' @param params \code{character} channel to be gated on
 #' @param filterId A \code{character} string that identifies the filter created.
 #' @param K the number of clusters to find
-#' @param trans numeric indicating whether the Box-Cox transformation parameter
-#' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
-#' (cluster-specific estimation). NOTE: for the Bayesian version of
-#' \code{\link{flowClust}}, this value cannot be 2.
+#' @param trans,min.count,max.count,nstart some flowClust parameters. see \code{\link{flowClust}}
 #' @param positive If \code{TRUE}, then the gate consists of the entire real
 #' line to the right of the cutpoint. Otherwise, the gate is the entire real
 #' line to the left of the cutpoint. (Default: \code{TRUE})
@@ -59,14 +56,17 @@
 #' @return a \code{rectangleGate} object consisting of all values beyond the
 #' cutpoint calculated
 #' @export
-#' @importFrom flowClust getEstimates tmixFilter filter dmvtmix dmvt
+#' @importFrom flowClust getEstimates tmixFilter filter dmvtmix dmvt flowClust
 #' @rdname flowClust1d 
 #' @examples
 #' \dontrun{
 #'  gate <- flowClust.1d(fr, params = "APC-A", K =2) # fr is a flowFrame
 #' }
-flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
-                         positive = TRUE, prior = NULL,
+flowClust.1d <- function(fr, params, filterId = "", K = NULL 
+                         , trans = 0 #no box transform
+                         , min.count = -1, max.count = -1 #no flowClust data filering
+                         , nstart = 1 #change kmeans nstart
+                         , positive = TRUE, prior = NULL,
                          criterion = c("BIC", "ICL"),
                          cutpoint_method = c("boundary", "min_density",
                            "quantile", "posterior_mean", "prior_density"),
@@ -127,12 +127,14 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #                                      trans=trans,usePrior=usePrior,
 #                                      prior=list(prior),criterion=list(criterion),
 #                                      L))
- 
-  tmix_filter <- tmixFilter(filterId, params[1], K = K, trans = trans,
-                            usePrior = usePrior, prior = prior,
-                            criterion = criterion, ...)
-
-  tmix_results <- suppressMessages(try(filter(fr, tmix_filter), silent = TRUE))
+  tmix_results <- flowClust(fr, varNames = params[1]
+                            , K = K, trans = trans
+                            , usePrior = usePrior
+                            , prior = prior
+                            , min.count = min.count, max.count = max.count
+                            , nstart = nstart
+                            , criterion = criterion
+                            , ...)
   
   # In the case an error occurs when applying 'flowClust', the gate is
   # constructed from the density of the prior distributions. This error
@@ -332,10 +334,7 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' @param prior list of prior parameters for the Bayesian version of
 #' \code{\link{flowClust}}. If \code{usePrior} is set to \code{no}, then the
 #' list is unused.
-#' @param trans numeric indicating whether the Box-Cox transformation parameter
-#' is estimated from the data. May take 0 (no estimation), 1 (estimation) or 2
-#' (cluster-specific estimation). NOTE: for the Bayesian version of
-#' \code{\link{flowClust}}, this value cannot be 2.
+#' @param trans,min.count,max.count,nstart some flowClust parameters. see \code{\link{flowClust}}
 #' @param plot a logical value indicating if the fitted mixture model should be
 #' plotted. By default, no.
 #' @param target a numeric vector of length \code{2} (number of dimensions) containing the location of
@@ -357,7 +356,6 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #' maximum value. The first value truncates the \code{xChannel}, and the second
 #' value truncates the \code{yChannel}. By default, this vector is \code{NULL}
 #' and is ignored.
-#' @param fast \code{logical} whether to run the fast version of flowClust
 #' @param ... additional arguments that are passed to \code{\link{flowClust}}
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
@@ -368,10 +366,13 @@ flowClust.1d <- function(fr, params, filterId = "", K = NULL, trans = 0,
 #'  gate <- flowClust.2d(fr, xChannel = "FSC-A", xChannel = "SSC-A", K = 3) # fr is a flowFrame
 #' }
 flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
-                         usePrior = 'no', prior = list(NA), trans = 0,
-                         plot = FALSE, target = NULL, transitional = FALSE,
+                         usePrior = 'no', prior = list(NA)
+                         , trans = 0 #no box transform
+                         , min.count = -1, max.count = -1 #no flowClust data filering
+                         , nstart = 1 #change kmeans nstart
+                         , plot = FALSE, target = NULL, transitional = FALSE,
                          quantile = 0.9, translation = 0.25, transitional_angle = NULL,
-                         min = NULL, max = NULL, fast = FALSE, ...) {
+                         min = NULL, max = NULL, ...) {
   options("cores" = 1L) ##suppress parallelism since it may lock the process due to the lack of resource when parallel gating was already using up the cores. 
   
   if (!is.null(target)) {
@@ -399,19 +400,16 @@ flowClust.2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the
   # elements in the list `prior`.
-  if(fast){
-    tmix_results <- .flowClustFast(fr, c(xChannel, yChannel)
-                                      , K = K, trans = trans,
-                                      usePrior = usePrior
-                                      , prior = prior, ...)
-                    
-  }else{
-    tmix_filter <- tmixFilter(filterId, c(xChannel, yChannel), K = K, trans = trans,
-                              usePrior = usePrior, prior = prior, ...)
-    tmix_results <- try(filter(fr, tmix_filter), silent = TRUE)  
-  }
   
-
+  tmix_results <- flowClust(fr, varNames = c(xChannel, yChannel)
+                                , K = K, trans = trans
+                                , usePrior = usePrior
+                                , prior = prior
+                                , min.count = min.count, max.count = max.count
+                                , nstart = nstart
+                                , ...)
+                    
+  # tmix_results <- filter(fr, tmix_filter)
   # In the case an error occurs when applying 'flowClust', the gate is
   # constructed from the prior distributions. Errors typically occur when there
   # are less than 2 observations in the flow frame.
