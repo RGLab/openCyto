@@ -56,7 +56,7 @@
 #' @return a \code{rectangleGate} object consisting of all values beyond the
 #' cutpoint calculated
 #' @export
-#' @importFrom flowClust getEstimates tmixFilter filter dmvtmix dmvt flowClust
+#' @importFrom flowClust getEstimates tmixFilter dmvtmix dmvt flowClust
 #' @rdname flowClust1d 
 #' @examples
 #' \dontrun{
