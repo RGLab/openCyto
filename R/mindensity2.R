@@ -130,12 +130,13 @@
 #' @param ... Additional arguments for peak detection.
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 #' @export
+#' @rdname gate_mindensity2
 #' @examples
 #' \dontrun{
-#'  gate <- mindensity2(fr, channel = "APC-A") # fr is a flowFrame
+#'  gate <- gate_mindensity2(fr, channel = "APC-A") # fr is a flowFrame
 #' }
 #' 
-mindensity2 <- function(fr, channel, filterId = "", positive = TRUE, pivot = FALSE, 
+gate_mindensity2 <- function(fr, channel, filterId = "", positive = TRUE, pivot = FALSE, 
                          gate_range = NULL, min = NULL, max = NULL, peaks = NULL, 
                          ...) {
   if (missing(channel) || length(channel) != 1) {
@@ -162,7 +163,9 @@ mindensity2 <- function(fr, channel, filterId = "", positive = TRUE, pivot = FAL
   return(rectangleGate(coords, filterId = filterId)) 
 }
 
-
+#' @export
+#' @rdname gate_mindensity2
+mindensity2 <- gate_mindensity2
 
 #' wrapper for mindensity2
 #' 
