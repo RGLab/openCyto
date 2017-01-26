@@ -1,5 +1,13 @@
+---
+output: 
+  html_document: 
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    collapsed: no
+---
 <!--
-%\VignetteEngine{knitr}
+%\VignetteEngine{knitr::rmarkdown}
 %\VignetteIndexEntry{How to write a csv gating template}
 -->
 
@@ -20,8 +28,7 @@ in the gating hierarchy tree. However sometime it is verbose to describe every s
 So here we will explain how to make the template more succinct to easier to compose by using `pop` and `alias` pattern.      
 
 
-1. `pop` = `A+/-`
-------------   
+## `pop` = "A+/-"
 For the 1d/2d gating function, we are normally interested in either positive(representing cell events within gate) or negative(or negated, representing cell events outside of the gate) by setting `pop` column 
 in the form of `A+` or `A-`. But sometime we want to do the downstream gating for both.
 By specifying `pop` as `A+/-`, the `template parser` will expand it into two rows internally.
@@ -59,8 +66,7 @@ Note that the second row uses `refGate` which simply copies the gate coordinates
 and assign the negative sign to the `pop` column indicating the population of interest is `cd4 negative`.  
 
 
-2. `pop` = `A+B+`
-------------   
+## `pop` = "++"
 Often time we need to apply 1d gating function on two dimensions separately and then 
 use the two cutting points to construct `rectangleGate` to capture the cell events falling into one particular quadrant on the 2-d projections
 For example, `T helper` cells are usually represented as `CD4+CD8-`.
@@ -81,14 +87,15 @@ And the template parser will take care of the expansion automatically.
 As we see, first two rows do the actual gating by `mindensity` and the third row simply makes use the coordinates of that two 1d gates (`cd4+` and `cd8+`) and 
 construct a `rectangleGate` (T helper) by using `refGate` as `gating_method`. And the `+` and `-` sign along with dimensions determines which quadrant to keep.  
 
-3. `pop` = `A+/-B+/-`
-------------   
+<span style="color:red">It is now prefered to omit the dimension information from `pop` since `dims` already provides it. It is especially helpful when the dimension itself contains special characters `+/-` (e.g. `HLA-DR` and `BDCA-2`), parser then can't tell the correct quadrant pattern (i.e. `HLA-DR+BDCA-2`). </span>
+
+## `pop` = "+/-+/-"
 Apparently, we may want to get more than one quadrants by using the same mechanism.
-For example, we can set `pop` to `CD4+/-CD8+/-` to keep all of four quadrants.
+For example, we can set `pop` to `+/-+/-`(or `CD4+/-CD8+/-`) to keep all of four quadrants.
 
 ```{r A+/-B+/-(before), echo = F, results = "asis"}
 	this_row <- copy(template_row)	
-	this_row[, pop := "cd4+/-cd8+/-"]
+	this_row[, pop := "+/-+/-"]
 	this_row[, alias := "*"]
 	kable(this_row[, 1:6, with = F])
 ```
@@ -100,8 +107,8 @@ It will be expanded to six rows:
 First two does the actual gating, and rest of four uses two 1d gates to construct four different `rectangleGate`s to represent
 four different quadrants.
 
-4. `pop` = `*`
-------------   
+## `pop` = "*"
+
 So far, we've been talking about the gating functions that only returns one gate object( `S4 class` that extends `flowCore::filter`).
 If we want to apply the gating function(e.g. `curv2filter` or `flowClust::tmixFilter`) that returns more than one gates, 
 we can set `pop` to `*` and specify multiple population names within `alias` with comma-separated characters. 
@@ -121,8 +128,8 @@ as `parent` node of the downstream gates.
       kable(openCyto:::.preprocess_row(this_row)[, 1:6, with = F])
 ```
 
-5. `pop` = `*` and `alias` = `*`
-------------
+##  `pop` = "*" and `alias` = "*"
+
 If we don't know how many gates will be returned by `curv2gate` or the order of gates are undetermined, thus we will not able to 
 name these populations. As long as they are not used as `parent` nodes for the further gating (i.e. `terminal gate`s), we can
 simply set `alias` to `*` .

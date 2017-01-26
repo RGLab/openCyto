@@ -67,6 +67,7 @@ setMethod("dims", signature = c("gtMethod"), definition = function(object) {
 #' 
 #' @param object \code{gtMethod}
 #' @export 
+#' @importFrom flowCore parameters
 #' @aliases parameters,gtMethod-method
 setMethod("parameters", signature = c("gtMethod"), definition = function(object) {
   object@args
