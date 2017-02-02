@@ -12,6 +12,34 @@ test_that("tcell", {
       
       gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore")
       
+      #test toggle helperGates
+      
+      expect_equal(length(getNodes(gs)), 29)
+      helperGates <- get.helperGates(gt_tcell, gs)
+      expect_true(setequal(helperGates, c('/nonDebris/singlets/lymph/cd3/cd4+',
+                                          '/nonDebris/singlets/lymph/cd3/cd8+',
+                                          '/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD45_neg',
+                                          '/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD45_neg/CCR7_gate',
+                                          '/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+',
+                                          '/nonDebris/singlets/lymph/cd3/cd4+cd8-/HLA+',
+                                          '/nonDebris/singlets/lymph/cd3/cd4-cd8+/CCR7+',
+                                          '/nonDebris/singlets/lymph/cd3/cd4-cd8+/CD45RA+',
+                                          '/nonDebris/singlets/lymph/cd3/cd4-cd8+/CD38+',
+                                          '/nonDebris/singlets/lymph/cd3/cd4-cd8+/HLA+')))
+      #hide
+      toggle.helperGates(gt_tcell, gs)
+      expect_equal(length(getNodes(gs)), 19)
+      expect_equal(length(getNodes(gs, showHidden = TRUE)), 29)
+      #recover
+      toggle.helperGates(gt_tcell, gs)
+      expect_equal(length(getNodes(gs)), 29)
+    
+      #rm helper gates
+      gs1 <- clone(gs,isNew = FALSE)
+      delete.helperGates(gt_tcell, gs1)
+      expect_equal(length(getNodes(gs1, showHidden = TRUE)), 19)
+      
+      
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_tcell"]]
       expect_equal(thisRes, expectRes, tol = 0.04)
@@ -27,6 +55,18 @@ test_that("tcell", {
       add_pop(gs, gating_method = "mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
+      
+      expect_true(all(c("cd4-cd8+/CD38+", "cd4-cd8+/HLA+") %in% getNodes(gs, path = "auto")))
+      
+      #test keep.helperGates = FALSE
+      nodes <- getChildren(gs[[1]], "cd4-cd8+")
+      for(node in nodes)
+        Rm(node, gs)
+      add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA"
+              , parent = "cd4-cd8+", pop = "CD38+HLA+"
+              , alias = "activated cd8", keep.helperGates = FALSE)
+      expect_false(any(c("cd4-cd8+/CD38+", "cd4-cd8+/HLA+") %in% getNodes(gs, path = "auto")))
+      expect_equal(getChildren(gs[[1]], "cd4-cd8+", path = "auto"), "activated cd8")
       
       #use channel in pop and stains in dims
       for(node in nodes[7:9])
