@@ -208,7 +208,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
     prior_means <- as.numeric(tapply(peaks_collapsed, clust_labels, mean))
   } else if (clust_method == "kmeans") {
     # Applies kmeans clustering to the peaks.
-    kmeans_out <- kmeans(x = peaks_collapsed, centers = K, nstart = 10)
+    kmeans_out <- kmeans(x = peaks_collapsed, centers = K, nstart = 10,algorithm="MacQueen")
     clust_labels <- factor(kmeans_out$cluster)
     prior_means <- as.vector(kmeans_out$centers)
   }
@@ -371,7 +371,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
       return(NA)
     }
     
-    kmeans_out <- kmeans(x = x, centers = K, nstart = nstart, ...)
+    kmeans_out <- kmeans(x = x, centers = K, nstart = nstart, algorithm="MacQueen",...)
 
     cluster_centroids <- kmeans_out$centers
     cluster_sizes <- kmeans_out$size

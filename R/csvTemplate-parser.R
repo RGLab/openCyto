@@ -162,7 +162,7 @@ templateGen <- function(gh){
     if(col != "collapseDataForGating")
     {
       newCol <- dt[[col]]
-      dt[, col := as.character(newCol), with = FALSE]
+      dt[, (col):= as.character(newCol)]
     }
   }
   
