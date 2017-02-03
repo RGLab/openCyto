@@ -71,7 +71,8 @@ add_pop <- function(gs, alias = "*"
       write.csv(dt, tmp, row.names = F)
       
       #skip the validity check on the other entries
-      suppressMessages(gt <- gatingTemplate(tmp, strict = FALSE))
+	# Pass ... to gatingTemplate to allow strip_extra_quotes to be passed
+      suppressMessages(gt <- gatingTemplate(tmp, strict = FALSE,...))
       message("...")
       suppressMessages(gating(gt, gs, ...))
       message("done")
