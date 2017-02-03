@@ -6,6 +6,7 @@
 #'
 #' @param gs GatingSet or GatingSetList
 #' @param alias,pop,parent,dims,gating_method,gating_args,collapseDataForGating,groupBy,preprocessing_method,preprocessing_args see details in \link[openCyto:gatingTemplate-class]{gatingTemplate}
+#' @param strip_extra_quotes \code{logical} Extra quotes are added to strings by fread. This causes problems with parsing R strings to expressions in some cases. Default FALSE for usual behaviour. TRUE should be passed if parsing gating_args fails.
 #' @param ... other arguments
 #' \itemize{
 #'      \item{mc.cores}{ passed to \code{multicore} package for parallel computing}
@@ -34,6 +35,7 @@ add_pop <- function(gs, alias = "*"
                       , groupBy = NA
                       , preprocessing_method = NA
                       , preprocessing_args = NA
+                      , strip_extra_quotes = FALSE
                       , ...) {
       
       #still check this new pop                     
@@ -72,7 +74,7 @@ add_pop <- function(gs, alias = "*"
       
       #skip the validity check on the other entries
 	# Pass ... to gatingTemplate to allow strip_extra_quotes to be passed
-      suppressMessages(gt <- gatingTemplate(tmp, strict = FALSE,...))
+      suppressMessages(gt <- gatingTemplate(tmp, strict = FALSE,strip_extra_quotes = strip_extra_quotes))
       message("...")
       suppressMessages(gating(gt, gs, ...))
       message("done")
