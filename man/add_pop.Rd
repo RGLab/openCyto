@@ -6,12 +6,15 @@
 \usage{
 add_pop(gs, alias = "*", pop = "A+", parent, dims = NA, gating_method,
   gating_args = NA, collapseDataForGating = NA, groupBy = NA,
-  preprocessing_method = NA, preprocessing_args = NA, ...)
+  preprocessing_method = NA, preprocessing_args = NA,
+  strip_extra_quotes = FALSE, ...)
 }
 \arguments{
 \item{gs}{GatingSet or GatingSetList}
 
 \item{alias, pop, parent, dims, gating_method, gating_args, collapseDataForGating, groupBy, preprocessing_method, preprocessing_args}{see details in \link[openCyto:gatingTemplate-class]{gatingTemplate}}
+
+\item{strip_extra_quotes}{\code{logical} Extra quotes are added to strings by fread. This causes problems with parsing R strings to expressions in some cases. Default FALSE for usual behaviour. TRUE should be passed if parsing gating_args fails.}
 
 \item{...}{other arguments
 \itemize{
