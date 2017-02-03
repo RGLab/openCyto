@@ -1,6 +1,7 @@
 context("gating...")
 
 gatingResults <- readRDS("gatingResults.rds")
+# gatingResults <- readRDS("tests/testthat/gatingResults.rds")
 
 localPath <- "~/rglab/workspace/openCyto"
 
@@ -10,7 +11,7 @@ test_that("tcell", {
       
       gs <- load_gs(file.path(localPath,"misc/testSuite/gs-tcell"))
       
-      gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore")
+      expect_warning(gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore"), regexp = "HLA is partially matched")
       
       #test toggle helperGates
       
@@ -48,9 +49,11 @@ test_that("tcell", {
       nodes <- getChildren(gs[[1]], "cd4-cd8+")
       for(node in nodes)
         Rm(node, gs)
-      add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA"
+      expect_warning(add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA"
               , parent = "cd4-cd8+", pop = "CD38+HLA+"
               , alias = "activated cd8", preprocessing_method = "standardize_flowset")
+        , regexp = "HLA is partially matched")
+      
       #test new .mindensity2 wrapper
       add_pop(gs, gating_method = "mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
       thisRes <- getPopStats(gs, path = "full", format = "wide")
@@ -58,42 +61,49 @@ test_that("tcell", {
       
       expect_true(all(c("cd4-cd8+/CD38+", "cd4-cd8+/HLA+") %in% getNodes(gs, path = "auto")))
       
-      #test keep.helperGates = FALSE
-      nodes <- getChildren(gs[[1]], "cd4-cd8+")
-      for(node in nodes)
-        Rm(node, gs)
-      add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA"
-              , parent = "cd4-cd8+", pop = "CD38+HLA+"
-              , alias = "activated cd8", keep.helperGates = FALSE)
-      expect_false(any(c("cd4-cd8+/CD38+", "cd4-cd8+/HLA+") %in% getNodes(gs, path = "auto")))
-      expect_equal(getChildren(gs[[1]], "cd4-cd8+", path = "auto"), "activated cd8")
-      
+     
       #use channel in pop and stains in dims
       for(node in nodes[7:9])
         Rm(node, gs)
-      add_pop(gs, gating_method = "tailgate"
-              , dims = "CD38,HLA"
-              , parent = "cd4-cd8+"
-              , pop = "R660-HLA+"
-              , alias = "activated cd8"
-              , preprocessing_method = "standardize_flowset"
-      )      
+      expect_warning(add_pop(gs, gating_method = "tailgate"
+                      , dims = "CD38,HLA"
+                      , parent = "cd4-cd8+"
+                      , pop = "R660-HLA+"
+                      , alias = "activated cd8"
+                      , preprocessing_method = "standardize_flowset"
+                        )      
+      , regexp = "HLA is partially matched")
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
       
       #pure +-
       for(node in nodes[7:9])
         Rm(node, gs)
-      add_pop(gs, gating_method = "tailgate"
+      expect_warning(
+        add_pop(gs, gating_method = "tailgate"
               , dims = "CD38,HLA"
               , parent = "cd4-cd8+"
               , pop = "-+"
               , alias = "activated cd8"
               , preprocessing_method = "standardize_flowset"
-      )      
+            )      
+      , regexp = "HLA is partially matched")
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
-                    
+      
+      
+      #test keep.helperGates = FALSE
+      nodes <- getChildren(gs[[1]], "cd4-cd8+")
+      for(node in nodes)
+        Rm(node, gs)
+      expect_warning(
+        add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA"
+                , parent = "cd4-cd8+", pop = "CD38+HLA+"
+                , alias = "activated cd8", keep.helperGates = FALSE)
+        , regexp = "HLA is partially matched")
+      expect_false(any(c("cd4-cd8+/CD38+", "cd4-cd8+/HLA+") %in% getNodes(gs, path = "auto")))
+      expect_equal(getChildren(gs[[1]], "cd4-cd8+", path = "auto"), "activated cd8")
+      
     })
 
 test_that("tcell--asinhtGml2", {
@@ -121,7 +131,7 @@ test_that("tcell--asinhtGml2", {
   tmp <- tempfile()
   write.csv(dt, file = tmp, row.names = FALSE)
   gt_tcell <- gatingTemplate(tmp, autostart = 1L)
-  gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore")
+  expect_warning(gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore"), regexp = "HLA is partially matched")
   # autoplot(gs[[1]])  
   
   thisRes <- getPopStats(gs, path = "full")
@@ -139,7 +149,7 @@ test_that("ICS", {
       
       gs <- load_gs(file.path(localPath,"misc/testSuite/gs-ICS"))
       Rm("s", gs)
-      gating(gt, gs, mc.core = 2, parallel_type = "multicore")
+      expect_warning(gating(gt, gs, mc.core = 2, parallel_type = "multicore"), regexp = "Pacific Blue-A is partially matched")
       
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_ICS"]]
@@ -149,7 +159,9 @@ test_that("ICS", {
       nodes <- getChildren(gs[[1]], "cd8")[-(1:4)]
       for(node in nodes)
         Rm(node, gs)
-      add_pop(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
+      expect_warning(
+        add_pop(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
+      , regexp = "is replaced with")
       
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
