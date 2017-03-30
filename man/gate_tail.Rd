@@ -8,11 +8,11 @@
 \usage{
 gate_tail(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
   strict = TRUE, tol = 0.01, positive = TRUE, side = "right",
-  min = NULL, max = NULL, ...)
+  min = NULL, max = NULL, bias = 0, ...)
 
 tailgate(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
   strict = TRUE, tol = 0.01, positive = TRUE, side = "right",
-  min = NULL, max = NULL, ...)
+  min = NULL, max = NULL, bias = 0, ...)
 
 cytokine(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
   tol = 0.01, positive = TRUE, side = "right", ...)
@@ -46,6 +46,8 @@ line to the left of the cutpoint. (Default: \code{TRUE})}
 \item{min}{a numeric value that sets the lower boundary for data filtering}
 
 \item{max}{a numeric value that sets the upper boundary for data filtering}
+
+\item{bias}{a numeric value that adds a constant to the calculated cutpoint(threshold). Default is 0.}
 
 \item{...}{additional arguments.}
 }

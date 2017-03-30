@@ -822,6 +822,7 @@ mindensity <- gate_mindensity
 #'  \code{'right'} (default) or \code{'left'}?
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
+#' @param bias a numeric value that adds a constant to the calculated cutpoint(threshold). Default is 0.
 #' @param ... additional arguments.
 #' @return a \code{filterList} containing the gates (cutpoints) for each sample
 #' @export
@@ -831,7 +832,7 @@ mindensity <- gate_mindensity
 #'  gate <- gate_tail(fr, Channel = "APC-A") # fr is a flowFrame
 #' }
 gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
-    ref_peak = 1, strict = TRUE, tol = 1e-2, positive = TRUE, side = "right", min = NULL, max = NULL, ...) {
+    ref_peak = 1, strict = TRUE, tol = 1e-2, positive = TRUE, side = "right", min = NULL, max = NULL, bias = 0, ...) {
   
   if (!(is.null(min) && is.null(max))) {
     fr <- .truncate_flowframe(fr, channels = channel, min = min,
@@ -842,6 +843,8 @@ gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
   x <- as.vector(exprs(fr)[, channel])
   cutpoint <- .cytokine_cutpoint(x = x, num_peaks = num_peaks,
       ref_peak = ref_peak, tol = tol, side = side, strict = strict, ...)
+  
+  cutpoint <- cutpoint + bias
   
   # After the 1D cutpoint is set, we set the gate coordinates used in the
   # rectangleGate that is returned. If the `positive` argument is set to TRUE,
