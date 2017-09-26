@@ -7,4 +7,3 @@
 \description{
 Bascially it extends flowCore 'filter classes to have extra slot to store priors and posteriors
 }
-

@@ -8,4 +8,3 @@
 It is a graphNEL used as a container to store priors and posteriors for each flowClust gate that can be
 visualized for the purpose of fine-tunning parameters for flowClust algorithm
 }
-

@@ -13,4 +13,3 @@
 \description{
 get gating method dimensions
 }
-

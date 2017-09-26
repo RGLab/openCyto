@@ -40,4 +40,3 @@ This gating method identifies two quadrants (first, and third quadrants) by fitt
 It is particually useful when the two markers are not well resolved thus the regular quadGate method
 based on 1d gating will not find the perfect cut points on both dimensions.
 }
-

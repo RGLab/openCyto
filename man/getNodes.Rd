@@ -28,4 +28,3 @@ getNodes(gt, only.names = TRUE)
 getNodes(gt, "/nonDebris")
 }
 }
-

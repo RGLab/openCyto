@@ -13,4 +13,3 @@
 \description{
 get parameters of the gating method/function
 }
-

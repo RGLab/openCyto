@@ -7,4 +7,3 @@
 \description{
 It is generated automatically by the csv template preprocessing to handle the gating function that returns multiple gates.
 }
-

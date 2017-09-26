@@ -573,20 +573,11 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
         dims <- dims[!is.na(dims)]
         nDims <- length(dims)
         
-        pos_token <- "[\\+]"
-        neg_token <- "[\\-]"
-        pop_name_pat <- "[^\\+-]+"
-        pos_pop_pat <- paste(pop_name_pat, pos_token, sep = "")
-        neg_pop_pat <- paste(pop_name_pat, neg_token, sep = "")
         
         if(nDims==2){
-          #set negated flag of outer scope when necessary
-#          if (grepl(neg_pop_pat,popName)&&!negated) {
-#            negated <<- TRUE
-#          }
           #before flowCore and flowViz support the negated filter
           #we use refGate+boolGate in csv template as the workaround
-          if (grepl(neg_pop_pat,popName)) {
+          if (popName == "-") {
             stop("negated 2d gate is not supported yet!")
           }
           #pass the gate as it is 
@@ -598,12 +589,12 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           cut.y <- y_coord[!is.infinite(y_coord)]
           
           
-          if (grepl(pos_pop_pat,popName)) {
+          if (popName == "+") {
             #handle all infinite coordinates
             if(length(cut.y) == 0)
               cut.y <- -Inf
             gate_coordinates <- list(c(cut.y, Inf))
-          } else if(grepl(neg_pop_pat,popName)){
+          } else if(popName=="-"){
             if(length(cut.y) == 0)
               cut.y <- Inf
             gate_coordinates <- list(c(-Inf, cut.y))
@@ -641,26 +632,9 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           # 2. top right (++)
           # 3. bottom right (+-)
           # 4. bottom left (--)
-          quadPatterns <- c(".+-.+\\+$", ".+\\+.+\\+$", ".+\\+.+-$", ".+-.+-$")
+          quadPatterns <- c("-+", "++", "+-", "--")
           
-          # check if popname is give as Y[*]X[*]
-          YX_pattern <- paste0(dims[2], ".+", dims[1], ".+")
-          XY_pattern <- paste0(dims[1], ".+", dims[2], ".+")
-          
-          # do the flipping if YX
-          if (grepl(YX_pattern, popName)) {
-            pos <- regexpr(dims[1], popName)
-            xterm <- substring(popName, pos, nchar(popName))
-            yterm <- substring(popName, 1, pos - 1)
-            toMatch <- paste(xterm, yterm, sep = "")
-          } else if (grepl(XY_pattern, popName)) {
-            toMatch <- popName  #keep as it is if XY
-          }
-          else {
-            stop("X,Y axis do not match between 'dims'(", paste(dims, collapse = ","), 
-                ") and 'pop'(", popName, ")")
-          }
-          quadInd <- which(unlist(lapply(quadPatterns, grepl, toMatch)))
+          quadInd <- match(popName, quadPatterns)
           
           #get event indices for both ref nodes
 #          x_event_ind <- getIndices(gh, refNodes[x_ref_id])

@@ -13,4 +13,3 @@
 \description{
 show method for boolMethod
 }
-

@@ -25,10 +25,10 @@ A gating method object contains the specifics for generating the gates.
                  it is only valid when \code{groupBy} is specified}
  }
 }
+
 \examples{
  \dontrun{
      gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
      getGate(gt, '2', '3')
 }
 }
-

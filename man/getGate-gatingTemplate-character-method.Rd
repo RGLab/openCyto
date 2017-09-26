@@ -26,4 +26,3 @@ getChildren(gt, "/nonDebris")
 getGate(gt, "/nonDebris", "/nonDebris/singlets")
 }
 }
-

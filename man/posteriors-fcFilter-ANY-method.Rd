@@ -16,4 +16,3 @@
 \description{
 get posteriors from a \code{fcFilter} object
 }
-

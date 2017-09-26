@@ -28,16 +28,16 @@ in the gating hierarchy tree. However sometime it is verbose to describe every s
 So here we will explain how to make the template more succinct to easier to compose by using `pop` and `alias` pattern.      
 
 
-## `pop` = "A+/-"
+## `pop` = "+/-"
 For the 1d/2d gating function, we are normally interested in either positive(representing cell events within gate) or negative(or negated, representing cell events outside of the gate) by setting `pop` column 
-in the form of `A+` or `A-`. But sometime we want to do the downstream gating for both.
-By specifying `pop` as `A+/-`, the `template parser` will expand it into two rows internally.
+in the form of `+` or `-`. But sometime we want to do the downstream gating for both.
+By specifying `pop` as `+/-`, the `template parser` will expand it into two rows internally.
   
 ```{r init, echo=F}
 library(openCyto)
 library(data.table)
 
-template_row <- data.table(alias = "TH", pop = "cd4+cd8-"
+template_row <- data.table(alias = "TH", pop = "+-"
                           , parent = "cd3", dims = "cd4,cd8"
                           , gating_method = "mindensity", gating_args = ""
                           , collapseDataForGating = "TRUE", groupBy = "4"
@@ -50,7 +50,7 @@ For example, this row will be expanded automatically
 
 ```{r A+/-(before), echo = F, results = "asis"}
 	this_row <- copy(template_row)	
-	this_row[, pop := "cd4+/-"]
+	this_row[, pop := "+/-"]
 	this_row[, alias := "*"]
 	this_row[, dims := "cd4"]
 	kable(this_row[, 1:6, with = F])
@@ -62,6 +62,7 @@ to two rows:
       kable(openCyto:::.preprocess_row(this_row)[, 1:6, with = F])
       
 ```
+
 Note that the second row uses `refGate` which simply copies the gate coordinates computed by `mindensity` in the first row,
 and assign the negative sign to the `pop` column indicating the population of interest is `cd4 negative`.  
 
@@ -70,28 +71,28 @@ and assign the negative sign to the `pop` column indicating the population of in
 Often time we need to apply 1d gating function on two dimensions separately and then 
 use the two cutting points to construct `rectangleGate` to capture the cell events falling into one particular quadrant on the 2-d projections
 For example, `T helper` cells are usually represented as `CD4+CD8-`.
-Instead of writing three rows in the template, simply using `A+B+` pattern in the `pop` column.  
+Instead of writing three rows in the template, simply using `++` pattern in the `pop` column.  
 e.g
 
 ```{r A+B+(before), echo = F, results = "asis"}
 	this_row <- copy(template_row)	
-	this_row[, pop := "cd4+cd8-"]
+	this_row[, pop := "+-"]
 	this_row[, alias := "T helper"]
 	kable(this_row[, 1:6, with = F])
 ```
+
 And the template parser will take care of the expansion automatically.
       
 ```{r A+B+(after), echo = F, results = "asis"}
       kable(openCyto:::.preprocess_row(this_row)[, 1:6, with = F])
 ```
+
 As we see, first two rows do the actual gating by `mindensity` and the third row simply makes use the coordinates of that two 1d gates (`cd4+` and `cd8+`) and 
 construct a `rectangleGate` (T helper) by using `refGate` as `gating_method`. And the `+` and `-` sign along with dimensions determines which quadrant to keep.  
 
-<span style="color:red">It is now prefered to omit the dimension information from `pop` since `dims` already provides it. It is especially helpful when the dimension itself contains special characters `+/-` (e.g. `HLA-DR` and `BDCA-2`), parser then can't tell the correct quadrant pattern (i.e. `HLA-DR+BDCA-2`). </span>
-
 ## `pop` = "+/-+/-"
 Apparently, we may want to get more than one quadrants by using the same mechanism.
-For example, we can set `pop` to `+/-+/-`(or `CD4+/-CD8+/-`) to keep all of four quadrants.
+For example, we can set `pop` to `+/-+/-` to keep all of four quadrants.
 
 ```{r A+/-B+/-(before), echo = F, results = "asis"}
 	this_row <- copy(template_row)	
@@ -99,11 +100,13 @@ For example, we can set `pop` to `+/-+/-`(or `CD4+/-CD8+/-`) to keep all of four
 	this_row[, alias := "*"]
 	kable(this_row[, 1:6, with = F])
 ```
+
 It will be expanded to six rows:
       
 ```{r A+/-B+/-(after), echo = F, results = "asis"}
       kable(openCyto:::.preprocess_row(this_row)[, 1:6, with = F])
 ```
+
 First two does the actual gating, and rest of four uses two 1d gates to construct four different `rectangleGate`s to represent
 four different quadrants.
 
@@ -120,6 +123,7 @@ we can set `pop` to `*` and specify multiple population names within `alias` wit
 	this_row[, gating_method := "curv2gate"]
 	kable(this_row[, 1:6, with = F])
 ```
+
 Here we assume `curv1gate` always returns `two` gates in the order of `c("cd4", "cd8")`, then the population names in `alias` column
 will be matched to these two gates and two `dummy_gate` rows are generated that simply serves as a reference to be used  
 as `parent` node of the downstream gates.  

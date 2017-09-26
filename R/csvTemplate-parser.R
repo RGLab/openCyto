@@ -230,10 +230,16 @@ templateGen <- function(gh){
     else
       return(.gen_dummy_ref_gate(this_row))
     }
-  if (!grepl("[+-]$", popName)) {
-    popName <- paste0(popName, "+")
-    this_row[, pop := popName]
-  }
+    
+#   if(isTRUE(getOption("openCyto")[["check.dims"]])&&grepl("[\\+-]", dims))
+#      stop("validity check failed!'dims' :", dims, " contains the special characters '+' or '-' that are reserved for 'pop' patterns.
+#			\n Please change the dimension by switching to marker/channel names or the substring of it as long as it is uniquely identifiable within the data.
+#			\n Or type ?openCyto.options to see how you can turn off the 'check.dims' flag in option('openCyto') to bypass this validiy check (Not recommended)")
+#  
+  if(isTRUE(getOption("openCyto")[["check.pop"]])&&!grepl("^(([\\+-])|(\\+/-)|(-/\\+)){1,2}$",popName))
+    stop("'pop': ", popName, " should only contain the + and - symbols and must conform to the valid +/- or +/-+/- patterns!
+			\n Please remove any other letters and correct the pop pattern!
+			\n Or type ?openCyto.options to see how you can turn off the 'check.pop' flag in option('openCyto') to bypass this validiy check (Not recommended)")
   
   dim_count <- length(strsplit(split = ",", dims)[[1]])
   if (!dim_count %in% c(1, 2)) {
@@ -273,30 +279,33 @@ templateGen <- function(gh){
     }
     # expand to two rows
     message("expanding pop: ", popName, "\n")
+    new_pops <- c("+", "-")
+    
     if(dim_count == 1){
-      cur_dim <- dims  
+      new_alias <- paste(dims, new_pops, sep = "")  
     }else if(dim_count == 2)
     {
-      cur_dim <- sub(two_pop_token, "", popName)
-      if(cur_dim == "")
-        stop("Please provide a proper pop name along with '+/-' signs in 'pop' column because dims(", dims, ") can't be used to derive it!")
+      
+      if(alias == "*")
+        stop("Please provide a proper alias name because dims(", dims, ") can't be used to derive the expanded pops!")
+      new_alias <- paste(alias, new_pops, sep = "")  
+      
     }else
       stop("Don't know how to handle ", popName, " for multi-dimensional gating! ")
     
     
-    new_pops <- paste(cur_dim, c("+", "-"), sep = "")
     
     
     res <- rbindlist(list(this_row, this_row))
     
     # update 1d gate
-    res[1, alias := new_pops[1]]
+    res[1, alias := new_alias[1]]
     res[1, pop := new_pops[1]]
     
     
     # update ref gate
-    refNode <- file.path(this_row[, parent], new_pops[1])
-    res[2, alias := new_pops[2]]
+    refNode <- file.path(this_row[, parent], new_alias[1])
+    res[2, alias := new_alias[2]]
     res[2, pop := new_pops[2]]
     res[2, gating_method := "refGate"]
     res[2, gating_args := refNode]
@@ -306,7 +315,8 @@ templateGen <- function(gh){
   } else if (grepl(paste("^(", one_pop_pat, "){2}$", sep = ""), popName)) {
     # A+B+
     split_terms <- .splitTerms(pop_pat = one_pop_pat, two_pop_token, popName, dims)
-    new_pops <- as.character(outer(split_terms[[1]], split_terms[[2]], paste,sep = ""))
+    new_pops <- as.character(outer(split_terms[[1]][["pop"]], split_terms[[2]][["pop"]], paste,sep = ""))
+    new_alias <- as.character(outer(split_terms[[1]][["alias"]], split_terms[[2]][["alias"]], paste,sep = ""))
     
     if (gm == "refGate") {
       # no expansion
@@ -338,9 +348,10 @@ templateGen <- function(gh){
     message("expanding pop: ", popName, "\n")
     two_or_one_pop_pat <- paste0("(", two_pop_pat, ")|(", one_pop_pat, ")")
     split_terms <- .splitTerms(pop_pat = two_or_one_pop_pat, two_pop_token, popName, dims)
-    new_pops <- as.character(outer(split_terms[[1]], split_terms[[2]], paste,sep = ""))
+    new_pops <- as.character(outer(split_terms[[1]][["pop"]], split_terms[[2]][["pop"]], paste,sep = ""))
+    new_alias <- as.character(outer(split_terms[[1]][["alias"]], split_terms[[2]][["alias"]], paste,sep = ""))
     if (gm == "refGate") {
-      res <- .gen_refGate(new_pops, this_row = this_row, strict = strict)
+      res <- .gen_refGate(new_pops, this_row = this_row, alias = new_alias, strict = strict)
       
     } else {
       
@@ -356,7 +367,7 @@ templateGen <- function(gh){
       
       # create 1d gate for each dim
       res_1d <- .gen_1dgate(this_row, strict = strict)
-      res_ref <- .gen_refGate(new_pops, this_row, ref_nodes = res_1d[, alias], strict = strict)
+      res_ref <- .gen_refGate(new_pops, this_row, ref_nodes = res_1d[, alias], alias = new_alias, strict = strict)
       res <- rbindlist(list(res_1d, res_ref))
     }
     
@@ -381,12 +392,16 @@ templateGen <- function(gh){
         token_pos <- gregexpr(two_pop_token, cur_term)[[1]]
         if (token_pos > 0) {
           # dim_name <- substr(cur_term, 1, token_pos - 1)
-          splitted_term <- paste(dim_name, c("+", "-"), sep = "")
+          splitted_term <- list(alias = paste(dim_name, c("+", "-"), sep = "")
+                                , pop = c("+", "-")
+                            )
           
         } else {
           nlen <- nchar(cur_term)
           cur_token <- substr(cur_term, nlen, nlen)
-          splitted_term <- paste0(dim_name, cur_token)
+          splitted_term <- list(alias = paste0(dim_name, cur_token)
+                                , pop = cur_token
+                            )
         }
         splitted_term
       }, SIMPLIFY = FALSE)
@@ -428,7 +443,7 @@ templateGen <- function(gh){
           .validity_check_alias(new_pop_name)
         
         data.table(alias = new_pop_name
-            , pop = new_pop_name
+            , pop = "+"
             , parent = this_parent
             , dims = cur_dim 
             , gating_method = this_row[, gating_method]
@@ -443,7 +458,7 @@ templateGen <- function(gh){
   as.data.table(res)
 }
 #' generate reference gate based on the splitted population patterns(A+/-B+/-) 
-.gen_refGate <- function(new_pops, this_row, ref_nodes = NULL, alias = NULL, strict = TRUE) {
+.gen_refGate <- function(new_pops, this_row, ref_nodes = NULL, alias, strict = TRUE) {
   this_parent <- this_row[, parent]
   
   if (is.null(ref_nodes)) {
@@ -457,10 +472,6 @@ templateGen <- function(gh){
   }
   
   
-  
-  if (is.null(alias)) {
-    alias <- new_pops
-  }
   
   # create ref gate for each new_pop )
   do.call(rbind, mapply(new_pops, alias, FUN = function(new_pop, cur_alias) {

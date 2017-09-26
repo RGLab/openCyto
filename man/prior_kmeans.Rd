@@ -58,4 +58,3 @@ computational costs of \code{kmeans} can be a burden. We provide the option
 to randomly select \code{pct}, a percentage of the cells from each flow frame
 to which \code{kmeans} is applied.
 }
-

@@ -41,4 +41,3 @@ It is usually called by \code{plot} method for \code{fcTree} instead of directly
  plot(env1$fct,"nonDebris",post=T) #plot the priors as well as posteriors for the "nonDebris" gate
 }
 }
-

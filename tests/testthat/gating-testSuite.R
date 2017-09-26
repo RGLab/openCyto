@@ -49,13 +49,17 @@ test_that("tcell", {
       nodes <- getChildren(gs[[1]], "cd4-cd8+")
       for(node in nodes)
         Rm(node, gs)
+      opt <- getOption("openCyto")
+      opt[["check.pop"]] <- FALSE
+      options(openCyto = opt)
       expect_warning(add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA"
               , parent = "cd4-cd8+", pop = "CD38+HLA+"
               , alias = "activated cd8", preprocessing_method = "standardize_flowset")
         , regexp = "HLA is partially matched")
-      
+      opt[["check.pop"]] <- TRUE
+      options(openCyto = opt)
       #test new .mindensity2 wrapper
-      add_pop(gs, gating_method = "mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
+      add_pop(gs, gating_method = "mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "+/-+/-")
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
       
@@ -68,7 +72,7 @@ test_that("tcell", {
       expect_warning(add_pop(gs, gating_method = "tailgate"
                       , dims = "CD38,HLA"
                       , parent = "cd4-cd8+"
-                      , pop = "R660-HLA+"
+                      , pop = "-+"
                       , alias = "activated cd8"
                       , preprocessing_method = "standardize_flowset"
                         )      
@@ -98,7 +102,7 @@ test_that("tcell", {
         Rm(node, gs)
       expect_warning(
         add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA"
-                , parent = "cd4-cd8+", pop = "CD38+HLA+"
+                , parent = "cd4-cd8+", pop = "++"
                 , alias = "activated cd8", keep.helperGates = FALSE)
         , regexp = "HLA is partially matched")
       expect_false(any(c("cd4-cd8+/CD38+", "cd4-cd8+/HLA+") %in% getNodes(gs, path = "auto")))

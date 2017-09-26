@@ -48,4 +48,3 @@ eigenvalues of the matrix slightly to ensure that it is positive definite. For
 instance, if the \code{flow_set} has two samples, this case can occur. The
 amount of shrinkage is controlled in \code{shrink}.
 }
-

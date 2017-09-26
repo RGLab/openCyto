@@ -12,4 +12,3 @@
 \description{
 A function to tell wether a gating method is \code{polyFunctions}
 }
-

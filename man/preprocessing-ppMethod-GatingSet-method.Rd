@@ -17,4 +17,3 @@
 \description{
 apply a \link[openCyto:ppMethod-class]{ppMethod} to the \code{GatingSet}
 }
-

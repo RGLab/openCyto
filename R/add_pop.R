@@ -26,7 +26,7 @@
 #' add_pop(gs, alias = "IL2orIFNg", gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg") 
 #' }
 add_pop <- function(gs, alias = "*"
-                      , pop = "A+"
+                      , pop = "+"
                       , parent
                       , dims = NA
                       , gating_method

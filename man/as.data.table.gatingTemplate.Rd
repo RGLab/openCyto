@@ -17,4 +17,3 @@ a data.table
 \description{
 It is the inverse function of gatingTemplate constructor.
 }
-

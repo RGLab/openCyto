@@ -7,4 +7,3 @@
 \description{
 Each filter in the filterList must extends the \code{fcFilter} class
 }
-

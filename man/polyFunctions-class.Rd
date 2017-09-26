@@ -7,4 +7,3 @@
 \description{
 It extends \code{boolMethod} class and will be expanded to multiple \code{boolMethod} object.
 }
-
