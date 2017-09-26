@@ -7,4 +7,3 @@
 \description{
 special gate type that mix the rectangleGate with boolean gate
 }
-

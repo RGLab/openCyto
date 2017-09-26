@@ -12,4 +12,3 @@ fcFilterList(x)
 \description{
 constuctor for \code{fcFilterList}
 }
-

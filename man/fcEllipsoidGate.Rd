@@ -16,4 +16,3 @@ fcEllipsoidGate(x, priors, posts)
 \description{
 constuctor for \code{fcEllipsoidGate}
 }
-

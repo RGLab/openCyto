@@ -24,6 +24,11 @@ LazyLoad: \tab yes\cr
 \examples{
 \dontrun{gatingTemplate('test.csv')}
 }
+\seealso{
+See \code{\link[openCyto:gating-methods]{gating}}, 
+\code{\link{flowClust.1d}}, 
+for an overview of gating functions.
+}
 \author{
 Mike Jiang \email{wjiang2@fhcrc.org},
 John Ramey \email{jramey@fhcrc.org},
@@ -31,10 +36,4 @@ Greg Finak \email{gfinak@fhcrc.org}
 
 Maintainer: Mike Jiang \email{wjiang2@fhcrc.org}
 }
-\seealso{
-See \code{\link[openCyto:gating-methods]{gating}}, 
-\code{\link{flowClust.1d}}, 
-for an overview of gating functions.
-}
 \keyword{package}
-

@@ -15,4 +15,3 @@
 \description{
 get nodes from \code{fcTree}
 }
-

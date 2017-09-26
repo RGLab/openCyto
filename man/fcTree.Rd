@@ -12,4 +12,3 @@ fcTree(gt)
 \description{
 It adds an extra node data slot "fList"(which is a \code{filterList} object) to the \code{gatingTemplate}
 }
-

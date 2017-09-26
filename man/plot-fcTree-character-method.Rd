@@ -21,4 +21,3 @@
 \description{
 This provides the priors and posteriors as well as the gates for the purpose of debugging flowClust gating algorithm
 }
-

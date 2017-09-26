@@ -17,4 +17,3 @@
 \description{
 get gates saved in \code{fcTree}
 }
-

@@ -13,4 +13,3 @@ It extends \code{gtMethod} class.
      ppMethod(gt, '3', '4')
 }     
 }
-

@@ -3,16 +3,16 @@
 \docType{methods}
 \name{gating}
 \alias{gating}
-\alias{gating,boolMethod,GatingSet-method}
-\alias{gating,boolMethod,GatingSetList-method}
-\alias{gating,dummyMethod,GatingSet-method}
-\alias{gating,dummyMethod,GatingSetList-method}
 \alias{gating,gatingTemplate,GatingSet-method}
 \alias{gating,gatingTemplate,GatingSetList-method}
+\alias{gating,boolMethod,GatingSet-method}
+\alias{gating,boolMethod,GatingSetList-method}
 \alias{gating,polyFunctions,GatingSet-method}
 \alias{gating,polyFunctions,GatingSetList-method}
 \alias{gating,refGate,GatingSet-method}
 \alias{gating,refGate,GatingSetList-method}
+\alias{gating,dummyMethod,GatingSet-method}
+\alias{gating,dummyMethod,GatingSetList-method}
 \title{Apply the gates  to a GatingSet}
 \usage{
 gating(x, y, ...)
@@ -65,4 +65,3 @@ It loads the gating methods by topological order and applies them to \code{Gatin
  stopCluster ( cl1 )
 }
 }
-

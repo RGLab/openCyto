@@ -7,4 +7,3 @@
 \description{
 the class that carries event indices as well
 }
-

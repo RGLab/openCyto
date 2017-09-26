@@ -105,4 +105,3 @@ Tibshirani, R et al. (2004), "Sample classification from protein
 mass spectrometry, by 'peak probability contrasts'," Bioinformatics, 20, 17,
 3034-3044. \url{http://bioinformatics.oxfordjournals.org/content/20/17/3034}.
 }
-

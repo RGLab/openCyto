@@ -17,4 +17,3 @@
 When TRUE, the flow data(multiple flowFrames) is collapsed into one and the gating method is applied on the collapsed data.
 Once the gate is generated, it is thenreplicated and applied to the each single flowFrame.
 }
-

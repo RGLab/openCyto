@@ -13,4 +13,3 @@
 \description{
 construct logicalGate obj
 }
-

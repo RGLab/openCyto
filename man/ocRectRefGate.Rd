@@ -14,4 +14,3 @@ ocRectRefGate(rectGate, boolExprs)
 \description{
 constructor for ocRectRefGate
 }
-

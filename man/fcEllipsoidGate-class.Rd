@@ -7,4 +7,3 @@
 \description{
 It stores priors and posteriors as well as the actual ellipsoidGate.
 }
-

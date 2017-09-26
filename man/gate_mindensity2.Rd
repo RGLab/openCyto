@@ -57,4 +57,3 @@ the original mindensity() whenever possible. However, the underlying peak-findin
 \author{
 Greg Finak, Phu T. Van
 }
-

@@ -45,4 +45,3 @@ cell events to reach that precision. Sometime the difference could be significan
  gate <- gate_quantile(fr, Channel = "APC-A", probs = 0.995) # fr is a flowFrame
 }
 }
-

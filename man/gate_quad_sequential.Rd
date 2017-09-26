@@ -29,4 +29,3 @@ a \code{filters} that contains four rectangleGates
 The order of 1d-gating is determined so that the gates better capture the 
 distributions of flow data.
 }
-

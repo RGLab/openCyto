@@ -191,6 +191,8 @@ setClass("gtMethod", representation(name = "character"
                                     , collapse = "logical"
                                     )
           )
+
+          
 #' A class to represent a preprocessing method.
 #' 
 #' It extends \code{gtMethod} class.
@@ -257,6 +259,7 @@ setClass("gtPopulation", representation(id = "character", name = "character",
                                   )
                               )
                               
+                              
 #' A class representing a group of cell populations.
 #' 
 #' It extends \code{gtPopulation} class.
@@ -318,12 +321,12 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' 'alias': a name used label the cell population, the path composed by the alias and its precedent nodes (e.g. /root/A/B/alias) has to be uniquely identifiable.
 #'          So alias can not contain '/' character, which is reserved as path delimiter.
 #'  
-#' 'pop': population patterns of 'A+/-` or 'A+/-B+/-', which tells the algorithm which side (postive or negative) of 1d gate or which quadrant of 2d gate to be kept.
-#'        when it is in the form of 'A+/-B+/-', 'A' and 'B' should be the full name (or a substring as long as it is unqiuely matched) of either channel or marker of the flow data.
+#' 'pop': population patterns of '+/-` or '+/-+/-', which tells the algorithm which side (postive or negative) of 1d gate or which quadrant of 2d gate to be kept.
 #'                         
 #' 'parent': the parent population alias, its path has to be uniquely identifiable.
 #'  
-#' 'dims': characters seperated by comma specifying the dimensions(1d or 2d) used for gating. It can be either channel name or stained marker name.
+#' 'dims': characters seperated by comma specifying the dimensions(1d or 2d) used for gating. 
+#' It can be either channel name or stained marker name (or the substrings of channel/marker names as long as they are uniquely identifiable.).
 #'  
 #' 'gating_method': the name of the gating function (e.g. 'flowClust'). It is invoked by a wrapper function that has the identical function name prefixed with a dot.(e.g. '.flowClust')
 #'     

@@ -68,7 +68,6 @@ This is a gating scheme for `T cell` panel, which tries to identify `T cell` sub
 We can achieve the same results by using automated gating pipeline provided by this package.
 
 ### 1.2. Automated Gating
------------------------------
 `flowCore`,`flowStats`,`flowClust` and other packages provides many different gating methods to 
 detect cell populations and draw the gates automatically. 
 
@@ -86,8 +85,7 @@ used by the biologists and scientists.
 First of all, we need to describe the gating hierarchy in a spread sheet (a plain text format).
 This spread sheet must have the following columns:
 * `alias`: a name used label the cell population, the path composed by the alias and its precedent nodes (e.g. /root/A/B/alias) has to be uniquely identifiable.
-* `pop`: population patterns of `A+/-` or `A+/-B+/-`, which tells the algorithm which side (postive or negative) of 1d gate or which quadrant of 2d gate to be kept
-         when it is in the form of 'A+/-B+/-', 'A' and 'B' should be the full name (or a substring as long as it is unqiuely matched) of either channel or marker of the flow data.
+* `pop`: population patterns of `+/-` or `+/-+/-`, which tells the algorithm which side (postive or negative) of 1d gate or which quadrant of 2d gate to be kept.
 * `parent`: the parent population alias, its path has to be uniquely identifiable.
 * `dims`: characters seperated by comma specifying the dimensions(1d or 2d) used for gating. It can be either channel name or stained marker name.
 * `gating_method`: the name of the gating function (e.g. `flowClust`). It is invoked by a wrapper function that has the identical function name prefixed with a dot.(e.g. `.flowClust`)
@@ -119,7 +117,7 @@ dtTemplate[1,]
 * The population name is `"nonDebris"` (specified in `alias` field).
 * The `parent` node is `root` (which is always the first node of `gating hierarchy` by default). 
 * We use `mindensity` (one of the `gating` functions provided by `openCyto` package) as `gating_method` to gate on dimension (`dim`) of `FSC-A`.
-* As the result, it will generate a 1d gate on `FSC-A`. `"nonDebris"` (equivalent to `"nonDebris+"`) in `pop` field indicates the 
+* As the result, it will generate a 1d gate on `FSC-A`. `+` in `pop` field indicates the 
 `positive` side of 1d gate is kept as the population of interest. 
 * There is no `grouping` or `preprocessing` involved in this gate, thus leave the other columns as `blank`
 
@@ -131,7 +129,7 @@ dtTemplate[2,]
 * The `parent` node is `nonDebris`.
 * `gating_method` is `singletGate` (function from by `flowStats` package)
 * As the result, a `polygonGate` will be generated on `FSC-A` and `FSC-H` (specified by `dims`) for each sample.
-* Again, `"singlets"` in `pop` field stands for `"singlets+"`. But here it is 2d gate, which means we want to keep the area 
+* Again, `+` in `pop` field stands for `"singlets+"`. But here it is 2d gate, which means we want to keep the area 
 inside of the polygon 
 
 #### 2.2.3. "lymphocyte" 
@@ -208,11 +206,13 @@ All the **colored** arrows source from the `parent` population and the **grey** 
 Once we are satisfied with the gating template, we can apply it to the actual flow data.
 
 ### 4.1. Load the raw data
-First of all, we load the raw FCS files into R by `ncdfFlow::read.ncdfFlowSet` (It uses less memory than `flowCore::read.flowSet`).
+First of all, we load the raw FCS files into R by `ncdfFlow::read.ncdfFlowSet` (It uses less memory than `flowCore::read.flowSet`) and create an empty `GatingSet` object.
 ```{r load-fcs}
 fcsFiles <- list.files(pattern = "CytoTrol", flowDataPath, full = TRUE)
 ncfs  <- read.ncdfFlowSet(fcsFiles)
-ncfs
+fr <- ncfs[[1]]
+gs <- GatingSet(ncfs)
+gs
 ```
 ### 4.2. Compensation
 Then, compensate the data. If we have compensation controls (i.e. single stained samples), we can calculate the
@@ -220,18 +220,19 @@ compensation matrix by `flowCore::spillover` function.
 Here we simply use the compensation matrix defined in `flowJo workspace`.
 ```{r compensate}
 compMat <- getCompensationMatrices(gh)
-ncfs_comp <- compensate(ncfs, compMat)
+gs <- compensate(gs, compMat)
 ```
 
 Here is one example showing the compensation outcome:
-```{r compensate_plot, echo = F, fig.width = 5, fig.height = 5}
+```{r compensate_plot, echo = F, fig.width = 4, fig.height = 4}
+library(ggcyto)
 sub_chnl <- c("V545-A","V450-A")
-fr <- ncfs[[1]][,sub_chnl]
-fr_comp <- ncfs_comp[[1]][,sub_chnl]
+fr <- fr[,sub_chnl]
+fr_comp <- getData(gs[[1]])[,sub_chnl]
 fs <- as(list(fr = fr, fr_comp = fr_comp), "flowSet")
 #transform data to better visualize the compensation effect
 fs <- transform(fs, estimateLogicle(fr,sub_chnl))
-xyplot(`V545-A`~`V450-A`, fs, smooth = FALSE, xbin =64)
+autoplot(fs, "V545", "V450")
 ```
 
 ### 4.3. Transformation
@@ -239,23 +240,18 @@ All the stained channels need to be transformed properly before the gating.
 Here we use the `flowCore::estimateLogicle` to do the `logicle` transformation.
 ```{r transformation, eval = T}
 chnls <- parameters(compMat)
-transFuncts <- estimateLogicle(ncfs[[1]], channels = chnls)
-ncfs_trans <- transform(ncfs_comp, transFuncts)
+trans <- estimateLogicle(gs[[1]], channels = chnls)
+gs <- transform(gs, trans)
 ```
 Here is one example showing the transformation outcome:
 ```{r transformation_plot, echo = F, fig.width = 5, fig.height = 5}
-fr <- ncfs_comp[[1]][,sub_chnl[1]]
-fr_trans <- ncfs_trans[[1]][,sub_chnl[1]]
-fs <- as(list(fr = fr, fr_trans = fr_trans), "flowSet")
-densityplot(~`V545-A`, fs, stack = FALSE,scales = list(x=list(relation = "free")))
+fr_trans <- getData(gs[[1]])[,sub_chnl[1]]
+fr_comp <- fr_comp[,sub_chnl[1]]
+fs <- as(list(fr = fr_comp, fr_trans = fr_trans), "flowSet")
+p1 <- as.ggplot(autoplot(fs[1], "V545"))
+p2 <- as.ggplot(autoplot(fs[2], "V545"))
+plot(gridExtra::arrangeGrob(p1,p2))
 ```
-### 4.4. Create 'GatingSet'
-Once data is preprocessed, it can be loaded into `GatingSet` object.
-```{r GatingSet}
-gs <- GatingSet(ncfs_trans)
-getNodes(gs[[1]])
-```
-As `getNodes` shows, there is only one population node `root` at this point.
 
 ### 4.5. Gating
 Now we can apply the gating template to the data:

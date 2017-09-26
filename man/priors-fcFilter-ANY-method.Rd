@@ -16,4 +16,3 @@
 \description{
 get priors from a \code{fcFilter} object
 }
-

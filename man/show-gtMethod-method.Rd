@@ -14,4 +14,3 @@ show method for gtMethod}
 \description{
 show method for gtMethod
 }
-

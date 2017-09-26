@@ -18,4 +18,3 @@ this function populate an empty gating template with the 'alias', 'pop', 'parent
 columns that exacted from an \code{GatingHierarchy}, and leave the other columns (e.g. `gating_method`) blank.
 So users can make changes to that template instead of writing from scratch.
 }
-

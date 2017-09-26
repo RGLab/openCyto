@@ -16,4 +16,3 @@ Within each group, when \code{isCollapse} is set to TRUE, the gating method is a
 Otherwise, it is done indepentently for each indiviudal sample(flowFrame).
 Grouping variable is also used by \code{preprocessing method}.
 }
-

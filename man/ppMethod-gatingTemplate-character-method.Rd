@@ -23,4 +23,3 @@ gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "
 ppMethod(gt,  "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
 }
 }
-

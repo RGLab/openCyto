@@ -18,4 +18,3 @@
 \description{
 apply a \link[openCyto:gtMethod-class]{gtMethod} to the \code{GatingSet}
 }
-

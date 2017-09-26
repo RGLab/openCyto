@@ -2,10 +2,10 @@
 % Please edit documentation in R/add.R
 \docType{methods}
 \name{add,GatingHierarchy,multipleFilterResult-method}
-\alias{add,GatingHierarchy,logicalFilterResult-method}
 \alias{add,GatingHierarchy,multipleFilterResult-method}
-\alias{add,GatingHierarchy,ocRectRefGate-method}
+\alias{add,GatingHierarchy,logicalFilterResult-method}
 \alias{add,GatingHierarchy,ocRectangleGate-method}
+\alias{add,GatingHierarchy,ocRectRefGate-method}
 \title{bypass the default flowWorkspace:::.addGate}
 \usage{
 \S4method{add}{GatingHierarchy,multipleFilterResult}(wf, action, name = NULL,
@@ -40,4 +40,3 @@ without loading flow data
 \details{
 however it is proven that logical indices are too big to be efficiently passed around
 }
-

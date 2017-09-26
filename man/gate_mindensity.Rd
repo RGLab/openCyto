@@ -66,4 +66,3 @@ the cutpoint as the \code{min(x)} if \code{positive} is \code{TRUE}, and the
  gate <- gate_mindensity(fr, channel = "APC-A") # fr is a flowFrame
 }
 }
-

@@ -2,10 +2,10 @@
 % Please edit documentation in R/gatingTemplate-methods.R
 \docType{methods}
 \name{plot,gatingTemplate,missing-method}
-\alias{plot,gatingTemplate,ANY-method}
-\alias{plot,gatingTemplate,character-method}
 \alias{plot,gatingTemplate,missing-method}
+\alias{plot,gatingTemplate,character-method}
 \alias{plot,gatingTemplate-method}
+\alias{plot,gatingTemplate,ANY-method}
 \title{plot the gating scheme}
 \usage{
 \S4method{plot}{gatingTemplate,missing}(x, y, ...)
@@ -33,4 +33,3 @@ plot(gt) #plot entire tree
 plot(gt, "lymph") #only plot the subtree rooted from "lymph"
 }
 }
-

@@ -7,4 +7,3 @@
 \description{
 It extends \code{gtPopulation} class.
 }
-
