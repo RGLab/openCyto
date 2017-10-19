@@ -98,8 +98,8 @@
     }
       
     
-        
-    if(extends(class(filterRes), "filter")||extends(class(filterRes), "filters")){
+    resType <- class(filterRes)    
+    if(extends(resType, "filter")||extends(resType, "filters")||extends(resType, "logical")||extends(resType, "factor")){
 
       #replicate the filter across samples
       list(sapply(sampleNames(fs),function(i)filterRes, simplify = FALSE))      
