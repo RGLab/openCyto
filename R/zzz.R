@@ -12,7 +12,7 @@
 #' options(openCyto = opt)
 #' 
 #' #switch off the validity check flags(Not recommended)
-#' opt[["gating"]][["check.pop"]] <- FALSE
+#' opt[["check.pop"]] <- FALSE
 #' options(openCyto = opt)
 #' 
 NULL
