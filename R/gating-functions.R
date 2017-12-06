@@ -325,7 +325,10 @@ flowClust.1d <- gate_flowClust_1d
 #' quadrant (has positive slope). If \code{transitional_angle} is specified, we
 #' rotate the eigenvectors so that the angle between the x-axis (with the cluster
 #' centroid as the origin) and the major eigenvector (i.e., the eigenvector with
-#' the larger eigenvalue) is \code{transitional_angle}.
+#' the larger eigenvalue) is \code{transitional_angle}. 
+#' So based on range that the angle falls in, the final rectangleGate will be constructed 
+#' at the corresponding quadrant. i.e. Clockwise, [0,pi/2] UR, (pi/2, pi] LR,
+#' (pi, 3/2 * pi] LL, (3/2 * pi, 2 * pi] UL
 #'
 #' @param fr a \code{flowFrame} object
 #' @param xChannel,yChannel \code{character} specifying channels to be gated on
@@ -350,7 +353,8 @@ flowClust.1d <- gate_flowClust_1d
 #' transitional gate if \code{transitional = TRUE}. This argument is ignored if
 #' \code{transitional = FALSE}. See details
 #' @param transitional_angle the angle (in radians) of the transitional
-#' gate. See details. Ignored if \code{transitional = FALSE}.
+#' gate. It is also used to determine which quadrant the final gate resides in.
+#' See details. Ignored if \code{transitional = FALSE}. 
 #' @param min A vector of length 2. Truncate observations less than this minimum
 #' value. The first value truncates the \code{xChannel}, and the second value
 #' truncates the \code{yChannel}. By default, this vector is \code{NULL} and is
@@ -594,7 +598,7 @@ gate_flowClust_2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                      sigma = tmix_results@sigma, nu = tmix_results@nu)
 
   if (plot) {
-    plot(fr, tmix_results, main = filterId)
+    plot(data = fr, tmix_results, main = filterId)
 
     if (transitional) {
       # The major and minor axes (eigenvectors) scaled by their respective
