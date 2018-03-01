@@ -289,13 +289,13 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     args[["channels"]] <- channels 
     
     
-    if (is_1d_gate) {
+    if (is_1d_gate&&popName!="*") {
       if (grepl("-$", popName)) {
         positive <- FALSE
       } else if (grepl("\\+$", popName)) {
         positive <- TRUE
       } else {
-        stop("Invalid population name! Name should end with '+' or '-' symbol.")
+        stop("Invalid population name for 1d gating! Name should end with '+' or '-' symbol.")
       }
       
       gFunc_args[["positive"]] <- positive
