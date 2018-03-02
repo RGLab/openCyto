@@ -110,7 +110,9 @@ It will be expanded to six rows:
 First two does the actual gating, and rest of four uses two 1d gates to construct four different `rectangleGate`s to represent
 four different quadrants.
 
-## `pop` = "*"
+## Gating method that generates multiple populations 
+
+### `pop` = "*" and `alias` = "A,B,C"
 
 So far, we've been talking about the gating functions that only returns one gate object( `S4 class` that extends `flowCore::filter`).
 If we want to apply the gating function(e.g. `curv2filter` or `flowClust::tmixFilter`) that returns more than one gates, 
@@ -132,7 +134,7 @@ as `parent` node of the downstream gates.
       kable(openCyto:::.preprocess_row(this_row)[, 1:6, with = F])
 ```
 
-##  `pop` = "*" and `alias` = "*"
+###  `pop` = "*" and `alias` = "*"
 
 If we don't know how many gates will be returned by `curv2gate` or the order of gates are undetermined, thus we will not able to 
 name these populations. As long as they are not used as `parent` nodes for the further gating (i.e. `terminal gate`s), we can
@@ -146,6 +148,25 @@ simply set `alias` to `*` .
 This will not be expanded in the `openCyto` framework. However, multiple populations will be generated and added 
 to the `GatingSet` object. They are named by the `filterId` slot of `filter` objects.
 
+## Single row with multiple parents  (i.e. `parent` ="A,B,C")
+
+If the same gating method (or simply `refGate`) needs to be applied to multiple parents, it is possible to write these into the single row. For example,
+
+```{r multiple_parents, echo=F, results='asis'}
+	this_row[, alias := "IL2+"]
+  this_row[, pop := "+"]
+  this_row[, parent := "cd4,cd8"]
+  this_row[, dims := "IL2"]
+  this_row[, gating_method := "refGate"]
+  this_row[, gating_args := "cd3/IL2+"]
+	kable(this_row[, 1:6, with = F])
+```
+
+This row is interpreted as copying the `IL2` gate that has been generated from `cd3` population and applying it to `cd4` and `cd8`, which is equivalent to the rows of below
+
+```{r multiple_parents_expand, echo=F, results='asis'}
+kable(openCyto:::.split_multi_parents(this_row)[, 1:6, with = F])
+```
 
 ```{r finalizer, include=FALSE}
 assign("depthtrigger", 3, data.table:::.global)

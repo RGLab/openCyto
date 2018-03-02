@@ -129,6 +129,22 @@ templateGen <- function(gh){
     stop(alias, " is not unique within ", this_parent)
   }
 }
+
+#' split the rows that has multiple parents
+.split_multi_parents <- function(dt)
+{
+  
+  res <- apply(dt, 1, function(row){
+                    rbindlist(
+                      lapply(strsplit(row["parent"], split = ",")[[1]], function(p, r){
+                            r["parent"] = p
+                            data.table(t(r))
+                          }, r = row)
+                        )
+                  })
+  rbindlist(res)
+}
+
 #' preprocess the csv template
 #' 
 #' It parses the data table sequentially and does the valdidity checking and expansion row by row.
@@ -139,7 +155,7 @@ templateGen <- function(gh){
 #' @return a preprocessed(expanded when applicable) \code{data.frame}
 #' @import data.table
 .preprocess_csv <- function(dt, strict = TRUE) {
-  
+  dt <- .split_multi_parents(dt)
   #only parse these columns(other columns may be used by user for other purpose e.g. comments)
   dt <- dt[, list(alias
           , pop
