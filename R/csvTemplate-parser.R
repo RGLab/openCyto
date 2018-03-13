@@ -133,15 +133,19 @@ templateGen <- function(gh){
 #' split the rows that has multiple parents
 .split_multi_parents <- function(dt)
 {
-  
-  res <- apply(dt, 1, function(row){
-                    rbindlist(
-                      lapply(strsplit(row["parent"], split = ",")[[1]], function(p, r){
-                            r["parent"] = p
-                            data.table(t(r))
-                          }, r = row)
-                        )
-                  })
+  #can't use apply since it will coerce dt to df and prepend extra space to int as it convert the column to character
+  res<- lapply(1:nrow(dt), function(i){
+    
+    row <- dt[i,]
+    rbindlist(
+          lapply(strsplit(row[, parent], split = ",")[[1]], function(p){
+                r <- copy(row)
+                r[, parent := p]
+                r
+                })
+            )
+  })
+ 
   rbindlist(res)
 }
 
