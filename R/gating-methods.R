@@ -289,17 +289,21 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
     args[["channels"]] <- channels 
     
     
-    if (is_1d_gate&&popName!="*") {
-      if (grepl("-$", popName)) {
-        positive <- FALSE
-      } else if (grepl("\\+$", popName)) {
-        positive <- TRUE
-      } else {
-        stop("Invalid population name for 1d gating! Name should end with '+' or '-' symbol.")
-      }
-      
-      gFunc_args[["positive"]] <- positive
-    }
+    # if (is_1d_gate&&popName!="*") {
+    #   if (grepl("-$", popName)) {
+    #     positive <- FALSE
+    #   } else if (grepl("\\+$", popName)) {
+    #     positive <- TRUE
+    #   } else {
+    #     stop("Invalid population name for 1d gating! Name should end with '+' or '-' symbol.")
+    #   }
+    #   
+    #   gFunc_args[["positive"]] <- positive
+    # }
+    if (is_1d_gate&&popName!="*") 
+      gFunc_args[["positive"]] <- FALSE
+    
+    negated <- popName=="-"
     args[["gFunc_args"]] <- gFunc_args
     
     thisCall[["MoreArgs"]] <- args
@@ -362,7 +366,7 @@ setMethod("gating", signature = c("gtMethod", "GatingSetList"),
         popAlias <- NULL  
     }
     
-    gs_node_id <- add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE)
+    gs_node_id <- add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE, negated = negated)
     message("done.")
     
   }else{

@@ -247,15 +247,10 @@ templateGen <- function(gh){
       return(.gen_dummy_ref_gate(this_row))
     }
     
-#   if(isTRUE(getOption("openCyto")[["check.dims"]])&&grepl("[\\+-]", dims))
-#      stop("validity check failed!'dims' :", dims, " contains the special characters '+' or '-' that are reserved for 'pop' patterns.
-#			\n Please change the dimension by switching to marker/channel names or the substring of it as long as it is uniquely identifiable within the data.
-#			\n Or type ?openCyto.options to see how you can turn off the 'check.dims' flag in option('openCyto') to bypass this validiy check (Not recommended)")
-#  
   if(isTRUE(getOption("openCyto")[["check.pop"]])&&!grepl("^(([\\+-])|(\\+/-)|(-/\\+)){1,2}$",popName))
     stop("'pop': ", popName, " should only contain the + and - symbols and must conform to the valid +/- or +/-+/- patterns!
 			\n Please remove any other letters and correct the pop pattern!
-			\n Or type ?openCyto.options to see how you can turn off the 'check.pop' flag in option('openCyto') to bypass this validiy check (Not recommended)")
+			\n Or type ?openCyto.options to see how you can turn off the 'check.pop' flag in options('openCyto') to bypass this validiy check (Not recommended)")
   
   dim_count <- length(strsplit(split = ",", dims)[[1]])
   if (!dim_count %in% c(1, 2)) {
@@ -280,8 +275,9 @@ templateGen <- function(gh){
         this_row[1, gating_method := "flowClust.2d"] 
       }
     }
-    
     res <- this_row
+    #strip the other letters from legacy popName
+    res[, pop := ifelse(grepl("-$", popName), "-", "+")]
     
   } else if (grepl(paste("^", two_pop_pat, "$", sep = ""), popName)) {
     # A+/-
