@@ -176,7 +176,7 @@
 #' @inheritParams .prior_flowClust
 #' 
 #' @return a \code{filter} object
-.flowClust.1d <- function(fr, pp_res = NULL, channels, positive = TRUE,...) {
+.flowClust.1d <- function(fr, pp_res = NULL, channels,...) {
   
   if(length(channels) != 1)
     stop("invalid number of channels for flowClust.1d!")
@@ -258,7 +258,6 @@
             ,args = c(list(fr = fr
                         ,params = channels
                         ,prior = prior
-                        , positive = positive
                         )
                       ,args
                     )
@@ -284,7 +283,7 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.tailgate <- function(fr, pp_res = NULL, channels, positive = TRUE, ...) {
+.tailgate <- function(fr, pp_res = NULL, channels, ...) {
   if(length(channels) != 1)
     stop("invalid number of channels for tailgate!")
   #pps_res may contains the standardized and collapsed data and transformation
@@ -298,7 +297,7 @@
       transformedData <- fr
      }
      
-    g <- tailgate(transformedData, channel = channels, positive = positive, ...)
+    g <- tailgate(transformedData, channel = channels, ...)
     gate_coordinates <- c(g@min, g@max)
 
     # Backtransforms the gate 
@@ -308,7 +307,7 @@
     gate <- rectangleGate(gate_coordinates, filterId = g@filterId)
           
   }else
-    gate <- tailgate(fr, channel = channels, positive = positive, ...)
+    gate <- tailgate(fr, channel = channels, ...)
   
   #carry ind with gate
 #  .gateToFilterResult(fr, yChannel, gate, positive)  
@@ -339,11 +338,11 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
-.mindensity <- function(fr, pp_res = NULL, channels, positive = TRUE, ...) {
+.mindensity <- function(fr, pp_res = NULL, channels, ...) {
   
  if(length(channels) != 1)
    stop("invalid number of channels for mindensity!")
-  gate <- mindensity(fr, channel = channels, positive = positive, ...)
+  gate <- mindensity(fr, channel = channels, ...)
 #  .gateToFilterResult(fr, yChannel, gate, positive)
   gate
 }

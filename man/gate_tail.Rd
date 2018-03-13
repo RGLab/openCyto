@@ -7,15 +7,15 @@
 \title{Gates the tail of a density using the derivative of a kernel density estimate}
 \usage{
 gate_tail(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
-  strict = TRUE, tol = 0.01, positive = TRUE, side = "right",
-  min = NULL, max = NULL, bias = 0, ...)
+  strict = TRUE, tol = 0.01, side = "right", min = NULL, max = NULL,
+  bias = 0, ...)
 
 tailgate(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
-  strict = TRUE, tol = 0.01, positive = TRUE, side = "right",
-  min = NULL, max = NULL, bias = 0, ...)
+  strict = TRUE, tol = 0.01, side = "right", min = NULL, max = NULL,
+  bias = 0, ...)
 
 cytokine(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
-  tol = 0.01, positive = TRUE, side = "right", ...)
+  tol = 0.01, side = "right", ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
@@ -35,10 +35,6 @@ an error is reported by default. But if \code{strict} is set to FALSE, then the 
 
 \item{tol}{the tolerance value used to construct the cytokine gate from the
 derivative of the kernel density estimate}
-
-\item{positive}{If \code{TRUE}, then the gate consists of the entire real
-line to the right of the cutpoint. Otherwise, the gate is the entire real
-line to the left of the cutpoint. (Default: \code{TRUE})}
 
 \item{side}{On which side of the density do we want to gate the tail, the
 \code{'right'} (default) or \code{'left'}?}

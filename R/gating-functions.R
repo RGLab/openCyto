@@ -66,7 +66,7 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
                          , trans = 0 #no box transform
                          , min.count = -1, max.count = -1 #no flowClust data filering
                          , nstart = 1 #change kmeans nstart
-                         , positive = TRUE, prior = NULL,
+                         , prior = NULL,
                          criterion = c("BIC", "ICL"),
                          cutpoint_method = c("boundary", "min_density",
                            "quantile", "posterior_mean", "prior_density"),
@@ -229,16 +229,9 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
     cutpoint <- cutpoint_max
   }
 
-  # After the 1D cutpoint is set, we set the gate coordinates used in the
-  # rectangleGate that is returned. If the `positive` argument is set to TRUE,
-  # then the gate consists of the entire real line to the right of the cut point.
-  # Otherwise, the gate is the entire real line to the left of the cut point.
-  if (positive) {
-    gate_coordinates <- list(c(cutpoint, Inf))
-  } else {
-    gate_coordinates <- list(c(-Inf, cutpoint))
-  }
-
+  
+  gate_coordinates <- list(c(cutpoint, Inf))
+  
   names(gate_coordinates) <- params
   
   fres <- rectangleGate(gate_coordinates, filterId = filterId)
@@ -635,9 +628,6 @@ flowClust.2d <- gate_flowClust_2d
 #' @param filterId the name of the filter
 #' @param plot whether to plot the gate result
 #' @param probs probabilities passed to 'stats::quantile' function.
-#' @param positive If \code{TRUE}, then the gate consists of the entire real
-#' line to the right of the cutpoint. Otherwise, the gate is the entire real
-#' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
 #' @param ... additional arguments passed to 'stats::quantile' function.
@@ -648,7 +638,7 @@ flowClust.2d <- gate_flowClust_2d
 #' \dontrun{
 #'  gate <- gate_quantile(fr, Channel = "APC-A", probs = 0.995) # fr is a flowFrame
 #' }
-gate_quantile <- function(fr, channel, probs = 0.999, plot = FALSE, positive = TRUE,
+gate_quantile <- function(fr, channel, probs = 0.999, plot = FALSE,
                          filterId = "", min = NULL, max = NULL, ...) {
    if (missing(channel) || length(channel) != 1) {
      stop("A single channel must be specified.")
@@ -664,11 +654,7 @@ gate_quantile <- function(fr, channel, probs = 0.999, plot = FALSE, positive = T
   x <- exprs(fr)[, channel]
   cutpoint <- quantile(x, probs = probs, ...)
 
-  if (positive) {
-    gate_coordinates <- list(c(cutpoint, Inf))
-  } else {
-    gate_coordinates <- list(c(-Inf, cutpoint))
-  }
+  gate_coordinates <- list(c(cutpoint, Inf))
   names(gate_coordinates) <- channel
   
   if (plot) {
@@ -787,16 +773,8 @@ gate_mindensity <- function(fr, channel, filterId = "", positive = TRUE,
       }      
     }
   }
-  # After the 1D cutpoint is set, we set the gate coordinates used in the
-  # rectangleGate that is returned. If the `positive` argument is set to TRUE,
-  # then the gate consists of the entire real line to the right of the cut point.
-  # Otherwise, the gate is the entire real line to the left of the cut point.
-  if (positive) {
-    gate_coordinates <- list(c(cutpoint, Inf))
-  } else {
-    gate_coordinates <- list(c(-Inf, cutpoint))
-  }
-
+  gate_coordinates <- list(c(cutpoint, Inf))
+  
   names(gate_coordinates) <- channel
   
   rectangleGate(gate_coordinates, filterId = filterId)
@@ -819,9 +797,6 @@ mindensity <- gate_mindensity
 #'                               an error is reported by default. But if \code{strict} is set to FALSE, then the reference peak will be reset to the peak of the far right.      
 #' @param tol the tolerance value used to construct the cytokine gate from the
 #' derivative of the kernel density estimate
-#' @param positive If \code{TRUE}, then the gate consists of the entire real
-#' line to the right of the cutpoint. Otherwise, the gate is the entire real
-#' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param side On which side of the density do we want to gate the tail, the
 #'  \code{'right'} (default) or \code{'left'}?
 #' @param min a numeric value that sets the lower boundary for data filtering
@@ -836,7 +811,7 @@ mindensity <- gate_mindensity
 #'  gate <- gate_tail(fr, Channel = "APC-A") # fr is a flowFrame
 #' }
 gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
-    ref_peak = 1, strict = TRUE, tol = 1e-2, positive = TRUE, side = "right", min = NULL, max = NULL, bias = 0, ...) {
+    ref_peak = 1, strict = TRUE, tol = 1e-2, side = "right", min = NULL, max = NULL, bias = 0, ...) {
   
   if (!(is.null(min) && is.null(max))) {
     fr <- .truncate_flowframe(fr, channels = channel, min = min,
@@ -850,15 +825,7 @@ gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
   
   cutpoint <- cutpoint + bias
   
-  # After the 1D cutpoint is set, we set the gate coordinates used in the
-  # rectangleGate that is returned. If the `positive` argument is set to TRUE,
-  # then the gate consists of the entire real line to the right of the cut point.
-  # Otherwise, the gate is the entire real line to the left of the cut point.
-  if (positive) {
-    gate_coordinates <- list(c(cutpoint, Inf))
-  } else {
-    gate_coordinates <- list(c(-Inf, cutpoint))
-  }
+  gate_coordinates <- list(c(cutpoint, Inf))
   names(gate_coordinates) <- channel
   rectangleGate(gate_coordinates, filterId = filterId)
   
@@ -870,10 +837,10 @@ tailgate <- gate_tail
 #' @rdname gate_tail
 #' @export
 cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
-  ref_peak = 1, tol = 1e-2, positive = TRUE, side = "right", ...) {
+  ref_peak = 1, tol = 1e-2, side = "right", ...) {
   .Deprecated("gate_tail")
   return (tailgate(fr=fr, channel=channel, filterId=filterId,
-    num_peaks=num_peaks, ref_peak=ref_peak, tol=tol, positive=positive,
+    num_peaks=num_peaks, ref_peak=ref_peak, tol=tol,
     side=side, ...))
 }
 
