@@ -16,9 +16,6 @@
 #' @param filterId A \code{character} string that identifies the filter created.
 #' @param K the number of clusters to find
 #' @param trans,min.count,max.count,nstart some flowClust parameters. see \code{\link{flowClust}}
-#' @param positive If \code{TRUE}, then the gate consists of the entire real
-#' line to the right of the cutpoint. Otherwise, the gate is the entire real
-#' line to the left of the cutpoint. (Default: \code{TRUE})
 #' @param prior list of prior parameters for the Bayesian
 #' \code{\link{flowClust}}. If \code{NULL}, no prior is used.
 #' @param criterion a character string stating the criterion used to choose the

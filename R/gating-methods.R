@@ -564,11 +564,11 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
         
         
         if(nDims==2){
-          #before flowCore and flowViz support the negated filter
-          #we use refGate+boolGate in csv template as the workaround
-          if (popName == "-") {
-            stop("negated 2d gate is not supported yet!")
-          }
+          # #before flowCore and flowViz support the negated filter
+          # #we use refGate+boolGate in csv template as the workaround
+          # if (popName == "-") {
+          #   stop("negated 2d gate is not supported yet!")
+          # }
           #pass the gate as it is 
           glist[[1]]
         }else{
@@ -625,12 +625,14 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           
           quadInd <- match(popName, quadPatterns)
           
-          #get event indices for both ref nodes
-#          x_event_ind <- getIndices(gh, refNodes[x_ref_id])
-#          y_event_ind <- getIndices(gh, refNodes[y_ref_id])
-          
+          is_negated <- lapply(refNodes, function(refNode) {
+            
+            flowWorkspace:::isNegated(gh, refNode)
+          })          
           x_ref <- refNodes[x_ref_id] 
           y_ref <- refNodes[y_ref_id]
+          x_negated <- is_negated[[x_ref_id]]
+          y_negated <- is_negated[[y_ref_id]]
           #standardize event ind to x+ and y+
           #by checking the positive sign of both reference gates
           #to prepare for the bool operation later
@@ -638,87 +640,83 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           #handle dummy ref gate that has both boudnary as Inf
 #            x_event_ind <- TRUE           
             x_ref <- NULL
-          }else{
-            x_ref_pos <- which(x_inf_vec) == 2
           }
           if(length(cut.y) == 0){
 #            y_event_ind <- TRUE
               y_ref <- NULL
-          }else{
-            y_ref_pos <- which(y_inf_vec) == 2
           }
           
 #          browser()
           # construct rectangleGate from reference cuts
-          if (quadInd == 1) {
+          if (quadInd == 1) {#-+
             #handle all infinite coordinates
             if(length(cut.x) == 0)
               cut.x <- Inf
             else
             {
-              if(x_ref_pos)
-                x_ref <- paste0("!", x_ref) #x-
+              if(!x_negated)
+                x_ref <- paste0("!", x_ref) 
             }
               
             if(length(cut.y) == 0)
               cut.y <- -Inf
             else
             {
-              if(!y_ref_pos)
-                y_ref <- paste0("!", y_ref) #y+ 
+              if(y_negated)
+                y_ref <- paste0("!", y_ref)
             }
             coord <- list(c(-Inf, cut.x), c(cut.y, Inf))
             
-          } else if (quadInd == 2) {
+          } else if (quadInd == 2) {#++
             #handle all infinite coordinates
             if(length(cut.x) == 0)
               cut.x <- -Inf
             else
             {
-              if(!x_ref_pos)#x+
+              if(x_negated)
                 x_ref <- paste0("!", x_ref) 
             }
             if(length(cut.y) == 0)
               cut.y <- -Inf
             else
             {
-              if(!y_ref_pos)#y+
+              if(y_negated)
                 y_ref <- paste0("!", y_ref) 
             }
             coord <- list(c(cut.x, Inf), c(cut.y, Inf))
             
-          } else if (quadInd == 3) {
+          } else if (quadInd == 3) {#+-
             #handle all infinite coordinates
             if(length(cut.x) == 0)
               cut.x <- -Inf
             else
             {
-              if(!x_ref_pos)#x+
+              if(x_negated)
                 x_ref <- paste0("!", x_ref) 
             }
             if(length(cut.y) == 0)
               cut.y <- Inf
             else
             {
-              if(y_ref_pos)#y-
+              if(!y_negated)
                 y_ref <- paste0("!", y_ref) 
             }
             coord <- list(c(cut.x, Inf), c(-Inf, cut.y))
              
-          } else if (quadInd == 4) {
+          } else if (quadInd == 4) {#--
             #handle all infinite coordinates
             if(length(cut.x) == 0)
               cut.x <- Inf
             else
             {
-              if(x_ref_pos)#x-
+              if(!x_negated)
                 x_ref <- paste0("!", x_ref) 
             }
             if(length(cut.y) == 0)
               cut.y <- Inf
             else
             {
-              if(y_ref_pos)#y-
+              if(!y_negated)
                 y_ref <- paste0("!", y_ref) 
             }
             coord <- list(c(-Inf, cut.x), c(-Inf, cut.y))

@@ -79,10 +79,6 @@ model should be plotted along with the cutpoint}
 for debugging purpose. Default is FALSE.}
 
 \item{...}{additional arguments that are passed to \code{\link{flowClust}}}
-
-\item{positive}{If \code{TRUE}, then the gate consists of the entire real
-line to the right of the cutpoint. Otherwise, the gate is the entire real
-line to the left of the cutpoint. (Default: \code{TRUE})}
 }
 \value{
 a \code{rectangleGate} object consisting of all values beyond the
