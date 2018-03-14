@@ -129,6 +129,26 @@ templateGen <- function(gh){
     stop(alias, " is not unique within ", this_parent)
   }
 }
+
+#' split the rows that has multiple parents
+.split_multi_parents <- function(dt)
+{
+  #can't use apply since it will coerce dt to df and prepend extra space to int as it convert the column to character
+  res<- lapply(1:nrow(dt), function(i){
+    
+    row <- dt[i,]
+    rbindlist(
+          lapply(strsplit(row[, parent], split = ",")[[1]], function(p){
+                r <- copy(row)
+                r[, parent := p]
+                r
+                })
+            )
+  })
+ 
+  rbindlist(res)
+}
+
 #' preprocess the csv template
 #' 
 #' It parses the data table sequentially and does the valdidity checking and expansion row by row.
@@ -139,7 +159,7 @@ templateGen <- function(gh){
 #' @return a preprocessed(expanded when applicable) \code{data.frame}
 #' @import data.table
 .preprocess_csv <- function(dt, strict = TRUE) {
-  
+  dt <- .split_multi_parents(dt)
   #only parse these columns(other columns may be used by user for other purpose e.g. comments)
   dt <- dt[, list(alias
           , pop
@@ -231,15 +251,10 @@ templateGen <- function(gh){
       return(.gen_dummy_ref_gate(this_row))
     }
     
-#   if(isTRUE(getOption("openCyto")[["check.dims"]])&&grepl("[\\+-]", dims))
-#      stop("validity check failed!'dims' :", dims, " contains the special characters '+' or '-' that are reserved for 'pop' patterns.
-#			\n Please change the dimension by switching to marker/channel names or the substring of it as long as it is uniquely identifiable within the data.
-#			\n Or type ?openCyto.options to see how you can turn off the 'check.dims' flag in option('openCyto') to bypass this validiy check (Not recommended)")
-#  
   if(isTRUE(getOption("openCyto")[["check.pop"]])&&!grepl("^(([\\+-])|(\\+/-)|(-/\\+)){1,2}$",popName))
     stop("'pop': ", popName, " should only contain the + and - symbols and must conform to the valid +/- or +/-+/- patterns!
 			\n Please remove any other letters and correct the pop pattern!
-			\n Or type ?openCyto.options to see how you can turn off the 'check.pop' flag in option('openCyto') to bypass this validiy check (Not recommended)")
+			\n Or type ?openCyto.options to see how you can turn off the 'check.pop' flag in options('openCyto') to bypass this validiy check (Not recommended)")
   
   dim_count <- length(strsplit(split = ",", dims)[[1]])
   if (!dim_count %in% c(1, 2)) {
@@ -264,8 +279,9 @@ templateGen <- function(gh){
         this_row[1, gating_method := "flowClust.2d"] 
       }
     }
-    
     res <- this_row
+    #strip the other letters from legacy popName
+    res[, pop := ifelse(grepl("-$", popName), "-", "+")]
     
   } else if (grepl(paste("^", two_pop_pat, "$", sep = ""), popName)) {
     # A+/-

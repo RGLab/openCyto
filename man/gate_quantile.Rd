@@ -5,11 +5,11 @@
 \alias{quantileGate}
 \title{Determine the cutpoint by the events quantile.}
 \usage{
-gate_quantile(fr, channel, probs = 0.999, plot = FALSE, positive = TRUE,
-  filterId = "", min = NULL, max = NULL, ...)
+gate_quantile(fr, channel, probs = 0.999, plot = FALSE, filterId = "",
+  min = NULL, max = NULL, ...)
 
-quantileGate(fr, channel, probs = 0.999, plot = FALSE, positive = TRUE,
-  filterId = "", min = NULL, max = NULL, ...)
+quantileGate(fr, channel, probs = 0.999, plot = FALSE, filterId = "",
+  min = NULL, max = NULL, ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
@@ -19,10 +19,6 @@ quantileGate(fr, channel, probs = 0.999, plot = FALSE, positive = TRUE,
 \item{probs}{probabilities passed to 'stats::quantile' function.}
 
 \item{plot}{whether to plot the gate result}
-
-\item{positive}{If \code{TRUE}, then the gate consists of the entire real
-line to the right of the cutpoint. Otherwise, the gate is the entire real
-line to the left of the cutpoint. (Default: \code{TRUE})}
 
 \item{filterId}{the name of the filter}
 

@@ -6,12 +6,11 @@
 \title{An improved version of mindensity used to determines a cutpoint as the minimum point 
 of a kernel density estimate between two peaks.}
 \usage{
-gate_mindensity2(fr, channel, filterId = "", positive = TRUE,
-  pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
-  peaks = NULL, ...)
-
-mindensity2(fr, channel, filterId = "", positive = TRUE, pivot = FALSE,
+gate_mindensity2(fr, channel, filterId = "", pivot = FALSE,
   gate_range = NULL, min = NULL, max = NULL, peaks = NULL, ...)
+
+mindensity2(fr, channel, filterId = "", pivot = FALSE, gate_range = NULL,
+  min = NULL, max = NULL, peaks = NULL, ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
@@ -20,17 +19,11 @@ mindensity2(fr, channel, filterId = "", positive = TRUE, pivot = FALSE,
 
 \item{filterId}{a name to refer to this filter}
 
-\item{positive}{If \code{TRUE}, then the gate consists of the entire real
-line to the right of the cutpoint. Otherwise, the gate is the entire real
-line to the left of the cutpoint. (Default: \code{TRUE})}
-
 \item{pivot}{logical value. If \code{TRUE}, we choose as the two peaks the
 largest peak and its neighboring peak. See details.}
 
 \item{gate_range}{numeric vector of length 2. If given, this sets the bounds
-on the gate applied. If no gate is found within this range, we set the gate to
-the minimum value within this range if \code{positive} is \code{TRUE} and the
-maximum value of the range otherwise.}
+on the gate applied.}
 
 \item{min}{a numeric value that sets the lower boundary for data filtering}
 

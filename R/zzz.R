@@ -1,4 +1,5 @@
 #' @name openCyto.options
+#' @description  Get/set some global options for openCyto
 #' @rdname openCyto.options
 #' @aliases openCyto.options
 #' @title Some global options for openCyto

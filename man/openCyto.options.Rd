@@ -4,6 +4,9 @@
 \alias{openCyto.options}
 \title{Some global options for openCyto
 See examples for the meaning of these options and how to get/set them.}
+\description{
+Get/set some global options for openCyto
+}
 \examples{
 opt <- getOption("openCyto")
 #the threshold of minimum cell events required for the gating algorithm to proceed

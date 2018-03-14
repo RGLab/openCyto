@@ -7,20 +7,20 @@
 cluster and all other clusters.}
 \usage{
 gate_flowClust_1d(fr, params, filterId = "", K = NULL, trans = 0,
-  min.count = -1, max.count = -1, nstart = 1, positive = TRUE,
-  prior = NULL, criterion = c("BIC", "ICL"),
-  cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean",
-  "prior_density"), neg_cluster = 1, cutpoint_min = NULL,
-  cutpoint_max = NULL, min = NULL, max = NULL, quantile = 0.99,
-  quantile_interval = c(0, 10), plot = FALSE, debug = FALSE, ...)
+  min.count = -1, max.count = -1, nstart = 1, prior = NULL,
+  criterion = c("BIC", "ICL"), cutpoint_method = c("boundary",
+  "min_density", "quantile", "posterior_mean", "prior_density"),
+  neg_cluster = 1, cutpoint_min = NULL, cutpoint_max = NULL, min = NULL,
+  max = NULL, quantile = 0.99, quantile_interval = c(0, 10),
+  plot = FALSE, debug = FALSE, ...)
 
 flowClust.1d(fr, params, filterId = "", K = NULL, trans = 0,
-  min.count = -1, max.count = -1, nstart = 1, positive = TRUE,
-  prior = NULL, criterion = c("BIC", "ICL"),
-  cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean",
-  "prior_density"), neg_cluster = 1, cutpoint_min = NULL,
-  cutpoint_max = NULL, min = NULL, max = NULL, quantile = 0.99,
-  quantile_interval = c(0, 10), plot = FALSE, debug = FALSE, ...)
+  min.count = -1, max.count = -1, nstart = 1, prior = NULL,
+  criterion = c("BIC", "ICL"), cutpoint_method = c("boundary",
+  "min_density", "quantile", "posterior_mean", "prior_density"),
+  neg_cluster = 1, cutpoint_min = NULL, cutpoint_max = NULL, min = NULL,
+  max = NULL, quantile = 0.99, quantile_interval = c(0, 10),
+  plot = FALSE, debug = FALSE, ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
@@ -32,10 +32,6 @@ flowClust.1d(fr, params, filterId = "", K = NULL, trans = 0,
 \item{K}{the number of clusters to find}
 
 \item{trans, min.count, max.count, nstart}{some flowClust parameters. see \code{\link{flowClust}}}
-
-\item{positive}{If \code{TRUE}, then the gate consists of the entire real
-line to the right of the cutpoint. Otherwise, the gate is the entire real
-line to the left of the cutpoint. (Default: \code{TRUE})}
 
 \item{prior}{list of prior parameters for the Bayesian
 \code{\link{flowClust}}. If \code{NULL}, no prior is used.}
