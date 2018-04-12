@@ -33,7 +33,7 @@ setAs(from="ncdfFlowSet", to="flowFrame", def=function(from)
         
         
         desc  <- list(description="Synthetic Frame",sampleNames=sampleNames(from))
-        new("flowFrame",exprs = .Call('openCyto_collapseData', PACKAGE = 'openCyto', mat_list, colnames)
+        new("flowFrame",exprs = collapseData(mat_list, colnames)
             , parameters = params
             , description = desc
         )
