@@ -1,0 +1,120 @@
+#' Implementing manual gating routines through drawing 2D polygon gates. 
+#'
+#' \code{DrawGate} opens a new plotting window (using \code{flowDensity::plotDens()}) which supports manual input
+#' of polygon gate coordinates through left mouse click. The constructed polygon gate can be closed by right clicking
+#' and selecting "stop", this will join the first and last coordinates together to seal the gate.
+#'
+#' @author Dillon Hammill, \email{Dillon.Hammill@anu.edu.au}
+#' @param fr a \code{flowFrame} object
+#' @param channels a vector of length 2 indicating the fluorescent channels to be used to construct the 
+#' 2D plot and \code{polygonGate}.
+#' @param ... additional arguments supplied to plotDens to alter the appearance of the plot.
+#'
+#' @return a \code{data.frame} object containing the vertices of the polygon gate.
+#'
+#' @keywords manual, gating, draw, FlowJo, polygonGate, openCyto
+#' @importFrom flowDensity plotDens
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' 
+#' }
+#'
+DrawGate <- function(fr, channels, ...){
+
+  # Check that 2 channels are supplied for gating
+  if(!length(channels) == 2){
+    stop("Please supply 2 fluorescent channels for gating")
+  }
+
+  # Extract data for plotting and gating
+  x <- exprs(fr[,channels])
+
+  # Determine whether R is being run in RStudio
+  if (!is.na(Sys.getenv("RSTUDIO", unset = NA))) {
+    # if TRUE we need to open X11() interactive graphics device
+    X11()
+  }
+
+  # Plot the data for gating use flowDensity::plotDens - locator() only works for base graphics
+  cat("Draw 2D polygon gate around population. \n")
+
+  plotDens(fr, channels = channels, cex = 3, ...)
+
+  # Extract points of drawn gate - display points and lines
+  pts <- locator(type = "o", lwd = 2, pch = 16)
+
+  if (length(pts$x) < 3) stop("A minimum of 3 points is required to construct a polygon gate.")
+  lines(x = pts$x[c(1, length(pts$x))], y = pts$y[c(1, length(pts$x))], lwd = 2)
+
+  pts <- as.data.frame(pts)
+  colnames(pts) <- channels
+
+  return(pts)
+}
+
+#' DrawGate plugin gating function for openCyto.
+#'
+#' \code{DrawGate} opens a new plotting window (using \code{flowDensity::plotDens()}) which supports manual input
+#' of polygon gate coordinates through left mouse click. The constructed polygon gate can be closed by right clicking
+#' and selecting "stop", this will join the first and last coordinates together to seal the gate. To construct a single
+#' \code{polygonGate} for all samples be sure to supply \code{groupBy}, \code({CollapseDataForGating} and \code{subSample}
+#' arguments in the \code{gatingTemplate}.
+#'
+#' @author Dillon Hammill, \email{Dillon.Hammill@anu.edu.au}
+#'
+#' @param fr a \code{flowFrame} object.
+#' @param pp_res output of preprocessing function.
+#' @param channels a vector of length 2 indicating the channels used to construct the 2D plot and \code{polygonGate}.
+#' @param filterId gate name assigned by openCyto from the \code{gatingTemplate}.
+#' @param gate_range numeric vector of length 2. If given, this sets the bounds on the gate applied. 
+#' @param min a numeric value that sets the lower boundary for data filtering.
+#' @param max a numeric value that sets the upper boundary for data filtering.
+#' @param ... additional arguments passsed to \code{DrawGate}.
+#'
+#' @return a \code{polygonGate} constructed from coordinates supplied by \code{DrawGate}.
+#'
+#' @keywords manual, gating, polygon, polygonGate
+#' @importFrom flowDensity plotDens
+#' @export
+#' 
+#' @examples{
+#' library(openCyto)
+#' 
+#' registerPlugins(fun = gate_draw, methodName = "DrawGate")
+#' listgtMethods()   # check plugin has been registered with openCyto
+#' 
+#' fs <- read.flowSet(path = "Samples", pattern = ".fcs") # load in .fcs files
+#' 
+#' gs <- GatingSet(fs) # add flowSet to GatingSet
+#' 
+#' template <- add_pop(
+#' gs, alias = "Lymphocytes", pop = "+", parent = "root", dims = "FSC-A,SSC-A", gating_method = "DrawGate",
+#' gating_args = "subSample=10000", collapseDataForGating = TRUE, groupBy = 2
+#' )
+#' 
+#' # gating window will open to construct gate left click vertices on plot and close gate by right click and selecting "stop".
+#' 
+#' ggcyto(gs[[1]], subset = "root", aes(x = "FSC-A",y = "SSC-A")) + geom_hex(bins = 100) + geom_stats()
+#' 
+#' }
+gate_draw <- function(fr, pp_res, channels, filterId = "", gate_range = NULL, min = NULL, max = NULL, ...){
+
+  # Two fluorescent channels must be supplied
+  if(missing(channels) | length(channels) != 2){
+    stop("Two fluorescent channels must be specified to draw polygon gate.")
+  }
+
+  # Truncate flowFrame if min and max arguments are supplied
+  if(!(is.null(min) && is.null(max))){
+    fr <- .truncate_flowframe(fr, channels = channels, min = min, max = max)
+  }
+
+  # Determine vertices of polygon using DrawGate
+  pts <- DrawGate(fr, channels)
+
+  # Construct polygonGate
+  polygonGate(.gate = pts)
+
+}
