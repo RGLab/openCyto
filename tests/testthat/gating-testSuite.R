@@ -140,7 +140,7 @@ test_that("tcell--asinhtGml2", {
   
   thisRes <- getPopStats(gs, path = "full")
   expectRes <- gatingResults[["gating_tcell_asinhtGml2"]]
-  expect_equal(thisRes, expectRes, tol = 0.006)
+  expect_equal(thisRes, expectRes, tol = 0.01)
 
 })
 
@@ -187,7 +187,7 @@ test_that("treg", {
       
       gs <- load_gs(file.path(localPath,"misc/testSuite/gs-treg"))
       Rm("boundary", gs)
-      gating(gt, gs, mc.core = 3, parallel_type = "multicore")
+      expect_warning(gating(gt, gs, mc.core = 3, parallel_type = "multicore"), "did not converge")
       
       thisRes <- getPopStats(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_treg"]]
@@ -199,9 +199,9 @@ test_that("bcell", {
       
       
       gtfile <- system.file("extdata/gating_template/bcell.csv", package = "openCyto")
-      gt <- gatingTemplate(gtfile, autostart = 1L)
+      gt <- gatingTemplate(gtfile)
       
-      gs <- load_gs(path = file.path(localPath,"misc/testSuite/gs-bcell"))
+      expect_warning(gs <- load_gs(path = file.path(localPath,"misc/testSuite/gs-bcell")), "did not converge")
       Rm("boundary", gs)
       gating(gt, gs, mc.core = 3, parallel_type = "multicore")
       

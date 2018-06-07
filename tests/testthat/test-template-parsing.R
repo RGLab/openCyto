@@ -12,7 +12,7 @@ two_or_one_pop_pat <- paste0("(", two_pop_pat, ")|(", one_pop_pat, ")")
 #      templateGen(gh)
 #    })
 
-dt <- fread(gtFile, autostart = 1L)
+dt <- fread(gtFile)
 
 
 test_that(".preprocess_csv", {
