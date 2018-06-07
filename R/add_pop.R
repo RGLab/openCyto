@@ -48,7 +48,14 @@ add_pop <- function(gs, alias = "*"
         #which requires the ref node to be explicitly supplied
         dt[, gating_method := "dummy"]
       }
-      
+      if(is.list(gating_args))
+      {
+        gating_args <- .argDeparser(gating_args)      
+      }
+      if(is.list(preprocessing_args))
+      {
+        preprocessing_args <- .argDeparser(preprocessing_args)      
+      }
       thisRow <- data.table(alias = alias
               , pop = pop
               , parent = parent

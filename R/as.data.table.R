@@ -65,7 +65,7 @@ as.data.table.gatingTemplate <- function(x, keep.rownames = FALSE){
           
           argv <- deparse(args[[argn]])
           argv <- gsub("\"", "'", argv) #restore dquote to squote
-          
+          argv <- paste(argv, collapse = "")
           paste(argn, argv, sep = " = ")
         })
     
