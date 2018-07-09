@@ -55,7 +55,7 @@ setMethod("names", signature = c("gtMethod"), definition = function(x) {
 #' @importFrom BiocGenerics dims
 #' @aliases dims,gtMethod-method
 setMethod("dims", signature = c("gtMethod"), definition = function(x) {
-  dims <- strsplit(object@dims, ",")[[1]]
+  dims <- strsplit(x@dims, ",")[[1]]
 #  if (length(dims) == 1) 
 #    dims <- c(NA, dims) else if (length(dims) != 2) 
 #    stop("invalid dimensions!")
