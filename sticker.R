@@ -1,0 +1,12 @@
+library(ggcyto)
+library(hexSticker)
+setwd("~/Documents/Projects/openCyto")
+dataDir <- system.file("extdata",package="flowWorkspaceData")
+gs <- load_gs(list.files(dataDir, pattern = "gs_manual",full = TRUE))
+p <- ggcyto(gs, aes(x = 38, y = DR), subset = "CD4") + geom_hex(bins = 64) + geom_gate()
+p <- p  + ggtitle("") + facet_null()
+p  <- as.ggplot(p) 
+p <- p + theme_void() + theme_transparent() 
+sticker(p, package="openCyto", p_size=8, s_x=1, s_y=0.9, s_width=1.3, s_height=1,
+        filename="inst/figures/openCyto.png")
+system("open inst/figures/openCyto.png")
