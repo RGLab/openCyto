@@ -50,12 +50,12 @@ setMethod("names", signature = c("gtMethod"), definition = function(x) {
 
 #' get gating method dimensions
 #' 
-#' @param object \code{gtMethod}
+#' @param x \code{gtMethod}
 #' @export 
-#' @importFrom Biobase dims
+#' @importFrom BiocGenerics dims
 #' @aliases dims,gtMethod-method
-setMethod("dims", signature = c("gtMethod"), definition = function(object) {
-  dims <- strsplit(object@dims, ",")[[1]]
+setMethod("dims", signature = c("gtMethod"), definition = function(x) {
+  dims <- strsplit(x@dims, ",")[[1]]
 #  if (length(dims) == 1) 
 #    dims <- c(NA, dims) else if (length(dims) != 2) 
 #    stop("invalid dimensions!")

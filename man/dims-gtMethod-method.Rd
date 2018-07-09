@@ -5,10 +5,10 @@
 \alias{dims,gtMethod-method}
 \title{get gating method dimensions}
 \usage{
-\S4method{dims}{gtMethod}(object)
+\S4method{dims}{gtMethod}(x)
 }
 \arguments{
-\item{object}{\code{gtMethod}}
+\item{x}{\code{gtMethod}}
 }
 \description{
 get gating method dimensions
