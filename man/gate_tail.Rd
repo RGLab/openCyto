@@ -7,12 +7,12 @@
 \title{Gates the tail of a density using the derivative of a kernel density estimate}
 \usage{
 gate_tail(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
-  strict = TRUE, tol = 0.01, side = "right", min = NULL, max = NULL,
-  bias = 0, ...)
+  strict = TRUE, tol = 0.01, side = "right", min = NULL,
+  max = NULL, bias = 0, ...)
 
 tailgate(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
-  strict = TRUE, tol = 0.01, side = "right", min = NULL, max = NULL,
-  bias = 0, ...)
+  strict = TRUE, tol = 0.01, side = "right", min = NULL,
+  max = NULL, bias = 0, ...)
 
 cytokine(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
   tol = 0.01, side = "right", ...)

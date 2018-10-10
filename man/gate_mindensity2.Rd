@@ -9,8 +9,8 @@ of a kernel density estimate between two peaks.}
 gate_mindensity2(fr, channel, filterId = "", pivot = FALSE,
   gate_range = NULL, min = NULL, max = NULL, peaks = NULL, ...)
 
-mindensity2(fr, channel, filterId = "", pivot = FALSE, gate_range = NULL,
-  min = NULL, max = NULL, peaks = NULL, ...)
+mindensity2(fr, channel, filterId = "", pivot = FALSE,
+  gate_range = NULL, min = NULL, max = NULL, peaks = NULL, ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}

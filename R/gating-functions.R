@@ -778,7 +778,6 @@ gate_mindensity <- function(fr, channel, filterId = "", positive = TRUE,
   
 }
 #' @rdname gate_mindensity
-#' @examples
 mindensity <- gate_mindensity
 
 #' Gates the tail of a density using the derivative of a kernel density estimate
@@ -828,7 +827,6 @@ gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
   
 }
 #' @rdname gate_tail
-#' @examples
 tailgate <- gate_tail
 
 #' @rdname gate_tail

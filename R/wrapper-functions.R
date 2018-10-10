@@ -280,6 +280,8 @@
 }
 
 #' @param ... arguments to be passed to \link{tailgate}
+#' @name .tailgate
+#' @title tailgate
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
@@ -346,6 +348,20 @@
 #  .gateToFilterResult(fr, yChannel, gate, positive)
   gate
 }
+
+#'@param fr a flowFrame
+#'@param pp_res preprocessing results.
+#'@param channels \code{character}
+#'@param ... arguments passed to \link{gate_tautString}
+#'@rdname tautStringGate
+.tautStringGate <- function(fr, pp_res = NULL, channels, ...){
+  if(length(channels) != 1){
+    stop("Invalid number of channels. The tautString takes one channel.")
+  }
+  gate <- tautStringGate(fr, channel = channels, ...)
+  gate
+}
+
 #' wrapper for flowClust.2d
 #' 
 #' It does some parameter preprocessing before calling the flowClust.2d
