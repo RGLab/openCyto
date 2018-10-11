@@ -59,6 +59,7 @@ as.data.table.gatingTemplate <- function(x, keep.rownames = FALSE){
 
 #' deparse a list(named) of expression into a string 
 #' inverse function of argParser
+#' @noRd 
 .argDeparser <- function(args, split = TRUE){
   if(split){
     args <- sapply(names(args), function(argn){

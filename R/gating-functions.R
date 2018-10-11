@@ -874,6 +874,7 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
 #'  \code{'right'} (default) or \code{'left'}?
 #' @param ... additional arguments passed to \code{\link{.deriv_density}}
 #' @return the cutpoint along the x-axis
+#' @noRd 
 .cytokine_cutpoint <- function(x, num_peaks = 1, ref_peak = 1,
     method = c("first_deriv", "second_deriv"),
     tol = 1e-2, adjust = 1, side = "right", strict = TRUE, plot = FALSE, auto_tol = FALSE, ...) {
@@ -967,6 +968,7 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
 #' @param ... additional arguments passed to \code{drvkde}
 #' @return list containing the derivative of the kernel density estimate
 #' @importFrom ks hpi 
+#' @noRd 
 .deriv_density <- function(x, deriv = 1, bandwidth = NULL, adjust = 1,
     num_points = 10000, ...) {
   

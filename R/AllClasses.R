@@ -270,6 +270,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' 
 #' @rdname isPolyfunctional
 #' @param gm an object that extends \code{gtMethod}  
+#' @noRd 
 .isPolyfunctional <- function(gm) {
   # grepl('^\\[\\:.+\\:\\]$',x)
   class(gm) == "polyFunctions"
@@ -279,6 +280,7 @@ setClass("gtSubsets", contains = "gtPopulation")
 #' 
 #' parsing the arguments read from `args` columns of csv template into 
 #' list of paired arguments
+#' @noRd 
 .argParser <- function(txt, split = TRUE) {
   # trim whitespaces at beginning and the end of string
   txt <- gsub("^\\s*|\\s*$", "", txt)
@@ -377,6 +379,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name = "defa
       .gatingTemplate(dt, name = name)
     })
 #' @importFrom graph nodeDataDefaults<- edgeDataDefaults<- nodeData<- edgeData<-
+#' @noRd 
 .gatingTemplate <- function(dt, name = "default"){  
 #  browser()
   # create graph with root node

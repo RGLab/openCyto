@@ -74,6 +74,7 @@ setMethod("add",
 #' fast version of add gates to gatingset (bypassing some R checks)
 #' 
 #' used by gating_polyFunctions
+#' @noRd 
 .addGate_fast <- function(gs, filter, name = NULL, parent = "root", negated = FALSE){
   
   #preprocess filter

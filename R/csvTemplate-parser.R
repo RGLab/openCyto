@@ -41,6 +41,7 @@ templateGen <- function(gh){
 #' 
 #' @param ref_node \code{character} the node to work with
 #' @param dt \code{data.table} that stores the current preprocessed template
+#' @noRd 
 .getFullPath <- function(ref_node, dt){
   
   ref_node <- flowWorkspace:::trimWhiteSpace(ref_node)
@@ -103,6 +104,7 @@ templateGen <- function(gh){
 }
 
 #' validity check of alias column
+#' @noRd 
 .validity_check_alias <- function(alias){
   if(grepl("[\\|\\&|\\:|\\/]", alias))
     stop(alias , "contains illegal character: |,&,:,/")
@@ -114,6 +116,7 @@ templateGen <- function(gh){
 #' @param alias \code{character} the alias to be checked
 #' @param this_parent \code{character} the full gating path of the parent node  
 #' @return NULL when pass the check, otherwise, throw the error
+#' @noRd 
 .unique_check_alias <- function(new_dt, alias, this_parent) {
   #skip the unexpanded multi-pop pattern 
   #since it is not supposed to be refered 
@@ -131,6 +134,7 @@ templateGen <- function(gh){
 }
 
 #' split the rows that has multiple parents
+#' @noRd 
 .split_multi_parents <- function(dt)
 {
   #can't use apply since it will coerce dt to df and prepend extra space to int as it convert the column to character
@@ -158,6 +162,7 @@ templateGen <- function(gh){
 #' @param strict whether validity check for pop alias. It is turned on in the normal template parsing. when used with add_pop it is turned off to bypass the check on some existing boolean gates (that has ! : symbols).  
 #' @return a preprocessed(expanded when applicable) \code{data.frame}
 #' @import data.table
+#' @noRd 
 .preprocess_csv <- function(dt, strict = TRUE) {
   dt <- .split_multi_parents(dt)
   #only parse these columns(other columns may be used by user for other purpose e.g. comments)
@@ -232,6 +237,7 @@ templateGen <- function(gh){
 #' 
 #' @param this_row a single-row \code{data.table}
 #' @return  \code{data.table}
+#' @noRd 
 .preprocess_row <- function(this_row, strict = TRUE){
   #make sure it doesn't tamper the input
   this_row <- copy(this_row)
@@ -397,6 +403,7 @@ templateGen <- function(gh){
 #' 
 #' currently only works for A+/-B+/- .
 #' TODO:  support A+/-  
+#' @noRd 
 .splitTerms <- function(pop_pat, two_pop_token, popName, dims) {
   dims <- strsplit(split = ",", dims)[[1]]
   term_pos <- gregexpr(pop_pat, popName)[[1]]
@@ -425,6 +432,7 @@ templateGen <- function(gh){
 }
 
 #' generate some dummy rows that just serves as reference without any gating method associated
+#' @noRd 
 .gen_dummy_ref_gate <- function(this_row){
   
   alias <- this_row[, alias]
@@ -448,6 +456,7 @@ templateGen <- function(gh){
   rbindlist(list(this_row,rbindlist(new_rows)))    
 }
 #' convert to 1d gating based on the population pattern (A+/-B+/-)
+#' @noRd 
 .gen_1dgate <- function(this_row, strict = TRUE) {
   
   dims.dims <- strsplit(split = ",", this_row[, dims])[[1]]
@@ -474,6 +483,7 @@ templateGen <- function(gh){
   as.data.table(res)
 }
 #' generate reference gate based on the splitted population patterns(A+/-B+/-) 
+#' @noRd 
 .gen_refGate <- function(new_pops, this_row, ref_nodes = NULL, alias, strict = TRUE) {
   this_parent <- this_row[, parent]
   

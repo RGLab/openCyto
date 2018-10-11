@@ -9,10 +9,6 @@
 \S4method{gating}{gtMethod,GatingSet}(x, y, ...)
 }
 \arguments{
-\item{x}{\code{gtMethod}}
-
-\item{y}{\code{GatingSet}}
-
 \item{...}{other arguments}
 }
 \description{

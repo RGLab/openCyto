@@ -154,6 +154,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #'                              deviation by the number of groups to the scale the standard deviation.
 #' @return list of prior parameters
 #' @rdname prior_flowClust1d
+#' @noRd 
 .prior_flowClust1d <- function(flow_set, channel, K = NULL, hclust_height = NULL,
                               clust_method = c("kmeans", "hclust"),
                               hclust_method = "complete", artificial = NULL,
@@ -339,6 +340,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' @return list of \code{flowClust} prior parameters
 #' @importFrom clue solve_LSAP
 #' @rdname prior_kmeans
+#' @noRd 
 .prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
                          pct = 0.1, min = NULL, max = NULL, ...) {
 
@@ -530,6 +532,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' plot(density(y))
 #' peaks <- .find_peaks(y)
 #' abline(v = peaks[, "x"], col = "red")
+#' @noRd 
 .find_peaks <- function(x, y = NULL, num_peaks = NULL, adjust = 2, plot = FALSE, ...) {
   x <- as.vector(x)
 
@@ -608,6 +611,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' plot(density(y))
 #' valleys <- .find_valleys(y)
 #' abline(v = valleys, col = "red")
+#' @noRd 
 .find_valleys <- function(x, y = NULL, num_valleys = NULL, adjust = 2, ...) {
 
   x <- as.vector(x)

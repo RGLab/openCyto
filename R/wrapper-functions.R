@@ -14,6 +14,7 @@
 #' @param gFunc_args arguments to be passed to wrapper function('gFunc')
 #' 
 #' @return a \code{list} of \code{filter}s
+#' @noRd 
 .gating_adaptor <- function(fs, pp_res, gFunc, popAlias, channels, gFunc_args){
     require(openCyto)  #since it is going to be invoked by MPI, better load it
     #coercing
@@ -117,6 +118,7 @@
 #' @inheritParams .prior_flowClust
 #' @return a \code{filter} object
 #' @importFrom flowStats singletGate
+#' @noRd 
 .singletGate <- function(fr, pp_res = NULL, channels, ...) {
   
 
@@ -137,6 +139,7 @@
 #' @param min,max the range input for constructing the \code{rectangleGate}
 #' @param ... other arguments (not used.)
 #' @return a \code{filter} object
+#' @noRd 
 .boundary <- function(fr, pp_res = NULL, channels, min = NULL, max = NULL, ...) {
   num_channels <- length(channels)
   
@@ -176,6 +179,7 @@
 #' @inheritParams .prior_flowClust
 #' 
 #' @return a \code{filter} object
+#' @noRd 
 .flowClust.1d <- function(fr, pp_res = NULL, channels,...) {
   
   if(length(channels) != 1)
@@ -273,6 +277,7 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
+#' @noRd 
 .cytokine <- function(fr, pp_res, ...) {
   .Defunct("tailgate")
   #TODO:standardize data with pp_res
@@ -285,6 +290,7 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
+#' @noRd 
 .tailgate <- function(fr, pp_res = NULL, channels, ...) {
   if(length(channels) != 1)
     stop("invalid number of channels for tailgate!")
@@ -340,6 +346,7 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
+#' @noRd 
 .mindensity <- function(fr, pp_res = NULL, channels, ...) {
   
  if(length(channels) != 1)
@@ -354,6 +361,7 @@
 #'@param channels \code{character}
 #'@param ... arguments passed to \link{gate_tautString}
 #'@rdname tautStringGate
+#' @noRd 
 .tautStringGate <- function(fr, pp_res = NULL, channels, ...){
   if(length(channels) != 1){
     stop("Invalid number of channels. The tautString takes one channel.")
@@ -370,6 +378,7 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
+#' @noRd 
 .flowClust.2d <- function(fr, pp_res = NULL, channels, ...) {
   if(length(channels) != 2)
     stop("invalid number of channels for flowClust.2d!")
@@ -416,6 +425,7 @@
 #' 
 #' @return a \code{filter} object
 #' @importFrom flowStats rangeGate
+#' @noRd 
 .rangeGate <- function(fr, pp_res = NULL, channels,  ...) {
   
   rangeGate(x = fr, stain = channels,  ...)
@@ -428,6 +438,7 @@
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
+#' @noRd 
 .quantileGate <- function(fr, pp_res = NULL, channels, ...) {
   
   quantileGate(fr = fr, channel = channels, ...)
@@ -452,6 +463,7 @@
 #' 
 #' @return \code{NULL}
 #' @importFrom flowStats warpSet
+#' @noRd 
 .warpSet <- function(fs, gs, gm, channels, groupBy, isCollapse, stains, ...){
   fs <- fs[, stains]
   if(class(fs) == "ncdfFlowSet")
@@ -473,6 +485,7 @@
 #' @inheritParams .prior_flowClust1d 
 #' 
 #' @return a \code{list} of priors, see \link{prior_flowClust} for more details
+#' @noRd 
 .prior_flowClust <- function(fs, gs, gm, channels, groupBy, isCollapse
      , prior_source = NULL
      , K = NULL
@@ -589,7 +602,8 @@
 #' @param yChannel the channel to standardize
 #' @param groupBy \code{character} tells whether 'groupBy' column in csv template has been set
 #' @param isCollapse \code{logical} indicates whether the gating is done on collapsed data. If so, the prior does not need to be replicated across samples.
- .standardize_flowset <- function(fs, gs, gm, channels, groupBy, isCollapse, ...) {
+#' @noRd 
+.standardize_flowset <- function(fs, gs, gm, channels, groupBy, isCollapse, ...) {
    if(length(channels) != 1)
      stop("invalid number of channels for standardize_flowset!")
    if(isCollapse)
