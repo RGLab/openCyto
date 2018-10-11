@@ -10,6 +10,7 @@ tautString <- function(sorted_vector, modeprior = 0){
 
 #'@rdname tautString 
 #'@description The taut string density estimator gating returns 0, 1, or more gates, depending on how many modes it identifies in the data.
+#'@param fr a flowFrame object
 #'@param channel The channel to gate.
 #'@param gate_range The range to look for a gate, no truncation occurs.
 #'@param min The min range of the data to truncate the flowFrame

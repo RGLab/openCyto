@@ -16,6 +16,8 @@ tautStringGate(fr, channel, gate_range = NULL, min = NULL,
 \item{modeprior}{\code{numeric} scalar specifying the expected number of modes. Default 0 (autodetect). Rarely should this be
 set by the user.}
 
+\item{fr}{a flowFrame object}
+
 \item{channel}{The channel to gate.}
 
 \item{gate_range}{The range to look for a gate, no truncation occurs.}

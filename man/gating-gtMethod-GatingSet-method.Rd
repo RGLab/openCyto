@@ -9,8 +9,12 @@
 \S4method{gating}{gtMethod,GatingSet}(x, y, ...)
 }
 \arguments{
+\item{x}{\code{gtMethod}}
+
+\item{y}{\code{GatingSet}}
+
 \item{...}{other arguments}
 }
 \description{
-apply a \link[openCyto:gtMethod-class]{gtMethod} to the \code{GatingSet}
+The actual workhorse of most gating methods
 }
