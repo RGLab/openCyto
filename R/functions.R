@@ -2,6 +2,7 @@
 #' @param file \code{character} csv file name that contains the fluorescence intensities
 #' @param stains \code{character} a vector specifying the stains for channels. Default is \code{NA}
 #' @return a \code{flowFrame} object
+#' @noRd 
 .read.FCS.csv <- function(file, stains = NA) {
   mat <- as.matrix(read.csv(file, check.names = FALSE))
   
@@ -30,6 +31,7 @@
 #' @param files \code{character} csv file names
 #' @param ... arguments passed to \link{read.FCS.csv}
 #' @return a \code{flowSet} object
+#' @noRd 
 .read.flowSet.csv <- function(files, ...) {
   fs <- flowSet(lapply(files, .read.FCS.csv, ...))
   sampleNames(fs) <- basename(files)
@@ -55,6 +57,7 @@
 #' @param \code{...} additional parameters
 #' @return matrix containing the points of the ellipse from the flowClust contour
 #' @importFrom flowClust rbox
+#' @noRd 
 .getEllipse <- function(filter = NULL, include = seq_len(filter@K), ecol = 1, elty = 1, 
   quantile = NULL, npoints = 50, subset = c(1, 2),...) {
   .Defunct(".getEllipseGate")
@@ -122,6 +125,7 @@
 #' revised based on .getEllipse.
 #' try to construct ellipsoidGate directly from tmixFilter result instead of polygon fitting
 #' when trans = 0  
+#' @noRd 
 .getEllipseGate <- function(filter = NULL, include = seq_len(filter@K), ecol = 1, elty = 1, 
     quantile = NULL, npoints = 50, subset = c(1, 2),...) {
   
@@ -228,6 +232,7 @@
 #'  summary(rituximab4)
 #' }
 #' 
+#' @noRd 
 .truncate_flowframe <- function(flow_frame, channels, min = NULL, max = NULL) {
   channels <- as.character(channels)
   num_channels <- length(channels)
@@ -262,6 +267,7 @@
 #' @param flow_set a \code{flowSet} object
 #' @inheritParams .truncate_flowframe
 #' @return a \code{flowSet} object
+#' @noRd 
 .truncate_flowset <- function(flow_set, channels, min = NULL, max = NULL) {
   channels <- as.character(channels)
   num_channels <- length(channels)
@@ -306,6 +312,7 @@
 #' @param ... Additional arguments that are passed to \code{uniroot} to find the
 #' quantile.
 #' @return the quantile corresponding to the specified probabilities
+#' @noRd 
 .quantile_flowClust <- function(p, object, interval, ...) {
   cdf_target <- function(x, p, object) {
     cdf_values <- sapply(seq_len(object@K), function(k) {
@@ -333,6 +340,7 @@
 #' @param channels character vector of the channel names for the x- and y-axes
 #' @param quadrants a vector indicating the quadrants to extract
 #' @return a \code{filters} object containing a list of the rectangle gates
+#' @noRd 
 .quadGate2rectangleGates <- function(quad_gate, markers, channels, quadrants = 1:4) {
   x_gate <- quad_gate@boundary[1]
   y_gate <- quad_gate@boundary[2]
@@ -369,6 +377,7 @@
 #' @return vector containing all combinations of the markers
 #' @examples
 #' .polyfunction_nodes(c('IFNg', 'IL2', 'TNFa', 'GzB', 'CD57'))
+#' @noRd 
 .polyfunction_nodes <- function(markers) {
   
   markers <- paste0(markers, "+")
@@ -391,6 +400,7 @@
 #' z <- seq.int(1, 9, by = 2)
 #' .between_interval(z, interval = c(2, 8))
 #' @export 
+#' @noRd 
 .between_interval <- function(x, interval) {
   x <- x[findInterval(x, interval) == 1]
   if (length(x) == 0) {
@@ -401,6 +411,7 @@
 
 #' Constructs a 2x2 rotation matrix for a given angle
 #' @param theta \code{numeric} the degree of rotation that ensures the angle between the x-axis and the eigenvector is between 0 and pi
+#' @noRd 
 .rotation_matrix <- function(theta) {
   matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), nrow = 2)
 }
@@ -409,6 +420,7 @@
 #' For now we make sure that the K argument to flowClust and to prior_flowClust are present and agree.
 #' @param df a \code{data.frame} of the template
 #' @return a \code{data.frame}
+#' @noRd 
 .validateFlowClustArgs <- function(df){
   inds<-which(df$gating_method%like%"flowClust")
   for(i in inds){
@@ -442,6 +454,7 @@
 #' @param x numeric vector
 #' @param ... additional arguments passed to \code{\link{density}}
 #' @return numeric vector containing the centered data
+#' @noRd 
 .center_mode <- function(x, ...) {
   x <- as.vector(x)
   density_x <- density(x, ...)
@@ -463,6 +476,7 @@
 #' @param scale logical value. Should \code{x} be scaled?
 #' @return numeric vector containing the scaled data
 #' @importFrom MASS huber
+#' @noRd 
 .scale_huber <- function(x, center = TRUE, scale = TRUE) {
   
   
@@ -503,6 +517,7 @@
 #' @param data \code{logical} indicating whether to return the transformed flow data.
 #' 
 #' @return the \code{transformation} list, center, scale and optionally the transformed \code{flowFrame}
+#' @noRd 
 .standardize_flowFrame <- function(fr, channel, data = TRUE) {
   
   x <- exprs(fr)[, channel]
@@ -540,6 +555,7 @@
 #' @param channel \code{character} channel to used for gate
 #' @param gate \code{filter} object
 #' @param positive \code{logical}
+#' @noRd 
 .gateToFilterResult <- function(fr, channel, gate, positive){
 
   x <- exprs(fr)[, channel]

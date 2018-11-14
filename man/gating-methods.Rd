@@ -19,7 +19,8 @@ gating(x, y, ...)
 
 \S4method{gating}{gatingTemplate,GatingSet}(x, y, env_fct = NULL, ...)
 
-\S4method{gating}{gatingTemplate,GatingSetList}(x, y, env_fct = NULL, ...)
+\S4method{gating}{gatingTemplate,GatingSetList}(x, y, env_fct = NULL,
+  ...)
 
 \S4method{gating}{boolMethod,GatingSet}(x, y, ...)
 

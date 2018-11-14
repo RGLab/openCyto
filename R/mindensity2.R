@@ -6,7 +6,7 @@
 #' @param gate_range a \code{character} specifying the data range to operate on
 #' @param adjust a \code{numeric} specifying the amount of smoothing to be used
 #' @param plot a \code{boolean} specifying whether to output a plot
-
+#' @noRd 
 .improvedMindensity <- function(D,adjust=2,gate_range=NA, plot = FALSE, ...){
   # construct the density from data and adjust params we were given
   dens <- density(D,adjust=adjust)
@@ -165,6 +165,7 @@ mindensity2 <- gate_mindensity2
 #' @inheritParams .flowClust.1d 
 #' 
 #' @return a \code{filter} object
+#' @noRd 
 .mindensity2 <- function(fr, pp_res, channels, ...) {
   
   if(length(channels) != 1)

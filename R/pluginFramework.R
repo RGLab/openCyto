@@ -1,7 +1,8 @@
 #'The environment holding the names of registered methods
+#' @noRd 
 .openCyto_plugin_method_lookup <- new.env()
 .openCyto_plugin_method_lookup[["registered_methods"]] <- list(gating = character(0), preprocessing = character(0))
-.DEFAULT_GT <- c("quantileGate","rangeGate","flowClust.2d","mindensity", "mindensity2", "cytokine","flowClust.1d","boundary","singletGate", "tailgate", "quadGate.tmix", "quadGate.seq")
+.DEFAULT_GT <- c("quantileGate","rangeGate","flowClust.2d","mindensity", "mindensity2", "cytokine","flowClust.1d","boundary","singletGate", "tailgate", "quadGate.tmix", "quadGate.seq","tautStringGate")
 .DEFAULT_PP <- c("prior_flowClust", "warpSet", "standardize_flowset")
 #'Print a list of the registered gating methods
 #'@return Does not return anything. Prints a list of the available gating methods.
@@ -19,11 +20,13 @@ listgtMethods <- function(){
 #'Is the method registered
 #'
 #'This will strip the preceding dot.
+#' @noRd 
 .isRegistered <- function(name){
   return(gsub("^\\.","", name)%in%unlist(.getPluginMethods()))
 }
 
 #'return a list of registered and default gating methods
+#' @noRd 
 .getPluginMethods <- function(x){
 #  ns <- getNamespace("openCyto")
 #  plugins <- getFromNamespace(".openCyto_plugin_method_lookup", ns = ns)
@@ -39,6 +42,7 @@ listgtMethods <- function(){
 #'
 #'The formal arguments need to match a certain template
 #'We check that they do or do not.
+#' @noRd 
 .checkFormals <- function(frmls = NA, type = c("gating", "preprocessing")){
   
   type <- match.arg(type, c("gating", "preprocessing"))
@@ -147,6 +151,7 @@ registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
 }
 
 #'Register a gating function for OpenCyto
+#' @noRd 
 .register <- function(fun = NA,methodName, type = c("gating", "preprocessing")){
   
   type <- match.arg(type, c("gating", "preprocessing"))
@@ -181,6 +186,7 @@ registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
 }
 
 #' only for internal usage (debug)
+#' @noRd 
 .unregister <- function(methodName, type = c("gating", "preprocessing")){
 
   methodName <- paste0(".",methodName)

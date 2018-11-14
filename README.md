@@ -1,5 +1,6 @@
-openCyto
+openCyto [<img src="https://raw.githubusercontent.com/RGLab/openCyto/trunk/inst/figures/openCyto.png" height="120"/>](http://github.com/RGLab/openCyto)
 ========
+
 
 An R package that providing an automated data analysis pipeline for flow cytometry.
 

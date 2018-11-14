@@ -5,9 +5,9 @@
 \alias{plot,fcFilterList,ANY-method}
 \title{plot a \code{fcFilterList}}
 \usage{
-\S4method{plot}{fcFilterList,ANY}(x, y, samples = NULL, posteriors = FALSE,
-  xlim = NULL, ylim = NULL, node = NULL, data = NULL, breaks = 20,
-  lwd = 1, ...)
+\S4method{plot}{fcFilterList,ANY}(x, y, samples = NULL,
+  posteriors = FALSE, xlim = NULL, ylim = NULL, node = NULL,
+  data = NULL, breaks = 20, lwd = 1, ...)
 }
 \arguments{
 \item{x}{\code{fcFilterList}}

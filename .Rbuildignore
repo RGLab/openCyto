@@ -1,2 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+sticker.R
+inst/figures
+Dockerfile
+Makefile

@@ -5,8 +5,8 @@
 \alias{getNodes,gatingTemplate-method}
 \title{get nodes from \link[openCyto:gatingTemplate-class]{gatingTemplate} object}
 \usage{
-\S4method{getNodes}{gatingTemplate}(x, y, order = c("default", "bfs", "dfs",
-  "tsort"), only.names = FALSE)
+\S4method{getNodes}{gatingTemplate}(x, y, order = c("default", "bfs",
+  "dfs", "tsort"), only.names = FALSE)
 }
 \arguments{
 \item{x}{\code{gatingTemplate}}
