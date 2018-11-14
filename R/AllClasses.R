@@ -165,9 +165,9 @@ fcTree <- function(gt) {
 #' 
 #'      \item{args}{ a \code{list} specifying the arguments passed to gating function}
 #' 
-#'      \item{groupBy}{ a \code{character} or \code{integer} specifying how to group the data
-#'                   if \code{character},group the data by the study variables (columns in \code{pData})
-#'                    if \code{integer},  group the data by every \code{N} samples.
+#'      \item{groupBy}{ a \code{character} or \code{integer} specifying how to group the data.
+#'                   If \code{character}, group the data by the study variables (columns in \code{pData}).
+#'                    If \code{integer},  group the data by every \code{N} samples.
 #'                   }
 #' 
 #'      \item{collapse}{ a \code{logical} specifying wether to collapse the data within group before gating.
@@ -179,6 +179,7 @@ fcTree <- function(gt) {
 #' @rdname gtMethod-class 
 #' @export 
 #' @name gtMethod-class
+#' @aliases gtMethod
 #' @examples 
 #'  \dontrun{
 #'      gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
@@ -196,8 +197,10 @@ setClass("gtMethod", representation(name = "character"
 #' A class to represent a preprocessing method.
 #' 
 #' It extends \code{gtMethod} class.
+#' 
 #' @export      
 #' @name ppMethod-class
+#' @aliases ppMethod
 #' @examples 
 #'  \dontrun{
 #'      gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
