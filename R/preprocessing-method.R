@@ -64,7 +64,7 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
         if(nSamples==1){
           split_by <- 1
         }else{
-          split_by <-  sample(rep(1:nSamples, each = split_by_num, length.out= nSamples))  
+          split_by <-  rep(1:nSamples, each = split_by_num, length.out= nSamples)  
         }
         
       }else{
