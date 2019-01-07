@@ -44,7 +44,7 @@ templateGen <- function(gh){
 #' @noRd 
 .getFullPath <- function(ref_node, dt){
   
-  ref_node <- flowWorkspace:::trimWhiteSpace(ref_node)
+  ref_node <- trimws(ref_node)
   #prepend root if start with /
   if(substr(ref_node, 1, 1) == "/")
     ref_node <- paste0("root", ref_node)
@@ -439,7 +439,7 @@ templateGen <- function(gh){
   
   refNode <- file.path(this_row[, parent], alias)
   
-  pops <- flowWorkspace:::trimWhiteSpace(unlist(strsplit(split = ",", alias)))
+  pops <- trimws(unlist(strsplit(split = ",", alias)))
   new_rows <- lapply(pops, function(thisPop){
                           dummy_row <- copy(this_row)
                           dummy_row[, alias := thisPop]

@@ -419,7 +419,7 @@ setMethod("gatingTemplate", signature(x = "character"), function(x, name = "defa
     isMultiPops <- thisRow[, isMultiPops]
     #try to split alias for the gating function that returns multi-pops
     if(isMultiPops)
-        curPop <- flowWorkspace:::trimWhiteSpace(unlist(strsplit(split = ",", curPop)))
+        curPop <- trimws(unlist(strsplit(split = ",", curPop)))
     # create pop object
     curNode <- new("gtPopulation", id = curNodePath, name = curPopName, 
                         alias = curPop
