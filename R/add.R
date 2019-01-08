@@ -24,7 +24,7 @@ setMethod("add",
       #unpack the bit vector
       indices <- ncdfFlow:::toLogical(action@ind)
       #ignore the recompute flag and force it to be skipped
-      nodeID <- flowWorkspace:::.addGate(wf, filterObject(action), recompute = FALSE, ...)
+      nodeID <- flowWorkspace:::.addGate(wf, filterObject(action), ...)
       sn <- sampleNames(wf)
       ptr <- wf@pointer
       flowWorkspace:::.cpp_setIndices(ptr, sn, nodeID-1, indices)
@@ -61,7 +61,7 @@ setMethod("add",
       rectFilterObj <- selectMethod("filterObject", signature = c("rectangleGate"))(action)
       boolFilterObj <- selectMethod("filterObject", signature = c("booleanFilter"))(action)
       #ignore the recompute flag and force it to be skipped
-      nodeID <- flowWorkspace:::.addGate(wf, rectFilterObj, recompute = FALSE, ...)
+      nodeID <- flowWorkspace:::.addGate(wf, rectFilterObj, ...)
       sn <- sampleNames(wf)
       ptr <- wf@pointer
       flowWorkspace:::.cpp_boolGating(ptr, sn, boolFilterObj, nodeID - 1)

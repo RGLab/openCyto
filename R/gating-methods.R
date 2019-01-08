@@ -361,8 +361,9 @@ roxygen_parameter <- function() {
         popAlias <- NULL  
     }
     
-    gs_node_id <- add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE, negated = negated)
-    message("done.")
+    gs_node_id <- add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, negated = negated)
+    recompute(y, file.path(parent, popAlias))
+	message("done.")
     
   }else{
     
@@ -749,8 +750,9 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
     })
     
     flist <- filterList(flist)
-    gs_node_id <- add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE)
-    
+    gs_node_id <- add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE)
+	recompute(y, file.path(parent, popAlias))
+	
     
   } else {
     message("Skip gating! Population '", popAlias, "' already exists.")
