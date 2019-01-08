@@ -6,4 +6,4 @@ test_check("openCyto")
 #devtools::test()
 
 #taking quite some time , thus only for internal testing
-#test_file("~/rglab/workspace/openCyto/tests/testthat/gating-testSuite.R")
+test_file("~/rglab/workspace/openCyto/tests/testthat/gating-testSuite.R")
