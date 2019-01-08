@@ -59,7 +59,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_openCyto_collapseData", (DL_FUNC) &_openCyto_collapseData, 2},
     {"_openCyto_singleDip", (DL_FUNC) &_openCyto_singleDip, 1},
     {"_openCyto_tsGates", (DL_FUNC) &_openCyto_tsGates, 2},
-    {"unlockNamespace", (DL_FUNC) &unlockNamespace, 1},
+    {"unlockNamespace",               (DL_FUNC) &unlockNamespace,               1},
     {NULL, NULL, 0}
 };
 
