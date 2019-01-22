@@ -646,6 +646,11 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           y_ref <- refNodes[y_ref_id]
           x_negated <- is_negated[[x_ref_id]]
           y_negated <- is_negated[[y_ref_id]]
+          #take into account of (-Inf, x) for bool operations in ocRectRefGate
+          if(x_coord[x_inf_vec] < 0)
+            x_negated <- !x_negated
+          if(y_coord[y_inf_vec] < 0)
+            y_negated <- !y_negated
           #standardize event ind to x+ and y+
           #by checking the positive sign of both reference gates
           #to prepare for the bool operation later
