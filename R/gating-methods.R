@@ -756,7 +756,8 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
     
     flist <- filterList(flist)
     gs_node_id <- add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE)
-	recompute(y, file.path(parent, popAlias))
+	if(!is(flist[[1]], "ocRectRefGate"))
+		recompute(y, file.path(parent, popAlias))
 	
     
   } else {
