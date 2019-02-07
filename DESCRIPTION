@@ -10,7 +10,7 @@ Description: This package is designed to facilitate the automated gating
 License: Artistic-2.0
 LazyLoad: yes
 Depends:
-    flowWorkspace(>= 3.17.43)
+    flowWorkspace(>= 3.31.7)
 Imports:
     methods,Biobase,BiocGenerics,gtools,flowCore(>= 1.31.17),flowViz,ncdfFlow(>= 2.11.34),flowWorkspace,flowStats(>= 3.29.1),flowClust(>= 3.11.4),MASS,clue,plyr,RBGL,graph,data.table,ks,RColorBrewer,lattice,rrcov,R.utils
 Suggests:

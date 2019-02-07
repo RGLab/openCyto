@@ -24,14 +24,22 @@ add_pop(gs, alias = "*", pop = "+", parent, dims = NA, gating_method,
      }}
 }
 \description{
-When interacting with the existing gated data, this function provides the alternative way to interact with he GatingSet 
-by supplying the gating description directly through arguments without the need to write the compelete
+When interacting with the existing gated data, this function provides an alternative way to interact with the GatingSet 
+by supplying the gating description directly through arguments without the need to write the complete
 csv gating template.
+}
+\details{
+Calls to \code{add_pop} can also be easily reversed with \code{\link{remove_pop}}. Note, however, that it is not possible
+to differentiate between different \code{GatingSet} objects loaded from the same directory with 
+\code{\link[flowWorkspace]{load_gs}} within a session. Thus, to guarantee a clean history for \code{remove_pop}, 
+it is necessary to call \code{\link{add_pop_init}} on the loaded \code{GatingSet} immediately after re-loading it. 
+See the documentation for \code{\link{add_pop_init}} for more details. 
+This will not be an issue for \code{GatingSet} objects created directly using the constructor.
 }
 \examples{
 \dontrun{
- # add quad gates 
- add_pop(gs, gating_method = "mindensity", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
+# add quad gates 
+add_pop(gs, gating_method = "mindensity", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
 
 # polyfunctional gates (boolean combinations of exsiting marginal gates)
 add_pop(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
@@ -39,4 +47,7 @@ add_pop(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/
 #boolGate method
 add_pop(gs, alias = "IL2orIFNg", gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg") 
 }
+}
+\seealso{
+\code{\link{remove_pop}} \code{\link{add_pop_init}}
 }
