@@ -20,12 +20,13 @@
 #'  # Remove the gates and nodes resulting from that add_pop call
 #'  remove_pop(gs)
 #' } 
+#' @importFrom flowWorkspace identifier
 #' @export
 remove_pop <- function(gs){
-  if(!(gs@guid %in% names(add_pop_history$records))){
+  if(!(identifier(gs) %in% names(add_pop_history$records))){
     stop(paste("No add_pop calls have been made for this GatingSet or GatingSetList"))
   }
-  this_record <- add_pop_history$records[[gs@guid]]
+  this_record <- add_pop_history$records[[identifier(gs)]]
   old_ids <- this_record[[length(this_record)-1]]
   new_ids <- this_record[[length(this_record)]]
   new_ids <- new_ids[!(new_ids %in% old_ids)] # setdiff won't work here
@@ -35,18 +36,18 @@ remove_pop <- function(gs){
   # If it's a GatingSetList, remove the records from all of its GatingSets
   if(is(gs, "GatingSetList")){
     lapply(gs, function(x){
-      add_pop_history$records[[x@guid]][[length(add_pop_history$records[[x@guid]])]] <- NULL
+      add_pop_history$records[[identifier(x)]][[length(add_pop_history$records[[identifier(x)]])]] <- NULL
       # If back to initial state, clear the add_pop history
-      if(length(add_pop_history$records[[x@guid]]) <= 1){
-        add_pop_history$records[[x@guid]] <- NULL
+      if(length(add_pop_history$records[[identifier(x)]]) <= 1){
+        add_pop_history$records[[identifier(x)]] <- NULL
       }
     })
   }
   # Pop off the record
-  add_pop_history$records[[gs@guid]][[length(this_record)]] <- NULL
+  add_pop_history$records[[identifier(gs)]][[length(this_record)]] <- NULL
   # If back to initial state, clear the add_pop history
-  if(length(add_pop_history$records[[gs@guid]]) <= 1){
-    add_pop_history$records[[gs@guid]] <- NULL
+  if(length(add_pop_history$records[[identifier(gs)]]) <= 1){
+    add_pop_history$records[[identifier(gs)]] <- NULL
   }
   
   invisible(this_record)

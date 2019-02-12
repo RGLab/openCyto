@@ -104,30 +104,30 @@ add_pop <- function(gs, alias = "*"
 
       ## Add records if everything succeeded
       # Find record for this gating set or create it if necessary
-      if(!(gs@guid %in% names(add_pop_history$records))){
-        add_pop_history$records[[gs@guid]] <- list()
+      if(!(identifier(gs) %in% names(add_pop_history$records))){
+        add_pop_history$records[[identifier(gs)]] <- list()
         # Fresh record, so make the pre_add snapshot the first
         # Otherwise, it's already there from the last call to add_pop)
-        add_pop_history$records[[gs@guid]][[1]] <- pre_add_state
+        add_pop_history$records[[identifier(gs)]][[1]] <- pre_add_state
         
         ## If it's a GatingSetList, make this the first snapshot for each of its GatingSets if needed
         if(is(gs, "GatingSetList")){
           lapply(gs, function(x){
-            if(!(x@guid %in% names(add_pop_history$records))){
-              add_pop_history$records[[x@guid]] <- list()
-              add_pop_history$records[[x@guid]][[1]] <- pre_add_state
+            if(!(identifier(x) %in% names(add_pop_history$records))){
+              add_pop_history$records[[identifier(x)]] <- list()
+              add_pop_history$records[[identifier(x)]][[1]] <- pre_add_state
             }
           })
         }
       }
       
       # Push on the new record
-      add_pop_history$records[[gs@guid]][[length(add_pop_history$records[[gs@guid]])+1]] <- post_add_state
+      add_pop_history$records[[identifier(gs)]][[length(add_pop_history$records[[identifier(gs)]])+1]] <- post_add_state
       
       # If it's a GatingSetList, push on the new record for each of its GatingSets
       if(is(gs, "GatingSetList")){
         lapply(gs, function(x){
-          add_pop_history$records[[x@guid]][[length(add_pop_history$records[[x@guid]])+1]] <- post_add_state
+          add_pop_history$records[[identifier(x)]][[length(add_pop_history$records[[identifier(x)]])+1]] <- post_add_state
         })
       }
       
@@ -171,9 +171,9 @@ add_pop <- function(gs, alias = "*"
 add_pop_init <- function(gs = NULL){
   if(!is.null(gs)){
     if(is(gs, "GatingSetList")){
-      lapply(gs, function(x) add_pop_history$records[[x@guid]] <- NULL)
+      lapply(gs, function(x) add_pop_history$records[[identifier(x)]] <- NULL)
     }
-    add_pop_history$records[[gs@guid]] <- NULL
+    add_pop_history$records[[identifier(gs)]] <- NULL
   }else{
     add_pop_history$records <- list() 
   }
