@@ -9,7 +9,7 @@ test_that("remove_pop testing", {
   snapshot_pre <- getNodes(gs)
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
   snapshot_1 <- getNodes(gs)
-  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8", gating_method = "tailgate")
   snapshot_2 <- getNodes(gs)
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "quantileGate", gating_args = "probs = 0.95")
@@ -22,7 +22,7 @@ test_that("remove_pop testing", {
   expect_equal(getNodes(gs), snapshot_pre)
   expect_error(remove_pop(gs))
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
-  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8", gating_method = "tailgate")
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "quantileGate", gating_args = "probs = 0.98")
   expect_equal(getNodes(gs), snapshot_3)
@@ -37,7 +37,7 @@ test_that("remove_pop testing", {
   expect_equal(getNodes(gslist[[1]]), snapshot_pre)
   add_pop(gslist, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
   expect_equal(getNodes(gslist[[1]]), snapshot_1)
-  add_pop(gslist, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  add_pop(gslist, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8", gating_method = "tailgate")
   expect_equal(getNodes(gslist[[1]]), snapshot_2)
   add_pop(gslist, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "quantileGate", gating_args = "probs = 0.95")
@@ -50,7 +50,7 @@ test_that("remove_pop testing", {
   expect_equal(getNodes(gslist[[2]]), snapshot_pre)
   expect_error(remove_pop(gslist))
   add_pop(gslist, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
-  add_pop(gslist, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  add_pop(gslist, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8", gating_method = "tailgate")
   add_pop(gslist, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "quantileGate", gating_args = "probs = 0.98")
   expect_equal(getNodes(gslist[[2]]), snapshot_3)
@@ -62,7 +62,7 @@ test_that("remove_pop testing", {
   expect_equal(getNodes(gs2), snapshot_pre)
   add_pop(gs2, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
   expect_equal(getNodes(gs2), snapshot_1)
-  add_pop(gs2, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  add_pop(gs2, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8", gating_method = "tailgate")
   expect_equal(getNodes(gs2), snapshot_2)
   add_pop(gs2, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "quantileGate", gating_args = "probs = 0.95")
@@ -75,7 +75,7 @@ test_that("remove_pop testing", {
   expect_equal(getNodes(gs2), snapshot_pre)
   expect_error(remove_pop(gs2))
   add_pop(gs2, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
-  add_pop(gs2, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  add_pop(gs2, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8", gating_method = "tailgate")
   add_pop(gs2, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "quantileGate", gating_args = "probs = 0.98")
   expect_equal(getNodes(gs2), snapshot_3)
@@ -89,7 +89,7 @@ test_that("remove_pop testing", {
   expect_equal(getNodes(gs), snapshot_pre)
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
   expect_equal(getNodes(gs), snapshot_1)
-  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8", gating_method = "tailgate")
   expect_equal(getNodes(gs), snapshot_2)
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "quantileGate", gating_args = "probs = 0.95")
@@ -101,7 +101,7 @@ test_that("remove_pop testing", {
   remove_pop(gs)
   expect_equal(getNodes(gs), snapshot_pre)
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
-  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8", gating_method = "tailgate")
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "quantileGate", gating_args = "probs = 0.98")
   expect_equal(getNodes(gs), snapshot_3)
@@ -113,7 +113,7 @@ test_that("remove_pop testing", {
   expect_equal(getNodes(gs), snapshot_pre)
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
   expect_equal(getNodes(gs), snapshot_1)
-  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8", gating_method = "tailgate")
   expect_equal(getNodes(gs), snapshot_2)
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "quantileGate", gating_args = "probs = 0.95")
@@ -126,7 +126,7 @@ test_that("remove_pop testing", {
   expect_equal(getNodes(gs), snapshot_pre)
   expect_error(remove_pop(gs))
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
-  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  add_pop(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8", gating_method = "tailgate")
   add_pop(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "quantileGate", gating_args = "probs = 0.98")
   expect_equal(getNodes(gs), snapshot_3)
