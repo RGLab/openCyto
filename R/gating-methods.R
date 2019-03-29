@@ -137,7 +137,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
     #get preprocessing method
     this_ppm <- ppMethod(gt, parent, node)
     
-    parentInd <- match(parent, getNodes(y[[1]], showHidden = TRUE))
+    parentInd <- match(parent, gs_get_pop_paths(y[[1]], showHidden = TRUE))
     if (is.na(parentInd)) 
       stop("parent node '", parent, "' not gated yet!")
     
@@ -233,7 +233,7 @@ roxygen_parameter <- function() {
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   popId <- gtPop@id
-  gs_nodes <- basename(getChildren(y[[1]], parent))
+  gs_nodes <- basename(gs_get_children(y[[1]], parent))
   
   if (length(gs_nodes) == 0)
     isGated <- FALSE
@@ -361,7 +361,7 @@ roxygen_parameter <- function() {
         popAlias <- NULL  
     }
     
-    gs_node_id <- add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE, negated = negated)
+    gs_node_id <- gs_add_gate(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE, negated = negated)
     message("done.")
     
   }else{
@@ -401,7 +401,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSetList"),
   popName <- names(gtPop)
   popId <- gtPop@id
   
-  gs_nodes <- basename(getChildren(y[[1]], parent))
+  gs_nodes <- basename(gs_get_children(y[[1]], parent))
   tNodes <- deparse(args)
   if (!(popAlias %in% gs_nodes)) {
     message(popAlias, " gating...")
@@ -410,7 +410,7 @@ setMethod("gating", signature = c("boolMethod", "GatingSetList"),
     #set recompute to FALSE because we want recompute method take over the
     #computing job since it is smart on determining whehter flow data needs to be loaded
     #for boolean gates
-    invisible(gs_node_id <- add(y, bf, parent = parent, name = popAlias))
+    invisible(gs_node_id <- gs_add_gate(y, bf, parent = parent, name = popAlias))
     newNode <- file.path(parent, popAlias)
     invisible(recompute(y, newNode))
     message("done.")
@@ -467,7 +467,7 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
   })
   polyExprsList <- as.vector(polyExprsList)
   
-  gs_nodes <- basename(getChildren(y[[1]], parent))
+  gs_nodes <- basename(gs_get_children(y[[1]], parent))
   # actual gating
   lapply(polyExprsList, function(polyExpr) {
     
@@ -543,7 +543,7 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
   dims <- dims(x)
   
   my_gh <- y[[1]] 
-  gs_nodes <- basename(getChildren(my_gh, parent))
+  gs_nodes <- basename(gs_get_children(my_gh, parent))
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     
     message("Population '", paste(popAlias, collapse = ","), "'")
@@ -555,7 +555,7 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
     
     #check if parent node is shared 
     #to determine whether simply grab the indices from ref nodes without recompute
-    ref_parents <- sapply(refNodes, function(refNode)getParent(my_gh, refNode))
+    ref_parents <- sapply(refNodes, function(refNode)gs_get_parent(my_gh, refNode))
     isSameParent <- all(ref_parents == parent)
     flist <- flowWorkspace::lapply(y, function(gh) {
           
@@ -754,7 +754,7 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
     })
     
     flist <- filterList(flist)
-    gs_node_id <- add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE)
+    gs_node_id <- gs_add_gate(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE)
     
     
   } else {

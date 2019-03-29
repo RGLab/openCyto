@@ -9,11 +9,11 @@
 #' @return a gating template in \code{data.frame} format that requires further edition after output to csv 
 #' @export 
 templateGen <- function(gh){
-  nodes <- getNodes(gh, order = "tsort")
+  nodes <- gs_get_pop_paths(gh, order = "tsort")
   dt = ldply(nodes[-1], function(thisNode){
         thisGate <- getGate(gh, thisNode)
         dims <- paste(as.vector(parameters(thisGate)), collapse = ",")
-        parent <- getParent(gh, thisNode)
+        parent <- gs_get_parent(gh, thisNode)
         alias <- basename(thisNode)
         pop <- alias
         c(alias = alias

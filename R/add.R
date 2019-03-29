@@ -24,7 +24,7 @@ setMethod("add",
       #unpack the bit vector
       indices <- ncdfFlow:::toLogical(action@ind)
       #ignore the recompute flag and force it to be skipped
-      nodeID <- flowWorkspace:::.addGate(wf, filterObject(action), recompute = FALSE, ...)
+      nodeID <- flowWorkspace:::.addGate(wf, filter_to_list(action), recompute = FALSE, ...)
       sn <- sampleNames(wf)
       ptr <- wf@pointer
       flowWorkspace:::.cpp_setIndices(ptr, sn, nodeID-1, indices)
@@ -78,7 +78,7 @@ setMethod("add",
 .addGate_fast <- function(gs, filter, name = NULL, parent = "root", negated = FALSE){
   
   #preprocess filter
-  filterObj <- filterObject(filter)
+  filterObj <- filter_to_list(filter)
 #  browser()
   if(is.null(name))
     name<-filterObj$filterId

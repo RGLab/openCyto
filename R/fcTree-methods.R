@@ -55,7 +55,7 @@ setMethod("plot", sig = c("fcTree", "character"),
     flist <- getGate(x,y)
     matchedNode <-.getNode(x,y)
     if(!is.null(data))
-      parentNode <- getParent(data[[1]],y)
+      parentNode <- gs_get_parent(data[[1]],y)
   plot(x = flist, y = channel, main = matchedNode$pop@name, node =parentNode, data = data, ...)
 })
 
