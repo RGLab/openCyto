@@ -8,7 +8,7 @@
 #' @param gt gatingTemplate object
 #' @param gs GatingSet
 #' @export
-#' @importFrom flowWorkspace setNode gs_get_pop_paths gs_get_children
+#' @importFrom flowWorkspace gh_set_node_visible gs_get_pop_paths gs_get_children
 #' @examples 
 #' \dontrun{
 #' gt <- gatingTemplate(gtFile)
@@ -25,9 +25,9 @@ toggle.helperGates <- function(gt, gs){
   nonHiddenNodes <- gs_get_pop_paths(gs, showHidden = FALSE, path = "full")
   for(i in helperGates){
       if(i%in%nonHiddenNodes)
-        setNode(gs, i, FALSE)
+		  gh_set_node_visible(gs, i, FALSE)
       else
-        setNode(gs, i, TRUE)
+		  gh_set_node_visible(gs, i, TRUE)
   }
 }
 

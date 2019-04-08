@@ -2,8 +2,8 @@ context("remove_pop")
 
 dataDir <- system.file("extdata",package="flowWorkspaceData")
 gs <- load_gs(list.files(dataDir, pattern = "gs_manual",full = TRUE))
-gs1 <- clone(gs)
-gs2 <- clone(gs)
+gs1 <- gs_clone(gs)
+gs2 <- gs_clone(gs)
 
 test_that("remove_pop testing", {
   snapshot_pre <- gs_get_pop_paths(gs)

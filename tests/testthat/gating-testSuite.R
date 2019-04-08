@@ -36,7 +36,7 @@ test_that("tcell", {
       expect_equal(length(gs_get_pop_paths(gs)), 29)
     
       #rm helper gates
-      gs1 <- clone(gs,isNew = FALSE)
+      gs1 <- gs_clone(gs,isNew = FALSE)
       delete.helperGates(gt_tcell, gs1)
       expect_equal(length(gs_get_pop_paths(gs1, showHidden = TRUE)), 19)
       
@@ -124,7 +124,7 @@ test_that("tcell--asinhtGml2", {
   trans.list <- transformerList(chnls, trans)
   gs <- transform(gs, trans.list)
   
-  # autoplot(getData(gs), chnls[1])
+  # autoplot(gs_get_data(gs), chnls[1])
   
   #load gating template
   localPath <- "~/rglab/workspace/openCyto"

@@ -17,7 +17,7 @@ as.data.table.gatingTemplate <- function(x, keep.rownames = FALSE){
     
     # get parent node to gate
     nodePath <- node@id
-    parent <- gs_get_parent(x, nodePath)
+    parent <- getParent(x, nodePath)
     # extract gate method from one edge(since multiple edge to the same node is
     # redudant)
     this_gate <- getGate(x, parent, nodePath)

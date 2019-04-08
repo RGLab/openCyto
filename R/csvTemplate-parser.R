@@ -11,7 +11,7 @@
 templateGen <- function(gh){
   nodes <- gs_get_pop_paths(gh, order = "tsort")
   dt = ldply(nodes[-1], function(thisNode){
-        thisGate <- getGate(gh, thisNode)
+        thisGate <- gh_get_gate(gh, thisNode)
         dims <- paste(as.vector(parameters(thisGate)), collapse = ",")
         parent <- gs_get_parent(gh, thisNode)
         alias <- basename(thisNode)

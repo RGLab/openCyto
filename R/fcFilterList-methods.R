@@ -64,7 +64,7 @@ setMethod("plot", sig = c("fcFilterList", "ANY"),
       curFilter <- x[[samp]]
 #      browser()
       if(!is.null(data)){
-        fr <- getData(data[[samp]],node)
+        fr <- gh_get_data(data[[samp]],node)
         thisChnl <- priorNames
         hist(exprs(fr)[,thisChnl],add=T,prob=T,breaks=breaks)  
       }

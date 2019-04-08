@@ -221,7 +221,7 @@ Then, compensate the data. If we have compensation controls (i.e. single stained
 compensation matrix by `flowCore::spillover` function.
 Here we simply use the compensation matrix defined in `flowJo workspace`.
 ```{r compensate}
-compMat <- getCompensationMatrices(gh)
+compMat <- gh_get_compensations(gh)
 gs <- compensate(gs, compMat)
 ```
 
@@ -229,7 +229,7 @@ Here is one example showing the compensation outcome:
 ```{r compensate_plot, echo = F, fig.width = 4, fig.height = 4}
 sub_chnl <- c("V545-A","V450-A")
 fr <- fr[,sub_chnl]
-fr_comp <- getData(gs[[1]])[,sub_chnl]
+fr_comp <- gh_get_data(gs[[1]])[,sub_chnl]
 fs <- as(list(fr = fr, fr_comp = fr_comp), "flowSet")
 #transform data to better visualize the compensation effect
 fs <- transform(fs, estimateLogicle(fr,sub_chnl))
@@ -246,7 +246,7 @@ gs <- transform(gs, trans)
 ```
 Here is one example showing the transformation outcome:
 ```{r transformation_plot, echo = F, fig.width = 5, fig.height = 5}
-fr_trans <- getData(gs[[1]])[,sub_chnl[1]]
+fr_trans <- gh_get_data(gs[[1]])[,sub_chnl[1]]
 fr_comp <- fr_comp[,sub_chnl[1]]
 fs <- as(list(fr = fr_comp, fr_trans = fr_trans), "flowSet")
 p1 <- as.ggplot(autoplot(fs[1], "V545"))
@@ -278,13 +278,13 @@ dodesToHide <- c("cd8+", "cd4+"
 				, "CD45_neg/CCR7_gate", "cd4+cd8-/CD45_neg"
 				, "cd4-cd8+/CCR7+", "cd4-cd8+/CD45RA+"
 				)
-lapply(dodesToHide, function(thisNode)setNode(gs, thisNode, FALSE))
+lapply(dodesToHide, function(thisNode)gs_set_node_visible(gs, thisNode, FALSE))
 ```
 ### 4.7. rename nodes
 And rename the populations:
 ```{r rename, results = "hide"}
-setNode(gs, "cd4+cd8-", "cd4")
-setNode(gs, "cd4-cd8+", "cd8")
+gs_set_node_name(gs, "cd4+cd8-", "cd4")
+gs_set_node_name(gs, "cd4-cd8+", "cd8")
 ```
 
 ### 4.7. visualization

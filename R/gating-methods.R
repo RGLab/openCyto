@@ -244,7 +244,7 @@ roxygen_parameter <- function() {
   {
     message("Gating for '", popAlias, "'")
     
-    parent_data <- getData(y, parent)
+    parent_data <- gs_get_data(y, parent)
     parallel_type <- match.arg(parallel_type)
     ## get the accurate channel name by matching to the fr
     frm <- parent_data[[1, use.exprs = FALSE]]
@@ -551,7 +551,7 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
       stop("Not sure how to construct gate from more than 2 reference nodes!")
     }
     
-    fr <- getData(my_gh, use.exprs = FALSE)
+    fr <- gh_get_data(my_gh, use.exprs = FALSE)
     
     #check if parent node is shared 
     #to determine whether simply grab the indices from ref nodes without recompute
@@ -561,7 +561,7 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           
        glist <- lapply(refNodes, function(refNode) {
           
-          getGate(gh, refNode)
+          gh_get_gate(gh, refNode)
         })
        
       # standardize the names for the gate parameters and dims
@@ -640,7 +640,7 @@ setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
           
           is_negated <- lapply(refNodes, function(refNode) {
             
-            flowWorkspace:::isNegated(gh, refNode)
+            flowWorkspace:::gh_is_negated(gh, refNode)
           })          
           x_ref <- refNodes[x_ref_id] 
           y_ref <- refNodes[y_ref_id]
