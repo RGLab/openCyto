@@ -1,10 +1,22 @@
+#' @templateVar old gating
+#' @templateVar new gt_gating
+#' @template template-depr_pkg
+NULL
 #' Apply the gates  to a GatingSet
 #' 
 #' It applies the gates to the GatingSet based on the population tree described in graphGML.
 #' 
 #' @export
-#' @rdname gating-methods
-setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
+#' @rdname gt_gating
+gt_gating <- function(x, y, ...){
+  UseMethod("gt_gating")
+}
+#' @export
+#' @rdname gt_gating
+gating <- function(x, y, ...){
+  .Deprecated("gt_gating")
+  gt_gating(x,y,...)
+}
 
 #' Applies gatingTemplate to one GatingSet.
 #'
@@ -30,31 +42,26 @@ setGeneric("gating", function(x, y, ...) standardGeneric("gating"))
 #' \dontrun{
 #'  gt <- gatingTemplate(file.path(path, "data/ICStemplate.csv"), "ICS")
 #'  gs <- GatingSet(fs) #fs is a flowSet/ncdfFlowSet
-#'  gating(gt, gs)
-#'  gating(gt, gs, stop.at = "v") #proceed the gating until population 'v'
-#'  gating(gt, gs, start = "v") # start from 'v'
-#'  gating(gt, gs, parallel_type = "multicore", mc.cores = 8) #parallel gating using multicore
+#'  gt_gating(gt, gs)
+#'  gt_gating(gt, gs, stop.at = "v") #proceed the gating until population 'v'
+#'  gt_gating(gt, gs, start = "v") # start from 'v'
+#'  gt_gating(gt, gs, parallel_type = "multicore", mc.cores = 8) #parallel gating using multicore
 #'  #parallel gating by using cluster
 #'  cl1 <- makeCluster (8, type = "MPI")
-#'  gating(gt, gs, parallel_type = "cluster", cl = cl1)
+#'  gt_gating(gt, gs, parallel_type = "cluster", cl = cl1)
 #'  stopCluster ( cl1 )
 #' }
-#' @rdname gating-methods
+#' @rdname gt_gating
 #' @export
 #' @aliases 
 #' gating,gatingTemplate,GatingSet-method
-setMethod("gating", signature = c("gatingTemplate", "GatingSet"),
-    definition = function(x, y, env_fct = NULL, ...) {
-      .gating_gatingTemplate(x,y,env_fct,...)
-    })
+gt_gating.gatingTemplate <- function(x, y, ...) {
+  .gating_gatingTemplate(x, y, ...)
+}
+# gt_gating.gatingTemplate <- function(x, y, env_fct = NULL, ...) {
+#       .gating_gatingTemplate(x,y,env_fct,...)
+#     }
 
-#' @aliases 
-#' gating,gatingTemplate,GatingSetList-method
-#' @rdname gating-methods
-setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
-    definition = function(x, y, env_fct = NULL, ...) {
-      .gating_gatingTemplate(x,y,env_fct,...)
-    })
 #' internal function (gating_gatingTemplate)
 #'  
 #' @param stop.at a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating prcoess will stop at.
@@ -77,7 +84,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
     
   }
   
-  nodePaths <- names(sapply(getNodes(gt),alias))
+  nodePaths <- names(sapply(gt_get_pop_paths(gt),alias))
     #validity check for stop.at argument
   if(!is.null(stop.at)){
     #escape meta character
@@ -116,8 +123,8 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
   for (node in gt_nodes) {
     
     # get parent node to gate
-    gt_node_pop <- getNodes(gt, node)
-    parent <- getParent(gt, node)
+    gt_node_pop <- gt_get_pop_paths(gt, node)
+    parent <- gt_get_parent(gt, node)
     
     if(!is.null(stop.at)){
       nodeName <- alias(gt_node_pop)
@@ -132,7 +139,7 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
     }    
     # extract gate method from one edge(since multiple edge to the same node is
     # redudant)
-    this_gate <- getGate(gt, parent, node)
+    this_gate <- gt_get_gate(gt, parent, node)
     
     #get preprocessing method
     this_ppm <- ppMethod(gt, parent, node)
@@ -148,10 +155,10 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
       pp_res <- preprocessing(x = this_ppm, y, parent = parent, gtPop = gt_node_pop, gm = this_gate, ...)
 #    browser()
     # pass the pops and gate to gating routine
-    filterObj <- gating(x = this_gate, y, parent = parent, gtPop = gt_node_pop, pp_res = pp_res, ...)
+    filterObj <- gt_gating(x = this_gate, y, parent = parent, gtPop = gt_node_pop, pp_res = pp_res, ...)
     if(!keep.helperGates)
     {
-      delete.helperGates(x, y)
+      gt_delete_helpergates(x, y)
     }
     # update fct
     if (!is.null(env_fct) && !is.null(filterObj)) {
@@ -174,14 +181,11 @@ setMethod("gating", signature = c("gatingTemplate", "GatingSetList"),
 #' @aliases
 #' gating,gtMethod,GatingSet-method 
 #' gating,gtMethod,GatingSetList-method
-setMethod("gating", signature = c("gtMethod", "GatingSet"),
-    definition = function(x, y, ...) {
-      .gating_gtMethod(x,y,...)
-    })
-setMethod("gating", signature = c("gtMethod", "GatingSetList"),
-    definition = function(x, y, ...) {
-      .gating_gtMethod(x,y,...)
-    })
+#' @noRd
+gt_gating.gtMethod <- function(x, y, ...) {
+  .gating_gtMethod(x,y,...)
+}
+
 #' evalRd tag is currently not working because the output of eval string isn't positioned properly in Rd file
 #' @noRd
 roxygen_parameter <- function() {
@@ -374,18 +378,14 @@ roxygen_parameter <- function() {
 }
 
 # apply a \code{boolMethod} to the \code{GatingSet}
-#' @rdname gating-methods
+#' @rdname gt_gating
 #' @aliases
 #' gating,boolMethod,GatingSet-method
 #' gating,boolMethod,GatingSetList-method
-setMethod("gating", signature = c("boolMethod", "GatingSet"),
-    definition = function(x, y, ...) {
-      .gating_boolMethod(x,y,...)      
-    })
-setMethod("gating", signature = c("boolMethod", "GatingSetList"),
-    definition = function(x, y, ...) {
-      .gating_boolMethod(x,y,...)      
-    })
+#' @noRd
+gt_gating.boolMethod <- function(x, y, ...) {
+  .gating_boolMethod(x,y,...)
+}
 
 #' internal function (gating_boolMethod)
 #' 
@@ -426,18 +426,14 @@ setMethod("gating", signature = c("boolMethod", "GatingSetList"),
 # 
 # It generates a batch of \code{boolMethod}s based on the expression defined in \code{polyFunctions} objects.
 # It is a convenience way to generate different boolean combinations of cytokine gates. 
-#' @rdname gating-methods
+#' @rdname gt_gating
 #' @aliases
 #' gating,polyFunctions,GatingSet-method
 #' gating,polyFunctions,GatingSetList-method
-setMethod("gating", signature = c("polyFunctions", "GatingSet"),
-    definition = function(x, y, ...) {
-      .gating_polyFunctions(x,y,...)      
-    })
-setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
-    definition = function(x, y, ...) {
-      .gating_polyFunctions(x,y,...)      
-    })
+#' @noRd
+gt_gating.polyFunctions <- function(x, y, ...) {
+  .gating_polyFunctions(x,y,...)
+}
 
 #' internal function (gating_polyFunctions)
 #' 
@@ -503,31 +499,21 @@ setMethod("gating", signature = c("polyFunctions", "GatingSetList"),
 }
 
 # apply a \code{refGate} to the \code{GatingSet}
-#' @rdname gating-methods
+#' @rdname gt_gating
 #' 
 #' @aliases
 #' gating,refGate,GatingSet-method
 #' gating,refGate,GatingSetList-method
 #' gating,dummyMethod,GatingSet-method
 #' gating,dummyMethod,GatingSetList-method
-setMethod("gating", signature = c("refGate", "GatingSet"),
-    definition = function(x, y, ...) {
-      .gating_refGate(x, y, ...)
-    })
-setMethod("gating", signature = c("refGate", "GatingSetList"),
-    definition = function(x, y, ...) {
-      .gating_refGate(x, y, ...)
-    })
+#' @noRd
+gt_gating.refGate <- function(x, y, ...) {
+  .gating_refGate(x, y, ...)
+}
 
-setMethod("gating", signature = c("dummyMethod", "GatingSet"),
-    definition = function(x, y, ...) {
-      #do nothing
-    })
-
-setMethod("gating", signature = c("dummyMethod", "GatingSetList"),
-    definition = function(x, y, ...) {
-      #do nothing
-    })
+gt_gating.dummyMethod <- function(x, y, ...) {
+  #do nothing
+}
 
 #' internal function (gating_refGate)
 #' 

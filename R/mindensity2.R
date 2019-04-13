@@ -154,7 +154,12 @@ gate_mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE,
 
 #' @export
 #' @rdname gate_mindensity2
-mindensity2 <- gate_mindensity2
+mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE, 
+                        gate_range = NULL, min = NULL, max = NULL, peaks = NULL, 
+                        ...){
+  .Deprecated("gate_mindensity2")
+  gate_mindensity2(fr, channel, filterId, pivot, gate_range, min, max, peaks, ...)
+}
 
 #' wrapper for mindensity2
 #' 

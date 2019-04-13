@@ -258,7 +258,7 @@
   
   
     # 1d gate
-  gate <- do.call("flowClust.1d"
+  gate <- do.call("gate_flowclust_1d"
             ,args = c(list(fr = fr
                         ,params = channels
                         ,prior = prior
@@ -513,7 +513,7 @@
    }
 #    browser()
    
-   if (names(gm) == "flowClust.1d") {
+   if (names(gm) == "gate_flowclust_1d") {
      
      
      
