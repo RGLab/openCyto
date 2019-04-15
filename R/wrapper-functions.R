@@ -268,6 +268,9 @@
            )
   
 }
+
+.flowClust.1d <- .gate_flowclust_1d
+
 #' wrapper for cytokine
 #' 
 #' It does some parameter preprocessing before calling the cytokine
@@ -281,7 +284,7 @@
 .cytokine <- function(fr, pp_res, ...) {
   .Defunct("tailgate")
   #TODO:standardize data with pp_res
-  .tailgate(fr, pp_res = pp_res, ...)
+  .gate_tail(fr, pp_res = pp_res, ...)
 }
 
 #' @param ... arguments to be passed to \link{tailgate}
@@ -291,7 +294,7 @@
 #' 
 #' @return a \code{filter} object
 #' @noRd 
-.tailgate <- function(fr, pp_res = NULL, channels, ...) {
+.gate_tail <- function(fr, pp_res = NULL, channels, ...) {
   if(length(channels) != 1)
     stop("invalid number of channels for tailgate!")
   #pps_res may contains the standardized and collapsed data and transformation
@@ -337,6 +340,8 @@
   
 }
 
+.tailgate <- .gate_tail
+
 #' wrapper for mindensity
 #' 
 #' It does some parameter preprocessing before calling the mindensity
@@ -347,14 +352,16 @@
 #' 
 #' @return a \code{filter} object
 #' @noRd 
-.mindensity <- function(fr, pp_res = NULL, channels, ...) {
+.gate_mindensity <- function(fr, pp_res = NULL, channels, ...) {
   
  if(length(channels) != 1)
    stop("invalid number of channels for mindensity!")
-  gate <- mindensity(fr, channel = channels, ...)
+  gate <- gate_mindensity(fr, channel = channels, ...)
 #  .gateToFilterResult(fr, yChannel, gate, positive)
   gate
 }
+
+.mindensity <- .gate_mindensity
 
 #'@param fr a flowFrame
 #'@param pp_res preprocessing results.
@@ -362,13 +369,15 @@
 #'@param ... arguments passed to \link{gate_tautString}
 #'@rdname tautStringGate
 #' @noRd 
-.tautStringGate <- function(fr, pp_res = NULL, channels, ...){
+.gate_tautstring <- function(fr, pp_res = NULL, channels, ...){
   if(length(channels) != 1){
     stop("Invalid number of channels. The tautString takes one channel.")
   }
-  gate <- tautStringGate(fr, channel = channels, ...)
+  gate <- gate_tautstring(fr, channel = channels, ...)
   gate
 }
+
+.tautStringGate <- .gate_tautstring
 
 #' wrapper for gate_flowclust_2d
 #' 
@@ -415,6 +424,9 @@
         )
   
 }
+
+.flowClust.2d <- .gate_flowclust_2d
+
 #' wrapper for rangeGate (deprecated)
 #' 
 #' It does some parameter preprocessing before calling the rangeGate
@@ -439,20 +451,27 @@
 #' 
 #' @return a \code{filter} object
 #' @noRd 
-.quantileGate <- function(fr, pp_res = NULL, channels, ...) {
+.gate_quantile <- function(fr, pp_res = NULL, channels, ...) {
   
-  quantileGate(fr = fr, channel = channels, ...)
+  gate_quantile(fr = fr, channel = channels, ...)
 }
 
-.quadGate.tmix <- function(fr, pp_res = NULL, channels, ...) {
+.quantileGate <- .gate_quantile
+
+.gate_quad_tmix <- function(fr, pp_res = NULL, channels, ...) {
   if(length(channels) != 2)
     stop("invalid number of channels for quadGate.tmix!")
-    quadGate.tmix(fr, channels, ...)
+  gate_quad_tmix(fr, channels, ...)
 }
 
-.quadGate.seq <- function(fr, pp_res = NULL, channels, ...){
-  quadGate.seq(fr, channels, ...)
+.quadGate.tmix <- .gate_quad_tmix
+
+.gate_quad_sequential <- function(fr, pp_res = NULL, channels, ...){
+  gate_quad_sequential(fr, channels, ...)
 }
+
+.quadGate.seq <- .gate_quad_sequential
+
 ############################
 # preprocessing wrappers
 #########################
@@ -594,6 +613,8 @@
      sapply(sampleNames(prior_data), function(i)prior_list, simplify = FALSE)
    
 }
+
+.prior_flowClust <- .prior_flowclust
 
  #' preprocessing wrapper for .standardize_flowFrame
 #' 

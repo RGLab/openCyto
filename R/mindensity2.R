@@ -171,10 +171,12 @@ mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE,
 #' 
 #' @return a \code{filter} object
 #' @noRd 
-.mindensity2 <- function(fr, pp_res, channels, ...) {
+.gate_mindensity2 <- function(fr, pp_res, channels, ...) {
   
   if(length(channels) != 1)
     stop("invalid number of channels for mindensity!")
   gate <- mindensity2(fr, channel = channels, ...)
   gate
 }
+
+.mindensity2 <- .gate_mindensity2
