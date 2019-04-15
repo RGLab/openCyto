@@ -16,17 +16,17 @@ quadGate.tmix(fr, channels, K, usePrior = "no", prior = list(NA),
 
 \item{channels}{\code{character} vector specifies two channels}
 
-\item{K}{see \link{flowClust.2d}}
+\item{K}{see \link{gate_flowclust_2d}}
 
-\item{usePrior}{see \link{flowClust.2d}}
+\item{usePrior}{see \link{gate_flowclust_2d}}
 
-\item{prior}{see \link{flowClust.2d}}
+\item{prior}{see \link{gate_flowclust_2d}}
 
 \item{quantile1}{\code{numeric} specifies the  quantile level(see 'level' in \link{flowClust}) for the first quadrant (x-y+)}
 
 \item{quantile3}{\code{numeric} specifies the  quantile level see 'level' in \link{flowClust} for third quadrant (x+y-)}
 
-\item{trans}{see \link{flowClust.2d}}
+\item{trans}{see \link{gate_flowclust_2d}}
 
 \item{plot}{logical whether to plot flowClust clustering results}
 

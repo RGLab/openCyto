@@ -1,3 +1,7 @@
+#' @templateVar old toggle.helperGates
+#' @templateVar new gt_toggle_helpergates
+#' @template template-depr_pkg
+NULL
 #' toggle/delete the hidden flag of the helper gates
 #' 
 #' The helper gates are defined as the referred gates in csv template. And all the chidlren of referred gates are also 
@@ -13,15 +17,15 @@
 #' \dontrun{
 #' gt <- gatingTemplate(gtFile)
 #' #run the gating
-#' gating(gt, gs)
+#' gt_gating(gt, gs)
 #' #hide the gates that are not of interest
-#' toggle.helperGates(gt, gs) 
+#' gt_toggle_helpergates(gt, gs) 
 #' #or simply remove them if you are sure they will not be useful in future
-#' delete.helperGates(gt, gs) 
+#' gt_delete_helpergates(gt, gs) 
 #' }
-#' @rdname toggle.helperGates
-toggle.helperGates <- function(gt, gs){
-  helperGates <- get.helperGates(gt, gs)
+#' @rdname gt_toggle_helpergates
+gt_toggle_helpergates <- function(gt, gs){
+  helperGates <- gt_get_helpergates(gt, gs)
   nonHiddenNodes <- gs_get_pop_paths(gs, showHidden = FALSE, path = "full")
   for(i in helperGates){
       if(i%in%nonHiddenNodes)
@@ -31,15 +35,26 @@ toggle.helperGates <- function(gt, gs){
   }
 }
 
-#' @rdname toggle.helperGates
+#' @rdname gt_toggle_helpergates
 #' @export
-get.helperGates <- function(gt, gs){
+toggle.helperGates <- function(gt, gs){
+  .Deprecated("gt_toggle_helpergates")
+  gt_toggle_helpergates(gt, gs)
+}
+
+#' @templateVar old get.helperGates
+#' @templateVar new gt_get_helpergates
+#' @template template-depr_pkg
+NULL
+#' @rdname gt_toggle_helpergates
+#' @export
+gt_get_helpergates <- function(gt, gs){
   gated.nodes <- gs_get_pop_paths(gs, showHidden = TRUE, path = "full")
-  referror <- names(getNodes(gt, only.names = T))[-1]
+  referror <- names(gt_get_pop_paths(gt, only.names = T))[-1]
   referror <- intersect(gated.nodes, referror)#restrict to the gated nodes
   
   referree <- sapply(referror, function(node){
-    getParent(gt, node, isRef = TRUE)
+    gt_get_parent(gt, node, isRef = TRUE)
   }, USE.NAMES = FALSE)
   referree <- unique(unlist(referree))
   referree <- intersect(gated.nodes, referree)#restrict to the gated nodes
@@ -61,13 +76,31 @@ get.helperGates <- function(gt, gs){
   
 }
 
-#' @rdname toggle.helperGates
+#' @rdname gt_toggle_helpergates
 #' @export
-delete.helperGates <- function(gt, gs){
-  helperGates <- get.helperGates(gt, gs)
+get.helperGates <- function(gt, gs){
+  .Deprecated("gt_get_helpergates")
+  gt_get_helpergates(gt, gs)
+}
+
+#' @templateVar old delete.helperGates
+#' @templateVar new gt_delete_helpergates
+#' @template template-depr_pkg
+NULL
+#' @rdname gt_toggle_helpergates
+#' @export
+gt_delete_helpergates <- function(gt, gs){
+  helperGates <- gt_get_helpergates(gt, gs)
   
   for(i in helperGates){
       if(i%in%gs_get_pop_paths(gs))
-        Rm(i, gs)
+        gs_remove_gate(i, gs)
   }
+}
+
+#' @rdname gt_toggle_helpergates
+#' @export
+delete.helperGates <- function(gt, gs){
+  .Deprecated("gt_delete_helpergates")
+  gt_delete_helpergates(gt, gs)
 }

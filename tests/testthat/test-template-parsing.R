@@ -20,7 +20,6 @@ test_that(".preprocess_csv", {
       suppressMessages(
           preprocessed_dt <<- .preprocess_csv(dt)
       )
-      
       expect_equivalent(preprocessed_dt[,-2, with = F], expectResults[["preprocess_csv"]][,-2, with = F])
       
     })
@@ -311,23 +310,23 @@ test_that(".preprocess_row", {
       expect_equal(suppressMessages(.preprocess_row(this_row)), expectRes)
       
       
-      #flowClust.1d
+      #gate_flowclust_1d
       this_row <- copy(template_row)
       this_row[, pop := "+"]
       this_row[, dims := "cd4"]
-      this_row[, gating_method := "flowClust"]
+      this_row[, gating_method := "gate_flowclust"]
       
       expectRes <- copy(this_row)
-      expectRes[, gating_method := "flowClust.1d"]
+      expectRes[, gating_method := "gate_flowclust_1d"]
       expectRes[, pop := "+"]
       expect_equal(.preprocess_row(this_row), expectRes)
       
-      #flowClust.2d
+      #gate_flowclust_2d
       this_row <- copy(template_row)
       this_row[, pop := "+"]
-      this_row[, gating_method := "flowClust"]
+      this_row[, gating_method := "gate_flowclust"]
       expectRes <- copy(this_row)
-      expectRes[, gating_method := "flowClust.2d"]
+      expectRes[, gating_method := "gate_flowclust_2d"]
       expect_equal(.preprocess_row(this_row), expectRes)
       
       #multi-pops
@@ -353,21 +352,28 @@ test_that("gatingTemplate constructor", {
     templateName <- file_path_sans_ext(basename(thisFile))
     message(templateName)
     suppressWarnings(suppressMessages(
-        thisRes <- gatingTemplate(thisFile, autostart = 1L)
+        thisRes <- gatingTemplate(thisFile, skip = 0)
     ))
 
     expectGt <- expectResults[[templateName]]
-    #update expectResult due to the new change in pop columns
+    #update expectResult due to the new change in pop columns and cytoverse API
+    # browser()
     for(node in nodes(expectGt))
     {
       popname <- names(nodeData(expectGt)[[node]][["pop"]])
       if(popname!="root")
         nodeData(expectGt,node, "pop")[[1]]@name <- gsub("[^-\\+/]", "", popname)
+      for(child in gt_get_children(expectGt, node)){
+        if(isS4(edgeData(expectGt, node, child, "gtMethod")[[1]])){
+          methodname <- edgeData(expectGt, node, child, "gtMethod")[[1]]@name
+          edgeData(expectGt, node, child, "gtMethod")[[1]]@name <- gsub("flowClust\\.", "gate_flowclust_", methodname)
+        }
+      }
     }
     expect_equal(thisRes, expectGt, info = templateName)
     # browser()
     #test as.data.table method
-    dt.orig <- fread(thisFile, autostart = 1L)
+    dt.orig <- fread(thisFile, skip = 0)
     dt.orig <- openCyto:::.preprocess_csv(dt.orig)
     
     dt.new <- as.data.table(thisRes)

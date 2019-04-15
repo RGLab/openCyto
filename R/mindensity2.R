@@ -154,7 +154,12 @@ gate_mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE,
 
 #' @export
 #' @rdname gate_mindensity2
-mindensity2 <- gate_mindensity2
+mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE, 
+                        gate_range = NULL, min = NULL, max = NULL, peaks = NULL, 
+                        ...){
+  .Deprecated("gate_mindensity2")
+  gate_mindensity2(fr, channel, filterId, pivot, gate_range, min, max, peaks, ...)
+}
 
 #' wrapper for mindensity2
 #' 
@@ -162,14 +167,16 @@ mindensity2 <- gate_mindensity2
 #' 
 
 #' @param ... arguments to be passed to \link{mindensity}
-#' @inheritParams .flowClust.1d 
+#' @inheritParams .gate_flowclust_1d 
 #' 
 #' @return a \code{filter} object
 #' @noRd 
-.mindensity2 <- function(fr, pp_res, channels, ...) {
+.gate_mindensity2 <- function(fr, pp_res, channels, ...) {
   
   if(length(channels) != 1)
     stop("invalid number of channels for mindensity!")
   gate <- mindensity2(fr, channel = channels, ...)
   gate
 }
+
+.mindensity2 <- .gate_mindensity2

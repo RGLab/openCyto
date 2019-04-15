@@ -1,14 +1,24 @@
+#' @templateVar old tautString
+#' @templateVar new tautstring
+#' @template template-depr_pkg
+NULL
 #' @export
-#' @name tautString
+#' @name tautstring
 #' @title Taut String Density Estimator Gating
 #' @param sorted_vector \code{numeric} vector of single cell expresion from a single cytometric channel.
 #' @param modeprior \code{numeric} scalar specifying the expected number of modes. Default 0 (autodetect). Rarely should this be
 #' set by the user.
-tautString <- function(sorted_vector, modeprior = 0){
+tautstring <- function(sorted_vector, modeprior = 0){
   tsGates(xVec = sorted_vector, modePrior = modeprior )
 }
+#' @export 
+#' @rdname tautstring
+tautString <- function(sorted_vector, modeprior = 0){
+  .Deprecated("tautstring")
+  tautstring(sorted_vector, modeprior)
+}
 
-#'@rdname tautString 
+#'@rdname tautstring 
 #'@description The taut string density estimator gating returns 0, 1, or more gates, depending on how many modes it identifies in the data.
 #'@param fr a flowFrame object
 #'@param channel The channel to gate.
@@ -16,7 +26,8 @@ tautString <- function(sorted_vector, modeprior = 0){
 #'@param min The min range of the data to truncate the flowFrame
 #'@param max The max range of the data to truncate the flowFrame
 #'@param filterId The id / name of the gate.
-tautStringGate <- function(fr, channel, gate_range = NULL, min = NULL, max = NULL, filterId = "") {
+#'@export
+gate_tautstring <- function(fr, channel, gate_range = NULL, min = NULL, max = NULL, filterId = "") {
   if (missing(channel) || length(channel) != 1) {
     stop("One channel must be specified for a tautString gate.")
   }
@@ -51,4 +62,14 @@ tautStringGate <- function(fr, channel, gate_range = NULL, min = NULL, max = NUL
     filters <- list()
   }
   return(filters)
+}
+#' @templateVar old tautStringGate
+#' @templateVar new gate_tautstring
+#' @template template-depr_pkg
+NULL
+#'@rdname tautstring
+#'@export
+tautStringGate <- function(fr, channel, gate_range = NULL, min = NULL, max = NULL, filterId = ""){
+  .Deprecated("gate_tautstring")
+  gate_tautstring(fr, channel, gate_range, min, max, filterId)
 }

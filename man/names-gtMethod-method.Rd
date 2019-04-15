@@ -17,16 +17,15 @@ get gating method name
 \dontrun{
 gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
 
-gtMthd <- getGate(gt, "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
+gtMthd <- gt_get_gate(gt, "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
 names(gtMthd) 
 dims(gtMthd)
 parameters(gtMthd)
 isCollapse(gtMthd)
 groupBy(gtMthd)
 
-gtPop <- getNodes(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
+gtPop <- gt_get_pop_paths(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
 names(gtPop)
 alias(gtPop)
 }
-
 }

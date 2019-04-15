@@ -2,7 +2,6 @@
 #' 
 #' @param object \code{gtMethod}
 #' show method for gtMethod
-#' @export 
 setMethod("show", signature = c("gtMethod"), definition = function(object) {
   # cat('Gating Method: ')
   cat(names(object))
@@ -17,7 +16,6 @@ setMethod("show", signature = c("gtMethod"), definition = function(object) {
 #' 
 #' show method for boolMethod
 #' @param object \code{boolMethod}
-#' @export 
 setMethod("show", signature = c("boolMethod"), definition = function(object) {
   cat(paste(class(object), "(", parameters(object), ")", sep = ""))
   cat("\n")
@@ -26,24 +24,22 @@ setMethod("show", signature = c("boolMethod"), definition = function(object) {
 #' get gating method name
 #' 
 #' @param x \code{gtMethod} 
-#' @export
 #' @aliases names,gtMethod-method
 #' @examples 
 #' \dontrun{
 #' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
 #' 
-#' gtMthd <- getGate(gt, "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
+#' gtMthd <- gt_get_gate(gt, "/nonDebris/singlets",  "/nonDebris/singlets/lymph")
 #' names(gtMthd) 
 #' dims(gtMthd)
 #' parameters(gtMthd)
 #' isCollapse(gtMthd)
 #' groupBy(gtMthd)
 #' 
-#' gtPop <- getNodes(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
+#' gtPop <- gt_get_pop_paths(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
 #' names(gtPop)
 #' alias(gtPop)
 #' }
-#' 
 setMethod("names", signature = c("gtMethod"), definition = function(x) {
   x@name
 })
@@ -51,7 +47,6 @@ setMethod("names", signature = c("gtMethod"), definition = function(x) {
 #' get gating method dimensions
 #' 
 #' @param x \code{gtMethod}
-#' @export 
 #' @importFrom BiocGenerics dims
 #' @aliases dims,gtMethod-method
 setMethod("dims", signature = c("gtMethod"), definition = function(x) {
@@ -66,7 +61,6 @@ setMethod("dims", signature = c("gtMethod"), definition = function(x) {
 #' get parameters of the gating method/function
 #' 
 #' @param object \code{gtMethod}
-#' @export 
 #' @importFrom flowCore parameters
 #' @aliases parameters,gtMethod-method
 setMethod("parameters", signature = c("gtMethod"), definition = function(object) {

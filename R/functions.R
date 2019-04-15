@@ -399,7 +399,6 @@
 #' @examples
 #' z <- seq.int(1, 9, by = 2)
 #' .between_interval(z, interval = c(2, 8))
-#' @export 
 #' @noRd 
 .between_interval <- function(x, interval) {
   x <- x[findInterval(x, interval) == 1]

@@ -15,7 +15,6 @@ setClass("ocRectangleGate", contains = "rectangleGate", representation(ind = "ra
 #' @param action \code{ocRectangleGate} or \code{logicalFilterResult}
 #' @param recompute \code{logical} see \link[flowWorkspace]{add} in \code{flowWorkspace} package
 #' @param ... see \link[flowWorkspace]{add} in \code{flowWorkspace} package
-#' @export 
 #' @rdname add
 setMethod("add",
     signature=c("GatingHierarchy", "ocRectangleGate"),
