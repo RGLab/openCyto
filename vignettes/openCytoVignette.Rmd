@@ -44,13 +44,13 @@ wsfile <- list.files(flowDataPath, pattern="manual.xml",full = TRUE)
 wsfile
 ```
 By using`flowWorkspace`package, We can load it into R,
-```{r openWorkspace, eval=F}
+```{r open_flowjo_xml, eval=F}
 library(CytoML)
-ws <- openWorkspace(wsfile)
+ws <- open_flowjo_xml(wsfile)
 ```
-apply (`parseWorkspace`) the`manual gates`defined in`xml`to the raw`FSC`files,
-```{r parseWorkspace, eval=F}
-gs <- parseWorkspace(ws, name= "T-cell", subset =1, isNcdf = TRUE)
+apply (`flowjo_to_gatingset`) the`manual gates`defined in`xml`to the raw`FSC`files,
+```{r flowjo_to_gatingset, eval=F}
+gs <- flowjo_to_gatingset(ws, name= "T-cell", subset =1, isNcdf = TRUE)
 ```
 ```{r load_gs_manual, echo = FALSE}
 gs <- load_gs(file.path(flowDataPath,"gs_manual"))
