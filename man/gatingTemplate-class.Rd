@@ -53,7 +53,7 @@ It can be either channel name or stained marker name (or the substrings of chann
 'groupBy': If given, samples are split into groups by the unique combinations of study variable (i.e. column names of pData,e.g."PTID:VISITNO").
  when split is numeric, then samples are grouped by every N samples 
 
-'preprocessing_method': the name of the preprocessing function(e.g. 'prior_flowClust'). It is invoked by a wrapper function that has the identical function name prefixed with a dot.(e.g. '.prior_flowClust')
+'preprocessing_method': the name of the preprocessing function(e.g. 'prior_flowclust'). It is invoked by a wrapper function that has the identical function name prefixed with a dot.(e.g. '.prior_flowclust')
  the preprocessing results are then passed to gating wrapper function through 'pps_res' argument.
       
 'preprocessing_args': the named arguments passed to preprocessing function.

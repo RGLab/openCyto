@@ -10,7 +10,7 @@ NULL
                  , "mindensity2", "gate_mindensity2", "cytokine", "flowClust.1d", "gate_flowclust_1d", "boundary","singletGate"
                  ,"tailgate", "gate_tail", "quadGate.tmix", "gate_quad_tmix", "quadGate.seq", "gate_quad_sequential"
                  , "tautStringGate", "gate_tautstring")
-.DEFAULT_PP <- c("prior_flowClust", "warpSet", "standardize_flowset")
+.DEFAULT_PP <- c("prior_flowClust", "prior_flowClust", "warpSet", "standardize_flowset")
 #'Print a list of the registered gating methods
 #'@return Does not return anything. Prints a list of the available gating methods.
 #'@rdname gt_list_methods

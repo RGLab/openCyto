@@ -7,7 +7,7 @@
 #' It coerce the input (\code{flowSet}) to a single \code{flowFrame} and apply the gating wrapper function
 #' then replicate the gates across samples from the \code{flowSet}.
 #' 
-#' @inheritParams .prior_flowClust
+#' @inheritParams .prior_flowclust
 #' @param pp_res preprocessing result produced by the \code{preprocessing} method
 #' @param gFunc \code{character} function name of the wrapper function to be invoked
 #' @param popAlias \code{character} the population names that are used to determine how many gates to be expected from the gating function 
@@ -115,7 +115,7 @@
 #' @param pp_res not used
 #' @param fr \code{flowFrame} object as a data input 
 #' @param ... arguments to be passed to \link[flowStats:singletGate]{singletGate}
-#' @inheritParams .prior_flowClust
+#' @inheritParams .prior_flowclust
 #' @return a \code{filter} object
 #' @importFrom flowStats singletGate
 #' @noRd 
@@ -176,7 +176,7 @@
 #' @param yChannel the dimension used for gating
 #'  
 #' @inheritParams .gating_adaptor 
-#' @inheritParams .prior_flowClust
+#' @inheritParams .prior_flowclust
 #' 
 #' @return a \code{filter} object
 #' @noRd 
@@ -459,7 +459,7 @@
 #'  wrapper for \link[flowStats:warpSet]{warpSet}
 #' 
 #' @param stains \code{character} passed to \link[flowStats:warpSet]{warpSet} 
-#' @inheritParams .prior_flowClust 
+#' @inheritParams .prior_flowclust 
 #' 
 #' @return \code{NULL}
 #' @importFrom flowStats warpSet
@@ -472,21 +472,21 @@
     warpSet(fs, stains = stains, ...)
   return (NULL)
  }
-#'  wrapper for prior_flowClust
+#'  wrapper for prior_flowclust
 #' 
-#'  This wrapper does some parameter preprocessing before calls \link{prior_flowClust}
+#'  This wrapper does some parameter preprocessing before calls \link{prior_flowclust}
 #' 
 #' @param fs \code{flowSet} or \code{ncdfFlowSet} object
 #' @param gs \code{GatingSet}
 #' @param gm \code{gtMethod}
-#' @param xChannel,yChannel \code{character} specifying the dimensions of flow data used by \code{prior_flowClust}
+#' @param xChannel,yChannel \code{character} specifying the dimensions of flow data used by \code{prior_flowclust}
 #' @param prior_source \code{character} specifying the ancester node from where the prior is elicited.
 #' @param neg,pos \code{numeric} specifying how many peaks are expected on positive and negative sides from 1d density profile
 #' @inheritParams .prior_flowClust1d 
 #' 
 #' @return a \code{list} of priors, see \link{prior_flowClust} for more details
 #' @noRd 
-.prior_flowClust <- function(fs, gs, gm, channels, groupBy, isCollapse
+.prior_flowclust <- function(fs, gs, gm, channels, groupBy, isCollapse
      , prior_source = NULL
      , K = NULL
      , neg, pos
@@ -501,7 +501,7 @@
      xChannel <- channels[1]
      yChannel <- channels[2]  
    }else
-     stop("invalid number of channels for prior_flowClust!")
+     stop("invalid number of channels for prior_flowclust!")
    # prior estimation is done separately from flowClust routine because
    # .prior_flowClust1d requires the entire parent flowSet yet flowClust only
    # takes one flowFrame
@@ -567,12 +567,12 @@
      }                          
 #     browser()
      if (!is.null(xChannel)) {
-       prior_list[[xChannel]] <- prior_flowClust(flow_set = prior_data,
+       prior_list[[xChannel]] <- prior_flowclust(flow_set = prior_data,
            channels = xChannel, K = K,
            min = min_values, max = max_values, ...)
      }
      
-     prior_list[[yChannel]] <- prior_flowClust(flow_set = prior_data,
+     prior_list[[yChannel]] <- prior_flowclust(flow_set = prior_data,
          channels = yChannel, K = K,
          min = min_values, max = max_values, ...)
      
@@ -581,11 +581,11 @@
      if (!is.null(K)) {
        K <- as.integer(K)
      } else {
-       message("'K' argument is missing in prior_flowClust! Using default setting: K = 2.\nYou should set this to the same value as 'K' in the call to flowClust.")
+       message("'K' argument is missing in prior_flowclust! Using default setting: K = 2.\nYou should set this to the same value as 'K' in the call to flowClust.")
        K <- 2
      }
      
-     prior_list <- prior_flowClust(flow_set = prior_data, channels = c(xChannel, 
+     prior_list <- prior_flowclust(flow_set = prior_data, channels = c(xChannel, 
              yChannel), K = K, ...)
    }
    if(isCollapse)

@@ -423,7 +423,7 @@ gate_flowclust_2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 
   # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
   if (usePrior == "yes" && identical(prior, list(NA))) {
-    prior <- prior_flowClust(fr = fr, channels = c(xChannel, yChannel), K = K)
+    prior <- prior_flowclust(fr = fr, channels = c(xChannel, yChannel), K = K)
   }
 
   # Applies `flowClust` to the feature specified in the `params` argument using
