@@ -167,7 +167,7 @@ mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE,
 #' 
 
 #' @param ... arguments to be passed to \link{mindensity}
-#' @inheritParams .flowClust.1d 
+#' @inheritParams .gate_flowclust_1d 
 #' 
 #' @return a \code{filter} object
 #' @noRd 

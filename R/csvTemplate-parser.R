@@ -289,11 +289,11 @@ templateGen <- function(gh){
 #    browser()
   if (grepl(paste0("^", one_pop_pat, "$"), popName)) {
     # A+ no expansion(simply update flowClust gm)
-    if (gm == "flowClust") {
+    if (gm %in% c("flowClust", "gate_flowclust")) {
       if (dim_count == 1) {
-        this_row[1, gating_method := "flowClust.1d"] 
+        this_row[1, gating_method := "gate_flowclust_1d"] 
       } else {
-        this_row[1, gating_method := "flowClust.2d"] 
+        this_row[1, gating_method := "gate_flowclust_2d"] 
       }
     }
     res <- this_row
@@ -303,11 +303,11 @@ templateGen <- function(gh){
   } else if (grepl(paste("^", two_pop_pat, "$", sep = ""), popName)) {
     # A+/-
     
-    if (gm == "flowClust") {
+    if (gm %in% c("flowClust", "gate_flowclust")) {
       if (dim_count == 1) {
-        this_row[1, gating_method := "flowClust.1d"]
+        this_row[1, gating_method := "gate_flowclust_1d"]
       } else {
-        this_row[1, gating_method := "flowClust.2d"]
+        this_row[1, gating_method := "gate_flowclust_2d"]
       }
     }
     # expand to two rows
@@ -357,11 +357,11 @@ templateGen <- function(gh){
       res[, pop := new_pops]
     } else {
       
-      if (gm == "flowClust") {
+      if (gm %in% c("flowClust", "gate_flowclust")) {
         if (dim_count == 2) {
           message("expanding pop: ", popName, "\n")
           
-          this_row[1, gating_method := "flowClust.1d"]
+          this_row[1, gating_method := "gate_flowclust_1d"]
         } else {
           stop("dimensions '", dims, "' is not consistent with pop name '", 
               popName, "'")
@@ -388,9 +388,9 @@ templateGen <- function(gh){
       
     } else {
       
-      if (gm == "flowClust") {
+      if (gm %in% c("flowClust", "gate_flowclust")) {
         if (dim_count == 2) {
-          this_row[1, gating_method := "flowClust.1d"]
+          this_row[1, gating_method := "gate_flowclust_1d"]
           
         } else {
           stop("dimensions '", dims, "' is not consistent with pop name '", 

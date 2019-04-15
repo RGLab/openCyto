@@ -311,23 +311,23 @@ test_that(".preprocess_row", {
       expect_equal(suppressMessages(.preprocess_row(this_row)), expectRes)
       
       
-      #flowClust.1d
+      #gate_flowclust_1d
       this_row <- copy(template_row)
       this_row[, pop := "+"]
       this_row[, dims := "cd4"]
       this_row[, gating_method := "flowClust"]
       
       expectRes <- copy(this_row)
-      expectRes[, gating_method := "flowClust.1d"]
+      expectRes[, gating_method := "gate_flowclust_1d"]
       expectRes[, pop := "+"]
       expect_equal(.preprocess_row(this_row), expectRes)
       
-      #flowClust.2d
+      #gate_flowclust_2d
       this_row <- copy(template_row)
       this_row[, pop := "+"]
       this_row[, gating_method := "flowClust"]
       expectRes <- copy(this_row)
-      expectRes[, gating_method := "flowClust.2d"]
+      expectRes[, gating_method := "gate_flowclust_2d"]
       expect_equal(.preprocess_row(this_row), expectRes)
       
       #multi-pops

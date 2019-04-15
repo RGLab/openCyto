@@ -66,7 +66,7 @@
       #this is flowClust-specific operation, which
       # be abstracted out of this framework
       
-      if(grepl("flowClust\\.[12]d", gFunc))
+      if(grepl("(flowClust|gate_flowclust)[\\._][12]d", gFunc))
         filterRes <- fcRectangleGate(filterRes, priors = list(), posts = list())
       
       nPop <- length(popAlias)
@@ -180,10 +180,10 @@
 #' 
 #' @return a \code{filter} object
 #' @noRd 
-.flowClust.1d <- function(fr, pp_res = NULL, channels,...) {
+.gate_flowclust_1d <- function(fr, pp_res = NULL, channels,...) {
   
   if(length(channels) != 1)
-    stop("invalid number of channels for flowClust.1d!")
+    stop("invalid number of channels for gate_flowclust_1d!")
   prior <- pp_res
   
   priorList <- list()
@@ -274,7 +274,7 @@
 #' 
  
 #' @param ... arguments to be passed to \link{cytokine}
-#' @inheritParams .flowClust.1d 
+#' @inheritParams .gate_flowclust_1d 
 #' 
 #' @return a \code{filter} object
 #' @noRd 
@@ -287,7 +287,7 @@
 #' @param ... arguments to be passed to \link{tailgate}
 #' @name .tailgate
 #' @title tailgate
-#' @inheritParams .flowClust.1d 
+#' @inheritParams .gate_flowclust_1d 
 #' 
 #' @return a \code{filter} object
 #' @noRd 
@@ -343,7 +343,7 @@
 #' 
 
 #' @param ... arguments to be passed to \link{mindensity}
-#' @inheritParams .flowClust.1d 
+#' @inheritParams .gate_flowclust_1d 
 #' 
 #' @return a \code{filter} object
 #' @noRd 
@@ -370,18 +370,18 @@
   gate
 }
 
-#' wrapper for flowClust.2d
+#' wrapper for gate_flowclust_2d
 #' 
-#' It does some parameter preprocessing before calling the flowClust.2d
+#' It does some parameter preprocessing before calling the gate_flowclust_wd
 #' 
-#' @param ... arguments to be passed to \link{flowClust.2d}
-#' @inheritParams .flowClust.1d 
+#' @param ... arguments to be passed to \link{gate_flowclust_2d}
+#' @inheritParams .gate_flowclust_1d 
 #' 
 #' @return a \code{filter} object
 #' @noRd 
-.flowClust.2d <- function(fr, pp_res = NULL, channels, ...) {
+.gate_flowclust_2d <- function(fr, pp_res = NULL, channels, ...) {
   if(length(channels) != 2)
-    stop("invalid number of channels for flowClust.2d!")
+    stop("invalid number of channels for gate_flowclust_2d!")
   xChannel <- channels[1]
   yChannel <- channels[2]
   args <- list(...)
@@ -403,7 +403,7 @@
     usePrior <- "yes"
   }
   
-  do.call("flowClust.2d"
+  do.call("gate_flowclust_2d"
       ,args = c(list(fr = fr
                     , xChannel = xChannel
                     , yChannel = yChannel
@@ -421,7 +421,7 @@
 #' 
 #' @param pp_res not used
 #' @param ... arguments to be passed to \link[flowStats:rangeGate]{rangeGate}
-#' @inheritParams .flowClust.1d 
+#' @inheritParams .gate_flowclust_1d 
 #' 
 #' @return a \code{filter} object
 #' @importFrom flowStats rangeGate
@@ -435,7 +435,7 @@
 #' It does some parameter preprocessing before calling the quantileGate
 #' 
 #' @param ... arguments to be passed to \link{quantileGate}
-#' @inheritParams .flowClust.1d 
+#' @inheritParams .gate_flowclust_1d 
 #' 
 #' @return a \code{filter} object
 #' @noRd 
