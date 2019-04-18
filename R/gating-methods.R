@@ -237,7 +237,7 @@ roxygen_parameter <- function() {
   popAlias <- alias(gtPop)
   popName <- names(gtPop)
   popId <- gtPop@id
-  gs_nodes <- basename(gs_get_children(y[[1]], parent))
+  gs_nodes <- basename(gs_pop_get_children(y[[1]], parent))
   
   if (length(gs_nodes) == 0)
     isGated <- FALSE
@@ -248,7 +248,7 @@ roxygen_parameter <- function() {
   {
     message("Gating for '", popAlias, "'")
     
-    parent_data <- gs_get_data(y, parent)
+    parent_data <- gs_pop_get_data(y, parent)
     parallel_type <- match.arg(parallel_type)
     ## get the accurate channel name by matching to the fr
     frm <- parent_data[[1, use.exprs = FALSE]]
@@ -365,7 +365,7 @@ roxygen_parameter <- function() {
         popAlias <- NULL  
     }
     
-    gs_node_id <- gs_add_gate(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE, negated = negated)
+    gs_node_id <- gs_pop_add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE, negated = negated)
     message("done.")
     
   }else{
@@ -401,7 +401,7 @@ gt_gating.boolMethod <- function(x, y, ...) {
   popName <- names(gtPop)
   popId <- gtPop@id
   
-  gs_nodes <- basename(gs_get_children(y[[1]], parent))
+  gs_nodes <- basename(gs_pop_get_children(y[[1]], parent))
   tNodes <- deparse(args)
   if (!(popAlias %in% gs_nodes)) {
     message(popAlias, " gating...")
@@ -410,7 +410,7 @@ gt_gating.boolMethod <- function(x, y, ...) {
     #set recompute to FALSE because we want recompute method take over the
     #computing job since it is smart on determining whehter flow data needs to be loaded
     #for boolean gates
-    invisible(gs_node_id <- gs_add_gate(y, bf, parent = parent, name = popAlias))
+    invisible(gs_node_id <- gs_pop_add(y, bf, parent = parent, name = popAlias))
     newNode <- file.path(parent, popAlias)
     invisible(recompute(y, newNode))
     message("done.")
@@ -463,7 +463,7 @@ gt_gating.polyFunctions <- function(x, y, ...) {
   })
   polyExprsList <- as.vector(polyExprsList)
   
-  gs_nodes <- basename(gs_get_children(y[[1]], parent))
+  gs_nodes <- basename(gs_pop_get_children(y[[1]], parent))
   # actual gating
   lapply(polyExprsList, function(polyExpr) {
     
@@ -529,7 +529,7 @@ gt_gating.dummyMethod <- function(x, y, ...) {
   dims <- dims(x)
   
   my_gh <- y[[1]] 
-  gs_nodes <- basename(gs_get_children(my_gh, parent))
+  gs_nodes <- basename(gs_pop_get_children(my_gh, parent))
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     
     message("Population '", paste(popAlias, collapse = ","), "'")
@@ -537,17 +537,17 @@ gt_gating.dummyMethod <- function(x, y, ...) {
       stop("Not sure how to construct gate from more than 2 reference nodes!")
     }
     
-    fr <- gh_get_data(my_gh, use.exprs = FALSE)
+    fr <- gh_pop_get_data(my_gh, use.exprs = FALSE)
     
     #check if parent node is shared 
     #to determine whether simply grab the indices from ref nodes without recompute
-    ref_parents <- sapply(refNodes, function(refNode)gs_get_parent(my_gh, refNode))
+    ref_parents <- sapply(refNodes, function(refNode)gs_pop_get_parent(my_gh, refNode))
     isSameParent <- all(ref_parents == parent)
     flist <- flowWorkspace::lapply(y, function(gh) {
           
        glist <- lapply(refNodes, function(refNode) {
           
-          gh_get_gate(gh, refNode)
+          gh_pop_get_gate(gh, refNode)
         })
        
       # standardize the names for the gate parameters and dims
@@ -626,7 +626,7 @@ gt_gating.dummyMethod <- function(x, y, ...) {
           
           is_negated <- lapply(refNodes, function(refNode) {
             
-            flowWorkspace:::gh_is_negated(gh, refNode)
+            flowWorkspace:::gh_pop_is_negated(gh, refNode)
           })          
           x_ref <- refNodes[x_ref_id] 
           y_ref <- refNodes[y_ref_id]
@@ -740,7 +740,7 @@ gt_gating.dummyMethod <- function(x, y, ...) {
     })
     
     flist <- filterList(flist)
-    gs_node_id <- gs_add_gate(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE)
+    gs_node_id <- gs_pop_add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE)
     
     
   } else {

@@ -4,7 +4,7 @@ add_pop_history$records <- list()
 
 #' @title Deprecated functions in package \pkg{openCyto}.
 #' @templateVar old add_pop
-#' @templateVar new gs_add_pop
+#' @templateVar new gs_add_gating_method
 #' @template template-depr_pkg
 NULL
 #' apply a gating method to the \code{GatingSet}
@@ -13,11 +13,11 @@ NULL
 #' by supplying the gating description directly through arguments without the need to write the complete
 #' csv gating template. 
 #' 
-#' Calls to \code{gs_add_pop} can also be easily reversed with \code{\link{gs_remove_pop}}. Note, however, that it is not possible
+#' Calls to \code{gs_add_gating_method} can also be easily reversed with \code{\link{gs_remove_gating_method}}. Note, however, that it is not possible
 #' to differentiate between different \code{GatingSet} objects loaded from the same directory with 
-#' \code{\link[flowWorkspace]{load_gs}} within a session. Thus, to guarantee a clean history for \code{gs_remove_pop}, 
-#' it is necessary to call \code{\link{gs_add_pop_init}} on the loaded \code{GatingSet} immediately after re-loading it. 
-#' See the documentation for \code{\link{gs_add_pop_init}} for more details. 
+#' \code{\link[flowWorkspace]{load_gs}} within a session. Thus, to guarantee a clean history for \code{gs_remove_gating_method}, 
+#' it is necessary to call \code{\link{gs_add_gating_method_init}} on the loaded \code{GatingSet} immediately after re-loading it. 
+#' See the documentation for \code{\link{gs_add_gating_method_init}} for more details. 
 #' This will not be an issue for \code{GatingSet} objects created directly using the constructor. 
 #'      
 #'
@@ -31,21 +31,21 @@ NULL
 #'      \item{cl}{ \code{cluster} object passed to \code{parallel} package (when \code{parallel_type} is "cluster")}
 #'      }
 #' @export
-#' @seealso \code{\link{gs_remove_pop}} \code{\link{gs_add_pop_init}}
+#' @seealso \code{\link{gs_remove_gating_method}} \code{\link{gs_add_gating_method_init}}
 #' @examples 
 #' \dontrun{
 #' # add quad gates 
-#' gs_add_pop(gs, gating_method = "mindensity", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
+#' gs_add_gating_method(gs, gating_method = "mindensity", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
 #' 
 #' # polyfunctional gates (boolean combinations of exsiting marginal gates)
-#' gs_add_pop(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
+#' gs_add_gating_method(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
 #' 
 #' #boolGate method
-#' gs_add_pop(gs, alias = "IL2orIFNg", gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg") 
+#' gs_add_gating_method(gs, alias = "IL2orIFNg", gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg") 
 #' }
-#' @aliases gs_add_pop add_pop
-#' @rdname gs_add_pop
-gs_add_pop <- function(gs, alias = "*"
+#' @aliases gs_add_gating_method add_pop
+#' @rdname gs_add_gating_method
+gs_add_gating_method <- function(gs, alias = "*"
                        , pop = "+"
                        , parent
                        , dims = NA
@@ -114,7 +114,7 @@ gs_add_pop <- function(gs, alias = "*"
   if(!(identifier(gs) %in% names(add_pop_history$records))){
     add_pop_history$records[[identifier(gs)]] <- list()
     # Fresh record, so make the pre_add snapshot the first
-    # Otherwise, it's already there from the last call to gs_add_pop)
+    # Otherwise, it's already there from the last call to gs_add_gating_method)
     add_pop_history$records[[identifier(gs)]][[1]] <- pre_add_state
     
     ## If it's a GatingSetList, make this the first snapshot for each of its GatingSets if needed
@@ -140,7 +140,7 @@ gs_add_pop <- function(gs, alias = "*"
   
   invisible(thisRow)
 }
-#' @rdname gs_add_pop
+#' @rdname gs_add_gating_method
 #' @export
 add_pop <- function(gs, alias = "*"
                     , pop = "+"
@@ -154,8 +154,8 @@ add_pop <- function(gs, alias = "*"
                     , preprocessing_args = NA
                     , strip_extra_quotes = FALSE
                     , ...){
-  .Deprecated("gs_add_pop")
-  gs_add_pop(gs, alias, pop, parent, dims, gating_method
+  .Deprecated("gs_add_gating_method")
+  gs_add_gating_method(gs, alias, pop, parent, dims, gating_method
              , gating_args, collapseDataForGating, groupBy
              , preprocessing_method, preprocessing_args
              , strip_extra_quotes, ...)
@@ -163,46 +163,46 @@ add_pop <- function(gs, alias = "*"
 
 
 #' @templateVar old add_pop_init
-#' @templateVar new gs_add_pop_init
+#' @templateVar new gs_add_gating_method_init
 #' @template template-depr_pkg
 NULL
-#' Clear history of \code{gs_add_pop} calls for a given \code{GatingSet} or \code{GatingSetList}
+#' Clear history of \code{gs_add_gating_method} calls for a given \code{GatingSet} or \code{GatingSetList}
 #' 
 #' Repeated calls to the \code{\link{load_gs}} method in the same session
 #' will yield indistinguishable objects that can result in overlapping history
-#' of \code{\link{gs_add_pop}} calls. This method allows for the history to be cleared
+#' of \code{\link{gs_add_gating_method}} calls. This method allows for the history to be cleared
 #' if the user would like to reload the \code{GatingSet} and start fresh. Calling
-#' gs_add_pop_init without an argument will clear the entire gs_add_pop history.
+#' gs_add_gating_method_init without an argument will clear the entire gs_add_gating_method history.
 #' 
 #' @usage 
-#' gs_add_pop_init(GatingSet)
-#' gs_add_pop_init(GatingSetList)
-#' gs_add_pop_init()
+#' gs_add_gating_method_init(GatingSet)
+#' gs_add_gating_method_init(GatingSetList)
+#' gs_add_gating_method_init()
 #' 
 #' @examples
 #' \dontrun{
 #' # load in a GatingSet
 #' gs <- load_gs(path)
-#' # Add some nodes using gs_add_pop
-#' gs_add_pop(gs, gating_method = "mindensity", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
-#' gs_add_pop(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
-#' # Remove the effect of the last gs_add_pop call using gs_remove_pop (note that the first call's effects remain)
-#' gs_remove_pop(gs)
+#' # Add some nodes using gs_add_gating_method
+#' gs_add_gating_method(gs, gating_method = "mindensity", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
+#' gs_add_gating_method(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
+#' # Remove the effect of the last gs_add_gating_method call using gs_remove_gating_method (note that the first call's effects remain)
+#' gs_remove_gating_method(gs)
 #' # Re-load the GatingSet to start over
 #' gs <- load_gs(path)
 #' 
-#' # At this point, gs will still see the history of the first gs_add_pop call above
-#' # which will cause problems for later calls to gs_remove_pop.
-#' # To fix that, just call gs_add_pop_init() to start a clean history
-#' gs_add_pop_init(gs)
-#' # Now you can continue using gs_add_pop and gs_remove_pop from scratch
-#' gs_add_pop(gs, gating_method = "mindensity", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
+#' # At this point, gs will still see the history of the first gs_add_gating_method call above
+#' # which will cause problems for later calls to gs_remove_gating_method.
+#' # To fix that, just call gs_add_gating_method_init() to start a clean history
+#' gs_add_gating_method_init(gs)
+#' # Now you can continue using gs_add_gating_method and gs_remove_gating_method from scratch
+#' gs_add_gating_method(gs, gating_method = "mindensity", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "CCR7+/-CD45RA+/-")
 #' }
 #' 
 #' @export
-#' @aliases gs_add_pop_init add_pop_init
-#' @rdname gs_add_pop_init
-gs_add_pop_init <- function(gs = NULL){
+#' @aliases gs_add_gating_method_init add_pop_init
+#' @rdname gs_add_gating_method_init
+gs_add_gating_method_init <- function(gs = NULL){
   if(!is.null(gs)){
     if(is(gs, "GatingSetList")){
       lapply(gs, function(x) add_pop_history$records[[identifier(x)]] <- NULL)
@@ -213,9 +213,9 @@ gs_add_pop_init <- function(gs = NULL){
   }
 }
 
-#' @rdname gs_add_pop_init
+#' @rdname gs_add_gating_method_init
 #' @export
 add_pop_init <- function(gs = NULL){
-  .Deprecated("gs_add_pop_init")
-  gs_add_pop_init(gs)
+  .Deprecated("gs_add_gating_method_init")
+  gs_add_gating_method_init(gs)
 }

@@ -12,7 +12,7 @@ NULL
 #' @param gt gatingTemplate object
 #' @param gs GatingSet
 #' @export
-#' @importFrom flowWorkspace gh_set_node_visible gs_get_pop_paths gs_get_children
+#' @importFrom flowWorkspace gh_pop_set_visibility gs_get_pop_paths gs_pop_get_children
 #' @examples 
 #' \dontrun{
 #' gt <- gatingTemplate(gtFile)
@@ -29,9 +29,9 @@ gt_toggle_helpergates <- function(gt, gs){
   nonHiddenNodes <- gs_get_pop_paths(gs, showHidden = FALSE, path = "full")
   for(i in helperGates){
       if(i%in%nonHiddenNodes)
-		  gh_set_node_visible(gs, i, FALSE)
+		  gh_pop_set_visibility(gs, i, FALSE)
       else
-		  gh_set_node_visible(gs, i, TRUE)
+		  gh_pop_set_visibility(gs, i, TRUE)
   }
 }
 
@@ -60,7 +60,7 @@ gt_get_helpergates <- function(gt, gs){
   referree <- intersect(gated.nodes, referree)#restrict to the gated nodes
   gh <- gs[[1]]
   isHelper <- sapply(referree, function(node){
-    children <- gs_get_children(gh, node)
+    children <- gs_pop_get_children(gh, node)
     if(length(children) == 0)
       return(TRUE)
     else{
@@ -94,7 +94,7 @@ gt_delete_helpergates <- function(gt, gs){
   
   for(i in helperGates){
       if(i%in%gs_get_pop_paths(gs))
-        gs_remove_gate(i, gs)
+        gs_pop_remove(i, gs = gs)
   }
 }
 

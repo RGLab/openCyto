@@ -528,7 +528,7 @@
    if (is.null(prior_source)) {
      prior_data <- fs
    } else {
-     prior_data <- gs_get_data(gs, prior_source)
+     prior_data <- gs_pop_get_data(gs, prior_source)
    }
 #    browser()
    

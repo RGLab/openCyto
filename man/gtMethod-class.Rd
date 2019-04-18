@@ -30,6 +30,6 @@ A gating method object contains the specifics for generating the gates.
 \examples{
  \dontrun{
      gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
-     gh_get_gate(gt, '2', '3')
+     gh_pop_get_gate(gt, '2', '3')
 }
 }

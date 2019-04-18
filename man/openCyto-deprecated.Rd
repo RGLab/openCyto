@@ -7,9 +7,9 @@
 \alias{openCyto-deprecated}
 \title{Deprecated functions in package \pkg{openCyto}.}
 \description{
-\code{add_pop} --> \code{\link{gs_add_pop}}
+\code{add_pop} --> \code{\link{gs_add_gating_method}}
 
-\code{add_pop_init} --> \code{\link{gs_add_pop_init}}
+\code{add_pop_init} --> \code{\link{gs_add_gating_method_init}}
 
 \code{prior_flowClust} --> \code{\link{prior_flowclust}}
 
@@ -41,7 +41,7 @@
 
 \code{registerPlugins} --> \code{\link{register_plugins}}
 
-\code{remove_pop} --> \code{\link{gs_remove_pop}}
+\code{remove_pop} --> \code{\link{gs_remove_gating_method}}
 
 \code{tautString} --> \code{\link{tautstring}}
 

@@ -41,12 +41,12 @@ test_that("tcell", {
       expect_equal(length(gs_get_pop_paths(gs1, showHidden = TRUE)), 19)
       
       
-      thisRes <- gs_get_pop_stats(gs, path = "full", format = "wide")
+      thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_tcell"]]
       expect_equal(thisRes, expectRes, tol = 0.04)
       
       #test the interactive gating API
-      nodes <- gs_get_children(gs[[1]], "cd4-cd8+")
+      nodes <- gs_pop_get_children(gs[[1]], "cd4-cd8+")
       for(node in nodes)
         Rm(node, gs)
       opt <- getOption("openCyto")
@@ -60,7 +60,7 @@ test_that("tcell", {
       options(openCyto = opt)
       #test new .mindensity2 wrapper
       add_pop(gs, gating_method = "mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "+/-+/-")
-      thisRes <- gs_get_pop_stats(gs, path = "full", format = "wide")
+      thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
       
       expect_true(all(c("cd4-cd8+/CD38+", "cd4-cd8+/HLA+") %in% gs_get_pop_paths(gs, path = "auto")))
@@ -77,7 +77,7 @@ test_that("tcell", {
                       , preprocessing_method = "standardize_flowset"
                         )      
       , regexp = "HLA is partially matched")
-      thisRes <- gs_get_pop_stats(gs, path = "full", format = "wide")
+      thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
       
       #pure +-
@@ -92,12 +92,12 @@ test_that("tcell", {
               , preprocessing_method = "standardize_flowset"
             )      
       , regexp = "HLA is partially matched")
-      thisRes <- gs_get_pop_stats(gs, path = "full", format = "wide")
+      thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
       
       
       #test keep.helperGates = FALSE
-      nodes <- gs_get_children(gs[[1]], "cd4-cd8+")
+      nodes <- gs_pop_get_children(gs[[1]], "cd4-cd8+")
       for(node in nodes)
         Rm(node, gs)
       expect_warning(
@@ -106,7 +106,7 @@ test_that("tcell", {
                 , alias = "activated cd8", keep.helperGates = FALSE)
         , regexp = "HLA is partially matched")
       expect_false(any(c("cd4-cd8+/CD38+", "cd4-cd8+/HLA+") %in% gs_get_pop_paths(gs, path = "auto")))
-      expect_equal(gs_get_children(gs[[1]], "cd4-cd8+", path = "auto"), "activated cd8")
+      expect_equal(gs_pop_get_children(gs[[1]], "cd4-cd8+", path = "auto"), "activated cd8")
       
     })
 
@@ -124,7 +124,7 @@ test_that("tcell--asinhtGml2", {
   trans.list <- transformerList(chnls, trans)
   gs <- transform(gs, trans.list)
   
-  # autoplot(gs_get_data(gs), chnls[1])
+  # autoplot(gs_pop_get_data(gs), chnls[1])
   
   #load gating template
   localPath <- "~/rglab/workspace/openCyto"
@@ -138,7 +138,7 @@ test_that("tcell--asinhtGml2", {
   expect_warning(gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore"), regexp = "HLA is partially matched")
   # autoplot(gs[[1]])  
   
-  thisRes <- gs_get_pop_stats(gs, path = "full")
+  thisRes <- gs_pop_get_count_fast(gs, path = "full")
   expectRes <- gatingResults[["gating_tcell_asinhtGml2"]]
   expect_equal(thisRes, expectRes, tol = 0.01)
 
@@ -155,19 +155,19 @@ test_that("ICS", {
       Rm("s", gs)
       expect_warning(gating(gt, gs, mc.core = 2, parallel_type = "multicore"), regexp = "Pacific Blue-A is partially matched")
       
-      thisRes <- gs_get_pop_stats(gs, path = "full", format = "wide")
+      thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_ICS"]]
       expect_equal(thisRes, expectRes, tol = 0.05)
       
       #test add_pop with polyFunctions
-      nodes <- gs_get_children(gs[[1]], "cd8")[-(1:4)]
+      nodes <- gs_pop_get_children(gs[[1]], "cd8")[-(1:4)]
       for(node in nodes)
         Rm(node, gs)
       expect_warning(
         add_pop(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
       , regexp = "is replaced with")
       
-      thisRes <- gs_get_pop_stats(gs, path = "full", format = "wide")
+      thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
       
       #test add_pop with boolean method
@@ -175,7 +175,7 @@ test_that("ICS", {
       Rm(pop, gs)
       add_pop(gs, alias = pop, gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg")
       
-      thisRes <- gs_get_pop_stats(gs, path = "full", format = "wide")
+      thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
     })
 
@@ -189,7 +189,7 @@ test_that("treg", {
       Rm("boundary", gs)
       expect_warning(gating(gt, gs, mc.core = 3, parallel_type = "multicore"), "did not converge")
       
-      thisRes <- gs_get_pop_stats(gs, path = "full", format = "wide")
+      thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_treg"]]
       expect_equal(thisRes, expectRes, tol = 0.25)
       
@@ -205,7 +205,7 @@ test_that("bcell", {
       Rm("boundary", gs)
       expect_warning(gating(gt, gs, mc.core = 3, parallel_type = "multicore"), "did not converge")
       
-      thisRes <- gs_get_pop_stats(gs, path = "full", format = "wide")
+      thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expectRes <- gatingResults[["gating_bcell"]]
       expect_equal(thisRes, expectRes, tol = 0.08)
       
