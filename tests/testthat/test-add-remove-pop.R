@@ -9,7 +9,7 @@ test_that("gs_remove_gating_method testing", {
   snapshot_pre <- gs_get_pop_paths(gs)
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
   snapshot_1 <- gs_get_pop_paths(gs)
-  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", pop = "+-", gating_method = "mindensity")
   snapshot_2 <- gs_get_pop_paths(gs)
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "gate_quantile", gating_args = "probs = 0.95")
@@ -22,7 +22,7 @@ test_that("gs_remove_gating_method testing", {
   expect_equal(gs_get_pop_paths(gs), snapshot_pre)
   expect_error(gs_remove_gating_method(gs))
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
-  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", pop = "+-", gating_method = "mindensity")
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "gate_quantile", gating_args = "probs = 0.98")
   expect_equal(gs_get_pop_paths(gs), snapshot_3)
@@ -37,7 +37,7 @@ test_that("gs_remove_gating_method testing", {
   expect_equal(gs_get_pop_paths(gslist[[1]]), snapshot_pre)
   gs_add_gating_method(gslist, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
   expect_equal(gs_get_pop_paths(gslist[[1]]), snapshot_1)
-  gs_add_gating_method(gslist, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  gs_add_gating_method(gslist, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", pop = "+-", gating_method = "mindensity")
   expect_equal(gs_get_pop_paths(gslist[[1]]), snapshot_2)
   gs_add_gating_method(gslist, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "gate_quantile", gating_args = "probs = 0.95")
@@ -50,7 +50,7 @@ test_that("gs_remove_gating_method testing", {
   expect_equal(gs_get_pop_paths(gslist[[2]]), snapshot_pre)
   expect_error(gs_remove_gating_method(gslist))
   gs_add_gating_method(gslist, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
-  gs_add_gating_method(gslist, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  gs_add_gating_method(gslist, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", pop = "+-", gating_method = "mindensity")
   gs_add_gating_method(gslist, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "gate_quantile", gating_args = "probs = 0.98")
   expect_equal(gs_get_pop_paths(gslist[[2]]), snapshot_3)
@@ -62,7 +62,7 @@ test_that("gs_remove_gating_method testing", {
   expect_equal(gs_get_pop_paths(gs2), snapshot_pre)
   gs_add_gating_method(gs2, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
   expect_equal(gs_get_pop_paths(gs2), snapshot_1)
-  gs_add_gating_method(gs2, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  gs_add_gating_method(gs2, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", pop = "+-", gating_method = "mindensity")
   expect_equal(gs_get_pop_paths(gs2), snapshot_2)
   gs_add_gating_method(gs2, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "gate_quantile", gating_args = "probs = 0.95")
@@ -75,7 +75,7 @@ test_that("gs_remove_gating_method testing", {
   expect_equal(gs_get_pop_paths(gs2), snapshot_pre)
   expect_error(gs_remove_gating_method(gs2))
   gs_add_gating_method(gs2, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
-  gs_add_gating_method(gs2, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  gs_add_gating_method(gs2, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", pop = "+-", gating_method = "mindensity")
   gs_add_gating_method(gs2, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "gate_quantile", gating_args = "probs = 0.98")
   expect_equal(gs_get_pop_paths(gs2), snapshot_3)
@@ -89,7 +89,7 @@ test_that("gs_remove_gating_method testing", {
   expect_equal(gs_get_pop_paths(gs), snapshot_pre)
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
   expect_equal(gs_get_pop_paths(gs), snapshot_1)
-  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", pop = "+-", gating_method = "mindensity")
   expect_equal(gs_get_pop_paths(gs), snapshot_2)
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "gate_quantile", gating_args = "probs = 0.95")
@@ -101,7 +101,7 @@ test_that("gs_remove_gating_method testing", {
   gs_remove_gating_method(gs)
   expect_equal(gs_get_pop_paths(gs), snapshot_pre)
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
-  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", pop = "+-", gating_method = "mindensity")
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "gate_quantile", gating_args = "probs = 0.98")
   expect_equal(gs_get_pop_paths(gs), snapshot_3)
@@ -113,7 +113,7 @@ test_that("gs_remove_gating_method testing", {
   expect_equal(gs_get_pop_paths(gs), snapshot_pre)
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
   expect_equal(gs_get_pop_paths(gs), snapshot_1)
-  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", pop = "+-", gating_method = "mindensity")
   expect_equal(gs_get_pop_paths(gs), snapshot_2)
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "gate_quantile", gating_args = "probs = 0.95")
@@ -126,7 +126,7 @@ test_that("gs_remove_gating_method testing", {
   expect_equal(gs_get_pop_paths(gs), snapshot_pre)
   expect_error(gs_remove_gating_method(gs))
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
-  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", gating_method = "flowClust", gating_args = "K=2")
+  gs_add_gating_method(gs, alias = "test_gate", parent = "/not debris/singlets", dims = "CD8,CD4", pop = "+-", gating_method = "mindensity")
   gs_add_gating_method(gs, alias = "*", pop = "+/-", parent = "/not debris/singlets/CD3+/DNT", dims = "CCR7", 
           gating_method = "gate_quantile", gating_args = "probs = 0.98")
   expect_equal(gs_get_pop_paths(gs), snapshot_3)
