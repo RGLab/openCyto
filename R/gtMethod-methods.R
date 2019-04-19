@@ -36,7 +36,7 @@ setMethod("show", signature = c("boolMethod"), definition = function(object) {
 #' isCollapse(gtMthd)
 #' groupBy(gtMthd)
 #' 
-#' gtPop <- gt_get_pop_paths(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
+#' gtPop <- gt_get_nodes(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
 #' names(gtPop)
 #' alias(gtPop)
 #' }

@@ -29,7 +29,7 @@
 
 \code{gating} --> \code{\link{gt_gating}}
 
-\code{getNodes} --> \code{\link{gt_get_pop_paths}}
+\code{getNodes} --> \code{\link{gt_get_nodes}}
 
 \code{getChildren} --> \code{\link{gt_get_children}}
 

@@ -24,7 +24,7 @@ get parent nodes
 \dontrun{
 gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
 
-gt_get_pop_paths(gt, "/nonDebris")
+gt_get_nodes(gt, "/nonDebris")
 gt_get_parent(gt, "/nonDebris/singlets") 
 }
 }

@@ -50,7 +50,7 @@ NULL
 #' @export
 gt_get_helpergates <- function(gt, gs){
   gated.nodes <- gs_get_pop_paths(gs, showHidden = TRUE, path = "full")
-  referror <- names(gt_get_pop_paths(gt, only.names = T))[-1]
+  referror <- names(gt_get_nodes(gt, only.names = T))[-1]
   referror <- intersect(gated.nodes, referror)#restrict to the gated nodes
   
   referree <- sapply(referror, function(node){

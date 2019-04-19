@@ -1,5 +1,5 @@
 #' @templateVar old getNodes
-#' @templateVar new gt_get_pop_paths
+#' @templateVar new gt_get_nodes
 #' @template template-depr_pkg
 NULL
 #' get nodes from \link[openCyto:gatingTemplate-class]{gatingTemplate} object
@@ -12,14 +12,14 @@ NULL
 #' @examples 
 #' \dontrun{
 #' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
-#' gt_get_pop_paths(gt)[1:2]
-#' gt_get_pop_paths(gt, only.names = TRUE)
-#' gt_get_pop_paths(gt, "/nonDebris")
+#' gt_get_nodes(gt)[1:2]
+#' gt_get_nodes(gt, only.names = TRUE)
+#' gt_get_nodes(gt, "/nonDebris")
 #' }
 #' @export 
 #' @aliases getNodes,gatingTemplate-method
-#' @rdname gt_get_pop_paths
-gt_get_pop_paths <- function(x, y
+#' @rdname gt_get_nodes
+gt_get_nodes <- function(x, y
                              , order = c("default", "bfs", "dfs", "tsort")
                              , only.names = FALSE) {
   
@@ -43,14 +43,14 @@ gt_get_pop_paths <- function(x, y
     res <- res[[1]]
   res
 }
-#' @rdname gt_get_pop_paths
+#' @rdname gt_get_nodes
 #' @export
 setMethod("getNodes", signature = c("gatingTemplate"),
           definition = function(x, y
                                   , order = c("default", "bfs", "dfs", "tsort")
                                   , only.names = FALSE) {
-            .Deprecated("gt_get_pop_paths")
-            gt_get_pop_paths(x, y, order, only.names)
+            .Deprecated("gt_get_nodes")
+            gt_get_nodes(x, y, order, only.names)
 })
 
 #' @templateVar old getChildren
@@ -67,7 +67,7 @@ NULL
 #' \dontrun{
 #' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
 #' 
-#' gt_get_pop_paths(gt, "/nonDebris")
+#' gt_get_nodes(gt, "/nonDebris")
 #' gt_get_children(gt, "/nonDebris") 
 #' }
 #' @importClassesFrom methods character ANY data.frame environment list logical matrix missing numeric oldClass
@@ -102,7 +102,7 @@ NULL
 #' \dontrun{
 #' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
 #' 
-#' gt_get_pop_paths(gt, "/nonDebris")
+#' gt_get_nodes(gt, "/nonDebris")
 #' gt_get_parent(gt, "/nonDebris/singlets") 
 #' }
 #' @rdname gt_get_parent
@@ -141,8 +141,8 @@ NULL
 #' @examples 
 #' \dontrun{
 #' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
-#' gt_get_pop_paths(gt, only.names = TRUE)
-#' gt_get_pop_paths(gt, "/nonDebris")
+#' gt_get_nodes(gt, only.names = TRUE)
+#' gt_get_nodes(gt, "/nonDebris")
 #' gt_get_children(gt, "/nonDebris")
 #' gt_get_gate(gt, "/nonDebris", "/nonDebris/singlets")
 #' }
@@ -337,8 +337,8 @@ setMethod("plot", signature = c("gatingTemplate"),
 setMethod("plot",c("gatingTemplate","character"),function(x,y,...){
       
       #convert alias to nodeID
-      allNodes <- gt_get_pop_paths(x)
-      allAlias <- laply(allNodes, alias)
+      allNodes <- gt_get_nodes(x)
+      allAlias <- lapply(allNodes, alias)
       nodeInd <- match(y, allAlias)
       thisNode <- allNodes[nodeInd]
       thisId <- names(thisNode)

@@ -10,7 +10,7 @@ as.data.table.gatingTemplate <- function(x, keep.rownames = FALSE){
   
   
   # gate each node 
-  gt_nodes <- gt_get_pop_paths(x, order = "tsort")[-1]
+  gt_nodes <- gt_get_nodes(x, order = "tsort")[-1]
   
   
   res <- lapply(gt_nodes, function(node){

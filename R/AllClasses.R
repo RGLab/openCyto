@@ -251,7 +251,7 @@ setClass("polyFunctions", contains = "boolMethod")
 #'  \dontrun{
 #'      gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
 #'       
-#'      gt_get_pop_paths(gt, '2')
+#'      gt_get_nodes(gt, '2')
 #' }
 setClass("gtPopulation", representation(id = "character", name = "character",
                                         alias = "character"

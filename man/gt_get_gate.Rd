@@ -23,8 +23,8 @@ get gating method from the node
 \examples{
 \dontrun{
 gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
-gt_get_pop_paths(gt, only.names = TRUE)
-gt_get_pop_paths(gt, "/nonDebris")
+gt_get_nodes(gt, only.names = TRUE)
+gt_get_nodes(gt, "/nonDebris")
 gt_get_children(gt, "/nonDebris")
 gt_get_gate(gt, "/nonDebris", "/nonDebris/singlets")
 }

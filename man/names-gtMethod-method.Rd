@@ -24,7 +24,7 @@ parameters(gtMthd)
 isCollapse(gtMthd)
 groupBy(gtMthd)
 
-gtPop <- gt_get_pop_paths(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
+gtPop <- gt_get_nodes(gt, "/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD38+")
 names(gtPop)
 alias(gtPop)
 }

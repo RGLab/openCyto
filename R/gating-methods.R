@@ -84,7 +84,7 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
     
   }
   
-  nodePaths <- names(sapply(gt_get_pop_paths(gt),alias))
+  nodePaths <- names(sapply(gt_get_nodes(gt),alias))
     #validity check for stop.at argument
   if(!is.null(stop.at)){
     #escape meta character
@@ -123,7 +123,7 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
   for (node in gt_nodes) {
     
     # get parent node to gate
-    gt_node_pop <- gt_get_pop_paths(gt, node)
+    gt_node_pop <- gt_get_nodes(gt, node)
     parent <- gt_get_parent(gt, node)
     
     if(!is.null(stop.at)){
