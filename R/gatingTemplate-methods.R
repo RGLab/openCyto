@@ -338,7 +338,7 @@ setMethod("plot",c("gatingTemplate","character"),function(x,y,...){
       
       #convert alias to nodeID
       allNodes <- gt_get_nodes(x)
-      allAlias <- lapply(allNodes, alias)
+      allAlias <- laply(allNodes, alias)
       nodeInd <- match(y, allAlias)
       thisNode <- allNodes[nodeInd]
       thisId <- names(thisNode)
