@@ -106,7 +106,7 @@ Here is the an example of the gating template.
 library(openCyto)
 library(data.table)
 gtFile <- system.file("extdata/gating_template/tcell.csv", package = "openCyto")
-dtTemplate <- fread(gtFile, skip = 1L)
+dtTemplate <- fread(gtFile)
 dtTemplate
 ```
 Each row is usually corresponding to one cell population and the gating method that is used to get that population.
