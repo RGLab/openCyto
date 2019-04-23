@@ -7,9 +7,9 @@ localPath <- "/home/wjiang2/rglab/workspace/openCyto"
 
 test_that("tcell", {
       
-      gt_tcell <- gatingTemplate(gtFile, autostart = 1L)
+      gt_tcell <- gatingTemplate(gtFile)
       
-      gs <- load_gs(file.path(localPath,"misc/testSuite/gs-tcell"))
+      gs <- load_gs(file.path(localPath,"misc/testSuite/legacy_gs/gs-tcell"))
       
       expect_warning(gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore"), regexp = "HLA is partially matched")
       
@@ -28,11 +28,11 @@ test_that("tcell", {
                                           '/nonDebris/singlets/lymph/cd3/cd4-cd8+/CD38+',
                                           '/nonDebris/singlets/lymph/cd3/cd4-cd8+/HLA+')))
       #hide
-      toggle.helperGates(gt_tcell, gs)
+      gt_toggle_helpergates(gt_tcell, gs)
       expect_equal(length(gs_get_pop_paths(gs)), 19)
       expect_equal(length(gs_get_pop_paths(gs, showHidden = TRUE)), 29)
       #recover
-      toggle.helperGates(gt_tcell, gs)
+      gt_toggle_helpergates(gt_tcell, gs)
       expect_equal(length(gs_get_pop_paths(gs)), 29)
     
       #rm helper gates
@@ -48,7 +48,7 @@ test_that("tcell", {
       #test the interactive gating API
       nodes <- gs_pop_get_children(gs[[1]], "cd4-cd8+")
       for(node in nodes)
-        Rm(node, gs)
+        gs_pop_remove(gs, node)
       opt <- getOption("openCyto")
       opt[["check.pop"]] <- FALSE
       options(openCyto = opt)
@@ -68,7 +68,7 @@ test_that("tcell", {
      
       #use channel in pop and stains in dims
       for(node in nodes[7:9])
-        Rm(node, gs)
+        gs_pop_remove(gs, node)
       expect_warning(add_pop(gs, gating_method = "tailgate"
                       , dims = "CD38,HLA"
                       , parent = "cd4-cd8+"
@@ -82,7 +82,7 @@ test_that("tcell", {
       
       #pure +-
       for(node in nodes[7:9])
-        Rm(node, gs)
+        gs_pop_remove(gs, node)
       expect_warning(
         add_pop(gs, gating_method = "tailgate"
               , dims = "CD38,HLA"
@@ -99,7 +99,7 @@ test_that("tcell", {
       #test keep.helperGates = FALSE
       nodes <- gs_pop_get_children(gs[[1]], "cd4-cd8+")
       for(node in nodes)
-        Rm(node, gs)
+        gs_pop_remove(gs, node)
       expect_warning(
         add_pop(gs, gating_method = "tailgate", dims = "CD38,HLA"
                 , parent = "cd4-cd8+", pop = "++"
@@ -134,7 +134,7 @@ test_that("tcell--asinhtGml2", {
   dt[c(5, 8), gating_args := NA]
   tmp <- tempfile()
   write.csv(dt, file = tmp, row.names = FALSE)
-  gt_tcell <- gatingTemplate(tmp, autostart = 1L)
+  gt_tcell <- gatingTemplate(tmp)
   expect_warning(gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore"), regexp = "HLA is partially matched")
   # autoplot(gs[[1]])  
   
@@ -151,8 +151,8 @@ test_that("ICS", {
       gt <- gatingTemplate(gtfile)
       
       
-      gs <- load_gs(file.path(localPath,"misc/testSuite/gs-ICS"))
-      Rm("s", gs)
+      gs <- load_gs(file.path(localPath,"misc/testSuite/legacy_gs/gs-ICS"))
+      gs_pop_remove(gs, "s")
       expect_warning(gating(gt, gs, mc.core = 2, parallel_type = "multicore"), regexp = "Pacific Blue-A is partially matched")
       
       thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
@@ -162,7 +162,7 @@ test_that("ICS", {
       #test add_pop with polyFunctions
       nodes <- gs_pop_get_children(gs[[1]], "cd8")[-(1:4)]
       for(node in nodes)
-        Rm(node, gs)
+        gs_pop_remove(gs, node)
       expect_warning(
         add_pop(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
       , regexp = "is replaced with")
@@ -172,7 +172,7 @@ test_that("ICS", {
       
       #test add_pop with boolean method
       pop <- "IL2orIFNg"
-      Rm(pop, gs)
+      gs_pop_remove(gs, pop)
       add_pop(gs, alias = pop, gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg")
       
       thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
@@ -185,8 +185,8 @@ test_that("treg", {
       gtfile <- system.file("extdata/gating_template/treg.csv", package = "openCyto")
       gt <- gatingTemplate(gtfile)
       
-      gs <- load_gs(file.path(localPath,"misc/testSuite/gs-treg"))
-      Rm("boundary", gs)
+      gs <- load_gs(file.path(localPath,"misc/testSuite/legacy_gs/gs-treg"))
+      gs_pop_remove(gs, "boundary")
       expect_warning(gating(gt, gs, mc.core = 3, parallel_type = "multicore"), "did not converge")
       
       thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
@@ -201,8 +201,8 @@ test_that("bcell", {
       gtfile <- system.file("extdata/gating_template/bcell.csv", package = "openCyto")
       gt <- gatingTemplate(gtfile)
       
-      gs <- load_gs(path = file.path(localPath,"misc/testSuite/gs-bcell"))
-      Rm("boundary", gs)
+      gs <- load_gs(path = file.path(localPath,"misc/testSuite/legacy_gs/gs-bcell"))
+      gs_pop_remove(gs, "boundary")
       expect_warning(gating(gt, gs, mc.core = 3, parallel_type = "multicore"), "did not converge")
       
       thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")

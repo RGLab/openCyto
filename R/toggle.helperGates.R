@@ -29,9 +29,9 @@ gt_toggle_helpergates <- function(gt, gs){
   nonHiddenNodes <- gs_get_pop_paths(gs, showHidden = FALSE, path = "full")
   for(i in helperGates){
       if(i%in%nonHiddenNodes)
-		  gh_pop_set_visibility(gs, i, FALSE)
+		  gs_pop_set_visibility(gs, i, FALSE)
       else
-		  gh_pop_set_visibility(gs, i, TRUE)
+		  gs_pop_set_visibility(gs, i, TRUE)
   }
 }
 
