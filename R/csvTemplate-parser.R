@@ -73,7 +73,8 @@ templateGen <- function(gh){
     if(curToken == "root")
       res_path <- c(res_path, "root")
     else{
-      toMatch <- gsub("\\+", "\\\\\\+", curToken)
+      # toMatch <- gsub("\\+", "\\\\\\+", curToken)
+      toMatch <- paste0("\\Q",curToken,"\\E")
       toMatch <- paste0("^",toMatch,"$")
       ind <- grep(toMatch, dt_toSearch[, alias])
       if(length(ind) == 0)
@@ -152,13 +153,21 @@ templateGen <- function(gh){
   res<- lapply(1:nrow(dt), function(i){
     
     row <- dt[i,]
-    rbindlist(
-          lapply(strsplit(row[, parent], split = ",")[[1]], function(p){
-                r <- copy(row)
-                r[, parent := p]
-                r
-                })
-            )
+    parent <- row[, parent]
+    if(!grepl(",", parent))
+      row
+    else
+    {
+      message("splitting the row that has multiple parents: '", parent, "'")
+      rbindlist(
+        lapply(strsplit(parent, split = ",")[[1]], function(p){
+          r <- copy(row)
+          r[, parent := p]
+          r
+        })
+      ) 
+    }
+     
   })
  
   rbindlist(res)
@@ -311,11 +320,12 @@ templateGen <- function(gh){
       }
     }
     # expand to two rows
-    message("expanding pop: ", popName, "\n")
     new_pops <- c("+", "-")
     
     if(dim_count == 1){
       new_alias <- paste(dims, new_pops, sep = "")  
+      if(!trimws(alias) %in% c("", "*"))
+        message("alias '", alias, "' is ignored since pop names are auto-generated from 'dims' when pop = '+/-' ")
     }else if(dim_count == 2)
     {
       
@@ -326,6 +336,7 @@ templateGen <- function(gh){
     }else
       stop("Don't know how to handle ", popName, " for multi-dimensional gating! ")
     
+    message("expanding pop: ", popName, " to ", paste(new_alias, collapse = "/"), "\n")
     
     
     
