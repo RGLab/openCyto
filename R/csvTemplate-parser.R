@@ -62,7 +62,8 @@ templateGen <- function(gh){
     if(curToken == "root")
       res_path <- c(res_path, "root")
     else{
-      toMatch <- gsub("\\+", "\\\\\\+", curToken)
+      # toMatch <- gsub("\\+", "\\\\\\+", curToken)
+      toMatch <- paste0("\\Q",curToken,"\\E")
       toMatch <- paste0("^",toMatch,"$")
       ind <- grep(toMatch, dt_toSearch[, alias])
       if(length(ind) == 0)
