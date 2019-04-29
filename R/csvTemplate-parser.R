@@ -13,6 +13,10 @@ NULL
 #' @return a gating template in \code{data.frame} format that requires further edition after output to csv
 #' @rdname gh_generate_template 
 #' @export 
+#' @examples 
+#' dataDir <- system.file("extdata",package="flowWorkspaceData")
+#' gs <- load_gs(list.files(dataDir, pattern = "gs_manual",full = TRUE))
+#' gh_generate_template(gs[[1]])
 gh_generate_template <- function(gh){
   nodes <- gs_get_pop_paths(gh, order = "tsort")
   dt = ldply(nodes[-1], function(thisNode){
@@ -22,7 +26,7 @@ gh_generate_template <- function(gh){
         alias <- basename(thisNode)
         pop <- alias
         c(alias = alias
-            , pop = pop
+            , pop = "+"
             , parent = parent
             , dims = dims
             , gating_method = NA
