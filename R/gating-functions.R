@@ -1,3 +1,7 @@
+#' @templateVar old gate_flowClust_1d
+#' @templateVar new gate_flowclust_1d
+#' @template template-depr_pkg
+NULL
 #' Applies flowClust to 1 feature to determine a cutpoint between the minimum
 #' cluster and all other clusters.
 #'
@@ -54,57 +58,58 @@
 #' cutpoint calculated
 #' @export
 #' @importFrom flowClust getEstimates tmixFilter dmvtmix dmvt flowClust
-#' @rdname flowClust1d 
+#' @rdname gate_flowclust_1d
+#' @aliases gate_flowclust_1d gate_flowClust_1d flowClust.1d
 #' @examples
 #' \dontrun{
-#'  gate <- gate_flowClust_1d(fr, params = "APC-A", K =2) # fr is a flowFrame
+#'  gate <- gate_flowclust_1d(fr, params = "APC-A", K =2) # fr is a flowFrame
 #' }
-gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL 
-                         , trans = 0 #no box transform
-                         , min.count = -1, max.count = -1 #no flowClust data filering
-                         , nstart = 1 #change kmeans nstart
-                         , prior = NULL,
-                         criterion = c("BIC", "ICL"),
-                         cutpoint_method = c("boundary", "min_density",
-                           "quantile", "posterior_mean", "prior_density"),
-                         neg_cluster = 1, cutpoint_min = NULL,
-                         cutpoint_max = NULL, min = NULL, max = NULL,
-                         quantile = 0.99, quantile_interval = c(0, 10),
-                         plot = FALSE, debug = FALSE, ...) {
+gate_flowclust_1d <- function(fr, params, filterId = "", K = NULL 
+                              , trans = 0 #no box transform
+                              , min.count = -1, max.count = -1 #no flowClust data filering
+                              , nstart = 1 #change kmeans nstart
+                              , prior = NULL,
+                              criterion = c("BIC", "ICL"),
+                              cutpoint_method = c("boundary", "min_density",
+                                                  "quantile", "posterior_mean", "prior_density"),
+                              neg_cluster = 1, cutpoint_min = NULL,
+                              cutpoint_max = NULL, min = NULL, max = NULL,
+                              quantile = 0.99, quantile_interval = c(0, 10),
+                              plot = FALSE, debug = FALSE, ...) {
   options("cores" = 1L) #suppress parallelism for 1d gating   
   cutpoint_method <- match.arg(cutpoint_method)
-
+  
   # TODO: Determine if Bayesian flowClust works when 'K' is specified and has a
   # different length than the number of components given in 'prior'.
   # If not, add GitHub issue and then fix.
-
+  
   # If 'K' is NULL, then 'K' is autoselected using either 'BIC' or 'ICL'.
   # The candidate values for 'K' range from 1 to the number of mixture components
   # given in the 'prior' list.
   if (is.null(K)) {
     criterion <- match.arg(criterion)
-
+    
     if (!is.null(prior)) {
       K <- length(as.vector(prior$Mu0))
     } else {
       stop("Values for 'K' must be provided if no 'prior' is given.")
     }
   }
-
+  
   usePrior <- ifelse(is.null(prior), "no", "yes")
   
-#  L<-list(...)
-#  if("useprior"%in%names(L)){
-#	  usePrior <- L["useprior"]
-#  	L$useprior<-NULL
-#  }
-
+  #  L<-list(...)
+  #  if("useprior"%in%names(L)){
+  #	  usePrior <- L["useprior"]
+  #  	L$useprior<-NULL
+  #  }
+  
   # HACK: Circumvents a bug in flowClust.
   # TODO: Add an issue to the Github for flowClust to allow prior to be NULL.
   if (is.null(prior)) {
     prior <- list(NA)
   }
-
+  
   # Filter out values less than the minimum and above the maximum, if they are
   # given. NOTE: These observations are removed from the 'flowFrame' locally and
   # are gated out only for the determining the gate.
@@ -115,15 +120,15 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
     warning("Less than two observations are present in the given flowFrame.",
             "Constructing gate from prior...")
   }
-
+  
   # Applies `flowClust` to the feature specified in the `params` argument using
   # the data given in `fr`. We use priors with hyperparameters given by the
   # elements in the `prior` list.
   # call via do.call. L contains the rest of the pairlist, after extracting the passed value of usePrior
-#  	tmix_filter<-do.call(tmixFilter,c(filterId=filterId,params[1],K=K,
-#                                      trans=trans,usePrior=usePrior,
-#                                      prior=list(prior),criterion=list(criterion),
-#                                      L))
+  #  	tmix_filter<-do.call(tmixFilter,c(filterId=filterId,params[1],K=K,
+  #                                      trans=trans,usePrior=usePrior,
+  #                                      prior=list(prior),criterion=list(criterion),
+  #                                      L))
   tmix_results <- flowClust(fr, varNames = params[1]
                             , K = K, trans = trans
                             , usePrior = usePrior
@@ -140,17 +145,17 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
     # To determine the cutpoint, we first sort the centroids so that we can
     # determine the second largest centroid.
     centroids_sorted <- sort(getEstimates(tmix_results)$locations)
-
+    
     # Also, because the cluster labels are arbitrary, we determine the cluster
     # the cluster labels, sorted by the ordering of the cluster means.
     labels_sorted <- order(getEstimates(tmix_results)$locations)
-
+    
     # Grabs the data matrix that is being gated.
     x <- exprs(fr)[, params[1]]
   } else {
     cutpoint_method <- "prior_density"
   }
-
+  
   # Determines the cutpoint between clusters 1 and 2.
   if (cutpoint_method == "boundary") {
     # Choose the cutpoint as the boundary between the first two clusters.
@@ -158,13 +163,13 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
     order_x <- order(x)
     x_sorted <- x[order_x]
     labels <- flowClust::Map(tmix_results, rm.outliers = FALSE)[order_x]
-
+    
     # Determine which observations are between the first two centroids and their
     # corresponding cluster labels.
     which_between <- which(centroids_sorted[neg_cluster] < x_sorted & x_sorted < centroids_sorted[neg_cluster + 1])
     x_between <- x_sorted[which_between]
     labels_between <- labels[which_between]
-
+    
     # For the observations between the first two centroids, we find the last
     # observation that belongs to the first cluster and the first observation
     # that belongs to the second cluster. In the rare occurrence that no
@@ -175,7 +180,7 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
     which_cluster2 <- which(labels_between == labels_sorted[neg_cluster + 1])
     max_obs_cluster1 <- ifelse(length(which_cluster1) == 0, NA, max(which_cluster1))
     min_obs_cluster2 <- ifelse(length(which_cluster2) == 0, NA, min(which_cluster2))
-
+    
     # We define the cutpoint to be the midpoint between the two clusters.
     cutpoint <- mean(x_between[c(max_obs_cluster1, min_obs_cluster2)], na.rm = TRUE)
     if (is.nan(cutpoint)) {
@@ -189,7 +194,7 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
     cutpoint <- x_between[which.min(x_dens)]
   } else if (cutpoint_method == "quantile") {
     cutpoint <- .quantile_flowClust(p = quantile, object = tmix_results,
-                                   interval = quantile_interval)
+                                    interval = quantile_interval)
   } else if (cutpoint_method == "posterior_mean") {
     cutpoint <- centroids_sorted[neg_cluster]
   } else { # cutpoint_method == "prior_density"
@@ -201,17 +206,17 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
     prior_proportions <- with(prior, w0 / sum(w0))
     prior_y <- lapply(c(neg_cluster, neg_cluster + 1), function(k) {
       prior_density <- dmvt(x = prior_x, mu = prior$Mu0[k],
-                                       sigma = prior$Omega0[k], nu = 4)$value
+                            sigma = prior$Omega0[k], nu = 4)$value
       prior_proportions[k] * prior_density
     })
     prior_y <- do.call(cbind, prior_y)
-
+    
     # For the two prior densities, we determine the cutpoint as the first value
     # where the second density is larger than the first.
     diff_densities <- apply(prior_y, 1, diff)
     cutpoint <- prior_x[which(diff_densities > 0)[1]]
   }
-
+  
   # In some cases, we wish that a gating cutpoint not exceed some threshold, in
   # which case we allow the user to specify a minimum and/or maximum value for
   # the cutpoint. For instance, when constructing a debris gate for samples from
@@ -225,7 +230,7 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
   if (!is.null(cutpoint_max) && cutpoint > cutpoint_max) {
     cutpoint <- cutpoint_max
   }
-
+  
   
   gate_coordinates <- list(c(cutpoint, Inf))
   
@@ -239,9 +244,9 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
     postList <- list()
     if (class(tmix_results) != "try-error") {
       posteriors <- list(mu = tmix_results@mu, lambda = tmix_results@lambda,
-          sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x)
-          ,w = tmix_results@w
-          , max = max(x))
+                         sigma = tmix_results@sigma, nu = tmix_results@nu, min = min(x)
+                         ,w = tmix_results@w
+                         , max = max(x))
     } else {
       posteriors <- prior
       posteriors$min <- NA
@@ -254,20 +259,20 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
     priorList[[params[1]]] <- prior
     fres <- fcRectangleGate(fres, priorList, postList)
   }
-    
+  
   if (plot) {
     gate_pct <- round(100 * mean(x > cutpoint), 3)
     plot_title <- paste0(filterId, " (", gate_pct, "%)")
     plot(fr, tmix_results, main = plot_title, labels = FALSE)
     abline(v = centroids_sorted, col = rainbow(K))
     abline(v = cutpoint, col = "black", lwd = 3, lty = 2)
-
+    
     if (!is.null(prior)) {
       x_dens <- seq(min(x), max(x), length = 1000)
-
+      
       for(k in seq_len(K)) {
         prior_density <- with(prior, dnorm(x_dens, mean = Mu0[k], sd = sqrt(Omega0[k])))
-
+        
         # Grab posterior estimates for the degrees of freedom (nu) and the
         # transformation parameters. Because these can either be of length 1 or
         # of length K, we grab the appropriate posterior estimates for the
@@ -283,12 +288,38 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
     }
   }
   fres
-
+  
 }
-#' @rdname flowClust1d 
+
+#' @rdname gate_flowclust_1d
+#' @export
+gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL 
+                              , trans = 0 #no box transform
+                              , min.count = -1, max.count = -1 #no flowClust data filering
+                              , nstart = 1 #change kmeans nstart
+                              , prior = NULL,
+                              criterion = c("BIC", "ICL"),
+                              cutpoint_method = c("boundary", "min_density",
+                                                  "quantile", "posterior_mean", "prior_density"),
+                              neg_cluster = 1, cutpoint_min = NULL,
+                              cutpoint_max = NULL, min = NULL, max = NULL,
+                              quantile = 0.99, quantile_interval = c(0, 10),
+                              plot = FALSE, debug = FALSE, ...) {
+  .Deprecated("gate_flowclust_1d")
+  gate_flowclust_1d(fr, params, filterId, K , trans, min.count, max.count
+                    , nstart, prior, criterion, cutpoint_method, neg_cluster 
+                    , cutpoint_min, cutpoint_max, min, max, quantile, quantile_interval
+                    , plot, debug, ...)
+}
+
+#' @rdname gate_flowclust_1d
 #' @export 
 flowClust.1d <- gate_flowClust_1d
 
+#' @templateVar old gate_flowClust_2d
+#' @templateVar new gate_flowclust_2d
+#' @template template-depr_pkg
+NULL
 #' Automatic identification of a population of interest via flowClust based on
 #' two markers
 #'
@@ -357,12 +388,13 @@ flowClust.1d <- gate_flowClust_1d
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
 #' @export
-#' @rdname flowClust2d
+#' @rdname gate_flowclust_2d
+#' @aliases gate_flowclust_2d gate_flowClust_2d flowClust.2d
 #' @examples
 #' \dontrun{
-#'  gate <- gate_flowClust_2d(fr, xChannel = "FSC-A", xChannel = "SSC-A", K = 3) # fr is a flowFrame
+#'  gate <- gate_flowclust_2d(fr, xChannel = "FSC-A", xChannel = "SSC-A", K = 3) # fr is a flowFrame
 #' }
-gate_flowClust_2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
+gate_flowclust_2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                          usePrior = 'no', prior = list(NA)
                          , trans = 0 #no box transform
                          , min.count = -1, max.count = -1 #no flowClust data filering
@@ -391,7 +423,7 @@ gate_flowClust_2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
 
   # If appropriate, we generate prior parameters for the Bayesian version of flowClust.
   if (usePrior == "yes" && identical(prior, list(NA))) {
-    prior <- prior_flowClust(fr = fr, channels = c(xChannel, yChannel), K = K)
+    prior <- prior_flowclust(fr = fr, channels = c(xChannel, yChannel), K = K)
   }
 
   # Applies `flowClust` to the feature specified in the `params` argument using
@@ -610,7 +642,23 @@ gate_flowClust_2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     fcEllipsoidGate(flowClust_gate, prior, posteriors)
     
 }
-#' @rdname flowClust2d 
+#' @rdname gate_flowclust_2d
+#' @export
+gate_flowClust_2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
+                              usePrior = 'no', prior = list(NA)
+                              , trans = 0 #no box transform
+                              , min.count = -1, max.count = -1 #no flowClust data filering
+                              , nstart = 1 #change kmeans nstart
+                              , plot = FALSE, target = NULL, transitional = FALSE,
+                              quantile = 0.9, translation = 0.25, transitional_angle = NULL,
+                              min = NULL, max = NULL, ...) {
+  .Deprecated("gate_flowclust_2d")
+  gate_flowclust_2d(fr, xChannel, yChannel, filterId, K, usePrior, prior, trans
+                    , min.count, max.count, nstart, plot, target, transitional
+                    , quantile, translation, transitional_angle, min, max, ...)
+}
+
+#' @rdname gate_flowclust_2d 
 #' @export 
 flowClust.2d <- gate_flowClust_2d
 
@@ -663,9 +711,17 @@ gate_quantile <- function(fr, channel, probs = 0.999, plot = FALSE,
   }
   rectangleGate(gate_coordinates, filterId = filterId)
 }
+#' @templateVar old quantileGate
+#' @templateVar new gate_quantile
+#' @template template-depr_pkg
+NULL
 #' @export
 #' @rdname gate_quantile
-quantileGate <- gate_quantile
+quantileGate <- function(fr, channel, probs = 0.999, plot = FALSE,
+                        filterId = "", min = NULL, max = NULL, ...){
+  .Deprecated("gate_quantile")
+  gate_quantile(fr, channel, probs, plot, filterId, min, max, ...)
+}
 
 #' Determines a cutpoint as the minimum point of a kernel density estimate
 #' between two peaks
@@ -781,54 +837,6 @@ gate_mindensity <- function(fr, channel, filterId = "", positive = TRUE,
 mindensity <- gate_mindensity
 
 #' Gates the tail of a density using the derivative of a kernel density estimate
-#' 
-#' 
-#' These methods aim to set a one-dimensional gate (cutpoint) near the edge of a peak in 
-#' the density specified by a channel of a \code{\linkS4class{flowFrame}} to isolate the tail population. 
-#' They allow two approaches to do this, both beginning by obtaining a
-#' smoothened kernel density estimate (KDE) of the original density and then utilizing either
-#' its first or second derivative.
-#'
-#' The default behavior of the first approach, specified by \code{method = "first_deriv"}, 
-#' finds valleys in the first derivative of the KDE and uses the lowest such valley
-#' to place the cutpoint on the steep right shoulder of the largest peak in the original density. 
-#' 
-#' The default behavior of the second approach, specified by \code{method = "second_deriv"},
-#' is to find peaks in the second derivative of the KDE and use the largest such peak
-#' to place the cutpoint at the point on the right shoulder of the largest
-#' peak in the original density where it is most rapidly flattening (the first derivative is rapidly
-#' growing less negative).
-#' 
-#' Both approach can be significantly modified from defaults with a number of optional
-#' arguments. The \code{num_peaks} argument specifes how many peaks should be found 
-#' in the smoothened KDE and \code{ref_peak} specifies around which peak the gate's 
-#' cutpoint should be placed (starting from the leftmost peak). Setting the \code{side}
-#' argument to "left" modifies the procedure to put the cutpoint on the left side of the 
-#' reference peak to isolate a left tail. The \code{max} and \code{min} arguments allow for 
-#' pre-filtering extreme values in the channel of interest (keeping only observations with 
-#' channel values less than max and/or more than min). The bandwidth used for kernel density
-#' estimation can be proportionally scaled using \code{adjust} (e.g. \code{adjust = 0.5} will
-#' use a bandwidth that is half of the default). This allows for tuning the level of
-#' smoothing applied in the estimation.
-#' 
-#' Lastly, the \code{tol}, \code{auto_tol}, and \code{bias} arguments allow for adjustments
-#' to be made to the cutpoint that would otherwise be returned. \code{tol} provides a tolerance value
-#' that the absolute value of the KDE derivative at the cutpoint must be under. If the derivative 
-#' at the original cutpoint is greater than \code{tol} in magnitude, the returned cutpoint will be the first point 
-#' to the right of the original cutpoint (or to the left in the case of \code{side = "left"}) with corresponding 
-#' derivative within \code{tol}. Thus in practice, a smaller value for \code{tol} effectively pushes the cutpoint
-#' further down the shoulder of the peak towards the flat tail. \code{tol} is set to 0.01 by default
-#' but setting \code{auto_tol = TRUE} will set the tolerance to a reasonable estimate of 
-#' 1\% of the maximum absolute value of the first derivative of the KDE. \code{tol} and
-#' \code{auto_tol} are only used for \code{method = "first_deriv"}. Additionally, the \code{bias}
-#' argument allows for directly shifting the returned cutpoint left or right.
-#' 
-#' It is also possible to pass additional arguments to control the calculation
-#' of the derivative, which will have some effect on the resulting cutpoint determination,
-#' but this should usually not be needed. By default the number of grid points for the derivative
-#' calculation will be 10,000, but this can be changed with \code{num_points}. The default
-#' bandwidth can also be directly adjusted with \code{bandwidth}, where the final value used
-#' will be given by \code{adjust*bandwidth} 
 #'
 #' @param fr a \code{flowFrame} object
 #' @param channel the channel from which the cytokine gate is constructed
@@ -837,22 +845,17 @@ mindensity <- gate_mindensity
 #' any peaks that are artifacts of smoothing
 #' @param ref_peak After \code{num_peaks} are found, this argument provides the
 #' index of the reference population from which a gate will be obtained.
-#' @param strict \code{logical} when the actual number of peaks detected is less than \code{ref_peak}, 
+#' @param strict \code{logical} when the actual number of peaks detected is less than \code{ref_peak}. 
 #'                               an error is reported by default. But if \code{strict} is set to FALSE, then the reference peak will be reset to the peak of the far right.      
-#' @param method the method used to select the cutpoint. Either "first_deriv" or "second_deriv". See details.
 #' @param tol the tolerance value used to construct the cytokine gate from the
-#' derivative of the kernel density estimate. See details.
-#' @param auto_tol when TRUE, it tries to set the tolerance automatically. See details.
-#' @param adjust the scaling adjustment applied to the bandwidth used in the
-#' first derivative of the kernel density estimate
+#' derivative of the kernel density estimate
 #' @param side On which side of the density do we want to gate the tail, the
 #'  \code{'right'} (default) or \code{'left'}?
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
 #' @param bias a numeric value that adds a constant to the calculated cutpoint(threshold). Default is 0.
-#' @param ... additional arguments used in calculating derivative. See details.
-#' @return a \code{filterList} containing the gates (cutpoints) for each sample with
-#' the corresponding \code{\linkS4class{rectangleGate}} objects defining the tail as the positive population.
+#' @param ... additional arguments.
+#' @return a \code{filterList} containing the gates (cutpoints) for each sample
 #' @export
 #' @rdname gate_tail
 #' @examples
@@ -882,12 +885,16 @@ gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
 #' @rdname gate_tail
 tailgate <- gate_tail
 
+#' @templateVar old cytokine
+#' @templateVar new gate_tail
+#' @template template-depr_pkg
+NULL
 #' @rdname gate_tail
 #' @export
 cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
   ref_peak = 1, tol = 1e-2, side = "right", ...) {
   .Deprecated("gate_tail")
-  return (tailgate(fr=fr, channel=channel, filterId=filterId,
+  return (gate_tail(fr=fr, channel=channel, filterId=filterId,
     num_peaks=num_peaks, ref_peak=ref_peak, tol=tol,
     side=side, ...))
 }
@@ -1145,10 +1152,16 @@ gate_quad_sequential <- function(fr, channels, gFunc, min = NULL, max = NULL, ..
   
   filters(gates)
 }
-
+#' @templateVar old quadGate.seq
+#' @templateVar new gate_quad_sequential
+#' @template template-depr_pkg
+NULL
 #' @export 
 #' @rdname gate_quad_sequential
-quadGate.seq <- gate_quad_sequential
+quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
+  .Deprecated("gate_quad_sequential")
+  gate_quad_sequential(fr, channels, gFunc, min, max, ...)
+}
 
 ##TODO: come up a more general design so that polygonGates can be derived from any two quadrants
 #' quadGate based on flowClust::tmixFiler
@@ -1160,10 +1173,10 @@ quadGate.seq <- gate_quad_sequential
 #'  
 #' @param fr \code{flowFrame}
 #' @param channels \code{character} vector specifies two channels
-#' @param usePrior see \link{flowClust.2d}
-#' @param K see \link{flowClust.2d}
-#' @param prior see \link{flowClust.2d}
-#' @param trans see \link{flowClust.2d}
+#' @param usePrior see \link{gate_flowclust_2d}
+#' @param K see \link{gate_flowclust_2d}
+#' @param prior see \link{gate_flowclust_2d}
+#' @param trans see \link{gate_flowclust_2d}
 #' @param plot logical whether to plot flowClust clustering results
 #' @param quantile1 \code{numeric} specifies the  quantile level(see 'level' in \link{flowClust}) for the first quadrant (x-y+)
 #' @param quantile3 \code{numeric} specifies the  quantile level see 'level' in \link{flowClust} for third quadrant (x+y-)
@@ -1273,7 +1286,17 @@ gate_quad_tmix <- function(fr, channels, K, usePrior = "no", prior = list(NA)
   
   filters(list(q1.g, q2.g, q3.g,q4.g))
 }
-
+#' @templateVar old quadGate.tmix
+#' @templateVar new gate_quad_tmix
+#' @template template-depr_pkg
+NULL
 #' @export 
 #' @rdname gate_quad_tmix
-quadGate.tmix <- gate_quad_tmix
+quadGate.tmix <- function(fr, channels, K, usePrior = "no", prior = list(NA)
+                          , quantile1 = 0.8, quantile3 = 0.8
+                          , trans = 0
+                          , plot = FALSE
+                          , ...){
+  .Deprecated("gate_quad_tmix")
+  quad_gate_tmix(fr, channels, K, usePrior, prior, quantile1, quantile3, trans, plot, ...)
+}

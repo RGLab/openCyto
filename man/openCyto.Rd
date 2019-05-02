@@ -26,7 +26,7 @@ LazyLoad: \tab yes\cr
 }
 \seealso{
 See \code{\link[openCyto:gating-methods]{gating}}, 
-\code{\link{flowClust.1d}}, 
+\code{\link{gate_flowclust_1d}}, 
 for an overview of gating functions.
 }
 \author{
