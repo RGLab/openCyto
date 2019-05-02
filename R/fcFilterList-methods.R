@@ -15,7 +15,7 @@
 #' \dontrun{ 
 #'  env1<-new.env(parent=emptyenv())
 #'  #gt is a gatingTemplate, gs is a GatingSet
-#'  gating(gt,gs,env1) #the flowClust gating results are stored in env1 
+#'  gt_gating(gt,gs,env1) #the flowClust gating results are stored in env1 
 #'  plot(env1$fct,"nonDebris",post=T) #plot the priors as well as posteriors for the "nonDebris" gate
 #' }
 setMethod("plot", sig = c("fcFilterList", "ANY"),
@@ -64,7 +64,7 @@ setMethod("plot", sig = c("fcFilterList", "ANY"),
       curFilter <- x[[samp]]
 #      browser()
       if(!is.null(data)){
-        fr <- getData(data[[samp]],node)
+        fr <- gh_pop_get_data(data[[samp]],node)
         thisChnl <- priorNames
         hist(exprs(fr)[,thisChnl],add=T,prob=T,breaks=breaks)  
       }

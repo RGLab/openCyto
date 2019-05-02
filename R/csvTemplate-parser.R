@@ -1,3 +1,7 @@
+#' @templateVar old templateGen
+#' @templateVar new gh_generate_template
+#' @template template-depr_pkg
+NULL
 #' generate a partially complete csv template from the existing gating hierarchy 
 #' 
 #' To ease the process of replicating the existing (usually a manual one) gating schemes, 
@@ -6,14 +10,19 @@
 #' So users can make changes to that template instead of writing from scratch.
 #' 
 #' @param gh a \code{GatingHierarchy} likely parsed from a xml workspace
-#' @return a gating template in \code{data.frame} format that requires further edition after output to csv 
+#' @return a gating template in \code{data.frame} format that requires further edition after output to csv
+#' @rdname gh_generate_template 
 #' @export 
-templateGen <- function(gh){
-  nodes <- getNodes(gh, order = "tsort")
+#' @examples 
+#' dataDir <- system.file("extdata",package="flowWorkspaceData")
+#' gs <- load_gs(list.files(dataDir, pattern = "gs_manual",full = TRUE))
+#' gh_generate_template(gs[[1]])
+gh_generate_template <- function(gh){
+  nodes <- gs_get_pop_paths(gh, order = "tsort")
   dt = ldply(nodes[-1], function(thisNode){
-        thisGate <- getGate(gh, thisNode)
+        thisGate <- gh_pop_get_gate(gh, thisNode)
         dims <- paste(as.vector(parameters(thisGate)), collapse = ",")
-        parent <- getParent(gh, thisNode)
+        parent <- gs_pop_get_parent(gh, thisNode)
         alias <- basename(thisNode)
         pop <- alias
         c(alias = alias
@@ -35,6 +44,12 @@ templateGen <- function(gh){
     dt = as.data.table(dt)
   }
   return(dt)
+}
+
+#' @rdname gh_generate_template
+#' @export
+templateGen <- function(gh){
+  .Deprecated("gh_generate_template")
 }
 
 #' prepend all ancester nodes to construct the full path for the given node 
@@ -239,7 +254,7 @@ templateGen <- function(gh){
 #' Here are the major preprocessing tasks:
 #' 1. validity check for 'alias' (special character and uniqueness check)
 #' 2. validity check for the numer of parameters('dim' column)
-#' 3. dispatch 'flowClust' method to either 'flowClust.1d' or 'flowClust.2d' based on the 'pop' and 'dims' columns
+#' 3. dispatch 'flowClust' method to either 'gate_flowclust_1d' or 'gate_flowclust_2d' based on the 'pop' and 'dims' columns
 #' 4. expand the single row to multiple rows when applicable. There are basically two types of expansion:
 #'      4.1. expand to two 1d gates and one rectangelGate when 'pop' name is defined as quadrant pattern (e.g. "A+B+")  and 'gating_method' is not "refGate"
 #'      4.2. expand to multiple gates when 'pop' is defined with '+/-' (e.g. "A+/-" or "A+/-B+/-") 
@@ -287,11 +302,11 @@ templateGen <- function(gh){
 #    browser()
   if (grepl(paste0("^", one_pop_pat, "$"), popName)) {
     # A+ no expansion(simply update flowClust gm)
-    if (gm == "flowClust") {
+    if (gm %in% c("flowClust", "gate_flowclust")) {
       if (dim_count == 1) {
-        this_row[1, gating_method := "flowClust.1d"] 
+        this_row[1, gating_method := "gate_flowclust_1d"] 
       } else {
-        this_row[1, gating_method := "flowClust.2d"] 
+        this_row[1, gating_method := "gate_flowclust_2d"] 
       }
     }
     res <- this_row
@@ -301,11 +316,11 @@ templateGen <- function(gh){
   } else if (grepl(paste("^", two_pop_pat, "$", sep = ""), popName)) {
     # A+/-
     
-    if (gm == "flowClust") {
+    if (gm %in% c("flowClust", "gate_flowclust")) {
       if (dim_count == 1) {
-        this_row[1, gating_method := "flowClust.1d"]
+        this_row[1, gating_method := "gate_flowclust_1d"]
       } else {
-        this_row[1, gating_method := "flowClust.2d"]
+        this_row[1, gating_method := "gate_flowclust_2d"]
       }
     }
     # expand to two rows
@@ -357,11 +372,11 @@ templateGen <- function(gh){
       res[, pop := new_pops]
     } else {
       
-      if (gm == "flowClust") {
+      if (gm %in% c("flowClust", "gate_flowclust")) {
         if (dim_count == 2) {
           message("expanding pop: ", popName, "\n")
           
-          this_row[1, gating_method := "flowClust.1d"]
+          this_row[1, gating_method := "gate_flowclust_1d"]
         } else {
           stop("dimensions '", dims, "' is not consistent with pop name '", 
               popName, "'")
@@ -388,9 +403,9 @@ templateGen <- function(gh){
       
     } else {
       
-      if (gm == "flowClust") {
+      if (gm %in% c("flowClust", "gate_flowclust")) {
         if (dim_count == 2) {
-          this_row[1, gating_method := "flowClust.1d"]
+          this_row[1, gating_method := "gate_flowclust_1d"]
           
         } else {
           stop("dimensions '", dims, "' is not consistent with pop name '", 

@@ -1,13 +1,21 @@
+#' @templateVar old listgtMethods
+#' @templateVar new gt_list_methods
+#' @template template-depr_pkg
+NULL
 #'The environment holding the names of registered methods
 #' @noRd 
 .openCyto_plugin_method_lookup <- new.env()
 .openCyto_plugin_method_lookup[["registered_methods"]] <- list(gating = character(0), preprocessing = character(0))
-.DEFAULT_GT <- c("quantileGate","rangeGate","flowClust.2d","mindensity", "mindensity2", "cytokine","flowClust.1d","boundary","singletGate", "tailgate", "quadGate.tmix", "quadGate.seq","tautStringGate")
-.DEFAULT_PP <- c("prior_flowClust", "warpSet", "standardize_flowset")
+.DEFAULT_GT <- c("quantileGate", "gate_quantile", "rangeGate","flowClust.2d", "gate_flowclust_2d", "mindensity", "gate_mindensity"
+                 , "mindensity2", "gate_mindensity2", "cytokine", "flowClust.1d", "gate_flowclust_1d", "boundary","singletGate"
+                 ,"tailgate", "gate_tail", "quadGate.tmix", "gate_quad_tmix", "quadGate.seq", "gate_quad_sequential"
+                 , "tautStringGate", "gate_tautstring")
+.DEFAULT_PP <- c("prior_flowClust", "prior_flowClust", "warpSet", "standardize_flowset")
 #'Print a list of the registered gating methods
 #'@return Does not return anything. Prints a list of the available gating methods.
+#'@rdname gt_list_methods
 #'@export listgtMethods
-listgtMethods <- function(){
+gt_list_methods <- function(){
   res <- .getPluginMethods()
   cat("Gating Functions:\n")
   for(i in res[["gating"]])
@@ -15,6 +23,12 @@ listgtMethods <- function(){
   cat("Preprocessing Functions:\n")
   for(i in res[["preprocessing"]])
     cat("=== ", i,  "\n")
+}
+
+#'@rdname gt_list_methods
+#'@export
+listgtMethods <- function(){
+  .Deprecated("gt_list_methods")
 }
 
 #'Is the method registered
@@ -68,6 +82,10 @@ listgtMethods <- function(){
 registerGatingFunction <- function(fun=NA,methodName, dep=NA){
   .Defunct("registerPlugins")
 }
+#' @templateVar old registerPlugins
+#' @templateVar new register_plugins
+#' @template template-depr_pkg
+NULL
 #'Register a gating or preprocessing function with OpenCyto
 #'
 #'Function registers a new gating or preprocessing method with openCyto so that it may be used in the 
@@ -79,7 +97,7 @@ registerGatingFunction <- function(fun=NA,methodName, dep=NA){
 #'         type \code{character} specifying the type of registering method. Should be either "gating" or "preprocessing".
 #' 
 #'@return \code{logical} TRUE if successful and prints a message. FALSE otherwise.
-#'@export registerGatingFunction registerPlugins
+#'@export
 #'@useDynLib openCyto
 #'@details The \code{fun} argument should be a wrapper function definition for the gating or preprocessing method. 
 #'                          Gating method must have formal arguments:
@@ -114,10 +132,11 @@ registerGatingFunction <- function(fun=NA,methodName, dep=NA){
 #' The preprocessing can return anything and it will be passed on to the gating function. So it is up to gating function to use and interpret the results of preprocessing.
 #' Not all formal parameters need to be used. Additional arguments are passed via the ... and can be processed in the wrapper
 #' 
-#' @aliases registerGatingFunction
+#' @rdname register_plugins
+#' @aliases registerGatingFunction registerPlugins
 #'@import utils
 #'@importFrom R.utils isPackageInstalled
-registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
+register_plugins <- function(fun = NA, methodName, dep = NA, ...){
   
   if(!is.na(dep)){
     if(is.character(dep)){
@@ -149,6 +168,14 @@ registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
   }
   return(TRUE)
 }
+
+#' @rdname register_plugins
+#' @export
+registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
+  .Deprecated("register_plugins")
+  register_plugins(fun, methodName, dep, ...)
+}
+
 
 #'Register a gating function for OpenCyto
 #' @noRd 
