@@ -17,7 +17,7 @@ templateGen <- function(gh){
         alias <- basename(thisNode)
         pop <- alias
         c(alias = alias
-            , pop = pop
+            , pop = "+"
             , parent = parent
             , dims = dims
             , gating_method = NA
