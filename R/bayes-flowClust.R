@@ -85,7 +85,7 @@ prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' @export
 prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...){
-  .Deprecate("prior_flowclust")
+  .Deprecated("prior_flowclust")
   prior_flowclust(flow_set, channels, prior_method, K, nu0, w0, shrink, ...)
 }
 
