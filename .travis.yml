@@ -1,0 +1,40 @@
+language: r
+r: bioc-devel
+dist: trusty
+
+cache: packages
+
+warnings_are_errors: false 
+sudo: required
+
+
+bioc_required: true
+
+before_install:
+  - R -e 'install.packages("devtools")'
+  - R -e 'devtools::install_github("Bioconductor/BiocGenerics", ref = "master")'
+
+
+install:
+  - R -e 'devtools::install_github("RGLab/cytolib",ref="trunk")'
+  - R -e 'devtools::install_github("RGLab/flowCore", ref="trunk")'
+  - R -e 'devtools::install_github("RGLab/RProtoBufLib", ref = "trunk")'
+  - R -e 'devtools::install_github("RGLab/ncdfFlow", ref="trunk")'
+  - R -e 'devtools::install_github("RGLab/flowWorkspace", ref="trunk")'
+  - R -e 'devtools::install_github("RGLab/flowWorkspaceData", ref="trunk")'
+  - R -e 'devtools::install_github("RGLab/flowViz", ref="trunk")'  
+  - R -e 'devtools::install_github("RGLab/flowStats", ref="trunk")'
+  - R -e 'devtools::install_github("RGLab/flowClust", ref="trunk")'
+  - R -e 'devtools::install_deps(dep = T, upgrade = "always")'
+  
+env:
+ global:
+   - CRAN: http://cran.rstudio.com
+-apt_packages:
+-  - libhdf5-7 
+-  - libhdf5-dev
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change
