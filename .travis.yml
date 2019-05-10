@@ -16,6 +16,7 @@ before_install:
 
 
 install:
+  - R -e 'install.packages(c("knitr", "testthat"))'
   - R -e 'devtools::install_github("RGLab/cytolib",ref="trunk")'
   - R -e 'devtools::install_github("RGLab/flowCore", ref="trunk")'
   - R -e 'devtools::install_github("RGLab/RProtoBufLib", ref = "trunk")'
@@ -26,7 +27,7 @@ install:
   - R -e 'devtools::install_github("RGLab/flowViz", ref="trunk")'  
   - R -e 'devtools::install_github("RGLab/flowStats", ref="trunk")'
   - R -e 'devtools::install_github("RGLab/flowClust", ref="trunk")'
-  - R -e 'devtools::install_deps(dep = T, upgrade = "always")'
+  - R -e 'devtools::install_github("RGLab/ggcyto", ref="trunk")'
   
 env:
  global:
