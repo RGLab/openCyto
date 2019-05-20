@@ -59,7 +59,7 @@ test_that("tcell", {
       opt[["check.pop"]] <- TRUE
       options(openCyto = opt)
       #test new .mindensity2 wrapper
-      gs_add_gating_method(gs, gating_method = "mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "+/-+/-")
+      gs_add_gating_method(gs, gating_method = "gate_mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "+/-+/-")
       thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
       

@@ -175,7 +175,7 @@ mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE,
   
   if(length(channels) != 1)
     stop("invalid number of channels for mindensity!")
-  gate <- mindensity2(fr, channel = channels, ...)
+  gate <- gate_mindensity2(fr, channel = channels, ...)
   gate
 }
 
