@@ -16,7 +16,7 @@ test_that("tcell", {
       #test toggle helperGates
       
       expect_equal(length(gs_get_pop_paths(gs)), 29)
-      helperGates <- get.helperGates(gt_tcell, gs)
+      helperGates <- gt_get_helpergates(gt_tcell, gs)
       expect_true(setequal(helperGates, c('/nonDebris/singlets/lymph/cd3/cd4+',
                                           '/nonDebris/singlets/lymph/cd3/cd8+',
                                           '/nonDebris/singlets/lymph/cd3/cd4+cd8-/CD45_neg',
@@ -37,7 +37,7 @@ test_that("tcell", {
     
       #rm helper gates
       gs1 <- gs_clone(gs,isNew = FALSE)
-      delete.helperGates(gt_tcell, gs1)
+      gt_delete_helpergates(gt_tcell, gs1)
       expect_equal(length(gs_get_pop_paths(gs1, showHidden = TRUE)), 19)
       
       
@@ -59,7 +59,7 @@ test_that("tcell", {
       opt[["check.pop"]] <- TRUE
       options(openCyto = opt)
       #test new .mindensity2 wrapper
-      add_pop(gs, gating_method = "mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "+/-+/-")
+      gs_add_gating_method(gs, gating_method = "mindensity2", dims = "CCR7,CD45RA", parent = "cd4-cd8+", pop = "+/-+/-")
       thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
       
@@ -173,7 +173,7 @@ test_that("ICS", {
       #test add_pop with boolean method
       pop <- "IL2orIFNg"
       gs_pop_remove(gs, pop)
-      add_pop(gs, alias = pop, gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg")
+      gs_add_gating_method(gs, alias = pop, gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg")
       
       thisRes <- gs_pop_get_count_fast(gs, path = "full", format = "wide")
       expect_equal(thisRes, expectRes, tol = 0.04)
