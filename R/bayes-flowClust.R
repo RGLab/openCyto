@@ -1,3 +1,7 @@
+#' @templateVar old prior_flowClust
+#' @templateVar new prior_flowclust
+#' @template template-depr_pkg
+NULL
 #' Elicits data-driven priors from a flowSet object for specified channels
 #'
 #' We elicit data-driven prior parameters from a \code{flowSet} object for
@@ -28,9 +32,11 @@
 #' covariance matrices are singular. See details.
 #' @param ... Additional arguments passed to the prior elicitation method selected
 #' @return list of the necessary prior parameters
+#' @rdname prior_flowclust
+#' @aliases prior_flowclust prior_flowClust
 #' @export 
 #' @importFrom plyr aaply
-prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
+prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...) {
   #pass only the first element of w0 since it will be replicated ..
   #that said, the second element never gets used at this moment
@@ -73,6 +79,14 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
  
   prior_list
    
+}
+
+#' @rdname prior_flowclust
+#' @export
+prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
+                            K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...){
+  .Deprecated("prior_flowclust")
+  prior_flowclust(flow_set, channels, prior_method, K, nu0, w0, shrink, ...)
 }
 
 #' Elicits data-driven priors from a flowSet object for a specified channel

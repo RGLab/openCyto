@@ -11,26 +11,23 @@ setClass("ocRectangleGate", contains = "rectangleGate", representation(ind = "ra
 #' 
 #' however it is proven that logical indices are too big to be efficiently passed around
 #' 
-#' @param wf \code{GatingHierarchy} see \link[flowWorkspace]{add} in \code{flowWorkspace} package
-#' @param action \code{ocRectangleGate} or \code{logicalFilterResult}
+#' @param gh \code{GatingHierarchy} see \link[flowWorkspace]{add} in \code{flowWorkspace} package
+#' @param gate \code{ocRectangleGate} or \code{logicalFilterResult}
 #' @param recompute \code{logical} see \link[flowWorkspace]{add} in \code{flowWorkspace} package
 #' @param ... see \link[flowWorkspace]{add} in \code{flowWorkspace} package
-#' @export 
 #' @rdname add
-setMethod("add",
-    signature=c("GatingHierarchy", "ocRectangleGate"),
-    definition=function(wf, action, recompute, ... )
+pop_add.ocRectangleGate <- function(gate, gh, recompute, ... )
     {
       #unpack the bit vector
-      indices <- ncdfFlow:::toLogical(action@ind)
+      indices <- ncdfFlow:::toLogical(gate@ind)
       #ignore the recompute flag and force it to be skipped
-      nodeID <- flowWorkspace:::.addGate(wf, filterObject(action), ...)
-      sn <- sampleNames(wf)
-      ptr <- wf@pointer
+      nodeID <- flowWorkspace:::.addGate(gh, filter_to_list(gate), ...)
+      sn <- sampleNames(gh)
+      ptr <- gh@pointer
       flowWorkspace:::.cpp_setIndices(ptr, sn, nodeID-1, indices)
       
       
-    })
+    }
 
 
 #' special gate type that mix the rectangleGate with boolean gate
@@ -46,7 +43,7 @@ ocRectRefGate <- function(rectGate, boolExprs){
   g@deparse <- bf@deparse
   g
 }
-
+	
 #' byPass the default .addGate 
 #' 
 #' to support adding rectangleGate yet gating through boolean operations 
@@ -54,19 +51,17 @@ ocRectRefGate <- function(rectGate, boolExprs){
 #' 
 #' @export 
 #' @rdname add
-setMethod("add",
-    signature=c("GatingHierarchy", "ocRectRefGate"),
-    definition=function(wf, action, recompute, ... )
+pop_add.ocRectRefGate <- function(gate, gh, recompute, ... )
     {
-      rectFilterObj <- selectMethod("filterObject", signature = c("rectangleGate"))(action)
-      boolFilterObj <- selectMethod("filterObject", signature = c("booleanFilter"))(action)
+      rectFilterObj <- flowWorkspace:::filter_to_list.rectangleGate(gate)
+      boolFilterObj <- flowWorkspace:::filter_to_list.booleanFilter(gate)
       #ignore the recompute flag and force it to be skipped
-      nodeID <- flowWorkspace:::.addGate(wf, rectFilterObj, ...)
-      sn <- sampleNames(wf)
-      ptr <- wf@pointer
+      nodeID <- flowWorkspace:::.addGate(gh, rectFilterObj, ...)
+      sn <- sampleNames(gh)
+      ptr <- gh@pointer
       flowWorkspace:::.cpp_boolGating(ptr, sn, boolFilterObj, nodeID - 1)
       nodeID
-    })
+    }
 
 
 
@@ -78,7 +73,7 @@ setMethod("add",
 .addGate_fast <- function(gs, filter, name = NULL, parent = "root", negated = FALSE){
   
   #preprocess filter
-  filterObj <- filterObject(filter)
+  filterObj <- filter_to_list(filter)
 #  browser()
   if(is.null(name))
     name<-filterObj$filterId

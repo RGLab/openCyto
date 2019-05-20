@@ -45,11 +45,11 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
   popName <- names(gtPop)
   popId <- gtPop@id
   
-  gs_nodes <- basename(getChildren(y[[1]], parent))
+  gs_nodes <- basename(gs_pop_get_children(y[[1]], parent))
   if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
     message("Preprocessing for '", popAlias, "'")
     
-    parent_data <- getData(y, parent)
+    parent_data <- gs_pop_get_data(y, parent)
     channels <- sapply(dims, function(channel)as.character(getChannelMarker(parent_data[[1, use.exprs = FALSE]], channel)$name))
     
     # when groupBy is set distribute the subset for each group to preprocessing function

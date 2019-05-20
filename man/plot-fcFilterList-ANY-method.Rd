@@ -37,7 +37,7 @@ It is usually called by \code{plot} method for \code{fcTree} instead of directly
 \dontrun{ 
  env1<-new.env(parent=emptyenv())
  #gt is a gatingTemplate, gs is a GatingSet
- gating(gt,gs,env1) #the flowClust gating results are stored in env1 
+ gt_gating(gt,gs,env1) #the flowClust gating results are stored in env1 
  plot(env1$fct,"nonDebris",post=T) #plot the priors as well as posteriors for the "nonDebris" gate
 }
 }

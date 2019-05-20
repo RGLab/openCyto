@@ -44,12 +44,13 @@ wsfile <- list.files(flowDataPath, pattern="manual.xml",full = TRUE)
 wsfile
 ```
 By using`flowWorkspace`package, We can load it into R,
-```{r openWorkspace, eval=F}
-ws <- openWorkspace(wsfile)
+```{r open_flowjo_xml, eval=F}
+library(CytoML)
+ws <- open_flowjo_xml(wsfile)
 ```
-apply (`parseWorkspace`) the`manual gates`defined in`xml`to the raw`FSC`files,
-```{r parseWorkspace, eval=F}
-gs <- parseWorkspace(ws, name= "T-cell", subset =1, isNcdf = TRUE)
+apply (`flowjo_to_gatingset`) the`manual gates`defined in`xml`to the raw`FSC`files,
+```{r flowjo_to_gatingset, eval=F}
+gs <- flowjo_to_gatingset(ws, name= "T-cell", subset =1, isNcdf = TRUE)
 ```
 ```{r load_gs_manual, echo = FALSE}
 gs <- load_gs(file.path(flowDataPath,"gs_manual"))
@@ -105,7 +106,7 @@ Here is the an example of the gating template.
 library(openCyto)
 library(data.table)
 gtFile <- system.file("extdata/gating_template/tcell.csv", package = "openCyto")
-dtTemplate <- fread(gtFile, autostart = 1L)
+dtTemplate <- fread(gtFile)
 dtTemplate
 ```
 Each row is usually corresponding to one cell population and the gating method that is used to get that population.
@@ -220,7 +221,7 @@ Then, compensate the data. If we have compensation controls (i.e. single stained
 compensation matrix by `flowCore::spillover` function.
 Here we simply use the compensation matrix defined in `flowJo workspace`.
 ```{r compensate}
-compMat <- getCompensationMatrices(gh)
+compMat <- gh_get_compensations(gh)
 gs <- compensate(gs, compMat)
 ```
 
@@ -228,7 +229,7 @@ Here is one example showing the compensation outcome:
 ```{r compensate_plot, echo = F, fig.width = 4, fig.height = 4}
 sub_chnl <- c("V545-A","V450-A")
 fr <- fr[,sub_chnl]
-fr_comp <- getData(gs[[1]])[,sub_chnl]
+fr_comp <- gh_pop_get_data(gs[[1]])[,sub_chnl]
 fs <- as(list(fr = fr, fr_comp = fr_comp), "flowSet")
 #transform data to better visualize the compensation effect
 fs <- transform(fs, estimateLogicle(fr,sub_chnl))
@@ -245,7 +246,7 @@ gs <- transform(gs, trans)
 ```
 Here is one example showing the transformation outcome:
 ```{r transformation_plot, echo = F, fig.width = 5, fig.height = 5}
-fr_trans <- getData(gs[[1]])[,sub_chnl[1]]
+fr_trans <- gh_pop_get_data(gs[[1]])[,sub_chnl[1]]
 fr_comp <- fr_comp[,sub_chnl[1]]
 fs <- as(list(fr = fr_comp, fr_trans = fr_trans), "flowSet")
 p1 <- as.ggplot(autoplot(fs[1], "V545"))
@@ -277,13 +278,13 @@ dodesToHide <- c("cd8+", "cd4+"
 				, "CD45_neg/CCR7_gate", "cd4+cd8-/CD45_neg"
 				, "cd4-cd8+/CCR7+", "cd4-cd8+/CD45RA+"
 				)
-lapply(dodesToHide, function(thisNode)setNode(gs, thisNode, FALSE))
+lapply(dodesToHide, function(thisNode)gs_pop_set_visibility(gs, thisNode, FALSE))
 ```
 ### 4.7. rename nodes
 And rename the populations:
 ```{r rename, results = "hide"}
-setNode(gs, "cd4+cd8-", "cd4")
-setNode(gs, "cd4-cd8+", "cd8")
+gs_pop_set_name(gs, "cd4+cd8-", "cd4")
+gs_pop_set_name(gs, "cd4-cd8+", "cd8")
 ```
 
 ### 4.7. visualization
