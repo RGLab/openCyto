@@ -11,18 +11,19 @@ sudo: required
 bioc_required: true
 
 before_install:
+  - echo -e "machine github.com\n  login $CI_USER_TOKEN" > ~/.netrc
   - R -e 'install.packages("devtools")'
   - R -e 'devtools::install_github("Bioconductor/BiocGenerics", ref = "master")'
 
 
 install:
-  - R -e 'devtools::install_github("RGLab/cytolib",ref="trunk")'
+  - R -e 'devtools::install_github("FredHutch/cytolib", ref="cytoset", auth_token=Sys.getenv("CI_USER_TOKEN"))'
   - R -e 'devtools::install_github("RGLab/flowCore", ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/RProtoBufLib", ref = "trunk")'
+  - R -e 'devtools::install_github("RGLab/RProtoBufLib", ref = "cytoset")'
   - R -e 'devtools::install_github("RGLab/ncdfFlow", ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/flowWorkspace", ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/CytoML", ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/flowWorkspaceData", ref="trunk")'
+  - R -e 'devtools::install_github("RGLab/flowWorkspace", ref="cytoset")'
+  - R -e 'devtools::install_github("RGLab/CytoML", ref="cytoset")'
+  - R -e 'devtools::install_github("RGLab/flowWorkspaceData", ref="cytoset")'
   - R -e 'devtools::install_github("RGLab/flowViz", ref="trunk")'  
   - R -e 'devtools::install_github("RGLab/flowStats", ref="trunk")'
   - R -e 'devtools::install_github("RGLab/flowClust", ref="trunk")'
@@ -31,6 +32,7 @@ install:
 env:
  global:
    - CRAN: http://cran.rstudio.com
+   - secure: HFnxefnfMuyddSduRz0p8duWMxZM+8xSKhGwW08IyVfBvRRkqAaI6pT4OUl1xkXViS2N0Grjcvhglor5s3H5wux5HGl3W2pWm7PAVHNkDwA1NjwCQs7bZPQUCZdrLXY8IqYbd7hEH3dQcRix5lYt2WcmuRj4b8N3MWW/GVamu70=
 -apt_packages:
 -  - libhdf5-7 
 -  - libhdf5-dev
