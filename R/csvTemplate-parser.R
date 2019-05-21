@@ -431,13 +431,15 @@ templateGen <- function(gh){
 #' TODO:  support A+/-  
 #' @noRd 
 .splitTerms <- function(pop_pat, two_pop_token, popName, dims) {
-  dims <- strsplit(split = ",", dims)[[1]]
+  dims_vec <- strsplit(split = ",", dims)[[1]]
+  if(length(dims_vec)!=2)
+    stop("Can't split the population pattern '", popName, "' into multiple population names due to invalid 'dims' column: '", dims, "'" )
   term_pos <- gregexpr(pop_pat, popName)[[1]]
   x_term <- substr(popName, 1, term_pos[2] - 1)
   y_term <- substr(popName, term_pos[2], nchar(popName))
   terms <- c(x_term, y_term)
   
-  splitted_terms <- mapply(terms, dims, FUN = function(cur_term, dim_name) {
+  splitted_terms <- mapply(terms, dims_vec, FUN = function(cur_term, dim_name) {
         token_pos <- gregexpr(two_pop_token, cur_term)[[1]]
         if (token_pos > 0) {
           # dim_name <- substr(cur_term, 1, token_pos - 1)
