@@ -1,47 +1,33 @@
 language: r
 r: bioc-devel
-dist: trusty
-
+dist: xenial
 cache: packages
-
-warnings_are_errors: false 
+warnings_are_errors: false
 sudo: required
-
-
 bioc_required: true
-
 before_install:
-  - R -e 'install.packages("devtools")'
-  - R -e 'devtools::install_github("Bioconductor/BiocGenerics", ref = "master")'
-
-
+- echo -e "machine github.com\n  login $CI_USER_TOKEN" > ~/.netrc
+- R -e 'install.packages("devtools")'
+- R -e 'devtools::install_github("Bioconductor/BiocGenerics", ref = "master")'
 install:
-  - R -e 'install.packages(c("knitr", "testthat"))'
-  - R -e 'devtools::install_github("RGLab/cytolib",ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/flowCore", ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/RProtoBufLib", ref = "trunk")'
-  - R -e 'devtools::install_github("RGLab/ncdfFlow", ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/flowWorkspace", ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/flowWorkspaceData", ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/flowViz", ref="trunk")'  
-  - R -e 'devtools::install_github("RGLab/flowStats", ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/flowClust", ref="trunk")'
-  - R -e 'devtools::install_github("RGLab/ggcyto", ref="trunk")'
-  
-script:
-  - R CMD build . --no-build-vignettes
-  - R -e 'install.packages(list.files(pattern="*tar.gz"), repos=NULL, type="source")'
-  - R -e 'devtools::install_github("RGLab/CytoML", ref="trunk")'
-  - R CMD build .
-  - R CMD check *tar.gz
-  
+- R -e 'devtools::install_github("FredHutch/cytolib", ref="cytoset", auth_token=Sys.getenv("CI_USER_TOKEN"))'
+- R -e 'devtools::install_github("RGLab/flowCore", ref="trunk")'
+- R -e 'devtools::install_github("RGLab/RProtoBufLib", ref = "cytoset")'
+- R -e 'devtools::install_github("RGLab/ncdfFlow", ref="trunk")'
+- R -e 'devtools::install_github("RGLab/flowWorkspace", ref="cytoset")'
+- R -e 'devtools::install_github("RGLab/CytoML", ref="cytoset")'
+- R -e 'devtools::install_github("RGLab/flowWorkspaceData", ref="cytoset")'
+- R -e 'devtools::install_github("RGLab/flowViz", ref="trunk")'
+- R -e 'devtools::install_github("RGLab/flowStats", ref="trunk")'
+- R -e 'devtools::install_github("RGLab/flowClust", ref="trunk")'
+- R -e 'devtools::install_deps(dep = T, upgrade = "always")'
 env:
- global:
-   - CRAN: http://cran.rstudio.com
+  global:
+  - CRAN: http://cran.rstudio.com
+  - secure: e1e3L0FERAXn3Y2UBIRNnhx05CABluvZIYzyAIMiFdAuUNttJz7T7pOjRe6cumHR1gW+PvDtvpghMcN/s07/zxDdOvjKI3lapvh5m9KwSMSWmVMkRAkAC0nUN5XQuCiuFj39r1aqwXP68NOimfS0gXSATpp4zvQFYGLd7XtvoyA=
 -apt_packages:
--  - libhdf5-7 
--  - libhdf5-dev
-
+- - libhdf5-7
+- - libhdf5-dev
 notifications:
   email:
     on_success: change
