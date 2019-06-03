@@ -826,7 +826,7 @@ gate_mindensity <- function(fr, channel, filterId = "", positive = TRUE,
       }      
     }
   }
-  gate_coordinates <- list(c(cutpoint, Inf))
+  gate_coordinates <- ifelse(positive, list(c(cutpoint, Inf)), list(c(-Inf, cutpoint)))
   
   names(gate_coordinates) <- channel
   
