@@ -22,6 +22,7 @@ columns that exacted from an \code{GatingHierarchy}, and leave the other columns
 So users can make changes to that template instead of writing from scratch.
 }
 \examples{
+library(flowWorkspace)
 dataDir <- system.file("extdata",package="flowWorkspaceData")
 gs <- load_gs(list.files(dataDir, pattern = "gs_manual",full = TRUE))
 gh_generate_template(gs[[1]])
