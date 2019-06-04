@@ -1,5 +1,5 @@
 language: r
-r: bioc-devel
+r: devel
 dist: xenial
 cache: packages
 warnings_are_errors: false
@@ -11,10 +11,10 @@ before_install:
 - R -e 'devtools::install_github("Bioconductor/BiocGenerics", ref = "master")'
 install:
 - R -e 'devtools::install_github("FredHutch/cytolib", ref="cytoset", auth_token=Sys.getenv("CI_USER_TOKEN"))'
-- R -e 'devtools::install_github("RGLab/flowCore", ref="trunk")'
+- R -e 'devtools::install_github("RGLab/flowCore", ref="trunk", auth_token=Sys.getenv("CI_USER_TOKEN"))'
 - R -e 'devtools::install_github("RGLab/RProtoBufLib", ref = "cytoset")'
 - R -e 'devtools::install_github("RGLab/ncdfFlow", ref="trunk")'
-- R -e 'devtools::install_github("RGLab/flowWorkspace", ref="cytoset")'
+- R -e 'devtools::install_github("RGLab/flowWorkspace", ref="cytoset", auth_token=Sys.getenv("CI_USER_TOKEN"))'
 - R -e 'devtools::install_github("RGLab/CytoML", ref="cytoset")'
 - R -e 'devtools::install_github("RGLab/flowWorkspaceData", ref="cytoset")'
 - R -e 'devtools::install_github("RGLab/flowViz", ref="trunk")'
