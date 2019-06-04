@@ -14,6 +14,7 @@ NULL
 #' @rdname gh_generate_template 
 #' @export 
 #' @examples 
+#' library(flowWorkspace)
 #' dataDir <- system.file("extdata",package="flowWorkspaceData")
 #' gs <- load_gs(list.files(dataDir, pattern = "gs_manual",full = TRUE))
 #' gh_generate_template(gs[[1]])
