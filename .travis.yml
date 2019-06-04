@@ -1,7 +1,6 @@
 language: r
-r: bioc-devel
 dist: trusty
-
+r: devel
 cache: packages
 
 warnings_are_errors: false 
@@ -23,6 +22,7 @@ install:
   - R -e 'devtools::install_github("RGLab/ncdfFlow", ref="trunk")'
   - R -e 'devtools::install_github("RGLab/flowWorkspace", ref="trunk")'
   - R -e 'devtools::install_github("RGLab/flowWorkspaceData", ref="trunk")'
+  - R -e 'devtools::install_github("RGLab/CytoML", ref="trunk")'
   - R -e 'devtools::install_github("RGLab/flowViz", ref="trunk")'  
   - R -e 'devtools::install_github("RGLab/flowStats", ref="trunk")'
   - R -e 'devtools::install_github("RGLab/flowClust", ref="trunk")'
