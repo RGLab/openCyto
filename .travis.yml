@@ -1,5 +1,5 @@
 language: r
-r: bioc-devel
+r: devel
 dist: xenial
 cache: packages
 warnings_are_errors: false
