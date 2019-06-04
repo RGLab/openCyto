@@ -27,6 +27,8 @@ All these wrappers have these common interfaces:
 * `...`: any other gating parameters pass on to the actual gating engine
 
 ```{r}
+library(flowCore)
+library(flowWorkspace)
 library(openCyto)
 library(ggcyto)
 
