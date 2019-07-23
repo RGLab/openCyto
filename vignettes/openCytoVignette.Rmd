@@ -279,24 +279,25 @@ nodesToHide <- c("cd8+", "cd4+"
 				)
 lapply(nodesToHide, function(thisNode) gs_pop_set_visibility(gs, thisNode, FALSE))
 ```
-### 4.7. rename nodes
+### 4.7. Rename nodes
 And rename the populations:
 ```{r rename, results = "hide"}
 gs_pop_set_name(gs, "cd4+cd8-", "cd4")
 gs_pop_set_name(gs, "cd4-cd8+", "cd8")
 ```
 
-### 4.7. visualization
 ```{r plot_afterHiding}
 plot(gs[[1]])
 ```
+
+### 4.8. Visualize the gates
 
 ```{r plotGate_autoGate, fig.width = 9}
 autoplot(gs[[1]])
 ```
 
-### 4.8. Apply a gating method without csv template
-Sometimes it will be helpful (especially when working with already gated data) to be able to interact with the `GatingSet` directly without the need to write the compelete csv gating template. We can apply each automated gating method using the same fields as in the `gatingTemplate`, but provided as arguments to the `gs_add_gating_method` function. The populations added by each of these calls to `gs_add_gating_method` can be removed sequentially by `gs_remove_gating_method`, which will remove *all* populations added by the prior call to `gs_add_gating_method`. These two functions allow for interactive stagewise prototyping of a `gatingTemplate`.
+### 4.9. Apply a gating method without csv template
+Sometimes it will be helpful (especially when working with data that is already gated) to be able to interact with the `GatingSet` directly without the need to write the compelete csv gating template. We can apply each automated gating method using the same fields as in the `gatingTemplate`, but provided as arguments to the `gs_add_gating_method` function. The populations added by each of these calls to `gs_add_gating_method` can be removed sequentially by `gs_remove_gating_method`, which will remove *all* populations added by the prior call to `gs_add_gating_method`. These two functions allow for interactive stagewise prototyping of a `gatingTemplate`.
 
 For example, suppose we wanted to add a `CD38-/HLA-` sub-population to the `cd4+cd8-` population. We could do this as follows:
 
