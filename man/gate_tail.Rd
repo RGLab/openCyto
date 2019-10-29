@@ -9,13 +9,6 @@
 gate_tail(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
   strict = TRUE, tol = 0.01, side = "right", min = NULL,
   max = NULL, bias = 0, ...)
-
-tailgate(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
-  strict = TRUE, tol = 0.01, side = "right", min = NULL,
-  max = NULL, bias = 0, ...)
-
-cytokine(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
-  tol = 0.01, side = "right", ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}

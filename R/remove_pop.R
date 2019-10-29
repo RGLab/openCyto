@@ -9,12 +9,13 @@ NULL
 #' with a separate history being maintained for each such object. \code{gs_remove_gating_method} allows 
 #' for repeated use, effectively serving as a multi-level undo function for \code{gs_add_gating_method}.
 #' 
+#' @name gs_remove_gating_method
+#' @aliases remove_pop
 #' @param gs The \code{GatingSet} or \code{GatingSetList} for which the most recent
 #' \code{gs_add_gating_method} call should be reversed.
 #' 
 #' @usage 
-#' gs_remove_gating_method(GatingSet)
-#' gs_remove_gating_method(GatingSetList)
+#' gs_remove_gating_method(gs)
 #' 
 #' @seealso \code{\link{gs_add_gating_method}} \code{\link{gs_add_gating_method_init}}
 #' @examples
@@ -26,8 +27,6 @@ NULL
 #' } 
 #' @importFrom flowWorkspace identifier
 #' @export
-#' @aliases gs_remove_gating_method remove_pop
-#' @rdname gs_remove_gating_method
 gs_remove_gating_method <- function(gs){
   if(!(identifier(gs) %in% names(add_pop_history$records))){
     stop(paste("No gs_add_gating_method calls have been made for this GatingSet or GatingSetList"))
@@ -59,7 +58,6 @@ gs_remove_gating_method <- function(gs){
   invisible(this_record)
 } 
 
-#' @rdname gs_remove_gating_method
 #' @export
 remove_pop <- function(gs){
   .Deprecated("gs_remove_gating_method")

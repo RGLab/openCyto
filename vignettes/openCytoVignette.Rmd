@@ -1,7 +1,15 @@
-<!--
-%\VignetteEngine{knitr}
-%\VignetteIndexEntry{An Introduction to the openCyto package}
--->
+---
+title: "An Introduction to the openCyto package"
+output: 
+  html_document: 
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    collapsed: no
+vignette: >
+  %\VignetteEngine{knitr}
+  %\VignetteIndexEntry{An Introduction to the openCyto package}
+---
 
 ```{r requirements, echo=FALSE}
 if (!require(flowWorkspaceData)) {

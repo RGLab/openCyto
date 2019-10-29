@@ -12,9 +12,10 @@ NULL
                  , "tautStringGate", "gate_tautstring")
 .DEFAULT_PP <- c("prior_flowClust", "prior_flowClust", "warpSet", "standardize_flowset")
 #'Print a list of the registered gating methods
+#'@name gt_list_methods
+#'@aliases listgtMethods
 #'@return Does not return anything. Prints a list of the available gating methods.
-#'@rdname gt_list_methods
-#'@export listgtMethods
+#'@export
 gt_list_methods <- function(){
   res <- .getPluginMethods()
   cat("Gating Functions:\n")
@@ -25,7 +26,6 @@ gt_list_methods <- function(){
     cat("=== ", i,  "\n")
 }
 
-#'@rdname gt_list_methods
 #'@export
 listgtMethods <- function(){
   .Deprecated("gt_list_methods")
@@ -86,20 +86,22 @@ registerGatingFunction <- function(fun=NA,methodName, dep=NA){
 #' @templateVar new register_plugins
 #' @template template-depr_pkg
 NULL
-#'Register a gating or preprocessing function with OpenCyto
+#' Register a gating or preprocessing function with OpenCyto
 #'
-#'Function registers a new gating or preprocessing method with openCyto so that it may be used in the 
-#'csv template.
+#' Function registers a new gating or preprocessing method with openCyto so that it may be used in the 
+#' csv template.
+#'
+#' @name register_plugins
+#' @aliases registerGatingFunction registerPlugins
 #' @param fun \code{function} to be registered
 #' @param methodName \code{character} name of the gating or preprocessing method
 #' @param dep \code{character} name of the library dependency required for the plugin method to work.
 #' @param ... other arguments
 #'         type \code{character} specifying the type of registering method. Should be either "gating" or "preprocessing".
 #' 
-#'@return \code{logical} TRUE if successful and prints a message. FALSE otherwise.
-#'@export
-#'@useDynLib openCyto
-#'@details The \code{fun} argument should be a wrapper function definition for the gating or preprocessing method. 
+#' @return \code{logical} TRUE if successful and prints a message. FALSE otherwise.
+#' @useDynLib openCyto
+#' @details The \code{fun} argument should be a wrapper function definition for the gating or preprocessing method. 
 #'                          Gating method must have formal arguments:
 #' 
 #'                           fr a \code{flowFrame}
@@ -132,10 +134,9 @@ NULL
 #' The preprocessing can return anything and it will be passed on to the gating function. So it is up to gating function to use and interpret the results of preprocessing.
 #' Not all formal parameters need to be used. Additional arguments are passed via the ... and can be processed in the wrapper
 #' 
-#' @rdname register_plugins
-#' @aliases registerGatingFunction registerPlugins
-#'@import utils
-#'@importFrom R.utils isPackageInstalled
+#' @import utils
+#' @importFrom R.utils isPackageInstalled
+#' @export
 register_plugins <- function(fun = NA, methodName, dep = NA, ...){
   
   if(!is.na(dep)){
@@ -169,7 +170,6 @@ register_plugins <- function(fun = NA, methodName, dep = NA, ...){
   return(TRUE)
 }
 
-#' @rdname register_plugins
 #' @export
 registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
   .Deprecated("register_plugins")

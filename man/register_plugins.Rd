@@ -7,8 +7,6 @@
 \title{Register a gating or preprocessing function with OpenCyto}
 \usage{
 register_plugins(fun = NA, methodName, dep = NA, ...)
-
-registerPlugins(fun = NA, methodName, dep = NA, ...)
 }
 \arguments{
 \item{fun}{\code{function} to be registered}

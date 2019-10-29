@@ -9,12 +9,7 @@
 \usage{
 tautstring(sorted_vector, modeprior = 0)
 
-tautString(sorted_vector, modeprior = 0)
-
 gate_tautstring(fr, channel, gate_range = NULL, min = NULL,
-  max = NULL, filterId = "")
-
-tautStringGate(fr, channel, gate_range = NULL, min = NULL,
   max = NULL, filterId = "")
 }
 \arguments{

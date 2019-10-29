@@ -4,6 +4,8 @@
 NULL
 #' get nodes from \link[openCyto:gatingTemplate-class]{gatingTemplate} object
 #' 
+#' @name gt_get_nodes
+#' @aliases getNodes getNodes,gatingTemplate-method
 #' @param x \code{gatingTemplate}
 #' @param y \code{character} node index. When \code{missing}, return all the nodes
 #' @param order \code{character} specifying the order of nodes. options are "default", "bfs", "dfs", "tsort"
@@ -16,9 +18,7 @@ NULL
 #' gt_get_nodes(gt, only.names = TRUE)
 #' gt_get_nodes(gt, "/nonDebris")
 #' }
-#' @export 
-#' @aliases getNodes,gatingTemplate-method
-#' @rdname gt_get_nodes
+#' @export
 gt_get_nodes <- function(x, y
                              , order = c("default", "bfs", "dfs", "tsort")
                              , only.names = FALSE) {
@@ -43,7 +43,7 @@ gt_get_nodes <- function(x, y
     res <- res[[1]]
   res
 }
-#' @rdname gt_get_nodes
+
 #' @export
 setMethod("getNodes", signature = c("gatingTemplate"),
           definition = function(x, y
@@ -59,10 +59,11 @@ setMethod("getNodes", signature = c("gatingTemplate"),
 NULL
 #' get children nodes
 #'
+#' @name gt_get_children
+#' @aliases getChildren getChildren,gatingTemplate,character-method
 #' @param obj \code{gatingTemplate}
 #' @param y \code{character} parent node path  
 #' @export 
-#' @aliases getChildren,gatingTemplate,character-method
 #' @examples 
 #' \dontrun{
 #' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
@@ -71,12 +72,10 @@ NULL
 #' gt_get_children(gt, "/nonDebris") 
 #' }
 #' @importClassesFrom methods character ANY data.frame environment list logical matrix missing numeric oldClass
-#' @rdname gt_get_children
 gt_get_children <- function(obj, y){
   edges(obj, y)[[1]]
 }
 
-#' @rdname gt_get_children
 #' @export
 setMethod("getChildren", signature = c("gatingTemplate", "character"),
           definition = function(obj, y) {
@@ -94,7 +93,8 @@ NULL
 #' @param y \code{character} child node path
 #' @param isRef \code{logical} whether show the reference node besides the parent node
 #' 
-#' @export 
+#' @name gt_get_parent
+#' @aliases getParent getParent,gatingTemplate,character-method
 #' @importFrom plyr laply
 #' @importFrom graph inEdges
 #' @aliases getParent,gatingTemplate,character-method
@@ -105,7 +105,7 @@ NULL
 #' gt_get_nodes(gt, "/nonDebris")
 #' gt_get_parent(gt, "/nonDebris/singlets") 
 #' }
-#' @rdname gt_get_parent
+#' @export 
 gt_get_parent <- function(obj, y, isRef = FALSE) {
   #            browser()
   src <- inEdges(y, obj)[[1]]
@@ -120,7 +120,6 @@ gt_get_parent <- function(obj, y, isRef = FALSE) {
     src[!isRefs]
 }
 
-#' @rdname gt_get_parent
 #' @export
 setMethod("getParent", signature = c("gatingTemplate", "character"),
           definition = function(obj, y, isRef = FALSE) {
@@ -134,10 +133,11 @@ setMethod("getParent", signature = c("gatingTemplate", "character"),
 NULL
 #' get gating method from the node
 #' 
+#' @name gt_get_gate
+#' @aliases getGate,gatingTemplate,character-method
 #' @param obj \code{gatingTemplate}
 #' @param y \code{character} parent node path
 #' @param z \code{character} child node path
-#' @aliases getGate,gatingTemplate,character-method
 #' @examples 
 #' \dontrun{
 #' gt <- gatingTemplate(system.file("extdata/gating_template/tcell.csv",package = "openCyto"))
@@ -146,13 +146,11 @@ NULL
 #' gt_get_children(gt, "/nonDebris")
 #' gt_get_gate(gt, "/nonDebris", "/nonDebris/singlets")
 #' }
-#' @rdname gt_get_gate
 #' @export
 gt_get_gate <- function(obj, y, z) {
   edgeData(obj, from = y, to = z, attr = "gtMethod")[[1]]
 }
 
-#' @rdname gt_get_gate
 #' @export
 setMethod("getGate", signature = c("gatingTemplate", "character"),
           definition = function(obj, y, z) {
@@ -199,6 +197,7 @@ setMethod("show", signature = c("gatingTemplate"),
 #' 
 #' plot the gating scheme using Rgraphviz
 #' 
+#' @usage plot(x, y, ...)
 #' @param x \code{gatingTemplate} object
 #' @param y either \code{character} specifying the root node which can be used to visualize only the subgraph 
 #'              or \code{missing} which display the entire gating scheme
@@ -221,7 +220,6 @@ setMethod("show", signature = c("gatingTemplate"),
 #' plot(gt) #plot entire tree
 #' plot(gt, "lymph") #only plot the subtree rooted from "lymph"
 #' }
-
 setMethod("plot",c("gatingTemplate","missing"),function(x,y,...){
       .plotTree(x,...)
       

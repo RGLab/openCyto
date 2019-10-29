@@ -15,6 +15,8 @@ NULL
 #' at which the density between the first and second smallest cluster centroids
 #' is minimum.
 #'
+#' @rdname gate_flowclust_1d
+#' @aliases gate_flowclust_1d gate_flowClust_1d flowClust.1d
 #' @param fr a \code{flowFrame} object
 #' @param params \code{character} channel to be gated on
 #' @param filterId A \code{character} string that identifies the filter created.
@@ -58,8 +60,6 @@ NULL
 #' cutpoint calculated
 #' @export
 #' @importFrom flowClust getEstimates tmixFilter dmvtmix dmvt flowClust
-#' @rdname gate_flowclust_1d
-#' @aliases gate_flowclust_1d gate_flowClust_1d flowClust.1d
 #' @examples
 #' \dontrun{
 #'  gate <- gate_flowclust_1d(fr, params = "APC-A", K =2) # fr is a flowFrame
@@ -291,7 +291,6 @@ gate_flowclust_1d <- function(fr, params, filterId = "", K = NULL
   
 }
 
-#' @rdname gate_flowclust_1d
 #' @export
 gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL 
                               , trans = 0 #no box transform
@@ -312,7 +311,6 @@ gate_flowClust_1d <- function(fr, params, filterId = "", K = NULL
                     , plot, debug, ...)
 }
 
-#' @rdname gate_flowclust_1d
 #' @export 
 flowClust.1d <- gate_flowClust_1d
 
@@ -351,6 +349,8 @@ NULL
 #' at the corresponding quadrant. i.e. Clockwise, [0,pi/2] UR, (pi/2, pi] LR,
 #' (pi, 3/2 * pi] LL, (3/2 * pi, 2 * pi] UL
 #'
+#' @name gate_flowclust_2d
+#' @aliases gate_flowclust_2d gate_flowClust_2d flowClust.2d
 #' @param fr a \code{flowFrame} object
 #' @param xChannel,yChannel \code{character} specifying channels to be gated on
 #' @param filterId A \code{character} string that identifies the filter created.
@@ -388,8 +388,6 @@ NULL
 #' @return a \code{polygonGate} object containing the contour (ellipse) for 2D
 #' gating.
 #' @export
-#' @rdname gate_flowclust_2d
-#' @aliases gate_flowclust_2d gate_flowClust_2d flowClust.2d
 #' @examples
 #' \dontrun{
 #'  gate <- gate_flowclust_2d(fr, xChannel = "FSC-A", xChannel = "SSC-A", K = 3) # fr is a flowFrame
@@ -642,7 +640,7 @@ gate_flowclust_2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
     fcEllipsoidGate(flowClust_gate, prior, posteriors)
     
 }
-#' @rdname gate_flowclust_2d
+
 #' @export
 gate_flowClust_2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                               usePrior = 'no', prior = list(NA)
@@ -658,7 +656,7 @@ gate_flowClust_2d <- function(fr, xChannel, yChannel, filterId = "", K = 2,
                     , quantile, translation, transitional_angle, min, max, ...)
 }
 
-#' @rdname gate_flowclust_2d 
+
 #' @export 
 flowClust.2d <- gate_flowClust_2d
 
@@ -668,6 +666,8 @@ flowClust.2d <- gate_flowClust_2d
 #' produce the exact the probability set by 'probs' argument if there are not enough
 #' cell events to reach that precision. Sometime the difference could be significant.
 #' 
+#' @name gate_quantile
+#' @aliases quantileGate
 #' @param fr a \code{flowFrame} object
 #' @param channel the channel from which the cytokine gate is constructed
 #' @param filterId the name of the filter
@@ -678,7 +678,6 @@ flowClust.2d <- gate_flowClust_2d
 #' @param ... additional arguments passed to 'stats::quantile' function.
 #' @return a \code{rectangleGate} 
 #' @export
-#' @rdname gate_quantile 
 #' @examples
 #' \dontrun{
 #'  gate <- gate_quantile(fr, Channel = "APC-A", probs = 0.995) # fr is a flowFrame
@@ -716,7 +715,6 @@ gate_quantile <- function(fr, channel, probs = 0.999, plot = FALSE,
 #' @template template-depr_pkg
 NULL
 #' @export
-#' @rdname gate_quantile
 quantileGate <- function(fr, channel, probs = 0.999, plot = FALSE,
                         filterId = "", min = NULL, max = NULL, ...){
   .Deprecated("gate_quantile")
@@ -742,6 +740,8 @@ quantileGate <- function(fr, channel, probs = 0.999, plot = FALSE,
 #' the cutpoint as the \code{min(x)} if \code{positive} is \code{TRUE}, and the
 #' \code{max(x)} otherwise.
 #'
+#' @name gate_mindensity
+#' @aliases mindensity
 #' @param fr a \code{flowFrame} object
 #' @param channel TODO
 #' @param filterId TODO
@@ -760,7 +760,6 @@ quantileGate <- function(fr, channel, probs = 0.999, plot = FALSE,
 #' @param ... Additional arguments for peak detection.
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
 #' @export
-#' @rdname gate_mindensity
 #' @examples
 #' \dontrun{
 #'  gate <- gate_mindensity(fr, channel = "APC-A") # fr is a flowFrame
@@ -833,7 +832,7 @@ gate_mindensity <- function(fr, channel, filterId = "", positive = TRUE,
   rectangleGate(gate_coordinates, filterId = filterId)
   
 }
-#' @rdname gate_mindensity
+#' @export
 mindensity <- gate_mindensity
 
 #' Gates the tail of a density using the derivative of a kernel density estimate
@@ -886,6 +885,8 @@ mindensity <- gate_mindensity
 #' bandwidth can also be directly adjusted with \code{bandwidth}, where the final value used
 #' will be given by \code{adjust*bandwidth} 
 #'
+#' @name gate_tail
+#' @aliases tailgate cytokine
 #' @param fr a \code{flowFrame} object
 #' @param channel the channel from which the cytokine gate is constructed
 #' @param filterId the name of the filter
@@ -910,7 +911,6 @@ mindensity <- gate_mindensity
 #' @return a \code{filterList} containing the gates (cutpoints) for each sample with
 #' the corresponding \code{\linkS4class{rectangleGate}} objects defining the tail as the positive population.
 #' @export
-#' @rdname gate_tail
 #' @examples
 #' \dontrun{
 #'  gate <- gate_tail(fr, Channel = "APC-A") # fr is a flowFrame
@@ -935,14 +935,14 @@ gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
   rectangleGate(gate_coordinates, filterId = filterId)
   
 }
-#' @rdname gate_tail
+#' @export
 tailgate <- gate_tail
 
 #' @templateVar old cytokine
 #' @templateVar new gate_tail
 #' @template template-depr_pkg
 NULL
-#' @rdname gate_tail
+
 #' @export
 cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
   ref_peak = 1, tol = 1e-2, side = "right", ...) {
@@ -1103,15 +1103,16 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
 #' The order of 1d-gating is determined so that the gates better capture the 
 #' distributions of flow data.
 #' 
+#' @name gate_quad_sequential
+#' @aliases quadGate.seq
 #' @param fr \code{flowFrame}
 #' @param channels \code{character} two channels used for gating
 #' @param gFunc the name of the 1d-gating function to be used for either dimension
 #' @param min a numeric vector that sets the lower bounds for data filtering
 #' @param max a numeric vector that sets the upper bounds for data filtering
 #' @param ... other arguments passed to \code{.find_peak} (e.g. 'num_peaks' and 'adjust'). see \link{tailgate}
-#' @export 
-#' @rdname gate_quad_sequential
 #' @return a \code{filters} that contains four rectangleGates
+#' @export 
 gate_quad_sequential <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
   if (missing(channels) || length(channels) != 2) {
     stop("two channels must be specified.")
@@ -1210,7 +1211,6 @@ gate_quad_sequential <- function(fr, channels, gFunc, min = NULL, max = NULL, ..
 #' @template template-depr_pkg
 NULL
 #' @export 
-#' @rdname gate_quad_sequential
 quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
   .Deprecated("gate_quad_sequential")
   gate_quad_sequential(fr, channels, gFunc, min, max, ...)
@@ -1223,7 +1223,8 @@ quadGate.seq <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
 #' It is particually useful when the two markers are not well resolved thus the regular quadGate method
 #' based on 1d gating will not find the perfect cut points on both dimensions.
 #' 
-#'  
+#' @name gate_quad_tmix
+#' @aliases quadGate.tmix
 #' @param fr \code{flowFrame}
 #' @param channels \code{character} vector specifies two channels
 #' @param usePrior see \link{gate_flowclust_2d}
@@ -1344,7 +1345,6 @@ gate_quad_tmix <- function(fr, channels, K, usePrior = "no", prior = list(NA)
 #' @template template-depr_pkg
 NULL
 #' @export 
-#' @rdname gate_quad_tmix
 quadGate.tmix <- function(fr, channels, K, usePrior = "no", prior = list(NA)
                           , quantile1 = 0.8, quantile3 = 0.8
                           , trans = 0

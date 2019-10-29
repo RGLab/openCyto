@@ -6,8 +6,6 @@
 \title{Print a list of the registered gating methods}
 \usage{
 gt_list_methods()
-
-listgtMethods()
 }
 \value{
 Does not return anything. Prints a list of the available gating methods.

@@ -9,15 +9,16 @@ NULL
 #' columns that exacted from an \code{GatingHierarchy}, and leave the other columns (e.g. `gating_method`) blank.
 #' So users can make changes to that template instead of writing from scratch.
 #' 
+#' @name gh_generate_template
+#' @aliases templateGen 
 #' @param gh a \code{GatingHierarchy} likely parsed from a xml workspace
 #' @return a gating template in \code{data.frame} format that requires further edition after output to csv
-#' @rdname gh_generate_template 
-#' @export 
 #' @examples 
 #' library(flowWorkspace)
 #' dataDir <- system.file("extdata",package="flowWorkspaceData")
 #' gs <- load_gs(list.files(dataDir, pattern = "gs_manual",full = TRUE))
 #' gh_generate_template(gs[[1]])
+#' @export 
 gh_generate_template <- function(gh){
   nodes <- gs_get_pop_paths(gh, order = "tsort")
   dt = ldply(nodes[-1], function(thisNode){
@@ -47,7 +48,6 @@ gh_generate_template <- function(gh){
   return(dt)
 }
 
-#' @rdname gh_generate_template
 #' @export
 templateGen <- function(gh){
   .Deprecated("gh_generate_template")
