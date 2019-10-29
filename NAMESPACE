@@ -3,6 +3,8 @@
 S3method(as.data.table,gatingTemplate)
 S3method(gt_gating,gatingTemplate)
 S3method(pop_add,ocRectRefGate)
+export(CytoExploreR_.argDeparser)
+export(CytoExploreR_.preprocess_csv)
 export(add_pop)
 export(add_pop_init)
 export(cytokine)
