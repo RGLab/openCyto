@@ -96,10 +96,10 @@ smallest cluster centroids is minimum." />
       <a href="../articles/HowToAutoGating.html">OpenCyto: How to use different auto gating functions</a>
     </li>
     <li>
-      <a href="../articles/HowToWriteCSVTemplate.html">UNKNOWN TITLE</a>
+      <a href="../articles/HowToWriteCSVTemplate.html">How to write a csv gating template</a>
     </li>
     <li>
-      <a href="../articles/openCytoVignette.html">UNKNOWN TITLE</a>
+      <a href="../articles/openCytoVignette.html">An Introduction to the openCyto package</a>
     </li>
   </ul>
 </li>
@@ -135,18 +135,6 @@ smallest cluster centroids is minimum.</p>
     </div>
 
     <pre class="usage"><span class='fu'>gate_flowclust_2d</span>(<span class='no'>fr</span>, <span class='no'>xChannel</span>, <span class='no'>yChannel</span>, <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>usePrior</span> <span class='kw'>=</span> <span class='st'>"no"</span>, <span class='kw'>prior</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='fl'>NA</span>), <span class='kw'>trans</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>min.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>,
-  <span class='kw'>max.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>nstart</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>target</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>transitional</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>quantile</span> <span class='kw'>=</span> <span class='fl'>0.9</span>, <span class='kw'>translation</span> <span class='kw'>=</span> <span class='fl'>0.25</span>,
-  <span class='kw'>transitional_angle</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)
-
-<span class='fu'>gate_flowClust_2d</span>(<span class='no'>fr</span>, <span class='no'>xChannel</span>, <span class='no'>yChannel</span>, <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>usePrior</span> <span class='kw'>=</span> <span class='st'>"no"</span>, <span class='kw'>prior</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='fl'>NA</span>), <span class='kw'>trans</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>min.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>,
-  <span class='kw'>max.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>nstart</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>target</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>transitional</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>quantile</span> <span class='kw'>=</span> <span class='fl'>0.9</span>, <span class='kw'>translation</span> <span class='kw'>=</span> <span class='fl'>0.25</span>,
-  <span class='kw'>transitional_angle</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)
-
-<span class='fu'>flowClust.2d</span>(<span class='no'>fr</span>, <span class='no'>xChannel</span>, <span class='no'>yChannel</span>, <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>2</span>,
   <span class='kw'>usePrior</span> <span class='kw'>=</span> <span class='st'>"no"</span>, <span class='kw'>prior</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='fl'>NA</span>), <span class='kw'>trans</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>min.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>,
   <span class='kw'>max.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>nstart</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>target</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>transitional</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>quantile</span> <span class='kw'>=</span> <span class='fl'>0.9</span>, <span class='kw'>translation</span> <span class='kw'>=</span> <span class='fl'>0.25</span>,

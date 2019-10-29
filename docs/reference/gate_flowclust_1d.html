@@ -94,10 +94,10 @@ cluster and all other clusters. — gate_flowclust_1d" />
       <a href="../articles/HowToAutoGating.html">OpenCyto: How to use different auto gating functions</a>
     </li>
     <li>
-      <a href="../articles/HowToWriteCSVTemplate.html">UNKNOWN TITLE</a>
+      <a href="../articles/HowToWriteCSVTemplate.html">How to write a csv gating template</a>
     </li>
     <li>
-      <a href="../articles/openCytoVignette.html">UNKNOWN TITLE</a>
+      <a href="../articles/openCytoVignette.html">An Introduction to the openCyto package</a>
     </li>
   </ul>
 </li>
@@ -131,22 +131,6 @@ cluster and all other clusters.</h1>
     </div>
 
     <pre class="usage"><span class='fu'>gate_flowclust_1d</span>(<span class='no'>fr</span>, <span class='no'>params</span>, <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>trans</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>min.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>max.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>nstart</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>criterion</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"BIC"</span>, <span class='st'>"ICL"</span>), <span class='kw'>cutpoint_method</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"boundary"</span>,
-  <span class='st'>"min_density"</span>, <span class='st'>"quantile"</span>, <span class='st'>"posterior_mean"</span>, <span class='st'>"prior_density"</span>),
-  <span class='kw'>neg_cluster</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>cutpoint_min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>cutpoint_max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>quantile</span> <span class='kw'>=</span> <span class='fl'>0.99</span>, <span class='kw'>quantile_interval</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>,
-  <span class='fl'>10</span>), <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='no'>...</span>)
-
-<span class='fu'>gate_flowClust_1d</span>(<span class='no'>fr</span>, <span class='no'>params</span>, <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>trans</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>min.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>max.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>nstart</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>criterion</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"BIC"</span>, <span class='st'>"ICL"</span>), <span class='kw'>cutpoint_method</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"boundary"</span>,
-  <span class='st'>"min_density"</span>, <span class='st'>"quantile"</span>, <span class='st'>"posterior_mean"</span>, <span class='st'>"prior_density"</span>),
-  <span class='kw'>neg_cluster</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>cutpoint_min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>cutpoint_max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>quantile</span> <span class='kw'>=</span> <span class='fl'>0.99</span>, <span class='kw'>quantile_interval</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>,
-  <span class='fl'>10</span>), <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='no'>...</span>)
-
-<span class='fu'>flowClust.1d</span>(<span class='no'>fr</span>, <span class='no'>params</span>, <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>trans</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>min.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>max.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>nstart</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>criterion</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"BIC"</span>, <span class='st'>"ICL"</span>), <span class='kw'>cutpoint_method</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"boundary"</span>,
   <span class='st'>"min_density"</span>, <span class='st'>"quantile"</span>, <span class='st'>"posterior_mean"</span>, <span class='st'>"prior_density"</span>),

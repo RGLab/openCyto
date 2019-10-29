@@ -96,10 +96,10 @@ gs_add_gating_method_init without an argument will clear the entire gs_add_gatin
       <a href="../articles/HowToAutoGating.html">OpenCyto: How to use different auto gating functions</a>
     </li>
     <li>
-      <a href="../articles/HowToWriteCSVTemplate.html">UNKNOWN TITLE</a>
+      <a href="../articles/HowToWriteCSVTemplate.html">How to write a csv gating template</a>
     </li>
     <li>
-      <a href="../articles/openCytoVignette.html">UNKNOWN TITLE</a>
+      <a href="../articles/openCytoVignette.html">An Introduction to the openCyto package</a>
     </li>
   </ul>
 </li>
@@ -131,16 +131,21 @@ gs_add_gating_method_init without an argument will clear the entire gs_add_gatin
 will yield indistinguishable objects that can result in overlapping history
 of <code><a href='gs_add_gating_method.html'>gs_add_gating_method</a></code> calls. This method allows for the history to be cleared
 if the user would like to reload the <code>GatingSet</code> and start fresh. Calling
-gs_add_gating_method_init without an argument will clear the entire gs_add_gating_method history.</p>
+<code>gs_add_gating_method_init</code> without an argument will clear the entire <code>gs_add_gating_method</code> history.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>gs_add_gating_method_init</span>(<span class='no'>GatingSet</span>)
-<span class='fu'>gs_add_gating_method_init</span>(<span class='no'>GatingSetList</span>)
-<span class='fu'>gs_add_gating_method_init</span>()
-
-<span class='fu'>add_pop_init</span>(<span class='kw'>gs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
-        
+    <pre class="usage"><span class='fu'>gs_add_gating_method_init</span>(<span class='no'>gs</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>gs</th>
+      <td><p>a <code>GatingSet</code> or <code>GatingSetList</code>. Can be omitted to clean entire <code>gs_add_gating_method</code> history.</p></td>
+    </tr>
+    </table>
+    
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
@@ -165,6 +170,7 @@ gs_add_gating_method_init without an argument will clear the entire gs_add_gatin
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
+      <li><a href="#arguments">Arguments</a></li>
             
       <li><a href="#examples">Examples</a></li>
     </ul>
