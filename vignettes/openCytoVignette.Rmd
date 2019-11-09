@@ -1,7 +1,15 @@
-<!--
-%\VignetteEngine{knitr}
-%\VignetteIndexEntry{An Introduction to the openCyto package}
--->
+---
+title: "An Introduction to the openCyto package"
+output: 
+  html_document: 
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    collapsed: no
+vignette: >
+  %\VignetteEngine{knitr}
+  %\VignetteIndexEntry{An Introduction to the openCyto package}
+---
 
 ```{r requirements, echo=FALSE}
 if (!require(flowWorkspaceData)) {
@@ -290,24 +298,8 @@ gs_pop_set_name(gs, "cd4-cd8+", "cd8")
 plot(gs[[1]])
 ```
 
-### 4.8. Visualize the gates
-
-```{r plotGate_autoGate, fig.width = 9}
+```{r autoplot_autoGate, fig.width = 9}
 autoplot(gs[[1]])
-```
-
-### 4.9. Apply a gating method without csv template
-Sometimes it will be helpful (especially when working with data that is already gated) to be able to interact with the `GatingSet` directly without the need to write the compelete csv gating template. We can apply each automated gating method using the same fields as in the `gatingTemplate`, but provided as arguments to the `gs_add_gating_method` function. The populations added by each of these calls to `gs_add_gating_method` can be removed sequentially by `gs_remove_gating_method`, which will remove *all* populations added by the prior call to `gs_add_gating_method`. These two functions allow for interactive stagewise prototyping of a `gatingTemplate`.
-
-For example, suppose we wanted to add a `CD38-/HLA-` sub-population to the `cd4+cd8-` population. We could do this as follows:
-
-```{r gt_add_gating_method}
-gs_add_gating_method(gs, alias = "non-activated cd4",
-                         pop = "--",
-                         parent = "cd4",
-                         dims = "CD38,HLA",
-                         gating_method = "tailgate")
-plot(gs[[1]])
 ```
 
 The addition of this population can then easily be undone by a call to `gs_remove_gating_method`:

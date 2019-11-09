@@ -8,7 +8,7 @@
 \alias{plot,gatingTemplate,ANY-method}
 \title{plot the gating scheme}
 \usage{
-\S4method{plot}{gatingTemplate,missing}(x, y, ...)
+plot(x, y, ...)
 }
 \arguments{
 \item{x}{\code{gatingTemplate} object}

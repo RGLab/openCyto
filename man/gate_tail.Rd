@@ -9,13 +9,6 @@
 gate_tail(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
   strict = TRUE, tol = 0.01, side = "right", min = NULL,
   max = NULL, bias = 0, ...)
-
-tailgate(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
-  strict = TRUE, tol = 0.01, side = "right", min = NULL,
-  max = NULL, bias = 0, ...)
-
-cytokine(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
-  tol = 0.01, side = "right", ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
@@ -30,11 +23,11 @@ any peaks that are artifacts of smoothing}
 \item{ref_peak}{After \code{num_peaks} are found, this argument provides the
 index of the reference population from which a gate will be obtained.}
 
-\item{strict}{\code{logical} when the actual number of peaks detected is less than \code{ref_peak}. 
+\item{strict}{\code{logical} when the actual number of peaks detected is less than \code{ref_peak}, 
 an error is reported by default. But if \code{strict} is set to FALSE, then the reference peak will be reset to the peak of the far right.}
 
 \item{tol}{the tolerance value used to construct the cytokine gate from the
-derivative of the kernel density estimate}
+derivative of the kernel density estimate. See details.}
 
 \item{side}{On which side of the density do we want to gate the tail, the
 \code{'right'} (default) or \code{'left'}?}
@@ -45,13 +38,67 @@ derivative of the kernel density estimate}
 
 \item{bias}{a numeric value that adds a constant to the calculated cutpoint(threshold). Default is 0.}
 
-\item{...}{additional arguments.}
+\item{...}{additional arguments used in calculating derivative. See details.}
+
+\item{method}{the method used to select the cutpoint. Either "first_deriv" or "second_deriv". See details.}
+
+\item{auto_tol}{when TRUE, it tries to set the tolerance automatically. See details.}
+
+\item{adjust}{the scaling adjustment applied to the bandwidth used in the
+first derivative of the kernel density estimate}
 }
 \value{
-a \code{filterList} containing the gates (cutpoints) for each sample
+a \code{filterList} containing the gates (cutpoints) for each sample with
+the corresponding \code{\linkS4class{rectangleGate}} objects defining the tail as the positive population.
 }
 \description{
-Gates the tail of a density using the derivative of a kernel density estimate
+These methods aim to set a one-dimensional gate (cutpoint) near the edge of a peak in 
+the density specified by a channel of a \code{\linkS4class{flowFrame}} to isolate the tail population. 
+They allow two approaches to do this, both beginning by obtaining a
+smoothened kernel density estimate (KDE) of the original density and then utilizing either
+its first or second derivative.
+}
+\details{
+The default behavior of the first approach, specified by \code{method = "first_deriv"}, 
+finds valleys in the first derivative of the KDE and uses the lowest such valley
+to place the cutpoint on the steep right shoulder of the largest peak in the original density.
+
+The default behavior of the second approach, specified by \code{method = "second_deriv"},
+is to find peaks in the second derivative of the KDE and use the largest such peak
+to place the cutpoint at the point on the right shoulder of the largest
+peak in the original density where it is most rapidly flattening (the first derivative is rapidly
+growing less negative).
+
+Both approach can be significantly modified from defaults with a number of optional
+arguments. The \code{num_peaks} argument specifes how many peaks should be found 
+in the smoothened KDE and \code{ref_peak} specifies around which peak the gate's 
+cutpoint should be placed (starting from the leftmost peak). Setting the \code{side}
+argument to "left" modifies the procedure to put the cutpoint on the left side of the 
+reference peak to isolate a left tail. The \code{max} and \code{min} arguments allow for 
+pre-filtering extreme values in the channel of interest (keeping only observations with 
+channel values less than max and/or more than min). The bandwidth used for kernel density
+estimation can be proportionally scaled using \code{adjust} (e.g. \code{adjust = 0.5} will
+use a bandwidth that is half of the default). This allows for tuning the level of
+smoothing applied in the estimation.
+
+Lastly, the \code{tol}, \code{auto_tol}, and \code{bias} arguments allow for adjustments
+to be made to the cutpoint that would otherwise be returned. \code{tol} provides a tolerance value
+that the absolute value of the KDE derivative at the cutpoint must be under. If the derivative 
+at the original cutpoint is greater than \code{tol} in magnitude, the returned cutpoint will be the first point 
+to the right of the original cutpoint (or to the left in the case of \code{side = "left"}) with corresponding 
+derivative within \code{tol}. Thus in practice, a smaller value for \code{tol} effectively pushes the cutpoint
+further down the shoulder of the peak towards the flat tail. \code{tol} is set to 0.01 by default
+but setting \code{auto_tol = TRUE} will set the tolerance to a reasonable estimate of 
+1\% of the maximum absolute value of the first derivative of the KDE. \code{tol} and
+\code{auto_tol} are only used for \code{method = "first_deriv"}. Additionally, the \code{bias}
+argument allows for directly shifting the returned cutpoint left or right.
+
+It is also possible to pass additional arguments to control the calculation
+of the derivative, which will have some effect on the resulting cutpoint determination,
+but this should usually not be needed. By default the number of grid points for the derivative
+calculation will be 10,000, but this can be changed with \code{num_points}. The default
+bandwidth can also be directly adjusted with \code{bandwidth}, where the final value used
+will be given by \code{adjust*bandwidth}
 }
 \examples{
 \dontrun{

@@ -5,10 +5,7 @@
 \alias{remove_pop}
 \title{Reverse the action of gating methods applied via \code{gs_add_gating_method}}
 \usage{
-gs_remove_gating_method(GatingSet)
-gs_remove_gating_method(GatingSetList)
-
-remove_pop(gs)
+gs_remove_gating_method(gs)
 }
 \arguments{
 \item{gs}{The \code{GatingSet} or \code{GatingSetList} for which the most recent

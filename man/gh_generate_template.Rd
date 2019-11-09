@@ -6,8 +6,6 @@
 \title{generate a partially complete csv template from the existing gating hierarchy}
 \usage{
 gh_generate_template(gh)
-
-templateGen(gh)
 }
 \arguments{
 \item{gh}{a \code{GatingHierarchy} likely parsed from a xml workspace}

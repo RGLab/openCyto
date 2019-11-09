@@ -1,0 +1,55 @@
+destination: docs
+reference:
+  - title: "The gatingTemplate class"
+    desc: >
+      The gatingTemplate class represents a gating strategy
+      to be applied to a GatingSet, including specifications for
+      automated gating methods and names for resulting subpopulations
+    contents:
+      - gatingTemplate-class
+      - gt_gating
+      - gt_get_nodes
+      - gt_get_gate
+      - gt_get_children
+      - gt_get_parent
+      - gt_get_helpergates
+      - gt_toggle_helpergates
+      - gt_delete_helpergates
+      - as.data.table.gatingTemplate
+  - title: "Data-driven methods for generating gates (auto-gating)"
+    desc: >
+      Use the expression data from a flowFrame 
+      to determine gate boundaries and generate gate objects
+    contents:
+      - gate_flowclust_1d
+      - gate_flowclust_2d
+      - prior_flowclust
+      - gate_mindensity
+      - gate_mindensity2
+      - gate_quad_sequential
+      - gate_quad_tmix
+      - gate_quantile
+      - gate_tail
+      - gate_tautstring
+  - title: "Building a gatingTemplate interactively"
+    desc: >
+      Interactively apply gating methods sequentially as 
+      if they were in a gatingTemplate or generate a 
+      gatingTemplate based on gating that has already been performed
+    contents:
+      - gs_add_gating_method
+      - gs_remove_gating_method
+      - gs_add_gating_method_init
+      - gh_generate_template
+  - title: "Adding more gating methods"
+    desc: >
+      Register additional gating methods
+      for use in the openCyto framework
+    contents:
+      - register_plugins
+      - gt_list_methods
+  - title: "Visualizing gatingTemplates and flowClust results"
+    contents:
+      - plot,gatingTemplate-method
+      - plot,fcTree,character-method
+      - plot,fcFilterList,ANY-method

@@ -5,18 +5,17 @@
 \alias{add_pop_init}
 \title{Clear history of \code{gs_add_gating_method} calls for a given \code{GatingSet} or \code{GatingSetList}}
 \usage{
-gs_add_gating_method_init(GatingSet)
-gs_add_gating_method_init(GatingSetList)
-gs_add_gating_method_init()
-
-add_pop_init(gs = NULL)
+gs_add_gating_method_init(gs)
+}
+\arguments{
+\item{gs}{a \code{GatingSet} or \code{GatingSetList}. Can be omitted to clean entire \code{gs_add_gating_method} history.}
 }
 \description{
 Repeated calls to the \code{\link{load_gs}} method in the same session
 will yield indistinguishable objects that can result in overlapping history
 of \code{\link{gs_add_gating_method}} calls. This method allows for the history to be cleared
 if the user would like to reload the \code{GatingSet} and start fresh. Calling
-gs_add_gating_method_init without an argument will clear the entire gs_add_gating_method history.
+\code{gs_add_gating_method_init} without an argument will clear the entire \code{gs_add_gating_method} history.
 }
 \examples{
 \dontrun{

@@ -112,6 +112,8 @@
 #' 
 #' @author Greg Finak, Phu T. Van
 #' 
+#' @name gate_mindensity2
+#' @aliases mindensity2
 #' @param fr a \code{flowFrame} object
 #' @param channel the channel to operate on
 #' @param filterId a name to refer to this filter
@@ -124,13 +126,11 @@
 #' @param peaks \code{numeric} vector. If not given , then perform peak detection first by .find_peaks
 #' @param ... Additional arguments for peak detection.
 #' @return a \code{rectangleGate} object based on the minimum density cutpoint
-#' @export
-#' @rdname gate_mindensity2
 #' @examples
 #' \dontrun{
 #'  gate <- gate_mindensity2(fr, channel = "APC-A") # fr is a flowFrame
 #' }
-#' 
+#' @export
 gate_mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE, 
                          gate_range = NULL, min = NULL, max = NULL, peaks = NULL, 
                          ...) {
@@ -153,7 +153,6 @@ gate_mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE,
 }
 
 #' @export
-#' @rdname gate_mindensity2
 mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE, 
                         gate_range = NULL, min = NULL, max = NULL, peaks = NULL, 
                         ...){

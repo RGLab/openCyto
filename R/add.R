@@ -21,7 +21,7 @@ pop_add.ocRectangleGate <- function(gate, gh, recompute, ... )
       #unpack the bit vector
       indices <- ncdfFlow:::toLogical(gate@ind)
       #ignore the recompute flag and force it to be skipped
-      nodeID <- flowWorkspace:::.addGate(gh, filter_to_list(gate), recompute = FALSE, ...)
+      nodeID <- flowWorkspace:::.addGate(gh, filter_to_list(gate), ...)
       sn <- sampleNames(gh)
       ptr <- gh@pointer
       flowWorkspace:::.cpp_setIndices(ptr, sn, nodeID-1, indices)
@@ -56,7 +56,7 @@ pop_add.ocRectRefGate <- function(gate, gh, recompute, ... )
       rectFilterObj <- flowWorkspace:::filter_to_list.rectangleGate(gate)
       boolFilterObj <- flowWorkspace:::filter_to_list.booleanFilter(gate)
       #ignore the recompute flag and force it to be skipped
-      nodeID <- flowWorkspace:::.addGate(gh, rectFilterObj, recompute = FALSE, ...)
+      nodeID <- flowWorkspace:::.addGate(gh, rectFilterObj, ...)
       sn <- sampleNames(gh)
       ptr <- gh@pointer
       flowWorkspace:::.cpp_boolGating(ptr, sn, boolFilterObj, nodeID - 1)

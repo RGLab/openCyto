@@ -1,6 +1,9 @@
 #' plot a \code{fcFilterList}
 #' 
 #' It is usually called by \code{plot} method for \code{fcTree} instead of directly by users.
+#' 
+#' @usage plot(x, y, samples = NULL, posteriors = FALSE, xlim = NULL, ylim = NULL,
+#' node = NULL, data = NULL, breaks = 20, lwd = 1, ...)
 #' @param x \code{fcFilterList}
 #' @param y \code{character} channel name
 #' @param samples \code{character} a vector of sample names to be plotted

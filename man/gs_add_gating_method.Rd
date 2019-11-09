@@ -9,11 +9,6 @@ gs_add_gating_method(gs, alias = "*", pop = "+", parent, dims = NA,
   gating_method, gating_args = NA, collapseDataForGating = NA,
   groupBy = NA, preprocessing_method = NA, preprocessing_args = NA,
   strip_extra_quotes = FALSE, ...)
-
-add_pop(gs, alias = "*", pop = "+", parent, dims = NA, gating_method,
-  gating_args = NA, collapseDataForGating = NA, groupBy = NA,
-  preprocessing_method = NA, preprocessing_args = NA,
-  strip_extra_quotes = FALSE, ...)
 }
 \arguments{
 \item{gs}{GatingSet or GatingSetList}

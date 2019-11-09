@@ -6,8 +6,6 @@
 \title{sequential quadrant gating function}
 \usage{
 gate_quad_sequential(fr, channels, gFunc, min = NULL, max = NULL, ...)
-
-quadGate.seq(fr, channels, gFunc, min = NULL, max = NULL, ...)
 }
 \arguments{
 \item{fr}{\code{flowFrame}}

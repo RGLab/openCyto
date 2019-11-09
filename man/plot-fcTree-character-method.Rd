@@ -5,8 +5,7 @@
 \alias{plot,fcTree,character-method}
 \title{plot the flowClust gating results}
 \usage{
-\S4method{plot}{fcTree,character}(x, y, channel = NULL, data = NULL,
-  ...)
+plot(x, y, channel = NULL, data = NULL, ...)
 }
 \arguments{
 \item{x}{\code{fcTree}}

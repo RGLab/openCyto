@@ -9,6 +9,8 @@ NULL
 #' 
 #' Note that delete action is NOT reversible.
 #' 
+#' @name gt_toggle_helpergates
+#' @aliases toggle.helperGates
 #' @param gt gatingTemplate object
 #' @param gs GatingSet
 #' @export
@@ -23,7 +25,6 @@ NULL
 #' #or simply remove them if you are sure they will not be useful in future
 #' gt_delete_helpergates(gt, gs) 
 #' }
-#' @rdname gt_toggle_helpergates
 gt_toggle_helpergates <- function(gt, gs){
   helperGates <- gt_get_helpergates(gt, gs)
   nonHiddenNodes <- gs_get_pop_paths(gs, showHidden = FALSE, path = "full")
@@ -35,7 +36,6 @@ gt_toggle_helpergates <- function(gt, gs){
   }
 }
 
-#' @rdname gt_toggle_helpergates
 #' @export
 toggle.helperGates <- function(gt, gs){
   .Deprecated("gt_toggle_helpergates")
@@ -47,6 +47,7 @@ toggle.helperGates <- function(gt, gs){
 #' @template template-depr_pkg
 NULL
 #' @rdname gt_toggle_helpergates
+#' @aliases get.helperGates
 #' @export
 gt_get_helpergates <- function(gt, gs){
   gated.nodes <- gs_get_pop_paths(gs, showHidden = TRUE, path = "full")
@@ -76,7 +77,6 @@ gt_get_helpergates <- function(gt, gs){
   
 }
 
-#' @rdname gt_toggle_helpergates
 #' @export
 get.helperGates <- function(gt, gs){
   .Deprecated("gt_get_helpergates")
@@ -88,6 +88,7 @@ get.helperGates <- function(gt, gs){
 #' @template template-depr_pkg
 NULL
 #' @rdname gt_toggle_helpergates
+#' @aliases delete.helperGates
 #' @export
 gt_delete_helpergates <- function(gt, gs){
   helperGates <- gt_get_helpergates(gt, gs)
@@ -98,7 +99,6 @@ gt_delete_helpergates <- function(gt, gs){
   }
 }
 
-#' @rdname gt_toggle_helpergates
 #' @export
 delete.helperGates <- function(gt, gs){
   .Deprecated("gt_delete_helpergates")

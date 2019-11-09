@@ -2,6 +2,8 @@
 #' 
 #' It is the inverse function of gatingTemplate constructor.
 #' 
+#' @name as.data.table
+#' @usage as.data.table(x, keep.rownames = FALSE)
 #' @param x gatingTemplate object
 #' @param keep.rownames not used
 #' @return a data.table
