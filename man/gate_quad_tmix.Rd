@@ -7,9 +7,6 @@
 \usage{
 gate_quad_tmix(fr, channels, K, usePrior = "no", prior = list(NA),
   quantile1 = 0.8, quantile3 = 0.8, trans = 0, plot = FALSE, ...)
-
-quadGate.tmix(fr, channels, K, usePrior = "no", prior = list(NA),
-  quantile1 = 0.8, quantile3 = 0.8, trans = 0, plot = FALSE, ...)
 }
 \arguments{
 \item{fr}{\code{flowFrame}}

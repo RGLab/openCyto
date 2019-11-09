@@ -20,6 +20,8 @@ NULL
 #' instance, if the \code{flow_set} has two samples, this case can occur. The
 #' amount of shrinkage is controlled in \code{shrink}.
 #'
+#' @name prior_flowclust
+#' @aliases prior_flowClust
 #' @param flow_set a \code{flowSet} object
 #' @param channels a character vector containing the channels in the
 #' \code{flowSet} from which we elicit the prior parameters for the Student's t
@@ -32,10 +34,8 @@ NULL
 #' covariance matrices are singular. See details.
 #' @param ... Additional arguments passed to the prior elicitation method selected
 #' @return list of the necessary prior parameters
-#' @rdname prior_flowclust
-#' @aliases prior_flowclust prior_flowClust
-#' @export 
 #' @importFrom plyr aaply
+#' @export 
 prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...) {
   #pass only the first element of w0 since it will be replicated ..
@@ -81,7 +81,6 @@ prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
    
 }
 
-#' @rdname prior_flowclust
 #' @export
 prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...){

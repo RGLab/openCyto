@@ -8,9 +8,6 @@ of a kernel density estimate between two peaks.}
 \usage{
 gate_mindensity2(fr, channel, filterId = "", pivot = FALSE,
   gate_range = NULL, min = NULL, max = NULL, peaks = NULL, ...)
-
-mindensity2(fr, channel, filterId = "", pivot = FALSE,
-  gate_range = NULL, min = NULL, max = NULL, peaks = NULL, ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
@@ -45,7 +42,6 @@ the original mindensity() whenever possible. However, the underlying peak-findin
 \dontrun{
  gate <- gate_mindensity2(fr, channel = "APC-A") # fr is a flowFrame
 }
-
 }
 \author{
 Greg Finak, Phu T. Van

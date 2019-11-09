@@ -9,10 +9,6 @@ between two peaks}
 gate_mindensity(fr, channel, filterId = "", positive = TRUE,
   pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
   peaks = NULL, ...)
-
-mindensity(fr, channel, filterId = "", positive = TRUE,
-  pivot = FALSE, gate_range = NULL, min = NULL, max = NULL,
-  peaks = NULL, ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}

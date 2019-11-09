@@ -4,3 +4,6 @@ sticker.R
 inst/figures
 Dockerfile
 Makefile
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

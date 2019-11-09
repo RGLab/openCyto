@@ -11,15 +11,9 @@
 \usage{
 gt_toggle_helpergates(gt, gs)
 
-toggle.helperGates(gt, gs)
-
 gt_get_helpergates(gt, gs)
 
-get.helperGates(gt, gs)
-
 gt_delete_helpergates(gt, gs)
-
-delete.helperGates(gt, gs)
 }
 \arguments{
 \item{gt}{gatingTemplate object}

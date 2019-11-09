@@ -7,9 +7,6 @@
 \usage{
 gate_quantile(fr, channel, probs = 0.999, plot = FALSE,
   filterId = "", min = NULL, max = NULL, ...)
-
-quantileGate(fr, channel, probs = 0.999, plot = FALSE, filterId = "",
-  min = NULL, max = NULL, ...)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}

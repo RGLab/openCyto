@@ -20,7 +20,8 @@ NULL
 #' See the documentation for \code{\link{gs_add_gating_method_init}} for more details. 
 #' This will not be an issue for \code{GatingSet} objects created directly using the constructor. 
 #'      
-#'
+#' @name gs_add_gating_method
+#' @aliases add_pop
 #' @param gs GatingSet or GatingSetList
 #' @param alias,pop,parent,dims,gating_method,gating_args,collapseDataForGating,groupBy,preprocessing_method,preprocessing_args see details in \link[openCyto:gatingTemplate-class]{gatingTemplate}
 #' @param strip_extra_quotes \code{logical} Extra quotes are added to strings by fread. This causes problems with parsing R strings to expressions in some cases. Default FALSE for usual behaviour. TRUE should be passed if parsing gating_args fails.
@@ -30,7 +31,6 @@ NULL
 #'      \item{parallel_type}{  \code{character} specifying the parallel type. The valid options are "none", "multicore", "cluster".}
 #'      \item{cl}{ \code{cluster} object passed to \code{parallel} package (when \code{parallel_type} is "cluster")}
 #'      }
-#' @export
 #' @seealso \code{\link{gs_remove_gating_method}} \code{\link{gs_add_gating_method_init}}
 #' @examples 
 #' \dontrun{
@@ -43,8 +43,7 @@ NULL
 #' #boolGate method
 #' gs_add_gating_method(gs, alias = "IL2orIFNg", gating_method = "boolGate", parent = "cd4", gating_args = "cd4/IL2|cd4/IFNg") 
 #' }
-#' @aliases gs_add_gating_method add_pop
-#' @rdname gs_add_gating_method
+#' @export
 gs_add_gating_method <- function(gs, alias = "*"
                        , pop = "+"
                        , parent
@@ -140,7 +139,7 @@ gs_add_gating_method <- function(gs, alias = "*"
   
   invisible(thisRow)
 }
-#' @rdname gs_add_gating_method
+
 #' @export
 add_pop <- function(gs, alias = "*"
                     , pop = "+"
@@ -172,12 +171,13 @@ NULL
 #' will yield indistinguishable objects that can result in overlapping history
 #' of \code{\link{gs_add_gating_method}} calls. This method allows for the history to be cleared
 #' if the user would like to reload the \code{GatingSet} and start fresh. Calling
-#' gs_add_gating_method_init without an argument will clear the entire gs_add_gating_method history.
+#' \code{gs_add_gating_method_init} without an argument will clear the entire \code{gs_add_gating_method} history.
 #' 
+#' @name gs_add_gating_method_init
+#' @aliases add_pop_init
 #' @usage 
-#' gs_add_gating_method_init(GatingSet)
-#' gs_add_gating_method_init(GatingSetList)
-#' gs_add_gating_method_init()
+#' gs_add_gating_method_init(gs)
+#' @param gs a \code{GatingSet} or \code{GatingSetList}. Can be omitted to clean entire \code{gs_add_gating_method} history.
 #' 
 #' @examples
 #' \dontrun{
@@ -200,8 +200,6 @@ NULL
 #' }
 #' 
 #' @export
-#' @aliases gs_add_gating_method_init add_pop_init
-#' @rdname gs_add_gating_method_init
 gs_add_gating_method_init <- function(gs = NULL){
   if(!is.null(gs)){
     if(is(gs, "GatingSetList")){
@@ -213,7 +211,6 @@ gs_add_gating_method_init <- function(gs = NULL){
   }
 }
 
-#' @rdname gs_add_gating_method_init
 #' @export
 add_pop_init <- function(gs = NULL){
   .Deprecated("gs_add_gating_method_init")

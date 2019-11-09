@@ -43,6 +43,7 @@ setMethod("getGate", sig = c("fcTree", "character"),
 #' 
 #' This provides the priors and posteriors as well as the gates for the purpose of debugging flowClust gating algorithm
 #' 
+#' @usage plot(x, y, channel = NULL, data = NULL, ...)
 #' @param x \code{fcTree}
 #' @param y \code{character} node name in the \code{fcTree}
 #' @param channel \code{character} specifying the channel.

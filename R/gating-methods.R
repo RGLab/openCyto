@@ -2,26 +2,27 @@
 #' @templateVar new gt_gating
 #' @template template-depr_pkg
 NULL
-#' Apply the gates  to a GatingSet
-#' 
-#' It applies the gates to the GatingSet based on the population tree described in graphGML.
-#' 
+
 #' @export
-#' @rdname gt_gating
 gt_gating <- function(x, y, ...){
   UseMethod("gt_gating")
 }
 #' @export
-#' @rdname gt_gating
 gating <- function(x, y, ...){
   .Deprecated("gt_gating")
   gt_gating(x,y,...)
 }
 
-#' Applies gatingTemplate to one GatingSet.
+#' Applies a gatingTemplate to a GatingSet.
 #'
 #' It loads the gating methods by topological order and applies them to \code{GatingSet}.
-#'
+#' 
+#' @name gt_gating
+#' @usage gt_gating(x, y, ...)
+#' @aliases 
+#' gating
+#' gating,gatingTemplate,GatingSet-method
+#' gt_gating,gatingTemplate,GatingSet-method
 #' @param x a \code{gatingTemplate} object
 #' @param y a \code{GatingSet} object
 #' @param env_fct a \code{environment} that contains \code{fcTree} object named as 'fct'. If NULL (by default), no \code{fcTree} will be constructed. It is currently reserved for the internal debugging.
@@ -51,10 +52,7 @@ gating <- function(x, y, ...){
 #'  gt_gating(gt, gs, parallel_type = "cluster", cl = cl1)
 #'  stopCluster ( cl1 )
 #' }
-#' @rdname gt_gating
 #' @export
-#' @aliases 
-#' gating,gatingTemplate,GatingSet-method
 gt_gating.gatingTemplate <- function(x, y, ...) {
   .gating_gatingTemplate(x, y, ...)
 }
@@ -69,6 +67,7 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
 #' @param ... other arguments passed to the gatingMethod-specific \code{gating} methods.
 #' @importFrom RBGL tsort
 #' @importFrom plyr ldply
+#' @keywords internal
 #' @noRd 
 .gating_gatingTemplate <- function(x, y, env_fct = NULL, start = "root", stop.at = NULL, keep.helperGates = TRUE, ...) {
   gt <- x
@@ -181,6 +180,7 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
 #' @aliases
 #' gating,gtMethod,GatingSet-method 
 #' gating,gtMethod,GatingSetList-method
+#' @keywords internal
 #' @noRd
 gt_gating.gtMethod <- function(x, y, ...) {
   .gating_gtMethod(x,y,...)
@@ -365,8 +365,9 @@ roxygen_parameter <- function() {
         popAlias <- NULL  
     }
     
-    gs_node_id <- gs_pop_add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE, negated = negated)
-    message("done.")
+    gs_node_id <- gs_pop_add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, negated = negated)
+    recompute(y, file.path(parent, popAlias))
+	message("done.")
     
   }else{
     
@@ -740,9 +741,11 @@ gt_gating.dummyMethod <- function(x, y, ...) {
     })
     
     flist <- filterList(flist)
-    gs_node_id <- gs_pop_add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, recompute = TRUE)
-    
-    
+    gs_node_id <- gs_pop_add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE)
+	if(!is(flist[[1]], "ocRectRefGate"))
+		recompute(y, file.path(parent, popAlias))
+	
+   
   } else {
     message("Skip gating! Population '", popAlias, "' already exists.")
     flist <- NULL
