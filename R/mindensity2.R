@@ -58,11 +58,24 @@
         # pick an inflection point as a last resort
         pt <- sp$x[median(which(inf2)[which(inf2) > pkidx])]
       }
+      if( is.na(pt)){
+        # There also is no inflection point to the right of it. Resort
+        # to the overall median shoulder as the cutpoint like below
+        pt <- sp$x[median(which(shoulders))]
+      }
       
     }  else {
       # no peak (or multiple peaks), select overall median shoulder as cutpoint (for now...)
       pt <- sp$x[median(which(shoulders))]    
-    }                                         
+    }
+    
+    # This is an absolute last resort to make sure this block never returns an NA
+    # due to a lack of shoulders and inflection points. In this case just return the
+    # simple min
+    if( is.na(pt)){
+      pt <- sp$x[which.min(sp$y)]
+    }
+    
   } else if (length(which(minima == TRUE)) > 1) { # multiple minima
     
     m <- min(sp$y[which(sp$x %in% minima_xcoords)])  # pick the minima with lowest y
