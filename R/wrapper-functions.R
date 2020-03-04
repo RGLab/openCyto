@@ -40,6 +40,12 @@
     
     openCyto.options <- getOption("openCyto")
     minEvents <- openCyto.options[["gating"]][["minEvents"]]
+    # Allow rowwise specification of minEvents
+    row_minEvents <- gFunc_args[["openCyto.minEvents"]]
+    if(!is.null(row_minEvents)){
+      minEvents <- row_minEvents
+      gFunc_args[["openCyto.minEvents"]] <- NULL
+    }
     
     if(is.null(minEvents))
       minEvents <- 0
