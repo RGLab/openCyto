@@ -151,6 +151,7 @@ stringInfo cpPmden(const std::vector<double>& xIn) {
   long kni_sum = 0, num_kni_lookups = 0, cur_kni_lookup = 0;
   std::vector<long> kni_lookups(1,0);
   bool stillRepeating = true;
+  bool anyJumpDetected = false;
   while (stillRepeating) {
     //first, update the tube around the empirical df
     for (auto i = 0; i < nsamp; i++) {
@@ -159,17 +160,23 @@ stringInfo cpPmden(const std::vector<double>& xIn) {
     }
     fts = tautString(fdist_y,x,lower,upper,(upper[0]),lower[(nsamp-1)],nsamp,extrema_mean);
     x_string = fts.string;
+    anyJumpDetected = false;
     for (auto i=0; i < (nsamp-2); i++) {
       if (x_string[(i+1)] != x_string[i]) { 
 	//capture the jump points on the first past, to remove double-checking later
-	if (first_jump == -1)
+	if (first_jump == -1) {
 	  first_jump = i;
+	}
 	last_jump = i;
+	anyJumpDetected = true;
       }
-      else
+      else {
 	x_string_compare[i] = 0;
+      }
     }
-    if (first_jump > 0) { //check for points where the taut string jumps, correct nmax count
+    //comment out previous test
+    //if (first_jump > 0) { //check for points where the taut string jumps, correct nmax count
+    if (anyJumpDetected) {
       if (x_string[first_jump] > x_string[(first_jump + 1)]) {
 	fts.nmax = fts.nmax + 1;
       }
