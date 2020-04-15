@@ -1,4 +1,4 @@
-openCyto [<img src="https://raw.githubusercontent.com/RGLab/openCyto/trunk/inst/figures/openCyto.png" height="120"/>](http://github.com/RGLab/openCyto)
+openCyto [<img src="logo_mid.png"/>](http://github.com/RGLab/openCyto)
 ========
 
 

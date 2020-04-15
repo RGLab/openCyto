@@ -1,4 +1,4 @@
-# CHANGES IN VERSION 1.3.17
+# openCyto 1.3.17
 
 ## Enhancements
 
@@ -12,12 +12,12 @@
 ## Bug Fixes:
 + fix the bug that stop.at argument to gating doesn't recognize partial or full path
 
-# CHANGES IN VERSION 1.7.1
+# openCyto 1.7.1
 
 ## Enhancements
 + New API: add_pop function allows users to apply a single gating method to GatingSet without writing the compelete csv template
 
-# CHANGES IN VERSION 1.23.5 (Bioconductor version 3.10)
+# openCyto 1.23.5 (Bioconductor version 3.10)
 
 ## API Changes
 
@@ -54,7 +54,7 @@
 * Some minor fixes to `gt_toggle_helpergates`
 * Fix "positive" argument to `gate_mindensity` to match doc
 
-# CHANGES IN VERSION 1.25.x (Bioconductor version 3.11)
+# openCyto 1.25.x (Bioconductor version 3.11)
 
 ## Enhancements
 
