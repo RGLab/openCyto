@@ -15,7 +15,7 @@ test_that("negated ellipse gate", {
   #apply it to the gs
   gs_add_gating_method(gs, alias = "cd4_negated", parent = "CD3+", pop = "-", dims = "CD4,CD8", gating_method = "cd4gate")
   
-  expect_true(flowWorkspace:::gh_pop_is_negated(gs[[1]],"cd4_negated"))
+  expect_true(flowWorkspace::gh_pop_is_negated(gs[[1]],"cd4_negated"))
   expect_equal(gh_pop_get_proportion(gs[[1]], "cd4_negated"), 0.3753648)
   
 })

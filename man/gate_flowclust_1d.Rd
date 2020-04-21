@@ -7,13 +7,30 @@
 \title{Applies flowClust to 1 feature to determine a cutpoint between the minimum
 cluster and all other clusters.}
 \usage{
-gate_flowclust_1d(fr, params, filterId = "", K = NULL, trans = 0,
-  min.count = -1, max.count = -1, nstart = 1, prior = NULL,
-  criterion = c("BIC", "ICL"), cutpoint_method = c("boundary",
-  "min_density", "quantile", "posterior_mean", "prior_density"),
-  neg_cluster = 1, cutpoint_min = NULL, cutpoint_max = NULL,
-  min = NULL, max = NULL, quantile = 0.99, quantile_interval = c(0,
-  10), plot = FALSE, debug = FALSE, ...)
+gate_flowclust_1d(
+  fr,
+  params,
+  filterId = "",
+  K = NULL,
+  trans = 0,
+  min.count = -1,
+  max.count = -1,
+  nstart = 1,
+  prior = NULL,
+  criterion = c("BIC", "ICL"),
+  cutpoint_method = c("boundary", "min_density", "quantile", "posterior_mean",
+    "prior_density"),
+  neg_cluster = 1,
+  cutpoint_min = NULL,
+  cutpoint_max = NULL,
+  min = NULL,
+  max = NULL,
+  quantile = 0.99,
+  quantile_interval = c(0, 10),
+  plot = FALSE,
+  debug = FALSE,
+  ...
+)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}

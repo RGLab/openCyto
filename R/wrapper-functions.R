@@ -491,10 +491,7 @@
 #' @noRd 
 .warpSet <- function(fs, gs, gm, channels, groupBy, isCollapse, stains, ...){
   fs <- fs[, stains]
-  if(class(fs) == "ncdfFlowSet")
-    flowStats:::warpSetNCDF(fs, stains = stains, ...)
-  else
-    warpSet(fs, stains = stains, ...)
+  warpSet(fs, stains = stains, ...)
   return (NULL)
  }
 #'  wrapper for prior_flowclust

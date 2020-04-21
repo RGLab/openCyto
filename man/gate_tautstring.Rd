@@ -9,8 +9,14 @@
 \usage{
 tautstring(sorted_vector, modeprior = 0)
 
-gate_tautstring(fr, channel, gate_range = NULL, min = NULL,
-  max = NULL, filterId = "")
+gate_tautstring(
+  fr,
+  channel,
+  gate_range = NULL,
+  min = NULL,
+  max = NULL,
+  filterId = ""
+)
 }
 \arguments{
 \item{sorted_vector}{\code{numeric} vector of single cell expresion from a single cytometric channel.}

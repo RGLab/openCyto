@@ -3,7 +3,6 @@
 \docType{package}
 \name{openCyto}
 \alias{openCyto}
-\alias{openCyto-package}
 \title{Hierarchical Gating Pipeline for flow cytometry data}
 \description{
 Hierarchical Gating Pipeline for flow cytometry data.
@@ -11,6 +10,7 @@ Hierarchical Gating Pipeline for flow cytometry data.
 \details{
 openCyto is a package designed to facilitate the automated gating methods in sequential way 
 to mimic the manual gating strategy.
+
 
 \tabular{ll}{
 Package: \tab openCyto\cr
@@ -25,7 +25,7 @@ LazyLoad: \tab yes\cr
 \dontrun{gatingTemplate('test.csv')}
 }
 \seealso{
-See \code{\link[openCyto:gating-methods]{gating}}, 
+See \code{\link[openCyto]{gt_gating}}, 
 \code{\link{gate_flowclust_1d}}, 
 for an overview of gating functions.
 }

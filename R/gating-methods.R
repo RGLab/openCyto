@@ -3,6 +3,7 @@
 #' @template template-depr_pkg
 NULL
 
+#' @importFrom flowWorkspace gh_pop_is_negated
 #' @export
 gt_gating <- function(x, y, ...){
   UseMethod("gt_gating")
@@ -25,7 +26,6 @@ gating <- function(x, y, ...){
 #' gt_gating,gatingTemplate,GatingSet-method
 #' @param x a \code{gatingTemplate} object
 #' @param y a \code{GatingSet} object
-#' @param env_fct a \code{environment} that contains \code{fcTree} object named as 'fct'. If NULL (by default), no \code{fcTree} will be constructed. It is currently reserved for the internal debugging.
 #' @param ... 
 #'  \itemize{
 #'      \item{start}{ a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating process will start from. It is useful to quickly skip some gates and go directly to the target population in the testing run. Default is "root".}
@@ -64,6 +64,7 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
 #'  
 #' @param stop.at a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating prcoess will stop at.
 #' @param start a \code{character} that specifies the population (correspoding to 'alias' column in csv template) where the gating prcoess will start from. It is useful to quickly skip some gates and go directly to the target population in the testing run. 
+#' @param env_fct a \code{environment} that contains \code{fcTree} object named as 'fct'. If NULL (by default), no \code{fcTree} will be constructed. It is currently reserved for the internal debugging.
 #' @param ... other arguments passed to the gatingMethod-specific \code{gating} methods.
 #' @importFrom RBGL tsort
 #' @importFrom plyr ldply
@@ -217,7 +218,7 @@ roxygen_parameter <- function() {
             , mc.cores = getOption("mc.cores", 2L), parallel_type = c("none", "multicore", "cluster"), cl = NULL
             ,  ...) {
   
-  require("parallel")
+  requireNamespace("parallel")
 #  browser()
   gFunc_args <- parameters(x)
 
@@ -627,7 +628,7 @@ gt_gating.dummyMethod <- function(x, y, ...) {
           
           is_negated <- lapply(refNodes, function(refNode) {
             
-            flowWorkspace:::gh_pop_is_negated(gh, refNode)
+            gh_pop_is_negated(gh, refNode)
           })          
           x_ref <- refNodes[x_ref_id] 
           y_ref <- refNodes[y_ref_id]

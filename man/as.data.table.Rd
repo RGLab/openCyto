@@ -5,7 +5,7 @@
 \alias{as.data.table.gatingTemplate}
 \title{convert a gatingTemplate object to a data.table}
 \usage{
-as.data.table(x, keep.rownames = FALSE)
+\method{as.data.table}{gatingTemplate}(x, keep.rownames = FALSE)
 }
 \arguments{
 \item{x}{gatingTemplate object}

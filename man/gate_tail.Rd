@@ -4,11 +4,37 @@
 \alias{gate_tail}
 \alias{tailgate}
 \alias{cytokine}
+\alias{.cytokine_cutpoint}
 \title{Gates the tail of a density using the derivative of a kernel density estimate}
 \usage{
-gate_tail(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
-  strict = TRUE, tol = 0.01, side = "right", min = NULL,
-  max = NULL, bias = 0, ...)
+gate_tail(
+  fr,
+  channel,
+  filterId = "",
+  num_peaks = 1,
+  ref_peak = 1,
+  strict = TRUE,
+  tol = 0.01,
+  side = "right",
+  min = NULL,
+  max = NULL,
+  bias = 0,
+  ...
+)
+
+.cytokine_cutpoint(
+  x,
+  num_peaks = 1,
+  ref_peak = 1,
+  method = c("first_deriv", "second_deriv"),
+  tol = 0.01,
+  adjust = 1,
+  side = "right",
+  strict = TRUE,
+  plot = FALSE,
+  auto_tol = FALSE,
+  ...
+)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
@@ -21,16 +47,15 @@ gate_tail(fr, channel, filterId = "", num_peaks = 1, ref_peak = 1,
 any peaks that are artifacts of smoothing}
 
 \item{ref_peak}{After \code{num_peaks} are found, this argument provides the
-index of the reference population from which a gate will be obtained.}
+index of the reference population from which a gate will be obtained. By
+default, the peak farthest to the left is used.}
 
-\item{strict}{\code{logical} when the actual number of peaks detected is less than \code{ref_peak}, 
+\item{strict}{\code{logical} when the actual number of peaks detected is less than \code{ref_peak}. 
 an error is reported by default. But if \code{strict} is set to FALSE, then the reference peak will be reset to the peak of the far right.}
 
-\item{tol}{the tolerance value used to construct the cytokine gate from the
-derivative of the kernel density estimate. See details.}
+\item{tol}{the tolerance value}
 
-\item{side}{On which side of the density do we want to gate the tail, the
-\code{'right'} (default) or \code{'left'}?}
+\item{side}{On which side of the density do we want to gate the tail, the}
 
 \item{min}{a numeric value that sets the lower boundary for data filtering}
 
@@ -38,18 +63,25 @@ derivative of the kernel density estimate. See details.}
 
 \item{bias}{a numeric value that adds a constant to the calculated cutpoint(threshold). Default is 0.}
 
-\item{...}{additional arguments used in calculating derivative. See details.}
+\item{...}{additional arguments passed to \code{.deriv_density}}
 
-\item{method}{the method used to select the cutpoint. Either "first_deriv" or "second_deriv". See details.}
+\item{x}{a \code{numeric} vector used as input data}
 
-\item{auto_tol}{when TRUE, it tries to set the tolerance automatically. See details.}
+\item{method}{the method used to select the cutpoint. See details.}
 
 \item{adjust}{the scaling adjustment applied to the bandwidth used in the
 first derivative of the kernel density estimate}
+
+\item{plot}{logical specifying whether to plot the peaks found
+\code{'right'} (default) or \code{'left'}?}
+
+\item{auto_tol}{when TRUE, it tries to set the tolerance automatically.}
 }
 \value{
 a \code{filterList} containing the gates (cutpoints) for each sample with
 the corresponding \code{\linkS4class{rectangleGate}} objects defining the tail as the positive population.
+
+the cutpoint along the x-axis
 }
 \description{
 These methods aim to set a one-dimensional gate (cutpoint) near the edge of a peak in 
@@ -57,11 +89,14 @@ the density specified by a channel of a \code{\linkS4class{flowFrame}} to isolat
 They allow two approaches to do this, both beginning by obtaining a
 smoothened kernel density estimate (KDE) of the original density and then utilizing either
 its first or second derivative.
+
+We determine a gating cutpoint using either the first or second derivative of
+the kernel density estimate (KDE) of the \code{x}.
 }
 \details{
 The default behavior of the first approach, specified by \code{method = "first_deriv"}, 
 finds valleys in the first derivative of the KDE and uses the lowest such valley
-to place the cutpoint on the steep right shoulder of the largest peak in the original density.
+to place the cutpoint on the steep right shoulder of the largest peak in the original density. 
 
 The default behavior of the second approach, specified by \code{method = "second_deriv"},
 is to find peaks in the second derivative of the KDE and use the largest such peak
@@ -99,6 +134,17 @@ but this should usually not be needed. By default the number of grid points for 
 calculation will be 10,000, but this can be changed with \code{num_points}. The default
 bandwidth can also be directly adjusted with \code{bandwidth}, where the final value used
 will be given by \code{adjust*bandwidth}
+
+By default, we compute the first derivative of the kernel density estimate. 
+Next, we determine the lowest valley from the derivative, which corresponds to the
+density's mode for cytokines. We then contruct a gating cutpoint as the value
+less than the tolerance value \code{tol} in magnitude and is also greater
+than the lowest valley.
+
+Alternatively, if the \code{method} is selected as \code{second_deriv}, we
+select a cutpoint from the second derivative of the KDE. Specifically, we
+choose the cutpoint as the largest peak of the second derivative of the KDE
+density which is greater than the reference peak.
 }
 \examples{
 \dontrun{

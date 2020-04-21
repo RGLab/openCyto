@@ -6,8 +6,12 @@
 \alias{getNodes,gatingTemplate-method}
 \title{get nodes from \link[openCyto:gatingTemplate-class]{gatingTemplate} object}
 \usage{
-gt_get_nodes(x, y, order = c("default", "bfs", "dfs", "tsort"),
-  only.names = FALSE)
+gt_get_nodes(
+  x,
+  y,
+  order = c("default", "bfs", "dfs", "tsort"),
+  only.names = FALSE
+)
 }
 \arguments{
 \item{x}{\code{gatingTemplate}}

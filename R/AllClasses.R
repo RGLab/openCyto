@@ -25,7 +25,7 @@
 #' @keywords package
 #' @examples
 #' \dontrun{gatingTemplate('test.csv')}
-#' @seealso See \code{\link[openCyto:gating-methods]{gating}}, 
+#' @seealso See \code{\link[openCyto]{gt_gating}}, 
 #' \code{\link{gate_flowclust_1d}}, 
 #' for an overview of gating functions.
 NULL
