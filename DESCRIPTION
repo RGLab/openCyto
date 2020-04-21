@@ -4,7 +4,7 @@ Title: Hierarchical Gating Pipeline for flow cytometry data
 Version: 1.99.3
 Date: 2012-06-11
 Author: Mike Jiang, John Ramey, Greg Finak, Raphael Gottardo
-Maintainer: Mike Jiang <wjiang2@fhcrc.org>
+Maintainer: Mike Jiang <wjiang2@fhcrc.org>,Jake Wagner <jpwagner@fhcrc.org>
 Description: This package is designed to facilitate the automated gating
     methods in sequential way to mimic the manual gating strategy.
 License: Artistic-2.0
