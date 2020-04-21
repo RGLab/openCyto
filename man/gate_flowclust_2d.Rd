@@ -7,11 +7,28 @@
 \title{Automatic identification of a population of interest via flowClust based on
 two markers}
 \usage{
-gate_flowclust_2d(fr, xChannel, yChannel, filterId = "", K = 2,
-  usePrior = "no", prior = list(NA), trans = 0, min.count = -1,
-  max.count = -1, nstart = 1, plot = FALSE, target = NULL,
-  transitional = FALSE, quantile = 0.9, translation = 0.25,
-  transitional_angle = NULL, min = NULL, max = NULL, ...)
+gate_flowclust_2d(
+  fr,
+  xChannel,
+  yChannel,
+  filterId = "",
+  K = 2,
+  usePrior = "no",
+  prior = list(NA),
+  trans = 0,
+  min.count = -1,
+  max.count = -1,
+  nstart = 1,
+  plot = FALSE,
+  target = NULL,
+  transitional = FALSE,
+  quantile = 0.9,
+  translation = 0.25,
+  transitional_angle = NULL,
+  min = NULL,
+  max = NULL,
+  ...
+)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}

@@ -9,8 +9,13 @@
 \usage{
 gatingTemplate(x, ...)
 
-\S4method{gatingTemplate}{character}(x, name = "default",
-  strict = TRUE, strip_extra_quotes = FALSE, ...)
+\S4method{gatingTemplate}{character}(
+  x,
+  name = "default",
+  strict = TRUE,
+  strip_extra_quotes = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{\code{character} csv file name}

@@ -197,7 +197,6 @@ setMethod("show", signature = c("gatingTemplate"),
 #' 
 #' plot the gating scheme using Rgraphviz
 #' 
-#' @usage plot(x, y, ...)
 #' @param x \code{gatingTemplate} object
 #' @param y either \code{character} specifying the root node which can be used to visualize only the subgraph 
 #'              or \code{missing} which display the entire gating scheme

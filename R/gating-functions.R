@@ -970,6 +970,7 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
 #' choose the cutpoint as the largest peak of the second derivative of the KDE
 #' density which is greater than the reference peak.
 #'
+#' @rdname gate_tail
 #' @param x a \code{numeric} vector used as input data
 #' @param num_peaks the number of peaks expected to see. This effectively removes
 #' any peaks that are artifacts of smoothing
@@ -984,10 +985,10 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
 #' @param adjust the scaling adjustment applied to the bandwidth used in the
 #' first derivative of the kernel density estimate
 #' @param side On which side of the density do we want to gate the tail, the
+#' @param plot logical specifying whether to plot the peaks found
 #'  \code{'right'} (default) or \code{'left'}?
-#' @param ... additional arguments passed to \code{\link{.deriv_density}}
+#' @param ... additional arguments passed to \code{.deriv_density}
 #' @return the cutpoint along the x-axis
-#' @noRd 
 .cytokine_cutpoint <- function(x, num_peaks = 1, ref_peak = 1,
     method = c("first_deriv", "second_deriv"),
     tol = 1e-2, adjust = 1, side = "right", strict = TRUE, plot = FALSE, auto_tol = FALSE, ...) {

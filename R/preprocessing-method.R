@@ -25,7 +25,7 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
 .preprocessing <- function(x, y, gtPop, parent, gm
                             , mc.cores = 1, parallel_type = c("none", "multicore", "cluster"), cl = NULL
                             , ...) {
-  require("parallel")
+  requireNamespace("parallel")
   
   args <- parameters(x)
   # overwrite the golbal args with the local one

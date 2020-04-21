@@ -6,8 +6,17 @@
 \title{An improved version of mindensity used to determines a cutpoint as the minimum point 
 of a kernel density estimate between two peaks.}
 \usage{
-gate_mindensity2(fr, channel, filterId = "", pivot = FALSE,
-  gate_range = NULL, min = NULL, max = NULL, peaks = NULL, ...)
+gate_mindensity2(
+  fr,
+  channel,
+  filterId = "",
+  pivot = FALSE,
+  gate_range = NULL,
+  min = NULL,
+  max = NULL,
+  peaks = NULL,
+  ...
+)
 }
 \arguments{
 \item{fr}{a \code{flowFrame} object}
