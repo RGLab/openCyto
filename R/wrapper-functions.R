@@ -85,7 +85,6 @@
       if(!.isRegistered(gFunc)){
         stop(sprintf("Can't gate using unregistered method %s",gFunc))
       }
-#      browser()
       thisCall <- substitute(f(fr = fr
                                 , pp_res = pp_res
                                 , channels = channels
@@ -473,7 +472,12 @@
 .quadGate.tmix <- .gate_quad_tmix
 
 .gate_quad_sequential <- function(fr, pp_res = NULL, channels, ...){
-  gate_quad_sequential(fr, channels, ...)
+  quadrants <- gate_quad_sequential(fr, channels, ...)
+  quadrants[[1]]@filterId <- paste0(channels[[1]], "-", channels[[2]], "+")
+  quadrants[[2]]@filterId <- paste0(channels[[1]], "+", channels[[2]], "+")
+  quadrants[[3]]@filterId <- paste0(channels[[1]], "+", channels[[2]], "-")
+  quadrants[[4]]@filterId <- paste0(channels[[1]], "-", channels[[2]], "-")
+  quadrants
 }
 
 .quadGate.seq <- .gate_quad_sequential
