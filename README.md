@@ -12,7 +12,7 @@ An R package that providing an automated data analysis pipeline for flow cytomet
 - Make sure your flow packages are up to date.
 - THEN if your issue persists, file a bug report.
 
-Otherwise, we will close your issue without responding.
+Otherwise, we may close your issue without responding.
 
 ## Documentation Resources
 The [github-pages](http://opencyto.org) site documentation is a bit outdated.
