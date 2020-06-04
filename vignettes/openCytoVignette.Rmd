@@ -200,7 +200,7 @@ Sometimes we want to have a customized `alias` other than the quadrant-like name
 ----------------------------- 
 After the gating template is defined in the spreadsheet, it can be loaded into R:  	 	
 ```{r load-gt, eval = T}
-gt_tcell <- gatingTemplate(gtFile, autostart = 1L)
+gt_tcell <- gatingTemplate(gtFile)
 gt_tcell
 ```
 Besides looking at the spreadsheet, we can examine the gating scheme by visualizing it:
