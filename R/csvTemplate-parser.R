@@ -372,23 +372,29 @@ templateGen <- function(gh){
       res <- this_row
       res[, pop := new_pops]
     } else {
-      
-      if (gm %in% c("flowClust", "gate_flowclust")) {
-        if (dim_count == 2) {
-          message("expanding pop: ", popName, "\n")
-          
-          this_row[1, gating_method := "gate_flowclust_1d"]
-        } else {
-          stop("dimensions '", dims, "' is not consistent with pop name '", 
-              popName, "'")
+      if(gm %in% c("quadGate.seq", "gate_quad_sequential", "quadGate.tmix", "gate_quad_tmix")){
+        if(!trimws(alias) %in% c("", "*"))
+          message("alias '", alias, "' is ignored since pop names are auto-generated from 'dims' for gate_quad_ methods")
+        this_row[1, alias := "*"]
+        res <- this_row
+      }else{
+        if (gm %in% c("flowClust", "gate_flowclust")) {
+          if (dim_count == 2) {
+            message("expanding pop: ", popName, "\n")
+            
+            this_row[1, gating_method := "gate_flowclust_1d"]
+          } else {
+            stop("dimensions '", dims, "' is not consistent with pop name '", 
+                 popName, "'")
+          }
         }
+        # needs to be split into two 1d gates and one refgate
+        
+        # create 1d gate for each dim
+        res_1d <- .gen_1dgate(this_row, strict = strict)
+        res_ref <- .gen_refGate(new_pops, this_row, ref_nodes = res_1d[, alias], alias = this_row[, alias], strict = strict)
+        res <- rbindlist(list(res_1d, res_ref)) 
       }
-      # needs to be split into two 1d gates and one refgate
-      
-      # create 1d gate for each dim
-      res_1d <- .gen_1dgate(this_row, strict = strict)
-      res_ref <- .gen_refGate(new_pops, this_row, ref_nodes = res_1d[, alias], alias = this_row[, alias], strict = strict)
-      res <- rbindlist(list(res_1d, res_ref))
     }
   } else if (grepl(paste0("^(", two_pop_pat, "){2}$"), popName) ||
       grepl(paste0("^", two_pop_pat, one_pop_pat, "$"), popName) ||
@@ -403,21 +409,27 @@ templateGen <- function(gh){
       res <- .gen_refGate(new_pops, this_row = this_row, alias = new_alias, strict = strict)
       
     } else {
-      
-      if (gm %in% c("flowClust", "gate_flowclust")) {
-        if (dim_count == 2) {
-          this_row[1, gating_method := "gate_flowclust_1d"]
-          
-        } else {
-          stop("dimensions '", dims, "' is not consistent with pop name '", 
-              popName, "'")
+      if(gm %in% c("quadGate.seq", "gate_quad_sequential", "quadGate.tmix", "gate_quad_tmix")){
+        if(!trimws(alias) %in% c("", "*"))
+          message("alias '", alias, "' is ignored since pop names are auto-generated from 'dims' gate_quad_ methods")
+        this_row[1, alias := "*"]
+        res <- this_row
+      }else{
+        if (gm %in% c("flowClust", "gate_flowclust")) {
+          if (dim_count == 2) {
+            this_row[1, gating_method := "gate_flowclust_1d"]
+            
+          } else {
+            stop("dimensions '", dims, "' is not consistent with pop name '", 
+                 popName, "'")
+          }
         }
+        
+        # create 1d gate for each dim
+        res_1d <- .gen_1dgate(this_row, strict = strict)
+        res_ref <- .gen_refGate(new_pops, this_row, ref_nodes = res_1d[, alias], alias = new_alias, strict = strict)
+        res <- rbindlist(list(res_1d, res_ref))
       }
-      
-      # create 1d gate for each dim
-      res_1d <- .gen_1dgate(this_row, strict = strict)
-      res_ref <- .gen_refGate(new_pops, this_row, ref_nodes = res_1d[, alias], alias = new_alias, strict = strict)
-      res <- rbindlist(list(res_1d, res_ref))
     }
     
   } else 
