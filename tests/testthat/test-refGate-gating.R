@@ -1,8 +1,7 @@
 context("refgate")
 
 test_that("refGate", {
-  dataDir <- system.file("extdata",package="flowWorkspaceData")
-  gs <- load_gs(list.files(dataDir, pattern = "gs_manual",full = TRUE))
+  gs <- gs_copy_tree_only(gs)
   #clear existing gates
   gs_pop_remove("not debris", gs = gs)
   

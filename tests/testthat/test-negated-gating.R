@@ -1,8 +1,7 @@
 context("negated gate")
 
 test_that("negated ellipse gate", {
-  dataDir <- system.file("extdata",package="flowWorkspaceData")
-  gs <- load_gs(list.files(dataDir, pattern = "gs_manual",full = TRUE))
+  gs <- gs_copy_tree_only(gs)
   #grab an existing ellipse gate for the demo purpose
   ellipse_gate <- gh_pop_get_gate(gs[[1]], "CD4")
   #create a dummy gating function that simply return this static gate
