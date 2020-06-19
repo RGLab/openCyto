@@ -113,7 +113,7 @@ test_that("tcell", {
 test_that("tcell--asinhtGml2", {
   
   fcs <- list.files(pattern = "CytoTrol*", system.file("extdata", package = "flowWorkspaceData"), full.names = TRUE)
-  fs <- read.ncdfFlowSet(fcs)  
+  fs <- load_cytoset_from_fcs(fcs)  
   gs <- GatingSet(fs)
   #compensate
   comp <- compensation(spillover(fs[[1]])[["SPILL"]])
@@ -135,7 +135,8 @@ test_that("tcell--asinhtGml2", {
   tmp <- tempfile()
   write.csv(dt, file = tmp, row.names = FALSE)
   gt_tcell <- gatingTemplate(tmp)
-  expect_warning(gating(gt_tcell, gs, mc.core = 2, parallel_type = "multicore"), regexp = "HLA is partially matched")
+  library(parallel)
+  expect_warning(gating(gt_tcell, gs, mc.core = 1, parallel_type = "multicore"), regexp = "HLA is partially matched")
   # autoplot(gs[[1]])  
   
   thisRes <- gs_pop_get_count_fast(gs, path = "full")
