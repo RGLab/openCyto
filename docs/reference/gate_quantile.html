@@ -74,7 +74,7 @@ cell events to reach that precision. Sometime the difference could be significan
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">openCyto</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.99.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
       </span>
     </div>
 
@@ -112,7 +112,12 @@ cell events to reach that precision. Sometime the difference could be significan
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/RGLab/openCyto">
+    <span class="fas fa fa fas fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -137,8 +142,16 @@ produce the exact the probability set by 'probs' argument if there are not enoug
 cell events to reach that precision. Sometime the difference could be significant.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>gate_quantile</span>(<span class='no'>fr</span>, <span class='no'>channel</span>, <span class='kw'>probs</span> <span class='kw'>=</span> <span class='fl'>0.999</span>, <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>gate_quantile</span>(
+  <span class='no'>fr</span>,
+  <span class='no'>channel</span>,
+  <span class='kw'>probs</span> <span class='kw'>=</span> <span class='fl'>0.999</span>,
+  <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='no'>...</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -196,7 +209,7 @@ cell events to reach that precision. Sometime the difference could be significan
 
       <footer>
       <div class="copyright">
-  <p>Developed by Mike Jiang.</p>
+  <p>Developed by Mike Jiang,Jake Wagner <jpwagner@fhcrc.org>.</p>
 </div>
 
 <div class="pkgdown">

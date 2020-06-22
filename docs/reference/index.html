@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">openCyto</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.99.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
       </span>
     </div>
 
@@ -109,7 +109,12 @@
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/RGLab/openCyto">
+    <span class="fas fa fa fas fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -191,7 +196,7 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="as.data.table.html">as.data.table()</a></code> </p>
+          <p><code><a href="as.data.table.html">as.data.table(<i>&lt;gatingTemplate&gt;</i>)</a></code> </p>
         </td>
         <td><p>convert a gatingTemplate object to a data.table</p></td>
       </tr>
@@ -262,7 +267,7 @@ of a kernel density estimate between two peaks.</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="gate_tail.html">gate_tail()</a></code> </p>
+          <p><code><a href="gate_tail.html">gate_tail()</a></code> <code><a href="gate_tail.html">.cytokine_cutpoint()</a></code> </p>
         </td>
         <td><p>Gates the tail of a density using the derivative of a kernel density estimate</p></td>
       </tr><tr>
@@ -349,19 +354,19 @@ of a kernel density estimate between two peaks.</p></td>
       <tr>
         
         <td>
-          <p><code><a href="plot-gatingTemplate-missing-method.html">plot()</a></code> </p>
+          <p><code><a href="plot-gatingTemplate-missing-method.html">plot(<i>&lt;gatingTemplate&gt;</i>,<i>&lt;missing&gt;</i>)</a></code> </p>
         </td>
         <td><p>plot the gating scheme</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="plot-fcTree-character-method.html">plot()</a></code> </p>
+          <p><code><a href="plot-fcTree-character-method.html">plot(<i>&lt;fcTree&gt;</i>,<i>&lt;character&gt;</i>)</a></code> </p>
         </td>
         <td><p>plot the flowClust gating results</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="plot-fcFilterList-ANY-method.html">plot()</a></code> </p>
+          <p><code><a href="plot-fcFilterList-ANY-method.html">plot(<i>&lt;fcFilterList&gt;</i>,<i>&lt;ANY&gt;</i>)</a></code> </p>
         </td>
         <td><p>plot a <code>fcFilterList</code></p></td>
       </tr>
@@ -379,7 +384,7 @@ of a kernel density estimate between two peaks.</p></td>
 
       <footer>
       <div class="copyright">
-  <p>Developed by Mike Jiang.</p>
+  <p>Developed by Mike Jiang,Jake Wagner <jpwagner@fhcrc.org>.</p>
 </div>
 
 <div class="pkgdown">

@@ -74,7 +74,7 @@ cluster and all other clusters. — gate_flowclust_1d" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">openCyto</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.99.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
       </span>
     </div>
 
@@ -112,7 +112,12 @@ cluster and all other clusters. — gate_flowclust_1d" />
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/RGLab/openCyto">
+    <span class="fas fa fa fas fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -136,13 +141,30 @@ cluster and all other clusters.</h1>
     <p>We cluster the observations in <code>fr</code> into <code>K</code> clusters.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>gate_flowclust_1d</span>(<span class='no'>fr</span>, <span class='no'>params</span>, <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>trans</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>min.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>max.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>nstart</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>criterion</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"BIC"</span>, <span class='st'>"ICL"</span>), <span class='kw'>cutpoint_method</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"boundary"</span>,
-  <span class='st'>"min_density"</span>, <span class='st'>"quantile"</span>, <span class='st'>"posterior_mean"</span>, <span class='st'>"prior_density"</span>),
-  <span class='kw'>neg_cluster</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>cutpoint_min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>cutpoint_max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>quantile</span> <span class='kw'>=</span> <span class='fl'>0.99</span>, <span class='kw'>quantile_interval</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>,
-  <span class='fl'>10</span>), <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>gate_flowclust_1d</span>(
+  <span class='no'>fr</span>,
+  <span class='no'>params</span>,
+  <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>trans</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>min.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>,
+  <span class='kw'>max.count</span> <span class='kw'>=</span> -<span class='fl'>1</span>,
+  <span class='kw'>nstart</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>criterion</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"BIC"</span>, <span class='st'>"ICL"</span>),
+  <span class='kw'>cutpoint_method</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"boundary"</span>, <span class='st'>"min_density"</span>, <span class='st'>"quantile"</span>, <span class='st'>"posterior_mean"</span>,
+    <span class='st'>"prior_density"</span>),
+  <span class='kw'>neg_cluster</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>cutpoint_min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>cutpoint_max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>quantile</span> <span class='kw'>=</span> <span class='fl'>0.99</span>,
+  <span class='kw'>quantile_interval</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>, <span class='fl'>10</span>),
+  <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='no'>...</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -271,7 +293,7 @@ is minimum.</p>
 
       <footer>
       <div class="copyright">
-  <p>Developed by Mike Jiang.</p>
+  <p>Developed by Mike Jiang,Jake Wagner <jpwagner@fhcrc.org>.</p>
 </div>
 
 <div class="pkgdown">

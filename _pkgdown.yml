@@ -53,3 +53,8 @@ reference:
       - plot,gatingTemplate-method
       - plot,fcTree,character-method
       - plot,fcFilterList,ANY-method
+navbar:
+  title: openCyto
+  right:
+    - icon: fas fa fa-github fa-lg
+      href: https://github.com/RGLab/openCyto

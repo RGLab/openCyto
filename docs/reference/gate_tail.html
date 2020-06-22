@@ -44,7 +44,9 @@
 the density specified by a channel of a flowFrame to isolate the tail population. 
 They allow two approaches to do this, both beginning by obtaining a
 smoothened kernel density estimate (KDE) of the original density and then utilizing either
-its first or second derivative." />
+its first or second derivative.
+We determine a gating cutpoint using either the first or second derivative of
+the kernel density estimate (KDE) of the x." />
 
 
 
@@ -76,7 +78,7 @@ its first or second derivative." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">openCyto</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.99.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
       </span>
     </div>
 
@@ -114,7 +116,12 @@ its first or second derivative." />
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/RGLab/openCyto">
+    <span class="fas fa fa fas fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -139,11 +146,38 @@ the density specified by a channel of a <code>flowFrame</code> to isolate the ta
 They allow two approaches to do this, both beginning by obtaining a
 smoothened kernel density estimate (KDE) of the original density and then utilizing either
 its first or second derivative.</p>
+<p>We determine a gating cutpoint using either the first or second derivative of
+the kernel density estimate (KDE) of the <code>x</code>.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>gate_tail</span>(<span class='no'>fr</span>, <span class='no'>channel</span>, <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>num_peaks</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>ref_peak</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>strict</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>0.01</span>, <span class='kw'>side</span> <span class='kw'>=</span> <span class='st'>"right"</span>, <span class='kw'>min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>bias</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>gate_tail</span>(
+  <span class='no'>fr</span>,
+  <span class='no'>channel</span>,
+  <span class='kw'>filterId</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>num_peaks</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>ref_peak</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>strict</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>0.01</span>,
+  <span class='kw'>side</span> <span class='kw'>=</span> <span class='st'>"right"</span>,
+  <span class='kw'>min</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>max</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>bias</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='no'>...</span>
+)
+
+<span class='fu'>.cytokine_cutpoint</span>(
+  <span class='no'>x</span>,
+  <span class='kw'>num_peaks</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>ref_peak</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"first_deriv"</span>, <span class='st'>"second_deriv"</span>),
+  <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>0.01</span>,
+  <span class='kw'>adjust</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>side</span> <span class='kw'>=</span> <span class='st'>"right"</span>,
+  <span class='kw'>strict</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>auto_tol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='no'>...</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -168,22 +202,21 @@ any peaks that are artifacts of smoothing</p></td>
     <tr>
       <th>ref_peak</th>
       <td><p>After <code>num_peaks</code> are found, this argument provides the
-index of the reference population from which a gate will be obtained.</p></td>
+index of the reference population from which a gate will be obtained. By
+default, the peak farthest to the left is used.</p></td>
     </tr>
     <tr>
       <th>strict</th>
-      <td><p><code>logical</code> when the actual number of peaks detected is less than <code>ref_peak</code>, 
+      <td><p><code>logical</code> when the actual number of peaks detected is less than <code>ref_peak</code>. 
 an error is reported by default. But if <code>strict</code> is set to FALSE, then the reference peak will be reset to the peak of the far right.</p></td>
     </tr>
     <tr>
       <th>tol</th>
-      <td><p>the tolerance value used to construct the cytokine gate from the
-derivative of the kernel density estimate. See details.</p></td>
+      <td><p>the tolerance value</p></td>
     </tr>
     <tr>
       <th>side</th>
-      <td><p>On which side of the density do we want to gate the tail, the
-<code>'right'</code> (default) or <code>'left'</code>?</p></td>
+      <td><p>On which side of the density do we want to gate the tail, the</p></td>
     </tr>
     <tr>
       <th>min</th>
@@ -199,20 +232,29 @@ derivative of the kernel density estimate. See details.</p></td>
     </tr>
     <tr>
       <th>...</th>
-      <td><p>additional arguments used in calculating derivative. See details.</p></td>
+      <td><p>additional arguments passed to <code>.deriv_density</code></p></td>
+    </tr>
+    <tr>
+      <th>x</th>
+      <td><p>a <code>numeric</code> vector used as input data</p></td>
     </tr>
     <tr>
       <th>method</th>
-      <td><p>the method used to select the cutpoint. Either "first_deriv" or "second_deriv". See details.</p></td>
-    </tr>
-    <tr>
-      <th>auto_tol</th>
-      <td><p>when TRUE, it tries to set the tolerance automatically. See details.</p></td>
+      <td><p>the method used to select the cutpoint. See details.</p></td>
     </tr>
     <tr>
       <th>adjust</th>
       <td><p>the scaling adjustment applied to the bandwidth used in the
 first derivative of the kernel density estimate</p></td>
+    </tr>
+    <tr>
+      <th>plot</th>
+      <td><p>logical specifying whether to plot the peaks found
+<code>'right'</code> (default) or <code>'left'</code>?</p></td>
+    </tr>
+    <tr>
+      <th>auto_tol</th>
+      <td><p>when TRUE, it tries to set the tolerance automatically.</p></td>
     </tr>
     </table>
 
@@ -220,6 +262,7 @@ first derivative of the kernel density estimate</p></td>
 
     <p>a <code>filterList</code> containing the gates (cutpoints) for each sample with
 the corresponding <code>rectangleGate</code> objects defining the tail as the positive population.</p>
+<p>the cutpoint along the x-axis</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>The default behavior of the first approach, specified by <code>method = "first_deriv"</code>, 
@@ -258,6 +301,15 @@ but this should usually not be needed. By default the number of grid points for 
 calculation will be 10,000, but this can be changed with <code>num_points</code>. The default
 bandwidth can also be directly adjusted with <code>bandwidth</code>, where the final value used
 will be given by <code>adjust*bandwidth</code></p>
+<p>By default, we compute the first derivative of the kernel density estimate. 
+Next, we determine the lowest valley from the derivative, which corresponds to the
+density's mode for cytokines. We then contruct a gating cutpoint as the value
+less than the tolerance value <code>tol</code> in magnitude and is also greater
+than the lowest valley.</p>
+<p>Alternatively, if the <code>method</code> is selected as <code>second_deriv</code>, we
+select a cutpoint from the second derivative of the KDE. Specifically, we
+choose the cutpoint as the largest peak of the second derivative of the KDE
+density which is greater than the reference peak.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
@@ -274,7 +326,7 @@ will be given by <code>adjust*bandwidth</code></p>
 
       <footer>
       <div class="copyright">
-  <p>Developed by Mike Jiang.</p>
+  <p>Developed by Mike Jiang,Jake Wagner <jpwagner@fhcrc.org>.</p>
 </div>
 
 <div class="pkgdown">
