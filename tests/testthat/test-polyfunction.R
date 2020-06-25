@@ -1,9 +1,8 @@
 context("polyfunction")
 
-data("GvHD")
-gs <- GatingSet(GvHD[1])
-gs <- transform(gs, estimateLogicle(gs[[1]], colnames(gs)[3:7]))
 test_that("polyfunction testing", {
+  gs <- GatingSet(GvHD[1])
+  gs <- transform(gs, estimateLogicle(gs[[1]], colnames(gs)[3:7]))
   gs_add_gating_method(gs, alias = "FL1+", parent = "root", dims = "FL1", gating_method = "tailgate")
   gs_add_gating_method(gs, alias = "FL3+", parent = "root", dims = "FL3", gating_method = "tailgate")
   gs_add_gating_method(gs, alias = "FL4+", parent = "root", dims = "FL4", gating_method = "tailgate")
