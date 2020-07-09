@@ -16,27 +16,30 @@ setAs(from = "ncdfFlowList", to = "flowFrame", def = function(from){
 # 1. without the overhead of validity checking for parameters 
 # 2. without the extra column 'Original'
 # 3. concatenate matrices within c++ to avoid copying
-#  
+fast_coerce <- function(from){
+  if(length(from) == 1)
+  	from[[1, returnType = "flowFrame"]]
+  else {
+  	thisFr <- from[[1, use.exprs = FALSE]]
+  	
+  	params <- parameters(thisFr)
+  	colnames <- colnames(thisFr)
+  	
+  	mat_list <- fsApply(from, function(fr)exprs(fr), simplify = FALSE)
+  	
+  	
+  	desc  <- list(description="Synthetic Frame",sampleNames=sampleNames(from))
+  	new("flowFrame",exprs = collapseData(mat_list, colnames)
+  			, parameters = params
+  			, description = desc
+  	)
+  }
+}  
 #' @importFrom flowCore colnames
 #' @importClassesFrom ncdfFlow ncdfFlowSet
 setAs(from="ncdfFlowSet", to="flowFrame", def=function(from)
-    {
-      if(length(from) == 1)
-        from[[1]]
-      else {
-        thisFr <- from[[1, use.exprs = FALSE]]
-        
-        params <- parameters(thisFr)
-        colnames <- colnames(thisFr)
-        
-        mat_list <- fsApply(from, function(fr)exprs(fr), simplify = FALSE)
-        
-        
-        desc  <- list(description="Synthetic Frame",sampleNames=sampleNames(from))
-        new("flowFrame",exprs = collapseData(mat_list, colnames)
-            , parameters = params
-            , description = desc
-        )
-      }
-    }
+			fast_coerce(from)
 )
+setAs(from="cytoset", to="flowFrame", def=function(from){
+			fast_coerce(from)
+		})

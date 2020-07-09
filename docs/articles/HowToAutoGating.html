@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">openCyto</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.99.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
       </span>
     </div>
 
@@ -68,7 +68,14 @@
   <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/RGLab/openCyto">
+    <span class="fas fa fa fas fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -78,7 +85,7 @@
 
       
 
-      </header><div class="row">
+      </header><script src="HowToAutoGating_files/header-attrs-2.3/header-attrs.js"></script><script src="HowToAutoGating_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>OpenCyto: How to use different auto gating functions</h1>
@@ -92,9 +99,10 @@
 
     
     
+<pre><code>## Warning: package 'knitr' was built under R version 4.1.0</code></pre>
 <p>Here we will illustrate how to choose and use the appropriate gating methods that are pre-registered in <code>openCyto</code> package. And users can always define their own <code>gating</code> algorithms and register them as the <code>plugin</code> functions in <code>openCyto</code> framework, see <code><a href="../reference/register_plugins.html">?registerPlugins</a></code> for more details.</p>
 <p>Note that all the function names illustrated below are prefixed with <code>.</code> indicating that they are simply the wrapper function registered in <code>openCyto</code>. The actual <code>gating engine</code> behind the wrapper can come from other packages (e.g. <code>flowCore</code>, <code>flowClust</code>). All these wrappers have these common interfaces: * <code>fr</code>: a <code>flowFrame</code> object * <code>pp_res</code>: an optional <code>pre-preocessing</code> result, which can be ignored in this document * <code>channels</code>: channel names used for gating * <code>...</code>: any other gating parameters pass on to the actual gating engine</p>
-<div class="sourceCode" id="cb1"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">flowCore</span>)
+<div class="sourceCode" id="cb2"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">flowCore</span>)
 <span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">flowWorkspace</span>)
 <span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">openCyto</span>)
 <span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">ggcyto</span>)
@@ -107,16 +115,16 @@
 <h3 class="hasAnchor">
 <a href="#mindensity" class="anchor"></a><code>mindensity</code>
 </h3>
-<p>The name of this gating function is self-explaining, that is to find the minimum as the cutpoint between negative and postive peaks in 1d density plot. It is fast,robust and extremely easy to use especially when there is a good separation between <code><a href="https://rdrr.io/r/base/Arithmetic.html">+</a></code> and <code><a href="https://rdrr.io/r/base/Arithmetic.html">-</a></code> populations/peaks.</p>
+<p>The name of this gating function is self-explaining, that is to find the minimum as the cutpoint between negative and postive peaks in 1d density plot. It is fast,robust and extremely easy to use especially when there is a good separation between <code><a href="https://rdrr.io/pkg/ggcyto/man/ggcyto_add.html">+</a></code> and <code><a href="https://rdrr.io/r/base/Arithmetic.html">-</a></code> populations/peaks.</p>
 <p>For example, it is usually easy to gate on <code>CD3</code> channel and no need to supply any arguments to the method.</p>
-<div class="sourceCode" id="cb2"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">2</span>]], <span class="st">"Live"</span>)
+<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">2</span>]], <span class="st">"Live"</span>)
 <span class="no">chnl</span> <span class="kw">&lt;-</span> <span class="st">"CD3"</span>
 <span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.mindensity</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>)
 <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="no">chnl</span>) + <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/geom_gate.html">geom_gate</a></span>(<span class="no">g</span>)
 <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="no">chnl</span>, <span class="st">"SSC-A"</span>) + <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/geom_gate.html">geom_gate</a></span>(<span class="no">g</span>)</pre></body></html></div>
 <p><img src="HowToAutoGating_files/figure-html/unnamed-chunk-3-1.png" width="288"><img src="HowToAutoGating_files/figure-html/unnamed-chunk-3-2.png" width="288"></p>
 <p>However, it may need some guidance when there are more than <code>2</code> major peaks/populations detected in densit profile.</p>
-<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="st">"boundary"</span>)
+<div class="sourceCode" id="cb4"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="st">"boundary"</span>)
 <span class="no">chnl</span> <span class="kw">&lt;-</span> <span class="st">"FSC-A"</span>
 <span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.mindensity</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>)
 <span class="no">mylimits</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/ggcyto_par_set.html">ggcyto_par_set</a></span>(<span class="kw">limits</span> <span class="kw">=</span> <span class="st">"instrument"</span>)
@@ -125,13 +133,13 @@
 <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="no">chnl</span>, <span class="st">"SSC-A"</span>) + <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/geom_gate.html">geom_gate</a></span>(<span class="no">g</span>)</pre></body></html></div>
 <p><img src="HowToAutoGating_files/figure-html/unnamed-chunk-4-1.png" width="288"><img src="HowToAutoGating_files/figure-html/unnamed-chunk-4-2.png" width="288"></p>
 <p>Here we actually want to remove the <code>debris cells</code> that are represented by the first negative peak. But <code>mindensity</code> cuts between the second and third peaks since they are more predorminant. So we can simply specify a <code>range</code> that will limit the locations where the cut point should be placed.</p>
-<div class="sourceCode" id="cb4"><html><body><pre class="r"><span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.mindensity</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>, <span class="kw">gate_range</span><span class="kw">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">7e4</span>,<span class="fl">1e5</span>), <span class="kw">adjust</span> <span class="kw">=</span> <span class="fl">1.5</span>)
+<div class="sourceCode" id="cb5"><html><body><pre class="r"><span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.mindensity</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>, <span class="kw">gate_range</span><span class="kw">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">7e4</span>,<span class="fl">1e5</span>), <span class="kw">adjust</span> <span class="kw">=</span> <span class="fl">1.5</span>)
 <span class="no">p</span> + <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/geom_gate.html">geom_gate</a></span>(<span class="no">g</span>)
 <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="no">chnl</span>, <span class="st">"SSC-A"</span>) + <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/geom_gate.html">geom_gate</a></span>(<span class="no">g</span>)</pre></body></html></div>
 <p><img src="HowToAutoGating_files/figure-html/unnamed-chunk-5-1.png" width="288"><img src="HowToAutoGating_files/figure-html/unnamed-chunk-5-2.png" width="288"></p>
 <p>And as shown, we also changed the <code>kernal density</code> smoothing factor <code>adjust</code> from <code>2</code>(default value set in <code>openCtyo</code>) to <code>1.5</code> to avoid over-smoothing.</p>
 <p>Alternatively you can achieve the same effect by setting <code>min</code> or <code>max</code> to pre-filter the data before the <code>mindenstiy</code> works on it.</p>
-<div class="sourceCode" id="cb5"><html><body><pre class="r"><span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.mindensity</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>, <span class="kw">min</span> <span class="kw">=</span> <span class="fl">7e4</span>, <span class="kw">max</span> <span class="kw">=</span> <span class="fl">1e5</span>)
+<div class="sourceCode" id="cb6"><html><body><pre class="r"><span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.mindensity</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>, <span class="kw">min</span> <span class="kw">=</span> <span class="fl">7e4</span>, <span class="kw">max</span> <span class="kw">=</span> <span class="fl">1e5</span>)
 <span class="no">p</span> + <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/geom_gate.html">geom_gate</a></span>(<span class="no">g</span>)</pre></body></html></div>
 <p><img src="HowToAutoGating_files/figure-html/unnamed-chunk-6-1.png" width="288"></p>
 <p>To choose one way or the other or combining both is highly dependent on how your data. The more contrains will give you more controls on how gating proceeds yet at cost of robustness of your gating pipeline sometime.</p>
@@ -141,7 +149,7 @@
 <a href="#tailgate" class="anchor"></a><code>tailgate</code>
 </h3>
 <p>This gating method is used in the senarios where there is only one major peak detected thus automatically disqualify the usage of <code>mindensity</code>. <code>tol</code> is to control how far the cut point should be placed away from the peak.</p>
-<div class="sourceCode" id="cb6"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="st">"lymph"</span>)
+<div class="sourceCode" id="cb7"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="st">"lymph"</span>)
 <span class="no">chnl</span> <span class="kw">&lt;-</span> <span class="st">"Live"</span>
 <span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.tailgate</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>, <span class="kw">tol</span> <span class="kw">=</span> <span class="fl">0.05</span>)
 <span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="no">chnl</span>) + <span class="no">mylimits</span>
@@ -154,7 +162,7 @@
 <a href="#quantilegate" class="anchor"></a><code>quantileGate</code>
 </h3>
 <p>This method is an alternative to <code>tailgate</code> and it determines the cutpoint by the events quantile.</p>
-<div class="sourceCode" id="cb7"><html><body><pre class="r"><span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.quantileGate</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>, <span class="kw">probs</span> <span class="kw">=</span> <span class="fl">0.99</span>)
+<div class="sourceCode" id="cb8"><html><body><pre class="r"><span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.quantileGate</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>, <span class="kw">probs</span> <span class="kw">=</span> <span class="fl">0.99</span>)
 <span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="no">chnl</span>) + <span class="no">mylimits</span>
 <span class="no">p</span> + <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/geom_gate.html">geom_gate</a></span>(<span class="no">g</span>)
 <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="no">chnl</span>, <span class="st">"SSC-A"</span>) + <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/geom_gate.html">geom_gate</a></span>(<span class="no">g</span>)</pre></body></html></div>
@@ -170,7 +178,7 @@
 <a href="#boundary-gate" class="anchor"></a><code>boundary Gate</code>
 </h3>
 <p>It essentially constructs a rectangle gate from input range (min, max), which is useful for filtering out very extreme signals at the bounary.</p>
-<div class="sourceCode" id="cb8"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="st">"root"</span>)
+<div class="sourceCode" id="cb9"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="st">"root"</span>)
 <span class="no">chnl</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"FSC-A"</span>, <span class="st">"SSC-A"</span>)
 <span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.boundary</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>, <span class="kw">min</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0</span>, <span class="fl">0</span>), <span class="kw">max</span><span class="kw">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">2.5e5</span>,<span class="fl">2.5e5</span>))
 <span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="kw">x</span> <span class="kw">=</span> <span class="no">chnl</span>[<span class="fl">1</span>], <span class="kw">y</span> <span class="kw">=</span> <span class="no">chnl</span>[<span class="fl">2</span>])
@@ -182,7 +190,7 @@
 <a href="#singletgate" class="anchor"></a><code>singletGate</code>
 </h3>
 <p>Use the <code>area</code> vs <code>height</code> to gate out the singlets. See details from <code>?singletGate</code>.</p>
-<div class="sourceCode" id="cb9"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowCore/man/read.FCS.html">read.FCS</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span>(<span class="st">"extdata/CytoTrol_CytoTrol_1.fcs"</span>, <span class="kw">package</span> <span class="kw">=</span> <span class="st">"flowWorkspaceData"</span>))
+<div class="sourceCode" id="cb10"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowCore/man/read.FCS.html">read.FCS</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span>(<span class="st">"extdata/CytoTrol_CytoTrol_1.fcs"</span>, <span class="kw">package</span> <span class="kw">=</span> <span class="st">"flowWorkspaceData"</span>))
 <span class="no">chnl</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"FSC-A"</span>, <span class="st">"FSC-H"</span>)
 <span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.singletGate</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>)
 <span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="kw">x</span> <span class="kw">=</span> <span class="no">chnl</span>[<span class="fl">1</span>], <span class="kw">y</span> <span class="kw">=</span> <span class="no">chnl</span>[<span class="fl">2</span>])
@@ -194,7 +202,7 @@
 <a href="#flowclust-2d" class="anchor"></a><code>flowClust.2d</code>
 </h3>
 <p><code>flowClust</code> package in itself is not limited to 2-dimensional gating. But here we are talking about a dedicated wrapper function <code>.flowClust.2d</code> from <code>openCyto</code> package that leverages <code>flowClust</code> clustering engine to work on <code>2D</code> cases specifically. You won’t need to write the full name of the function in <code>csv</code> gating template, simply put <code>flowClust</code> in the <code>gating_method</code> column, and then the template parser will automatically dispatch to the right function.</p>
-<div class="sourceCode" id="cb10"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="st">"nonDebris"</span>)
+<div class="sourceCode" id="cb11"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="st">"nonDebris"</span>)
 <span class="no">chnl</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"FSC-A"</span>, <span class="st">"SSC-A"</span>)
 <span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.flowClust.2d</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>, <span class="kw">K</span><span class="kw">=</span><span class="fl">2</span>, <span class="kw">target</span><span class="kw">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">1e5</span>,<span class="fl">5e4</span>), <span class="kw">quantile</span><span class="kw">=</span><span class="fl">0.95</span>)
 <span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="kw">x</span> <span class="kw">=</span> <span class="no">chnl</span>[<span class="fl">1</span>], <span class="kw">y</span> <span class="kw">=</span> <span class="no">chnl</span>[<span class="fl">2</span>]) + <span class="no">mylimits</span>
@@ -207,7 +215,7 @@
 <a href="#transitional-gate" class="anchor"></a><code>Transitional gate</code>
 </h3>
 <p><code>flowClust.2d</code> can optionally construct a <code>Transitional gate</code>, which is a speical kind of polygon gate with one edge placed diagonally that is often seen in <code>flowJo</code>. Here is an example:</p>
-<div class="sourceCode" id="cb11"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="st">"CD19andCD20"</span>)
+<div class="sourceCode" id="cb12"><html><body><pre class="r"><span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="st">"CD19andCD20"</span>)
 <span class="no">chnl</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"CD38"</span>, <span class="st">"CD24"</span>)
 <span class="no">g</span> <span class="kw">&lt;-</span> <span class="kw pkg">openCyto</span><span class="kw ns">:::</span><span class="fu">.flowClust.2d</span>(<span class="no">fr</span>, <span class="kw">channels</span> <span class="kw">=</span> <span class="no">chnl</span>, <span class="kw">K</span><span class="kw">=</span><span class="fl">6</span>,<span class="kw">transitional</span><span class="kw">=</span><span class="fl">TRUE</span>,<span class="kw">target</span><span class="kw">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">3.5e3</span>,<span class="fl">3.5e3</span>), <span class="kw">quantile</span><span class="kw">=</span><span class="fl">0.95</span>,<span class="kw">translation</span><span class="kw">=</span><span class="fl">0.15</span>, <span class="kw">pp_res</span> <span class="kw">=</span> <span class="kw">NULL</span>)
 <span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="kw">x</span> <span class="kw">=</span> <span class="no">chnl</span>[<span class="fl">1</span>], <span class="kw">y</span> <span class="kw">=</span> <span class="no">chnl</span>[<span class="fl">2</span>]) + <span class="no">mylimits</span>
@@ -220,7 +228,7 @@
 <a href="#quadgate-tmix" class="anchor"></a><code>quadGate.tmix</code>
 </h3>
 <p>This gating method identifies two quadrants (first, and third quadrants) by fitting the data with tmixture model. It is particually useful when the two markers are not well resolved thus the regular quadGate method that is based on <code>1d</code> gating will not find the perfect cut points on both dimensions.</p>
-<div class="sourceCode" id="cb12"><html><body><pre class="r"><span class="no">gs</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/save_gs.html">load_gs</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span>(<span class="st">"extdata/gs_DC_auto"</span>, <span class="kw">package</span> <span class="kw">=</span> <span class="st">"flowWorkspaceData"</span>))
+<div class="sourceCode" id="cb13"><html><body><pre class="r"><span class="no">gs</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/save_gs.html">load_gs</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span>(<span class="st">"extdata/gs_DC_auto"</span>, <span class="kw">package</span> <span class="kw">=</span> <span class="st">"flowWorkspaceData"</span>))
 <span class="no">fr</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/flowWorkspace/man/gh_pop_get_data.html">gh_pop_get_data</a></span>(<span class="no">gs</span><span class="kw">[[</span><span class="fl">2</span>]], <span class="st">"HLADR+"</span>)
 <span class="no">chnl</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"CD11c"</span>, <span class="st">"CD123"</span>)
 <span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggcyto/man/autoplot.html">autoplot</a></span>(<span class="no">fr</span>, <span class="no">chnl</span>[<span class="fl">1</span>], <span class="no">chnl</span>[<span class="fl">2</span>])
@@ -242,7 +250,7 @@
 
 
       <footer><div class="copyright">
-  <p>Developed by Mike Jiang.</p>
+  <p>Developed by Mike Jiang,Jake Wagner <jpwagner>.</jpwagner></p>
 </div>
 
 <div class="pkgdown">

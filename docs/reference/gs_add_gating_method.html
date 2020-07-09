@@ -74,7 +74,7 @@ csv gating template." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">openCyto</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.99.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
       </span>
     </div>
 
@@ -112,7 +112,12 @@ csv gating template." />
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/RGLab/openCyto">
+    <span class="fas fa fa fas fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -137,10 +142,21 @@ by supplying the gating description directly through arguments without the need 
 csv gating template.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>gs_add_gating_method</span>(<span class='no'>gs</span>, <span class='kw'>alias</span> <span class='kw'>=</span> <span class='st'>"*"</span>, <span class='kw'>pop</span> <span class='kw'>=</span> <span class='st'>"+"</span>, <span class='no'>parent</span>, <span class='kw'>dims</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
-  <span class='no'>gating_method</span>, <span class='kw'>gating_args</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>collapseDataForGating</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
-  <span class='kw'>groupBy</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>preprocessing_method</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>preprocessing_args</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
-  <span class='kw'>strip_extra_quotes</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>gs_add_gating_method</span>(
+  <span class='no'>gs</span>,
+  <span class='kw'>alias</span> <span class='kw'>=</span> <span class='st'>"*"</span>,
+  <span class='kw'>pop</span> <span class='kw'>=</span> <span class='st'>"+"</span>,
+  <span class='no'>parent</span>,
+  <span class='kw'>dims</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='no'>gating_method</span>,
+  <span class='kw'>gating_args</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>collapseDataForGating</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>groupBy</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>preprocessing_method</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>preprocessing_args</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>strip_extra_quotes</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='no'>...</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -201,7 +217,7 @@ This will not be an issue for <code>GatingSet</code> objects created directly us
 
       <footer>
       <div class="copyright">
-  <p>Developed by Mike Jiang.</p>
+  <p>Developed by Mike Jiang,Jake Wagner <jpwagner@fhcrc.org>.</p>
 </div>
 
 <div class="pkgdown">
