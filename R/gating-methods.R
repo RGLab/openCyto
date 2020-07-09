@@ -353,8 +353,10 @@ roxygen_parameter <- function() {
     #this is flowClust-specific operation, which
     # be abstracted out of this framework
     if (extends(class(flist[[1]]), "fcFilter")) {
-      flist <- fcFilterList(flist)
-    }
+      fcflist <- try(fcFilterList(flist), silent = TRUE)
+      if(!is(fcflist, "try-error"))
+        flist <- fcflist
+      }
     
     
     
