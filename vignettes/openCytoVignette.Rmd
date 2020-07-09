@@ -18,10 +18,6 @@ if (!require(flowWorkspaceData)) {
 ```
 
 
-An Introduction to the **openCyto** package
-=======================================
-
-
 ```{r setup, include=FALSE}
 library(knitr)
 opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="center", message = FALSE, warning = FALSE)
@@ -218,9 +214,9 @@ Once we are satisfied with the gating template, we can apply it to the actual fl
 First of all, we load the raw FCS files into R by `ncdfFlow::read.ncdfFlowSet` (it uses less memory than `flowCore::read.flowSet`) and create an empty `GatingSet` object.
 ```{r load-fcs}
 fcsFiles <- list.files(pattern = "CytoTrol", flowDataPath, full = TRUE)
-ncfs  <- read.ncdfFlowSet(fcsFiles)
-fr <- ncfs[[1]]
-gs <- GatingSet(ncfs)
+cs  <- load_cytoset_from_fcs(fcsFiles)
+cf <- realize_view(cs[[1]])
+gs <- GatingSet(cs)
 gs
 ```
 ### 4.2. Compensation
@@ -229,18 +225,20 @@ compensation matrix by using the `flowStats::spillover` function.
 Here we simply use the compensation matrix defined in the `flowJo` workspace.
 ```{r compensate}
 compMat <- gh_get_compensations(gh)
-gs <- compensate(gs, compMat)
+compensate(gs, compMat)
 ```
 
 Here is one example showing the compensation outcome:
 ```{r compensate_plot, echo = F, fig.width = 4, fig.height = 4}
 sub_chnl <- c("V545-A","V450-A")
-fr <- fr[,sub_chnl]
-fr_comp <- gh_pop_get_data(gs[[1]])[,sub_chnl]
-fs <- as(list(fr = fr, fr_comp = fr_comp), "flowSet")
+cf <- cf[,sub_chnl]
+cf_comp <- realize_view(gh_pop_get_data(gs[[1]])[,sub_chnl])
+cs <- cytoset(list(cf = cf, cf_comp = cf_comp))
 #transform data to better visualize the compensation effect
-fs <- transform(fs, estimateLogicle(fr,sub_chnl))
-autoplot(fs, "V545", "V450")
+transform(cs, estimateLogicle(cf,sub_chnl))
+gridExtra::grid.arrange(as.ggplot(autoplot(cs[[1]], "V545", "V450")), as.ggplot(autoplot(cs[[2]], "V545", "V450")), nrow = 1)
+# Need to grab the post-compensation, pre-transformation cytoframe before next steps
+cf_comp <- realize_view(gh_pop_get_data(gs[[1]])[,sub_chnl])
 ```
 
 ### 4.3. Transformation
@@ -253,11 +251,10 @@ gs <- transform(gs, trans)
 ```
 Here is one example showing the transformation outcome:
 ```{r transformation_plot, echo = F, fig.width = 5, fig.height = 5}
-fr_trans <- gh_pop_get_data(gs[[1]])[,sub_chnl[1]]
-fr_comp <- fr_comp[,sub_chnl[1]]
-fs <- as(list(fr = fr_comp, fr_trans = fr_trans), "flowSet")
-p1 <- as.ggplot(autoplot(fs[1], "V545"))
-p2 <- as.ggplot(autoplot(fs[2], "V545"))
+cf_trans <- gh_pop_get_data(gs[[1]])[,sub_chnl[1]]
+cf_comp <- cf_comp[,sub_chnl[1]]
+p1 <- as.ggplot(autoplot(cf_comp, "V545"))
+p2 <- as.ggplot(autoplot(cf_trans, "V545"))
 plot(gridExtra::arrangeGrob(p1,p2))
 ```
 
