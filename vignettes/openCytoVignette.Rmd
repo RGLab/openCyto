@@ -53,7 +53,7 @@ ws <- open_flowjo_xml(wsfile)
 ```
 apply the`manual gates`defined in`xml`to the raw`FSC`files,
 ```{r flowjo_to_gatingset, eval=F}
-gs <- flowjo_to_gatingset(ws, name= "T-cell", subset =1, isNcdf = TRUE)
+gs <- flowjo_to_gatingset(ws, name= "T-cell", subset =1)
 ```
 ```{r load_gs_manual, echo = FALSE}
 gs <- load_gs(file.path(flowDataPath,"gs_manual"))
