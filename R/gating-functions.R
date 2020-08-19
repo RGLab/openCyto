@@ -854,7 +854,7 @@ mindensity <- gate_mindensity
 #' peak in the original density where it is most rapidly flattening (the first derivative is rapidly
 #' growing less negative).
 #' 
-#' Both approach can be significantly modified from defaults with a number of optional
+#' Both approaches can be significantly modified from defaults with a number of optional
 #' arguments. The \code{num_peaks} argument specifes how many peaks should be found 
 #' in the smoothened KDE and \code{ref_peak} specifies around which peak the gate's 
 #' cutpoint should be placed (starting from the leftmost peak). Setting the \code{side}
@@ -902,8 +902,7 @@ mindensity <- gate_mindensity
 #' @param auto_tol when TRUE, it tries to set the tolerance automatically. See details.
 #' @param adjust the scaling adjustment applied to the bandwidth used in the
 #' first derivative of the kernel density estimate
-#' @param side On which side of the density do we want to gate the tail, the
-#'  \code{'right'} (default) or \code{'left'}?
+#' @param side On which side of the density do we want to gate the tail. Valid options are "left" or "right".
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
 #' @param bias a numeric value that adds a constant to the calculated cutpoint(threshold). Default is 0.
@@ -984,7 +983,6 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
 #' @param auto_tol when TRUE, it tries to set the tolerance automatically.
 #' @param adjust the scaling adjustment applied to the bandwidth used in the
 #' first derivative of the kernel density estimate
-#' @param side On which side of the density do we want to gate the tail, the
 #' @param plot logical specifying whether to plot the peaks found
 #'  \code{'right'} (default) or \code{'left'}?
 #' @param ... additional arguments passed to \code{.deriv_density}

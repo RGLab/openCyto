@@ -55,7 +55,7 @@ an error is reported by default. But if \code{strict} is set to FALSE, then the 
 
 \item{tol}{the tolerance value}
 
-\item{side}{On which side of the density do we want to gate the tail, the}
+\item{side}{On which side of the density do we want to gate the tail. Valid options are "left" or "right".}
 
 \item{min}{a numeric value that sets the lower boundary for data filtering}
 
@@ -104,7 +104,7 @@ to place the cutpoint at the point on the right shoulder of the largest
 peak in the original density where it is most rapidly flattening (the first derivative is rapidly
 growing less negative).
 
-Both approach can be significantly modified from defaults with a number of optional
+Both approaches can be significantly modified from defaults with a number of optional
 arguments. The \code{num_peaks} argument specifes how many peaks should be found 
 in the smoothened KDE and \code{ref_peak} specifies around which peak the gate's 
 cutpoint should be placed (starting from the leftmost peak). Setting the \code{side}
