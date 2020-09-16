@@ -917,6 +917,7 @@ mindensity <- gate_mindensity
 gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
     ref_peak = 1, strict = TRUE, tol = 1e-2, side = "right", min = NULL, max = NULL, bias = 0, ...) {
   
+  side <- match.arg(side, c("right", "left"))
   if (!(is.null(min) && is.null(max))) {
     fr <- .truncate_flowframe(fr, channels = channel, min = min,
         max = max)
@@ -928,8 +929,11 @@ gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
       ref_peak = ref_peak, tol = tol, side = side, strict = strict, ...)
   
   cutpoint <- cutpoint + bias
-  
-  gate_coordinates <- list(c(cutpoint, Inf))
+  if(side == "right"){
+    gate_coordinates <- list(c(cutpoint, Inf))
+  }else{
+    gate_coordinates <- list(c(-Inf, cutpoint))
+  }
   names(gate_coordinates) <- channel
   rectangleGate(gate_coordinates, filterId = filterId)
   
