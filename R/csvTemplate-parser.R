@@ -444,7 +444,7 @@ templateGen <- function(gh){
 #' TODO:  support A+/-  
 #' @noRd 
 .splitTerms <- function(pop_pat, two_pop_token, popName, dims) {
-  dims_vec <- strsplit(split = ",", dims)[[1]]
+  dims_vec <- trimws(strsplit(split = ",", dims)[[1]])
   if(length(dims_vec)!=2)
     stop("Can't split the population pattern '", popName, "' into multiple population names due to invalid 'dims' column: '", dims, "'" )
   term_pos <- gregexpr(pop_pat, popName)[[1]]
@@ -500,7 +500,7 @@ templateGen <- function(gh){
 #' @noRd 
 .gen_1dgate <- function(this_row, strict = TRUE) {
   
-  dims.dims <- strsplit(split = ",", this_row[, dims])[[1]]
+  dims.dims <- trimws(strsplit(split = ",", this_row[, dims])[[1]])
   
   res <- ldply(dims.dims, function(cur_dim) {
         new_pop_name <- paste(cur_dim, "+", sep = "")
