@@ -19,6 +19,7 @@ gate_tail(
   min = NULL,
   max = NULL,
   bias = 0,
+  positive = TRUE,
   ...
 )
 
@@ -55,13 +56,17 @@ an error is reported by default. But if \code{strict} is set to FALSE, then the 
 
 \item{tol}{the tolerance value}
 
-\item{side}{On which side of the density do we want to gate the tail, the}
+\item{side}{On which side of the density do we want to gate the tail. Valid options are "left" or "right".}
 
 \item{min}{a numeric value that sets the lower boundary for data filtering}
 
 \item{max}{a numeric value that sets the upper boundary for data filtering}
 
 \item{bias}{a numeric value that adds a constant to the calculated cutpoint(threshold). Default is 0.}
+
+\item{positive}{If FALSE, after finding the cutpoint, the \code{rectangleGate} returned will have bounds \code{(-Inf, a]} as opposed to \code{[a, Inf)}.
+This argument will be ignored if \code{gate_tail} is used in a \code{\link{gatingTemplate}} with \code{\link{gt_gating}} or via \code{\link{gs_add_gating_method}}. 
+In those cases, pop = "-" should be used instead.}
 
 \item{...}{additional arguments passed to \code{.deriv_density}}
 
@@ -104,7 +109,7 @@ to place the cutpoint at the point on the right shoulder of the largest
 peak in the original density where it is most rapidly flattening (the first derivative is rapidly
 growing less negative).
 
-Both approach can be significantly modified from defaults with a number of optional
+Both approaches can be significantly modified from defaults with a number of optional
 arguments. The \code{num_peaks} argument specifes how many peaks should be found 
 in the smoothened KDE and \code{ref_peak} specifies around which peak the gate's 
 cutpoint should be placed (starting from the leftmost peak). Setting the \code{side}
