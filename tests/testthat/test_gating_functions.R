@@ -88,18 +88,18 @@ test_that("gate_tail", {
   
   # For each, check that the cut point is on the left side of the peak
   test_bound <- c("<G560-A>" = 1991)
-  expect_equal(g1_pos@max, test_bound, tolerance = 1)
-  expect_equal(g2_pos@max, test_bound, tolerance = 1)
-  expect_equal(g1_neg@max, test_bound, tolerance = 1)
-  expect_equal(g2_neg@max, test_bound, tolerance = 1)
+  expect_equal(g1_pos@min, test_bound, tolerance = 1)
+  expect_equal(g2_pos@min, test_bound, tolerance = 1)
+  expect_equal(g1_neg@min, test_bound, tolerance = 1)
+  expect_equal(g2_neg@min, test_bound, tolerance = 1)
   
   # And check that their infinite bounds are in the appropriate direction
   # Negation is done at the logical level, so the bounds should be untouched
-  test_bound <- c("<G560-A>" = -Inf)
-  expect_equal(g1_pos@min, test_bound)
-  expect_equal(g2_pos@min, test_bound)
-  expect_equal(g1_pos@min, test_bound)
-  expect_equal(g2_pos@min, test_bound)
+  test_bound <- c("<G560-A>" = Inf)
+  expect_equal(g1_pos@max, test_bound)
+  expect_equal(g2_pos@max, test_bound)
+  expect_equal(g1_pos@max, test_bound)
+  expect_equal(g2_pos@max, test_bound)
   
   # Check that the resulting stats of both approaches agree
   expect_equal(gh_pop_get_stats(gs1[[1]], "CCR7_left_tail_pos"), gh_pop_get_stats(gs2[[1]], "CCR7_left_tail_pos"))
