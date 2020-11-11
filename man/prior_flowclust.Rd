@@ -12,7 +12,7 @@ prior_flowclust(
   K = 2,
   nu0 = 4,
   w0 = c(10, 10),
-  shrink = 1e-06,
+  shrink = 0.000001,
   ...
 )
 }

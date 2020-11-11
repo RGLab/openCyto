@@ -219,7 +219,6 @@ roxygen_parameter <- function() {
             ,  ...) {
   
   requireNamespace("parallel")
-#  browser()
   gFunc_args <- parameters(x)
 
   # HOTFIX: This resolve an error when args is a named list with name NA and object NA.
@@ -228,6 +227,14 @@ roxygen_parameter <- function() {
   if (!is.null(names(gFunc_args))) {
     gFunc_args <- gFunc_args[!is.na(names(gFunc_args))]
   }
+  
+  ## Optionally omit arguments that should not be used in this context
+  if(x@name == "gate_tail"){
+    to_omit <- na.omit(match("positive", names(gFunc_args)))
+    if(length(to_omit) > 0)
+      gFunc_args <- gFunc_args[-to_omit]
+  }
+  ##  
     
   gm <- paste0(".", names(x))
   

@@ -19,6 +19,7 @@ gate_tail(
   min = NULL,
   max = NULL,
   bias = 0,
+  positive = TRUE,
   ...
 )
 
@@ -62,6 +63,10 @@ an error is reported by default. But if \code{strict} is set to FALSE, then the 
 \item{max}{a numeric value that sets the upper boundary for data filtering}
 
 \item{bias}{a numeric value that adds a constant to the calculated cutpoint(threshold). Default is 0.}
+
+\item{positive}{If FALSE, after finding the cutpoint, the \code{rectangleGate} returned will have bounds \code{(-Inf, a]} as opposed to \code{[a, Inf)}.
+This argument will be ignored if \code{gate_tail} is used in a \code{\link{gatingTemplate}} with \code{\link{gt_gating}} or via \code{\link{gs_add_gating_method}}. 
+In those cases, pop = "-" should be used instead.}
 
 \item{...}{additional arguments passed to \code{.deriv_density}}
 

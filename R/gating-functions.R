@@ -903,6 +903,9 @@ mindensity <- gate_mindensity
 #' @param adjust the scaling adjustment applied to the bandwidth used in the
 #' first derivative of the kernel density estimate
 #' @param side On which side of the density do we want to gate the tail. Valid options are "left" or "right".
+#' @param positive If FALSE, after finding the cutpoint, the \code{rectangleGate} returned will have bounds \code{(-Inf, a]} as opposed to \code{[a, Inf)}.
+#' This argument will be ignored if \code{gate_tail} is used in a \code{\link{gatingTemplate}} with \code{\link{gt_gating}} or via \code{\link{gs_add_gating_method}}. 
+#' In those cases, pop = "-" should be used instead.
 #' @param min a numeric value that sets the lower boundary for data filtering
 #' @param max a numeric value that sets the upper boundary for data filtering
 #' @param bias a numeric value that adds a constant to the calculated cutpoint(threshold). Default is 0.
@@ -915,8 +918,9 @@ mindensity <- gate_mindensity
 #'  gate <- gate_tail(fr, Channel = "APC-A") # fr is a flowFrame
 #' }
 gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
-    ref_peak = 1, strict = TRUE, tol = 1e-2, side = "right", min = NULL, max = NULL, bias = 0, ...) {
+    ref_peak = 1, strict = TRUE, tol = 1e-2, side = "right", min = NULL, max = NULL, bias = 0, positive = TRUE, ...) {
   
+  side <- match.arg(side, c("right", "left"))
   if (!(is.null(min) && is.null(max))) {
     fr <- .truncate_flowframe(fr, channels = channel, min = min,
         max = max)
@@ -928,8 +932,11 @@ gate_tail <- function(fr, channel, filterId = "", num_peaks = 1,
       ref_peak = ref_peak, tol = tol, side = side, strict = strict, ...)
   
   cutpoint <- cutpoint + bias
-  
-  gate_coordinates <- list(c(cutpoint, Inf))
+  if(positive){
+    gate_coordinates <- list(c(cutpoint, Inf))
+  }else{
+    gate_coordinates <- list(c(-Inf, cutpoint))
+  }
   names(gate_coordinates) <- channel
   rectangleGate(gate_coordinates, filterId = filterId)
   
