@@ -125,4 +125,4 @@ jobs:
           file_glob: true
           tag: bioc_${{ env.bioc_ver}}
           overwrite: true
-          body: "This is my release text"
+          body: ""
