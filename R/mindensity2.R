@@ -130,8 +130,6 @@
 #' @param fr a \code{flowFrame} object
 #' @param channel the channel to operate on
 #' @param filterId a name to refer to this filter
-#' @param pivot logical value. If \code{TRUE}, we choose as the two peaks the
-#' largest peak and its neighboring peak. See details.
 #' @param gate_range numeric vector of length 2. If given, this sets the bounds
 #' on the gate applied. 
 #' @param min a numeric value that sets the lower boundary for data filtering
@@ -144,7 +142,7 @@
 #'  gate <- gate_mindensity2(fr, channel = "APC-A") # fr is a flowFrame
 #' }
 #' @export
-gate_mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE, 
+gate_mindensity2 <- function(fr, channel, filterId = "", 
                          gate_range = NULL, min = NULL, max = NULL, peaks = NULL, 
                          ...) {
   if (missing(channel) || length(channel) != 1) {
@@ -166,11 +164,11 @@ gate_mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE,
 }
 
 #' @export
-mindensity2 <- function(fr, channel, filterId = "", pivot = FALSE, 
+mindensity2 <- function(fr, channel, filterId = "", 
                         gate_range = NULL, min = NULL, max = NULL, peaks = NULL, 
                         ...){
   .Deprecated("gate_mindensity2")
-  gate_mindensity2(fr, channel, filterId, pivot, gate_range, min, max, peaks, ...)
+  gate_mindensity2(fr, channel, filterId, gate_range, min, max, peaks, ...)
 }
 
 #' wrapper for mindensity2
