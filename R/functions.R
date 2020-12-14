@@ -2,6 +2,7 @@
 #' @param file \code{character} csv file name that contains the fluorescence intensities
 #' @param stains \code{character} a vector specifying the stains for channels. Default is \code{NA}
 #' @return a \code{flowFrame} object
+#' @importFrom flowCore parameters<-
 #' @noRd 
 .read.FCS.csv <- function(file, stains = NA) {
   mat <- as.matrix(read.csv(file, check.names = FALSE))

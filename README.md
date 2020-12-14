@@ -1,5 +1,6 @@
 openCyto [<img src="logo_mid.png"/>](http://github.com/RGLab/openCyto)
 ========
+[![Build Status](https://github.com/RGLab/openCyto/workflows/build/badge.svg?branch=master)](https://github.com/RGLab/openCyto/actions)
 
 An R package that providing an automated data analysis pipeline for flow cytometry.
 

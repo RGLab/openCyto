@@ -1,0 +1,128 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+#
+
+name: build
+
+on:
+  push:
+    branches: [ release, master ]
+  pull_request:
+    branches: [ release, master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }} (${{ matrix.r }})
+    strategy:
+      fail-fast: false
+      matrix:
+        r: ['release', 'devel']
+        config:
+          - {os: windows-latest, suffix: 'zip'}
+          - {os: macOS-latest, suffix: 'tgz'}
+          - {os: ubuntu-16.04, suffix: 'tar.gz', rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+        isMaster:
+          - ${{ contains(github.ref, 'master') }}
+        exclude:
+          - isMaster: false
+            r: devel
+          - isMaster: true
+            r: release
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      RSPM: ${{ matrix.config.rspm }}
+    
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up R ${{ matrix.r }}
+        uses: r-lib/actions/setup-r@master
+        with:
+          r-version: ${{ matrix.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+
+      - uses: r-lib/actions/setup-pandoc@v1
+      
+      - name: set token for cytoinstaller(and remotes) to increase github API rate limit
+        env:
+          SUPER_SECRET: ${{ secrets.CYTOINSTALLER_TOKEN }}
+        run: echo "GITHUB_TOKEN=$SUPER_SECRET" >> $GITHUB_ENV
+ 
+      - name: Query dependencies
+        run: |
+          install.packages('remotes')
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
+          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
+        shell: Rscript {0}
+        
+      - name: Get bioc ver
+        run: echo "bioc_ver=$(Rscript -e 'writeLines(as.character(remotes::bioc_version()))')" >> $GITHUB_ENV
+        shell: bash
+        
+      - name: Cache R packages
+        if: runner.os != 'Windows'
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
+
+      - name: check bioc ver
+        run: echo $bioc_ver
+        shell: bash
+        
+      - name: Install system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          while read -r cmd
+          do
+            eval sudo $cmd
+          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "16.04"))')
+          sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Install dependencies
+        run: |
+          remotes::install_cran(c("rcmdcheck", "devtools"))
+          remotes::install_github("RGLab/cytoinstaller")
+          cytoinstaller::cyto_install_deps(dependencies = TRUE)
+        shell: Rscript {0}
+
+      - name: check rate limit
+        run: |
+          gh::gh("GET /rate_limit")$resources$core$remaining
+        shell: Rscript {0}
+        
+      - name: Check
+        env:
+          _R_CHECK_CRAN_INCOMING_REMOTE_: false
+        run: rcmdcheck::rcmdcheck(args = c("--no-manual"), check_dir = "check")
+        shell: Rscript {0}
+
+      - name: Upload check results
+        if: failure()
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{ runner.os }}-r${{ matrix.config.r }}-results
+          path: check
+          
+      - name: build src pkg
+        if: runner.os == 'Linux'
+        run: devtools::build()
+        shell: Rscript {0}
+        
+      - name: build bin pkg
+        if: runner.os != 'Linux'
+        run: devtools::build(binary = TRUE)
+        shell: Rscript {0}  
+        
+      - name: Upload Release Asset
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: '../*.${{ matrix.config.suffix }}'
+          file_glob: true
+          tag: bioc_${{ env.bioc_ver}}
+          overwrite: true
+          body: "This is my release text"

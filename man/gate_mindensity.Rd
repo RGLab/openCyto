@@ -11,7 +11,6 @@ gate_mindensity(
   channel,
   filterId = "",
   positive = TRUE,
-  pivot = FALSE,
   gate_range = NULL,
   min = NULL,
   max = NULL,
@@ -29,9 +28,6 @@ gate_mindensity(
 \item{positive}{If \code{TRUE}, then the gate consists of the entire real
 line to the right of the cutpoint. Otherwise, the gate is the entire real
 line to the left of the cutpoint. (Default: \code{TRUE})}
-
-\item{pivot}{logical value. If \code{TRUE}, we choose as the two peaks the
-largest peak and its neighboring peak. See details.}
 
 \item{gate_range}{numeric vector of length 2. If given, this sets the bounds
 on the gate applied. If no gate is found within this range, we set the gate to
@@ -57,11 +53,7 @@ between the two peaks of interest.
 }
 \details{
 In the default case, the two peaks of interest are the two largest peaks
-obtained from the \code{link{density}} function. However, if \code{pivot} is
-\code{TRUE}, we choose the largest peak and its neighboring peak as the two
-peaks of interest. In this case, the neighboring peak is the peak immediately
-to the left of the largest peak if \code{positive} is \code{TRUE}. Otherwise,
-the neighboring peak is selected as the peak to the right.
+obtained from the \code{link{density}} function. 
 
 In the special case that there is only one peak, we are conservative and set
 the cutpoint as the \code{min(x)} if \code{positive} is \code{TRUE}, and the

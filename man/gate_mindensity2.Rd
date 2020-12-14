@@ -10,7 +10,6 @@ gate_mindensity2(
   fr,
   channel,
   filterId = "",
-  pivot = FALSE,
   gate_range = NULL,
   min = NULL,
   max = NULL,
@@ -24,9 +23,6 @@ gate_mindensity2(
 \item{channel}{the channel to operate on}
 
 \item{filterId}{a name to refer to this filter}
-
-\item{pivot}{logical value. If \code{TRUE}, we choose as the two peaks the
-largest peak and its neighboring peak. See details.}
 
 \item{gate_range}{numeric vector of length 2. If given, this sets the bounds
 on the gate applied.}
