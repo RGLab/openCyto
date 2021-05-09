@@ -580,7 +580,7 @@ gt_gating.dummyMethod <- function(x, y, ...) {
         cur_param <- parameters(g)
         getChannelMarker(fr, cur_param)["name"]
       }))
-
+      negated_2d_gate <- FALSE
       if(length(glist)==1){
         #1d ref gate
         dims <- dims[!is.na(dims)]
@@ -588,13 +588,8 @@ gt_gating.dummyMethod <- function(x, y, ...) {
         
         
         if(nDims==2){
-          # #before flowCore and flowViz support the negated filter
-          # #we use refGate+boolGate in csv template as the workaround
-          # if (popName == "-") {
-          #   stop("negated 2d gate is not supported yet!")
-          # }
-          #pass the gate as it is 
-          glist[[1]]
+          negated_2d_gate <- TRUE 
+          fres <- glist[[1]]
         }else{
           dim_params <-  getChannelMarker(fr, dims)["name"]
           y_g <- glist[[1]]               
@@ -616,7 +611,7 @@ gt_gating.dummyMethod <- function(x, y, ...) {
           }
           names(gate_coordinates) <- as.character(dim_params)
           
-          rectangleGate(gate_coordinates)  
+          fres <- rectangleGate(gate_coordinates)  
         }
         
       }else{
@@ -756,17 +751,17 @@ gt_gating.dummyMethod <- function(x, y, ...) {
           fres <- rectangleGate(coord)
           if(isSameParent&&!is.null(x_ref)&&!is.null(y_ref)){
             fres <- ocRectRefGate(fres, paste0(x_ref, "&", y_ref))
-            fres
           }
           
-        fres  
       }
+      attr(fres, "negated_2d_gate") <- negated_2d_gate
+      fres  
       
     })
-    
+    negated_2d_gate <- attr(flist[[1]], "negated_2d_gate")   
     flist <- filterList(flist)
-    gs_node_id <- gs_pop_add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE)
-	if(!is(flist[[1]], "ocRectRefGate"))
+    gs_node_id <- gs_pop_add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, negated = negated_2d_gate)
+    if(!is(flist[[1]], "ocRectRefGate"))
 		recompute(y, file.path(parent, popAlias))
 	
    
