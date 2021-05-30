@@ -53,7 +53,7 @@ prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
     # of the matrix. The amount of shrinkage is controlled in 'shrink'.
 
     prior_list$Lambda0 <- aaply(prior_list$Lambda0, 1, function(cov_mat) {
-      if (class(try(solve(cov_mat), silent = TRUE)) == "try-error") {
+      if (is(try(solve(cov_mat), silent = TRUE), "try-error")) {
         cov_mat <- cov_mat + shrink * diag(nrow(cov_mat))
       }
       cov_mat
