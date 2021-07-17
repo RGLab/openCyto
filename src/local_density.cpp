@@ -22,7 +22,6 @@
  *--Evan Greene <egreene@fredhutch.org>, 9/19/2017, 3/15/2018
  */
 
-#include <Rcpp.h>
 #include <vector>
 #include <iostream>
 #include "faust.h"

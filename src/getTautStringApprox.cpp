@@ -4,7 +4,6 @@
 #include <cmath>
 #include <algorithm>
 #include <numeric>
-#include <Rcpp.h>
 #include "faust.h"
 
 
@@ -14,9 +13,8 @@ struct stringPairs {
   double stringVal;
 };
 
-// [[Rcpp::plugins(cpp11)]]
-// [[Rcpp::export]]
-Rcpp::List getTautStringApprox(std::vector<double> dataVec) {
+[[cpp11::register]]
+cpp11::list getTautStringApprox(std::vector<double> dataVec) {
   //get the taut-string approximation, and reduce it to pairs of points
   //for compressed plotting.
   std::sort(dataVec.begin(),dataVec.end());
@@ -50,9 +48,9 @@ Rcpp::List getTautStringApprox(std::vector<double> dataVec) {
       plotSpecs.push_back(tmpSP);
     }
   }
-  Rcpp::Rcout << plotSpecs.size() << std::endl;
+  std::cout << plotSpecs.size() << std::endl;
   //unpack the specs to pass to R
-  std::vector<double> outX, outY;
+  cpp11::writable::doubles outX, outY;
   for (int i  = 0; i != plotSpecs.size(); ++i) {
     tmpSP = plotSpecs[i];
     currentSP = tmpSP.startX;
@@ -63,8 +61,8 @@ Rcpp::List getTautStringApprox(std::vector<double> dataVec) {
     outX.push_back(dataVec[currentEP]);
     outY.push_back(currentSV);
   }
-  Rcpp::List outList = Rcpp::List::create(Rcpp::Named("stringX")=outX,
-					  Rcpp::Named("stringY")=outY);
+  cpp11::writable::list outList({cpp11::named_arg("stringX")=outX,
+					  cpp11::named_arg("stringY")=outY});
   return outList;
 }
 

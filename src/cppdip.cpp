@@ -21,7 +21,6 @@
  *Minor changes have been made for debugging within faust. 
  *--Evan Greene <egreene@fredhutch.org>, 3/15/2018
  */
-#include <Rcpp.h>
 #include <vector>
 #include <iostream>
 #include "faust.h"
@@ -230,18 +229,18 @@ void cppdip(const double x[],
       if (*dip < dipnew) {
 	*dip = dipnew;
 	if(*debug) {
-	  Rcpp::Rcout << "-> new larger dip " << dipnew << "(j_best = " << j_best << ")" << std::endl;
+	  std::cout << "-> new larger dip " << dipnew << "(j_best = " << j_best << ")" << std::endl;
 	}
       }
       else if(*debug) {
-	Rcpp::Rcout << std::endl;
+	std::cout << std::endl;
       }
       /*--- The following if-clause is NECESSARY  (may loop infinitely otherwise)!
 	--- Martin Maechler, Statistics, ETH Zurich, July 30 1994 ---------- */
       if (low == gcm[ig] && high == lcm[ih]) {
 	stillDipping = false;
 	if(*debug) {
-	  Rcpp::Rcout << "No improvement in  low = " << low << "high = " << high << " --> END" << std::endl;
+	  std::cout << "No improvement in  low = " << low << "high = " << high << " --> END" << std::endl;
 	}
       } else {
 	low  = gcm[ig];

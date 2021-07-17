@@ -24,5 +24,5 @@ Suggests:
 biocViews: ImmunoOncology, FlowCytometry, DataImport, Preprocessing, DataRepresentation
 Encoding: UTF-8
 VignetteBuilder: knitr
-LinkingTo: Rcpp
+LinkingTo: cpp11
 RoxygenNote: 7.1.1

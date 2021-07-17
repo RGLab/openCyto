@@ -19,7 +19,6 @@
 #include <cmath>
 #include <algorithm>
 #include <numeric>
-#include <Rcpp.h>
 #include "faust.h"
 #include "kMedDP.h"
 
@@ -47,9 +46,8 @@ std::vector<double> findKmedGates(const std::vector<double> &dataVector,
   return gates;
 }
 
-// [[Rcpp::plugins(cpp11)]]
-// [[Rcpp::export]]
-std::vector<double> tsGates(const std::vector<double> &xVec, int modePrior) {
+[[cpp11::register]]
+std::vector<double> tsGates(const std::vector<double> xVec, int modePrior) {
   //Given sorted univarite data vector xVec, returns an estimate of cut points to classify data
   //Assumes, at minimum, the DIP test has indicated multimodality in xData
     

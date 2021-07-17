@@ -100,7 +100,7 @@ NULL
 #'         type \code{character} specifying the type of registering method. Should be either "gating" or "preprocessing".
 #' 
 #' @return \code{logical} TRUE if successful and prints a message. FALSE otherwise.
-#' @useDynLib openCyto
+#' @useDynLib openCyto,.registration = TRUE
 #' @details The \code{fun} argument should be a wrapper function definition for the gating or preprocessing method. 
 #'                          Gating method must have formal arguments:
 #' 

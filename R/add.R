@@ -24,7 +24,7 @@ pop_add.ocRectangleGate <- function(gate, gh, recompute, ... )
       nodeID <- flowWorkspace:::.addGate(gh, filter_to_list(gate), ...)
       sn <- sampleNames(gh)
       ptr <- gh@pointer
-      flowWorkspace:::.cpp_setIndices(ptr, sn, nodeID-1, indices)
+      flowWorkspace:::cpp_setIndices(ptr, sn, nodeID-1, indices)
       
       
     }
@@ -59,7 +59,7 @@ pop_add.ocRectRefGate <- function(gate, gh, recompute, ... )
       nodeID <- flowWorkspace:::.addGate(gh, rectFilterObj, ...)
       sn <- sampleNames(gh)
       ptr <- gh@pointer
-      flowWorkspace:::.cpp_boolGating(ptr, sn, boolFilterObj, nodeID - 1)
+      flowWorkspace:::cpp_boolGating(ptr, sn, boolFilterObj, nodeID - 1)
       nodeID
     }
 
@@ -97,7 +97,7 @@ pop_add.ocRectRefGate <- function(gate, gh, recompute, ... )
           samples <- sampleNames(thisGS)
           lapply(samples,function(sample){
                 
-                nodeID <- flowWorkspace:::.cpp_addGate(thisGS@pointer,sample,filterObj, parent,name)
+                nodeID <- flowWorkspace:::cpp_addGate(thisGS@pointer,sample,filterObj, parent,name)
                 nodeID+1
               })
         }, level = 1)
@@ -107,7 +107,7 @@ pop_add.ocRectRefGate <- function(gate, gh, recompute, ... )
     samples <- sampleNames(gs)
     nodeIDs<-lapply(samples,function(sample){
           
-          nodeID <- flowWorkspace:::.cpp_addGate(gs@pointer,sample,filterObj, parent,name)
+          nodeID <- flowWorkspace:::cpp_addGate(gs@pointer,sample,filterObj, parent,name)
           nodeID+1
         })  
   }

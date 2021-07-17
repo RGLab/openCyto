@@ -1,6 +1,6 @@
 #ifndef CPP_FAUST_H
 #define CPP_FAUST_H
-
+#include <cpp11.hpp>
 #include <string>
 #include <iostream>
 #include <vector>
@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <numeric>
 #include <random>
-#include <Rcpp.h>
 #include <map>
 #include <unordered_map>
 
@@ -139,27 +138,27 @@ std::vector<double> rQuantile(const std::vector<double>&, std::vector<double>);
 double medianAbsoluteDeviation(const std::vector<double>&);
 
 
-Rcpp::List cppGrowAnnotationForest(Rcpp::NumericMatrix&,
-				   double,
-				   int,
-				   bool,
-				   int,
-				   unsigned long long,
-				   bool,
-				   unsigned long long,
-				   bool,
-				   int,
-				   bool,
-				   Rcpp::NumericMatrix&,
-				   int,
-				   double,
-				   double,
-				   unsigned long long,
-				   unsigned long,
-				   unsigned long,
-				   unsigned long,
-				   bool,
-				   bool);
+// cpp11::list cppGrowAnnotationForest(cpp11::NumericMatrix&,
+// 				   double,
+// 				   int,
+// 				   bool,
+// 				   int,
+// 				   unsigned long long,
+// 				   bool,
+// 				   unsigned long long,
+// 				   bool,
+// 				   int,
+// 				   bool,
+// 				   cpp11::NumericMatrix&,
+// 				   int,
+// 				   double,
+// 				   double,
+// 				   unsigned long long,
+// 				   unsigned long,
+// 				   unsigned long,
+// 				   unsigned long,
+// 				   bool,
+// 				   bool);
 
 std::vector<std::vector<int>> parallelAnnotateCluster(const std::vector<std::vector<double>>&,
 						      const std::vector<int>&,

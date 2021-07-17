@@ -241,7 +241,7 @@ void SMAWK
    const enum DISSIMILARITY criterion)
 {
 #ifdef DEBUG_REDUCE
-  Rcpp::Rcout << "i:" << '[' << imin << ',' << imax << ']' << '+' << istep
+  std::cout << "i:" << '[' << imin << ',' << imax << ']' << '+' << istep
             << std::endl;
 #endif
 
@@ -257,12 +257,12 @@ void SMAWK
     // REDUCE
 
 #ifdef DEBUG //_REDUCE
-    Rcpp::Rcout << "js:";
+    std::cout << "js:";
     for (size_t l=0; l < js.size(); ++l) {
-      Rcpp::Rcout << js[l] << ",";
+      std::cout << js[l] << ",";
     }
-    Rcpp::Rcout << std::endl;
-    Rcpp::Rcout << std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;
 #endif
 
     std::vector<size_t> js_odd;
@@ -281,17 +281,17 @@ void SMAWK
           sum_w_sq, criterion);
 
 #ifdef DEBUG // _REDUCE
-    Rcpp::Rcout << "js_odd (reduced):";
+    std::cout << "js_odd (reduced):";
     for (size_t l=0; l<js_odd.size(); ++l) {
-      Rcpp::Rcout << js_odd[l] << ",";
+      std::cout << js_odd[l] << ",";
     }
-    Rcpp::Rcout << std::endl << std::endl;
+    std::cout << std::endl << std::endl;
 
-    Rcpp::Rcout << "even pos:";
+    std::cout << "even pos:";
     for (int i=imin; i<imax; i+=istepx2) {
-      Rcpp::Rcout << i << ",";
+      std::cout << i << ",";
     }
-    Rcpp::Rcout << std::endl << std::endl;
+    std::cout << std::endl << std::endl;
 
 #endif
 

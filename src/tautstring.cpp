@@ -23,7 +23,6 @@
  */
 #include <cstdlib>
 #include <cmath>
-#include <Rcpp.h>
 #include <vector>
 #include "faust.h"
 
