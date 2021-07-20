@@ -67,7 +67,6 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
 #' @param env_fct a \code{environment} that contains \code{fcTree} object named as 'fct'. If NULL (by default), no \code{fcTree} will be constructed. It is currently reserved for the internal debugging.
 #' @param ... other arguments passed to the gatingMethod-specific \code{gating} methods.
 #' @importFrom RBGL tsort
-#' @importFrom plyr ldply
 #' @keywords internal
 #' @noRd 
 .gating_gatingTemplate <- function(x, y, env_fct = NULL, start = "root", stop.at = NULL, keep.helperGates = TRUE, ...) {
