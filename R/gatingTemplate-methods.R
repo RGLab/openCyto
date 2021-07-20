@@ -95,7 +95,6 @@ NULL
 #' 
 #' @name gt_get_parent
 #' @aliases getParent getParent,gatingTemplate,character-method
-#' @importFrom plyr laply
 #' @importFrom graph inEdges
 #' @aliases getParent,gatingTemplate,character-method
 #' @examples 
@@ -109,10 +108,10 @@ NULL
 gt_get_parent <- function(obj, y, isRef = FALSE) {
   #            browser()
   src <- inEdges(y, obj)[[1]]
-  isRefs <- laply(src,function(thisSrc){
+  isRefs <- unlist(lapply(src,function(thisSrc){
     thisEdge <- edgeData(obj,thisSrc,y)
     thisEdge[[1]]$isReference 
-  })
+  }), recursive = F)
   #  browser()
   if(isRef)
     src[isRefs]
@@ -335,7 +334,7 @@ setMethod("plot",c("gatingTemplate","character"),function(x,y,...){
       
       #convert alias to nodeID
       allNodes <- gt_get_nodes(x)
-      allAlias <- laply(allNodes, alias)
+      allAlias <- unlist(lapply(allNodes, alias), recursive = F)
       nodeInd <- match(y, allAlias)
       thisNode <- allNodes[nodeInd]
       thisId <- names(thisNode)
