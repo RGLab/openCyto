@@ -34,8 +34,11 @@ NULL
 #' covariance matrices are singular. See details.
 #' @param ... Additional arguments passed to the prior elicitation method selected
 #' @return list of the necessary prior parameters
-#' @importFrom plyr aaply
 #' @export 
+#' @examples 
+#' library(flowCore)
+#' data(GvHD)
+#' prior_flowclust(GvHD[1:3], c("FSC-H", "SSC-H"))
 prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...) {
   #pass only the first element of w0 since it will be replicated ..
@@ -52,7 +55,7 @@ prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
     # In the rare case a covariance matrix is singular, we shrink the eigenvalues
     # of the matrix. The amount of shrinkage is controlled in 'shrink'.
 
-    prior_list$Lambda0 <- aaply(prior_list$Lambda0, 1, function(cov_mat) {
+    prior_list$Lambda0 <- .aaply(prior_list$Lambda0, 1, function(cov_mat) {
       if (is(try(solve(cov_mat), silent = TRUE), "try-error")) {
         cov_mat <- cov_mat + shrink * diag(nrow(cov_mat))
       }
@@ -68,7 +71,7 @@ prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
       prior_list$Lambda0<-L0
     }
     
-    prior_list$Omega0 <- aaply(prior_list$Omega0, 1, function(cov_mat) {
+    prior_list$Omega0 <- .aaply(prior_list$Omega0, 1, function(cov_mat) {
       if (class(try(solve(cov_mat), silent = TRUE)) == "try-error") {
         cov_mat <- cov_mat + shrink * diag(nrow(cov_mat))
       }
