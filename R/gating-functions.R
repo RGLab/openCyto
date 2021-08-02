@@ -1089,8 +1089,8 @@ cytokine <- function(fr, channel, filterId = "", num_peaks = 1,
   if (is.null(bandwidth)) {
     bandwidth <- hpi(x, deriv.order = deriv)
   }
-  #we use the private version of drvkde in flowStats (copied from feature package) to avoid the tcltk dependency
-  deriv_x <- flowStats:::drvkde(x = x, drv = deriv, bandwidth = adjust * bandwidth,
+  #we use the private version of drvkde (copied from feature package) to avoid the tcltk dependency
+  deriv_x <- drvkde(x = x, drv = deriv, bandwidth = adjust * bandwidth,
       gridsize = num_points, ...)
   list(x = deriv_x$x.grid[[1]], y = deriv_x$est)
 }

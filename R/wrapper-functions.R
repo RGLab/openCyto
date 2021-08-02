@@ -115,23 +115,21 @@
 #
 
 }
-#' wrapper for \link[flowStats:singletGate]{singletGate}
+#' wrapper for \link[singletGate]{singletGate}
 #' 
 #' @param pp_res not used
 #' @param fr \code{flowFrame} object as a data input 
-#' @param ... arguments to be passed to \link[flowStats:singletGate]{singletGate}
+#' @param ... arguments to be passed to \link[singletGate]{singletGate}
 #' @inheritParams .prior_flowclust
 #' @return a \code{filter} object
-#' @importFrom flowStats singletGate
 #' @noRd 
 .singletGate <- function(fr, pp_res = NULL, channels, ...) {
   
 
   # Creates a list of polygon gates based on the prediction bands at the minimum
-  # and maximum x_channel observation using a robust linear model trained by
-  # flowStats.
+  # and maximum x_channel observation using a robust linear model trained 
 
-  singletGate(fr, area = channels[1], height = channels[2], ...)
+  gate_singlet(fr, area = channels[1], height = channels[2], ...)
 }
 
 #' boundary gating function
@@ -437,15 +435,13 @@
 #' It does some parameter preprocessing before calling the rangeGate
 #' 
 #' @param pp_res not used
-#' @param ... arguments to be passed to \link[flowStats:rangeGate]{rangeGate}
 #' @inheritParams .gate_flowclust_1d 
 #' 
 #' @return a \code{filter} object
-#' @importFrom flowStats rangeGate
 #' @noRd 
 .rangeGate <- function(fr, pp_res = NULL, channels,  ...) {
   
-  rangeGate(x = fr, stain = channels,  ...)
+  .Defunct("mindensity")
 }
 #' wrapper for quantileGate
 #' 
@@ -485,17 +481,13 @@
 ############################
 # preprocessing wrappers
 #########################
-#'  wrapper for \link[flowStats:warpSet]{warpSet}
 #' 
-#' @param stains \code{character} passed to \link[flowStats:warpSet]{warpSet} 
 #' @inheritParams .prior_flowclust 
 #' 
 #' @return \code{NULL}
-#' @importFrom flowStats warpSet
 #' @noRd 
 .warpSet <- function(fs, gs, gm, channels, groupBy, isCollapse, stains, ...){
-  fs <- fs[, stains]
-  warpSet(fs, stains = stains, ...)
+  .Defunct()
   return (NULL)
  }
 #'  wrapper for prior_flowclust
