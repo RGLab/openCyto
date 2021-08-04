@@ -39,7 +39,6 @@ NULL
 #' @export 
 #' @importClassesFrom graph graphNEL graphBase graph
 #' @importClassesFrom Biobase AssayData
-#' @importClassesFrom rrcov Ulist Uvector
 #' @name gatingTemplate-class
 setClass("gatingTemplate", contains = "graphNEL", representation(name = "character"))
 

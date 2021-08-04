@@ -17,6 +17,13 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
     definition = function(x, y, ...) {
       .preprocessing(x,y,...)
     })
+
+update_list <- function (x, val) 
+{
+  if (is.null(x)) 
+    x <- list()
+  modifyList(x, val)
+}
 #' internal function (preprocessing)
 #' 
 #' @inheritParams .gating_gtMethod
@@ -29,7 +36,7 @@ setMethod("preprocessing", signature = c("ppMethod", "GatingSetList"),
   
   args <- parameters(x)
   # overwrite the golbal args with the local one
-  args <- lattice:::updateList(args,list(...))
+  args <- update_list(args,list(...))
   parallel_type <- match.arg(parallel_type)
   
   ppm <- paste0(".", names(x))

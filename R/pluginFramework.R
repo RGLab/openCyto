@@ -135,13 +135,12 @@ NULL
 #' Not all formal parameters need to be used. Additional arguments are passed via the ... and can be processed in the wrapper
 #' 
 #' @import utils
-#' @importFrom R.utils isPackageInstalled
 #' @export
 register_plugins <- function(fun = NA, methodName, dep = NA, ...){
   
   if(!is.na(dep)){
     if(is.character(dep)){
-      if(!isPackageInstalled(dep)){
+      if(system.file(package = dep) == ""){
         message(sprintf("Can't register %s with dependency on %s, because dependency is not installed.",methodName,dep))
         return(FALSE)
       }
