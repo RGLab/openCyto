@@ -1,6 +1,7 @@
 context("polyfunction")
 
 test_that("polyfunction testing", {
+  skip("no longer supported")
   gs <- GatingSet(GvHD[1])
   gs <- transform(gs, estimateLogicle(gs[[1]], colnames(gs)[3:7]))
   gs_add_gating_method(gs, alias = "FL1+", parent = "root", dims = "FL1", gating_method = "tailgate")

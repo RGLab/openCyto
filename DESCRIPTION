@@ -10,7 +10,7 @@ Description: This package is designed to facilitate the automated gating
 License: file LICENSE
 LazyLoad: yes
 Imports:
-    methods,Biobase,BiocGenerics,gtools,flowCore(>= 1.99.17),flowViz,ncdfFlow(>= 2.11.34),flowWorkspace(>= 3.99.1),flowClust(>= 3.11.4),MASS,clue,RBGL,graph,data.table,ks,RColorBrewer
+    methods,Biobase,BiocGenerics,flowCore(>= 1.99.17),flowViz,ncdfFlow(>= 2.11.34),flowWorkspace(>= 3.99.1),flowClust(>= 3.11.4),MASS,clue,RBGL,graph,data.table,ks,RColorBrewer
 Suggests:
     flowWorkspaceData,
     knitr,
