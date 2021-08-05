@@ -2,6 +2,25 @@ context("gating functions")
 data(GvHD)
 fr <- GvHD[[1]]
 fr <- transform(fr, transformList(c("FL1-H"),  log))
+
+test_that("gate_singlet", {
+  fr <- read.FCS(system.file("extdata/CytoTrol_CytoTrol_1.fcs", package = "flowWorkspaceData"))
+  g <- gate_singlet(fr, "FSC-A", "FSC-H"
+                    # , robust = F
+                    # , prediction_level =0.9
+                    )
+  expect_equal(g, polygonGate(structure(c(24601, 24601
+                                          , 262143, 262143
+                                          , 11476.9417996388
+                                          , 48163.8684594367
+                                          , 236614.412689126, 199926.505500422)
+                                          , .Dim = c(4L, 2L)
+                                          , .Dimnames = list(NULL, c("FSC-A", "FSC-H")))
+                                , filterId = "singlet"), tol = 5e-07)
+  # library(ggcyto)
+  # autoplot(fr, "FSC-A", "FSC-H") + geom_gate(g) + geom_stats()
+})
+
 test_that("gate_mindensity2", {
       
       expect_equal(gate_mindensity2(fr, "SSC-H"), rectangleGate(`SSC-H` = c(901.120, Inf), filterId = ""), tol = 5e-07)
