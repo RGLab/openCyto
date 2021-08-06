@@ -12,6 +12,10 @@ singleDip <- function(x) {
   .Call(`_openCyto_singleDip`, x)
 }
 
+solve_LSAP_cpp <- function(mat) {
+  .Call(`_openCyto_solve_LSAP_cpp`, mat)
+}
+
 tsGates <- function(xVec, modePrior) {
   .Call(`_openCyto_tsGates`, xVec, modePrior)
 }

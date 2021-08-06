@@ -354,7 +354,6 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' \code{NULL} (default), no truncation is applied.
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
-#' @importFrom clue solve_LSAP
 #' @rdname prior_kmeans
 #' @noRd 
 .prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,

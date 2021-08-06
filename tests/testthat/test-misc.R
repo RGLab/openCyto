@@ -31,3 +31,25 @@ test_that("robust mean", {
   expect_equal(res, 0.1153234, tol = 2e-7)
   
 })
+
+test_that("solve_LSAP", {
+  
+  x <- matrix(c(5, 1, 4, 3, 5, 2, 2, 4, 4), nrow = 3)
+  x
+  y <- as.vector(solve_LSAP(x))
+  expect_equal(y, c(3,1,2))  
+  
+  x = structure(c(120.19673111448, 109.212815628447
+                  , 693.431895464961, 611.636808127566)
+                , .Dim = c(2L, 2L)
+                , .Dimnames = list(c("1", "2"), c("1", "2")))
+  y <- as.vector(solve_LSAP(x))
+  expect_equal(y, c(1,2))  
+  
+  x = structure(c(49.9764377352581, 150.456415722488, 998.26447559313, 882.252993034892)
+                , .Dim = c(2L, 2L)
+                , .Dimnames = list(c("1", "2"), c("1", "2")))
+  y <- as.vector(solve_LSAP(x))
+  expect_equal(y, c(1,2))  
+  
+})
