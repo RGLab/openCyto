@@ -350,6 +350,8 @@ test_that("gatingTemplate constructor", {
   for(thisFile in gtfiles){
     
     templateName <- file_path_sans_ext(basename(thisFile))
+    if(templateName == "ICS")
+      next #skip polyfunctional test and this csv template already gets tested in test-gating-suite.R
     message(templateName)
     suppressWarnings(suppressMessages(
         thisRes <- gatingTemplate(thisFile, skip = 0)
