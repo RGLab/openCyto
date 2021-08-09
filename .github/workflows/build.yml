@@ -21,9 +21,9 @@ jobs:
       matrix:
         r: ['release', 'devel']
         config:
-          - {os: windows-latest, suffix: 'zip'}
+          # - {os: windows-latest, suffix: 'zip'}
           - {os: macOS-latest, suffix: 'tgz'}
-          - {os: ubuntu-16.04, suffix: 'tar.gz', rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+          # - {os: ubuntu-16.04, suffix: 'tar.gz', rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
         isMaster:
           - ${{ contains(github.ref, 'master') }}
         exclude:
@@ -45,10 +45,10 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v1
       
-      - name: set token for cytoinstaller(and remotes) to increase github API rate limit
-        env:
-          SUPER_SECRET: ${{ secrets.CYTOINSTALLER_TOKEN }}
-        run: echo "GITHUB_TOKEN=$SUPER_SECRET" >> $GITHUB_ENV
+      # - name: set token for cytoinstaller(and remotes) to increase github API rate limit
+      #   env:
+      #     SUPER_SECRET: ${{ secrets.CYTOINSTALLER_TOKEN }}
+      #   run: echo "GITHUB_TOKEN=$SUPER_SECRET" >> $GITHUB_ENV
  
       - name: Query dependencies
         run: |
@@ -84,15 +84,16 @@ jobs:
 
       - name: Install dependencies
         run: |
+          remotes::install_deps(dependencies = TRUE)
           remotes::install_cran(c("rcmdcheck", "devtools"))
-          remotes::install_github("RGLab/cytoinstaller")
-          cytoinstaller::cyto_install_deps(dependencies = TRUE)
+          # remotes::install_github("RGLab/cytoinstaller")
+          # cytoinstaller::cyto_install_deps(dependencies = TRUE)
         shell: Rscript {0}
 
-      - name: check rate limit
-        run: |
-          gh::gh("GET /rate_limit")$resources$core$remaining
-        shell: Rscript {0}
+      # - name: check rate limit
+      #   run: |
+      #     gh::gh("GET /rate_limit")$resources$core$remaining
+      #   shell: Rscript {0}
         
       - name: Check
         env:
@@ -107,22 +108,22 @@ jobs:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-results
           path: check
           
-      - name: build src pkg
-        if: runner.os == 'Linux'
-        run: devtools::build()
-        shell: Rscript {0}
+      # - name: build src pkg
+      #   if: runner.os == 'Linux'
+      #   run: devtools::build()
+      #   shell: Rscript {0}
         
-      - name: build bin pkg
-        if: runner.os != 'Linux'
-        run: devtools::build(binary = TRUE)
-        shell: Rscript {0}  
+      # - name: build bin pkg
+      #   if: runner.os != 'Linux'
+      #   run: devtools::build(binary = TRUE)
+      #   shell: Rscript {0}  
         
-      - name: Upload Release Asset
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: '../*.${{ matrix.config.suffix }}'
-          file_glob: true
-          tag: bioc_${{ env.bioc_ver}}
-          overwrite: true
-          body: "This is my release text"
+      # - name: Upload Release Asset
+      #   uses: svenstaro/upload-release-action@v2
+      #   with:
+      #     repo_token: ${{ secrets.GITHUB_TOKEN }}
+      #     file: '../*.${{ matrix.config.suffix }}'
+      #     file_glob: true
+      #     tag: bioc_${{ env.bioc_ver}}
+      #     overwrite: true
+      #     body: "This is my release text"
