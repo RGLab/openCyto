@@ -366,22 +366,6 @@
 
 .mindensity <- .gate_mindensity
 
-#'@param fr a flowFrame
-#'@param pp_res preprocessing results.
-#'@param channels \code{character}
-#'@param ... arguments passed to \link{gate_tautString}
-#'@rdname tautStringGate
-#' @noRd 
-.gate_tautstring <- function(fr, pp_res = NULL, channels, ...){
-  if(length(channels) != 1){
-    stop("Invalid number of channels. The tautString takes one channel.")
-  }
-  gate <- gate_tautstring(fr, channel = channels, ...)
-  gate
-}
-
-.tautStringGate <- .gate_tautstring
-
 #' wrapper for gate_flowclust_2d
 #' 
 #' It does some parameter preprocessing before calling the gate_flowclust_wd

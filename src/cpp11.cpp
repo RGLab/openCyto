@@ -4,13 +4,6 @@
 
 #include "cpp11/declarations.hpp"
 
-// getTautStringApprox.cpp
-cpp11::list getTautStringApprox(std::vector<double> dataVec);
-extern "C" SEXP _openCyto_getTautStringApprox(SEXP dataVec) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(getTautStringApprox(cpp11::as_cpp<cpp11::decay_t<std::vector<double>>>(dataVec)));
-  END_CPP11
-}
 // misc.cpp
 cpp11::doubles_matrix collapseData(cpp11::list mat_list, cpp11::strings colnames);
 extern "C" SEXP _openCyto_collapseData(SEXP mat_list, SEXP colnames) {
@@ -18,25 +11,11 @@ extern "C" SEXP _openCyto_collapseData(SEXP mat_list, SEXP colnames) {
     return cpp11::as_sexp(collapseData(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(mat_list), cpp11::as_cpp<cpp11::decay_t<cpp11::strings>>(colnames)));
   END_CPP11
 }
-// singleDip.cpp
-double singleDip(const std::vector<double>& x);
-extern "C" SEXP _openCyto_singleDip(SEXP x) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(singleDip(cpp11::as_cpp<cpp11::decay_t<const std::vector<double>&>>(x)));
-  END_CPP11
-}
 // solve_LSAP.cpp
 std::vector<int> solve_LSAP_cpp(cpp11::doubles_matrix mat);
 extern "C" SEXP _openCyto_solve_LSAP_cpp(SEXP mat) {
   BEGIN_CPP11
     return cpp11::as_sexp(solve_LSAP_cpp(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix>>(mat)));
-  END_CPP11
-}
-// tsGates.cpp
-std::vector<double> tsGates(const std::vector<double> xVec, int modePrior);
-extern "C" SEXP _openCyto_tsGates(SEXP xVec, SEXP modePrior) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(tsGates(cpp11::as_cpp<cpp11::decay_t<const std::vector<double>>>(xVec), cpp11::as_cpp<cpp11::decay_t<int>>(modePrior)));
   END_CPP11
 }
 // unlockNamespace.cpp
@@ -50,19 +29,13 @@ extern "C" SEXP _openCyto_unlockNamespace(SEXP env) {
 extern "C" {
 /* .Call calls */
 extern SEXP _openCyto_collapseData(SEXP, SEXP);
-extern SEXP _openCyto_getTautStringApprox(SEXP);
-extern SEXP _openCyto_singleDip(SEXP);
 extern SEXP _openCyto_solve_LSAP_cpp(SEXP);
-extern SEXP _openCyto_tsGates(SEXP, SEXP);
 extern SEXP _openCyto_unlockNamespace(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_openCyto_collapseData",        (DL_FUNC) &_openCyto_collapseData,        2},
-    {"_openCyto_getTautStringApprox", (DL_FUNC) &_openCyto_getTautStringApprox, 1},
-    {"_openCyto_singleDip",           (DL_FUNC) &_openCyto_singleDip,           1},
-    {"_openCyto_solve_LSAP_cpp",      (DL_FUNC) &_openCyto_solve_LSAP_cpp,      1},
-    {"_openCyto_tsGates",             (DL_FUNC) &_openCyto_tsGates,             2},
-    {"_openCyto_unlockNamespace",     (DL_FUNC) &_openCyto_unlockNamespace,     1},
+    {"_openCyto_collapseData",    (DL_FUNC) &_openCyto_collapseData,    2},
+    {"_openCyto_solve_LSAP_cpp",  (DL_FUNC) &_openCyto_solve_LSAP_cpp,  1},
+    {"_openCyto_unlockNamespace", (DL_FUNC) &_openCyto_unlockNamespace, 1},
     {NULL, NULL, 0}
 };
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/add_pop.R, R/bayes-flowClust.R,
 %   R/csvTemplate-parser.R, R/gating-functions.R, R/gating-methods.R,
 %   R/gatingTemplate-methods.R, R/pluginFramework.R, R/remove_pop.R,
-%   R/tautString.R, R/toggle.helperGates.R
+%   R/toggle.helperGates.R
 \name{openCyto-deprecated}
 \alias{openCyto-deprecated}
 \title{Deprecated functions in package \pkg{openCyto}.}
@@ -42,10 +42,6 @@
 \code{registerPlugins} --> \code{\link{register_plugins}}
 
 \code{remove_pop} --> \code{\link{gs_remove_gating_method}}
-
-\code{tautString} --> \code{\link{tautstring}}
-
-\code{tautStringGate} --> \code{\link{gate_tautstring}}
 
 \code{toggle.helperGates} --> \code{\link{gt_toggle_helpergates}}
 
