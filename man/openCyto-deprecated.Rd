@@ -21,8 +21,6 @@
 
 \code{quantileGate} --> \code{\link{gate_quantile}}
 
-\code{cytokine} --> \code{\link{gate_tail}}
-
 \code{quadGate.seq} --> \code{\link{gate_quad_sequential}}
 
 \code{quadGate.tmix} --> \code{\link{gate_quad_tmix}}

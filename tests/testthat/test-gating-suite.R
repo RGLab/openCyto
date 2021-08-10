@@ -7,7 +7,7 @@ localPath <- "~/rglab/workspace/openCyto"
 
 skip_if_not(dir.exists(file.path(localPath, "misc")))
 library(parallel)
-
+register_plugins(flowStats:::.tailgate, "tailgate")
 test_that("tcell", {
       
       gt_tcell <- gatingTemplate(gtFile)

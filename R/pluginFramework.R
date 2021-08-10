@@ -8,7 +8,7 @@ NULL
 .openCyto_plugin_method_lookup[["registered_methods"]] <- list(gating = character(0), preprocessing = character(0))
 .DEFAULT_GT <- c("quantileGate", "gate_quantile", "rangeGate","flowClust.2d", "gate_flowclust_2d", "mindensity", "gate_mindensity"
                  , "mindensity2", "gate_mindensity2", "cytokine", "flowClust.1d", "gate_flowclust_1d", "boundary","singletGate"
-                 ,"tailgate", "gate_tail", "quadGate.tmix", "gate_quad_tmix", "quadGate.seq", "gate_quad_sequential"
+                  , "quadGate.tmix", "gate_quad_tmix", "quadGate.seq", "gate_quad_sequential"
                  )
 .DEFAULT_PP <- c("prior_flowClust", "prior_flowClust", "warpSet", "standardize_flowset")
 #'Print a list of the registered gating methods
