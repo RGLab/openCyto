@@ -4,8 +4,8 @@ collapseData <- function(mat_list, colnames) {
   .Call(`_openCyto_collapseData`, mat_list, colnames)
 }
 
-rlm_cpp <- function(x, y, w) {
-  .Call(`_openCyto_rlm_cpp`, x, y, w)
+rlm_cpp <- function(x, y, residual_old, maxit) {
+  .Call(`_openCyto_rlm_cpp`, x, y, residual_old, maxit)
 }
 
 solve_LSAP_cpp <- function(mat) {
