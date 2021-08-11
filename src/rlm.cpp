@@ -46,8 +46,8 @@ cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, cpp11::writable::
     //compute scale
     for(int i = 0; i < n; i++)
       residual_abs[i] = abs(residual_old[i]);
-    double scale = boost::math::statistics::median(residual_abs)/0.6745;
-    
+    double scale = boost::math::statistics::median(residual_abs);
+    scale = scale /0.6745;
      
     if(scale == 0) {
       done = true;
@@ -70,7 +70,8 @@ cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, cpp11::writable::
     done = conv <= acc;
     res.push_back("done"_nm = done);
     res.push_back("w"_nm = w);
-
+    res.push_back("scale"_nm = scale);
+    
     if(done)
       break;
     else

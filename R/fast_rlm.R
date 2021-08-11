@@ -2,7 +2,7 @@ fast_rlm <-
   function(x, y, weights, ...)
 {
     w = rep(1, nrow(x))
-    psi = psi.huber
+    # psi = psi.huber
     k2 = 1.345
     maxit = 20
    
@@ -39,7 +39,7 @@ fast_rlm <-
     #     done <- temp$done
     #     if(done) break
     # }
-    temp <- rlm_cpp(x, y, testpv, maxit)
+    temp <- rlm_cpp(x, y, resid, maxit)
     coef <- temp$coefficients
     resid <- temp$residuals
     done <- temp$done
@@ -55,7 +55,7 @@ fast_rlm <-
                 rank = temp$rank, fitted.values = fitted,
                 assign = temp$assign,  qr = temp$qr, df.residual = NA
                 , w = temp$w
-                ,s = scale
+                ,s = temp$scale
                 # , psi = psi
                 , k2 = k2,
                 weights = NULL
