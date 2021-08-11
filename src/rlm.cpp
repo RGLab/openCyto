@@ -6,7 +6,7 @@ using namespace std;
 namespace bstacc = boost::accumulators;
 
 
-  cpp11::doubles psi_huber(cpp11::doubles u)
+cpp11::doubles psi_huber(cpp11::doubles u)
 {
     auto k = 1.345;
     int n = u.size();
@@ -33,50 +33,70 @@ double irls_delta(cpp11::doubles residual_old, cpp11::doubles residual_new){
 }
 
 [[cpp11::register]]
-cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, cpp11::writable::doubles residual_old, int maxit){
+cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, int maxit){
   using namespace cpp11::literals; // so we can use ""_nm syntax
-
-  cpp11::writable::list res;
+  auto lm_wfit = cpp11::package("stats")["lm.wfit"];
   
-  int n = residual_old.size();
+  cpp11::writable::list fit_res;
+  
+  //initial model fit
+  int n = y.size();
+  cpp11::writable::doubles w(n);//weight
+  for(int i = 0; i < n; i++)
+    w[i] = 1;
+  fit_res = cpp11::as_cpp<cpp11::writable::list>(lm_wfit(x, y, w, "method"_nm = "qr"));
+  cpp11::writable::doubles residual_old = cpp11::as_cpp<cpp11::doubles>(fit_res["residuals"]);
+    
+  //update fitted model iteratively
   vector<double> residual_abs(n);
-  cpp11::writable::doubles w(n);
   bool done = false;  
-  while(maxit-- > 0) {
+  double scale;
+  while(maxit-- > 0)
+  {
     //compute scale
     for(int i = 0; i < n; i++)
       residual_abs[i] = abs(residual_old[i]);
-    double scale = boost::math::statistics::median(residual_abs);
-    scale = scale /0.6745;
+    scale = boost::math::statistics::median(residual_abs)/0.6745;
      
     if(scale == 0) {
       done = true;
       break;
     }
     
-    //compte huber weight
+    //compute huber weight
     for(int i = 0; i < n; i++)
       w[i] = residual_old[i]/scale;
     w = psi_huber(w);
     
     //fit lm module
-    auto lm_wfit = cpp11::package("stats")["lm.wfit"];
-    res = cpp11::as_cpp<cpp11::writable::list>(lm_wfit(x, y, w, "method"_nm = "qr"));
-    auto residual_new = cpp11::as_cpp<cpp11::doubles>(res["residuals"]);
+    fit_res = cpp11::as_cpp<cpp11::writable::list>(lm_wfit(x, y, w, "method"_nm = "qr"));
+    auto residual_new = cpp11::as_cpp<cpp11::doubles>(fit_res["residuals"]);
     
     //check if converge
     auto conv = irls_delta(residual_old, residual_new);
-    double acc = 1e-4;
-    done = conv <= acc;
-    res.push_back("done"_nm = done);
-    res.push_back("w"_nm = w);
-    res.push_back("scale"_nm = scale);
+    done = conv <= 1e-4;
     
     if(done)
       break;
     else
       residual_old = residual_new;
   }
-  return res;
+  
+  if(!done)
+    cpp11::warning("'rlm' failed to converge in" + to_string(maxit) + "  steps");
+    
+  fit_res.push_back("done"_nm = done);
+  fit_res.push_back("w"_nm = w);
+  fit_res.push_back("scale"_nm = scale);
+  
+  cpp11::writable::doubles fitted_y(n);
+  auto coefficients = cpp11::as_cpp<cpp11::doubles>(fit_res["coefficients"]);
+  double slope = coefficients[1];
+  double intercept = coefficients[0];
+  for(int i = 0; i < n; i++)
+    fitted_y[i] = x(i, 1) * slope + intercept;
+  fit_res.push_back("fitted"_nm = fitted_y);
+    
+  return fit_res;
 }
 

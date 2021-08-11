@@ -12,10 +12,10 @@ extern "C" SEXP _openCyto_collapseData(SEXP mat_list, SEXP colnames) {
   END_CPP11
 }
 // rlm.cpp
-cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, cpp11::writable::doubles residual_old, int maxit);
-extern "C" SEXP _openCyto_rlm_cpp(SEXP x, SEXP y, SEXP residual_old, SEXP maxit) {
+cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, int maxit);
+extern "C" SEXP _openCyto_rlm_cpp(SEXP x, SEXP y, SEXP maxit) {
   BEGIN_CPP11
-    return cpp11::as_sexp(rlm_cpp(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix>>(x), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(y), cpp11::as_cpp<cpp11::decay_t<cpp11::writable::doubles>>(residual_old), cpp11::as_cpp<cpp11::decay_t<int>>(maxit)));
+    return cpp11::as_sexp(rlm_cpp(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix>>(x), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(y), cpp11::as_cpp<cpp11::decay_t<int>>(maxit)));
   END_CPP11
 }
 // solve_LSAP.cpp
@@ -36,13 +36,13 @@ extern "C" SEXP _openCyto_unlockNamespace(SEXP env) {
 extern "C" {
 /* .Call calls */
 extern SEXP _openCyto_collapseData(SEXP, SEXP);
-extern SEXP _openCyto_rlm_cpp(SEXP, SEXP, SEXP, SEXP);
+extern SEXP _openCyto_rlm_cpp(SEXP, SEXP, SEXP);
 extern SEXP _openCyto_solve_LSAP_cpp(SEXP);
 extern SEXP _openCyto_unlockNamespace(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"_openCyto_collapseData",    (DL_FUNC) &_openCyto_collapseData,    2},
-    {"_openCyto_rlm_cpp",         (DL_FUNC) &_openCyto_rlm_cpp,         4},
+    {"_openCyto_rlm_cpp",         (DL_FUNC) &_openCyto_rlm_cpp,         3},
     {"_openCyto_solve_LSAP_cpp",  (DL_FUNC) &_openCyto_solve_LSAP_cpp,  1},
     {"_openCyto_unlockNamespace", (DL_FUNC) &_openCyto_unlockNamespace, 1},
     {NULL, NULL, 0}
