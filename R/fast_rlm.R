@@ -14,6 +14,7 @@ fast_rlm <-
 
     
     temp <-  lm.wfit(x, y, w, method="qr")
+
      coef <- temp$coefficients
     resid <- temp$residuals
    
