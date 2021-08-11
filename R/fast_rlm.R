@@ -4,13 +4,13 @@ fast_rlm <-
     
    
     temp <- rlm_cpp(x, y, maxit)
-    # fitted <- drop(x %*% coef)
+    fitted <- drop(x %*% temp$coefficients)
     fit <- list(coefficients = temp$coefficients
-                , residuals = y - temp$fitted
+                , residuals = y - fitted
                 , wresid = temp$residuals,
                 effects = temp$effects,
                 rank = temp$rank
-                , fitted.values = temp$fitted,
+                , fitted.values = fitted,
                 assign = temp$assign,  qr = temp$qr
                 , df.residual = NA
                 , w = temp$w

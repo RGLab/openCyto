@@ -89,14 +89,16 @@ cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, int maxit){
   fit_res.push_back("w"_nm = w);
   fit_res.push_back("scale"_nm = scale);
   
-  cpp11::writable::doubles fitted_y(n);
-  auto coefficients = cpp11::as_cpp<cpp11::doubles>(fit_res["coefficients"]);
-  double slope = coefficients[1];
-  double intercept = coefficients[0];
-  for(int i = 0; i < n; i++)
-    fitted_y[i] = x(i, 1) * slope + intercept;
-  fit_res.push_back("fitted"_nm = fitted_y);
-    
+  // cpp11::writable::doubles fitted_y(n);
+  //TODO: to handle cases where x has extra columns of ssc-a and ssc-a/fsc-a
+  // basically need to do x %*% coef in C
+  // auto coefficients = cpp11::as_cpp<cpp11::doubles>(fit_res["coefficients"]);
+  // double slope = coefficients[1];
+  // double intercept = coefficients[0];
+  // for(int i = 0; i < n; i++)
+  //   fitted_y[i] = x(i, 1) * slope + intercept;
+  // fit_res.push_back("fitted"_nm = fitted_y);
+  //   
   return fit_res;
 }
 

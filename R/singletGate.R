@@ -99,7 +99,16 @@ gate_singlet <- function(x, area = "FSC-A", height = "FSC-H", sidescatter = NULL
     prediction_weights <- rlm_fit$w[c(which_min, which_max)]
   }
 
-  predictions <- predict(rlm_fit, x_extrema, interval = "prediction",
+  #not really needed since default weights are 1s
+  #but somehow this recompute qr yield slightly different predicted
+  #vals (5e-7 < err < 2e-6), which is actually small enough for gates to be considered as ignorable
+  #but for the sake of comparison to MASS version, we keep this step for now
+  rlm_fit$weights <- rep(1, nrow(x))
+  rlm_fit$qr <- qr(sqrt(rlm_fit$weights) * rlm_fit$x)
+  
+  #strip rlm class to dispatch stats::predict.lm
+  class(rlm_fit) <- "lm"
+  predictions <- predict(rlm_fit, scale = rlm_fit$s, x_extrema, interval = "prediction",
                          level = prediction_level, weights = prediction_weights)
 
   # Create a matrix of the vertices using the prediction bands at the minimum

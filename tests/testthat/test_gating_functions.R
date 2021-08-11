@@ -17,6 +17,17 @@ test_that("gate_singlet", {
                                           , .Dim = c(4L, 2L)
                                           , .Dimnames = list(NULL, c("FSC-A", "FSC-H")))
                                 , filterId = "singlet"), tol = 5e-07)
+  g <- gate_singlet(fr, "FSC-A", "FSC-H"
+                    , sidescatter = "SSC-A"
+                    # , prediction_level =0.9
+  )
+  expect_equal(g, polygonGate(structure(c(24601, 24601
+                                          , 262143, 262143
+                                          , 16988.0208566085, 41393.3256789415
+                                          , 227799.565338899, 203392.940551338)
+                                        , .Dim = c(4L, 2L)
+                                        , .Dimnames = list(NULL, c("FSC-A", "FSC-H")))
+                              , filterId = "singlet"), tol = 5e-06)
   # library(ggcyto)
   # autoplot(fr, "FSC-A", "FSC-H") + geom_gate(g) + geom_stats()
 })
