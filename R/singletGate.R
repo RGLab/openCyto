@@ -1,12 +1,11 @@
 #' Creates a singlet polygon gate using the prediction bands from a robust linear model
 #'
-#' We construct a singlet gate by applying a robust linear model with
-#' \code{\link[MASS]{rlm}}. By default, we model the forward-scatter height
+#' We construct a singlet gate by applying a robust linear model. By default, we model the forward-scatter height
 #' (FSC-H)as a function of forward-scatter area (FSC-A). If \code{sidescatter}
 #' is given, forward-scatter height is as a function of \code{area} +
 #' \code{sidescatter} + \code{sidescatter / area}.
 #'
-#' Because \code{\link[MASS]{rlm}} relies on iteratively reweighted least
+#' Because \code{rlm} relies on iteratively reweighted least
 #' squares (IRLS), the runtime to construct a singlet gate is dependent in part
 #' on the number of observations in \code{x}. To improve the runtime, we provide
 #' an option to subsample randomly a subset of \code{x}. A percentage of
@@ -30,11 +29,10 @@
 #' prediction uncertainty, especially for large FSC-A. This leads to wider gates,
 #' which are sometimes desired.
 #' @param filterId the name for the filter that is returned
-#' @param maxit the limit on the number of IWLS iterations passed to \code{\link[MASS]{rlm}}
-#' @param ... additional arguments passed to \code{\link[MASS]{rlm}}
+#' @param maxit the limit on the number of IWLS iterations 
+#' @param ... additional arguments (not used)
 #' @return a \code{\link[flowCore]{polygonGate}} object with the singlet gate
 #' @rdname gate_singlet
-#' @importFrom MASS rlm
 gate_singlet <- function(x, area = "FSC-A", height = "FSC-H", sidescatter = NULL,
                         prediction_level = 0.99, subsample_pct = NULL,
                         wider_gate = FALSE, filterId = "singlet", maxit = 5, ...) {
@@ -48,8 +46,17 @@ gate_singlet <- function(x, area = "FSC-A", height = "FSC-H", sidescatter = NULL
     stop("Each of 'area' and 'height' must be 'character' vectors of length 1.")
   }
 
-  x <- data.frame(exprs(x[, c(area, height, sidescatter)]))
-
+  x <- exprs(x[, c(area, height, sidescatter)])
+  channel_names <- c(area, height)
+  area <- make.names(area)
+  height <- make.names(height)
+  colnames(x)[1:2]  <- c(area, height)
+  if (!is.null(sidescatter)) 
+  {
+    sidescatter <- make.names(sidescatter)
+    colnames(x)[3] <- sidescatter
+  }
+    
   # If specified, subsample from 'x'
   if (!is.null(subsample_pct)) {
     subsample_pct <- as.numeric(subsample_pct)
@@ -61,19 +68,28 @@ gate_singlet <- function(x, area = "FSC-A", height = "FSC-H", sidescatter = NULL
     n <- nrow(x)
     x <- x[sample(x = seq_len(nrow(x)), size = subsample_pct * n), ]
   }
-  
-  channel_names <- c(area, height)
-  area <- make.names(area)
-  height <- make.names(height)
+  # Creates polygon gate based on the prediction bands at the minimum and maximum
+  # 'area' observation using the trained robust linear model.
+  which_min <- which.min(x[,area])
+  which_max <- which.max(x[,area])
+  x_extrema <- x[c(which_min, which_max), ]
+
+  y <- x[, height]
+  x <- x[, c(area, sidescatter), drop = FALSE]
+  x <- cbind(1, x)#add default weight column
   rlm_formula <- paste(make.names(height), make.names(area), sep = " ~ ")
+  
   if (!is.null(sidescatter)) {
     sidescatter <- make.names(sidescatter)
+    x <- cbind(x, x[, sidescatter] / x[, area])
     ssc_ratio <- paste0("I(", sidescatter, " / ", area, ")")
+    colnames(x)[4] <- ssc_ratio
+    
     rlm_formula <- paste(rlm_formula, sidescatter, ssc_ratio, sep = " + ")
   }
   rlm_formula <- as.formula(rlm_formula)
-
-  rlm_fit <- withCallingHandlers(rlm(rlm_formula, data = x, maxit = maxit, ...),
+  
+  rlm_fit <- withCallingHandlers(fast_rlm(x, y, maxit = maxit, ...),
                                  warning = function(w){
                                    if(grepl("failed to converge", conditionMessage(w))){
                                      invokeRestart("muffleWarning")
@@ -84,12 +100,7 @@ gate_singlet <- function(x, area = "FSC-A", height = "FSC-H", sidescatter = NULL
   #   warning("The IRLS algorithm employed in 'rlm' did not converge.")
   # }
 
-  # Creates polygon gate based on the prediction bands at the minimum and maximum
-  # 'area' observation using the trained robust linear model.
-  which_min <- which.min(x[[area]])
-  which_max <- which.max(x[[area]])
-  x_extrema <- x[c(which_min, which_max), ]
-
+  
   # Prediction weights. By default, these are weighted equally. If 'wider_gate'
   # is set, the weights from 'rlm' are used. The weight for the maximum FSC-A
   # is usually much smaller and yields a more uncertain prediction interval.
@@ -108,18 +119,20 @@ gate_singlet <- function(x, area = "FSC-A", height = "FSC-H", sidescatter = NULL
   
   #strip rlm class to dispatch stats::predict.lm
   class(rlm_fit) <- "lm"
-  predictions <- predict(rlm_fit, scale = rlm_fit$s, x_extrema, interval = "prediction",
+  rlm_fit$terms <- rlm_formula
+   predictions <- predict(rlm_fit, scale = rlm_fit$s, data.frame(x_extrema), interval = "prediction",
                          level = prediction_level, weights = prediction_weights)
 
   # Create a matrix of the vertices using the prediction bands at the minimum
   # and maximum values of x. The ordering matters. Must go clockwise.
   # Otherwise, the polygon is not convex and makes an X-shape.
-  gate_vertices <- rbind(cbind(x_extrema[[area]][1], predictions[1, "lwr"]),
-                         cbind(x_extrema[[area]][1], predictions[1, "upr"]),
-                         cbind(x_extrema[[area]][2], predictions[2, "upr"]),
-                         cbind(x_extrema[[area]][2], predictions[2, "lwr"]))
+  gate_vertices <- rbind(cbind(x_extrema[, area][1], predictions[1, "lwr"]),
+                         cbind(x_extrema[, area][1], predictions[1, "upr"]),
+                         cbind(x_extrema[, area][2], predictions[2, "upr"]),
+                         cbind(x_extrema[, area][2], predictions[2, "lwr"]))
   colnames(gate_vertices) <- channel_names
 
   polygonGate(gate_vertices, filterId = filterId)
 }
 
+singletGate <- gate_singlet

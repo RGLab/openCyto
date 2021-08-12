@@ -43,9 +43,9 @@ which are sometimes desired.}
 
 \item{filterId}{the name for the filter that is returned}
 
-\item{maxit}{the limit on the number of IWLS iterations passed to \code{\link[MASS]{rlm}}}
+\item{maxit}{the limit on the number of IWLS iterations}
 
-\item{...}{additional arguments passed to \code{\link[MASS]{rlm}}}
+\item{...}{additional arguments (not used)}
 }
 \value{
 a \code{\link[flowCore]{polygonGate}} object with the singlet gate

@@ -18,8 +18,7 @@ cpp11::doubles psi_huber(cpp11::doubles u)
       }
   return res;
 }
-//   sqrt(sum((old - new)^2)/max(1e-20, sum(old^2)))
-double irls_delta(cpp11::doubles residual_old, cpp11::doubles residual_new){
+double leastSquareDiff(cpp11::doubles residual_old, cpp11::doubles residual_new){
   double diff_square = 0, old_square = 0;
   
   for(int i = 0; i < residual_new.size(); i++)
@@ -47,7 +46,7 @@ cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, int maxit){
   fit_res = cpp11::as_cpp<cpp11::writable::list>(lm_wfit(x, y, w, "method"_nm = "qr"));
   cpp11::writable::doubles residual_old = cpp11::as_cpp<cpp11::doubles>(fit_res["residuals"]);
     
-  //update fitted model iteratively
+  //update fitted model iteratively with re-weighted least squares 
   vector<double> residual_abs(n);
   bool done = false;  
   double scale;
@@ -73,7 +72,7 @@ cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, int maxit){
     auto residual_new = cpp11::as_cpp<cpp11::doubles>(fit_res["residuals"]);
     
     //check if converge
-    auto conv = irls_delta(residual_old, residual_new);
+    auto conv = leastSquareDiff(residual_old, residual_new);
     done = conv <= 1e-4;
     
     if(done)

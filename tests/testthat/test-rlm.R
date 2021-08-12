@@ -2,8 +2,9 @@ test_that("fast_rlm", {
 
   
   set.seed(1)
-  x <- 1:100
-  y <- x * 2.5 - 1.3 + rnorm(100, sd = 30)
+  n <- 1e3
+  x <- seq_len(n)
+  y <- x * 2.5 - 1.3 + rnorm(n, sd = 30)
   df <- data.frame(x, y)
   #convert to rlm data format
   names(y) <- x
@@ -12,6 +13,7 @@ test_that("fast_rlm", {
   system.time(r1 <- MASS::rlm(x, y))
   system.time(r2 <- fast_rlm(x, y))
   expect_equal(r1$coefficients, r2$coefficients)
+  #del unrelevant parameters before comparison
   r1[["psi"]] <- NULL
   r1[["conv"]] <- NULL
   r1[["call"]] <- NULL

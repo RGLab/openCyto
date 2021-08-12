@@ -10,7 +10,7 @@ Description: This package is designed to facilitate the automated gating
 License: file LICENSE
 LazyLoad: yes
 Imports:
-    methods,Biobase,BiocGenerics,flowCore(>= 1.99.17),flowViz,ncdfFlow(>= 2.11.34),flowWorkspace(>= 3.99.1),flowClust(>= 3.11.4),MASS,RBGL,graph,data.table,RColorBrewer
+    methods,Biobase,BiocGenerics,flowCore(>= 1.99.17),flowViz,ncdfFlow(>= 2.11.34),flowWorkspace(>= 3.99.1),flowClust(>= 3.11.4),RBGL,graph,data.table,RColorBrewer
 Suggests:
     flowWorkspaceData,
     knitr,
@@ -22,7 +22,8 @@ Suggests:
     parallel,
     ggcyto,
     CytoML,
-    flowStats(>= 4.5.2)
+    flowStats(>= 4.5.2),
+    MASS
 biocViews: ImmunoOncology, FlowCytometry, DataImport, Preprocessing, DataRepresentation
 Encoding: UTF-8
 VignetteBuilder: knitr
