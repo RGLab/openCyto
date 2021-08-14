@@ -543,7 +543,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' library(flowClust)
 #' set.seed(42)
 #' # 2 peaks with a minor hump
-#' y <- SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
+#' y <- flowStats::SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
 #' plot(density(y))
 #' peaks <- .find_peaks(y)
 #' abline(v = peaks[, "x"], col = "red")
@@ -622,7 +622,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' library(flowClust)
 #' set.seed(42)
 #' # 3 peaks and 2 valleys
-#' y <- SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
+#' y <- flowStats::SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
 #' plot(density(y))
 #' valleys <- .find_valleys(y)
 #' abline(v = valleys, col = "red")

@@ -51,14 +51,13 @@ which are sometimes desired.}
 a \code{\link[flowCore]{polygonGate}} object with the singlet gate
 }
 \description{
-We construct a singlet gate by applying a robust linear model with
-\code{\link[MASS]{rlm}}. By default, we model the forward-scatter height
+We construct a singlet gate by applying a robust linear model. By default, we model the forward-scatter height
 (FSC-H)as a function of forward-scatter area (FSC-A). If \code{sidescatter}
 is given, forward-scatter height is as a function of \code{area} +
 \code{sidescatter} + \code{sidescatter / area}.
 }
 \details{
-Because \code{\link[MASS]{rlm}} relies on iteratively reweighted least
+Because \code{rlm} relies on iteratively reweighted least
 squares (IRLS), the runtime to construct a singlet gate is dependent in part
 on the number of observations in \code{x}. To improve the runtime, we provide
 an option to subsample randomly a subset of \code{x}. A percentage of
