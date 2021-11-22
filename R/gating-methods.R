@@ -261,8 +261,10 @@ roxygen_parameter <- function() {
     ## get the accurate channel name by matching to the fr
     frm <- parent_data[[1, use.exprs = FALSE]]
     channels <-  unname(sapply(dims, function(channel)as.character(getChannelMarker(frm, channel)$name)))
-    
-    parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
+    if(length(channels) > 0) {
+      parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
+      
+    }
     # Splits the flow set into a list.
     # By default, each element in the list is a flowSet containg one flow frame,
     # corresponding to the invidual sample names.
