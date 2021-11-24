@@ -36,6 +36,10 @@ jobs:
       RSPM: ${{ matrix.config.rspm }}
     
     steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y install libcurl4-openssl-dev zip unzip
       - uses: actions/checkout@v2
       - name: Set up R ${{ matrix.r }}
         uses: r-lib/actions/setup-r@master
