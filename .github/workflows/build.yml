@@ -39,7 +39,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install dependencies
         run: |
-          sudo apt-get -y install libcurl4-openssl-dev zip unzip
+          if ["$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get -y install libcurl3 zip unzip
       - uses: actions/checkout@v2
       - name: Set up R ${{ matrix.r }}
         uses: r-lib/actions/setup-r@master
