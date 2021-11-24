@@ -47,7 +47,7 @@ jobs:
       
       - name: set token for cytoinstaller(and remotes) to increase github API rate limit
         env:
-          SUPER_SECRET: ${{ secrets.CYTOINSTALLER_TOKEN }}
+          SUPER_SECRET: ${{ secrets.GITHUB_TOKEN }}
         run: echo "GITHUB_TOKEN=$SUPER_SECRET" >> $GITHUB_ENV
  
       - name: Query dependencies
