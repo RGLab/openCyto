@@ -23,7 +23,7 @@ jobs:
         config:
           - {os: windows-latest, suffix: 'zip'}
           - {os: macOS-latest, suffix: 'tgz'}
-          - {os: ubuntu-16.04, suffix: 'tar.gz', rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+          - {os: ubuntu-20.04, suffix: 'tar.gz', rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
         isMaster:
           - ${{ contains(github.ref, 'master') }}
         exclude:
