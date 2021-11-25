@@ -40,7 +40,7 @@ jobs:
       - name: Install dependencies
         if: matrix.os == 'ubuntu-20.04'
         run: |
-          sudo apt-get -y install libcurl3 zip unzip
+          sudo apt-get -y install libcurl4-openssl-dev zip unzip
       - uses: actions/checkout@v2
       - name: Set up R ${{ matrix.r }}
         uses: r-lib/actions/setup-r@master
