@@ -24,6 +24,8 @@ gh_generate_template <- function(gh){
   dt = ldply(nodes[-1], function(thisNode){
         thisGate <- gh_pop_get_gate(gh, thisNode)
         dims <- paste(as.vector(parameters(thisGate)), collapse = ",")
+        # empty dims -> NA instead of ""
+        if(!nzchar(dims)){dims <- NA}
         parent <- gs_pop_get_parent(gh, thisNode)
         alias <- basename(thisNode)
         pop <- alias
@@ -254,7 +256,7 @@ templateGen <- function(gh){
 #' 
 #' Here are the major preprocessing tasks:
 #' 1. validity check for 'alias' (special character and uniqueness check)
-#' 2. validity check for the numer of parameters('dim' column)
+#' 2. validity check for the number of parameters('dim' column)
 #' 3. dispatch 'flowClust' method to either 'gate_flowclust_1d' or 'gate_flowclust_2d' based on the 'pop' and 'dims' columns
 #' 4. expand the single row to multiple rows when applicable. There are basically two types of expansion:
 #'      4.1. expand to two 1d gates and one rectangelGate when 'pop' name is defined as quadrant pattern (e.g. "A+B+")  and 'gating_method' is not "refGate"
@@ -287,12 +289,19 @@ templateGen <- function(gh){
 			\n Please remove any other letters and correct the pop pattern!
 			\n Or type ?openCyto.options to see how you can turn off the 'check.pop' flag in options('openCyto') to bypass this validiy check (Not recommended)")
   
-  dim_count <- length(strsplit(split = ",", dims)[[1]])
-  if (!dim_count %in% c(1, 2)) {
-    if (!(dim_count == 0 && gm %in% c("polyFunctions", "boolGate", "refGate"))) {
-      stop(popName, " has invalid number of dimensions: ", dim_count)
-    }
+  # empty dims
+  if(is.na(dims)) {
+    dim_count <- 0
+  } else {
+    dim_count <- length(strsplit(split = ",", dims)[[1]])
   }
+  
+  # # remove this check
+  # if (!dim_count %in% c(1, 2)) {
+  #   if (!(dim_count == 0 && gm %in% c("polyFunctions", "boolGate", "refGate"))) {
+  #     stop(popName, " has invalid number of dimensions: ", dim_count)
+  #   }
+  # }
   
   one_pop_token <- "[\\+-]"
   pop_name_pat <- "[^\\+-]*" #now we allow empty pop name with pure +/- signs  "[^\\+-]+"
@@ -327,7 +336,11 @@ templateGen <- function(gh){
     # expand to two rows
     new_pops <- c("+", "-")
     
-    if(dim_count == 1){
+    if(dim_count == 0) {
+      stop(
+        "Only pop = '+' is supported for entries with empty dims!"
+      )
+    }else if(dim_count == 1){
       new_alias <- paste(dims, new_pops, sep = "")  
       if(!trimws(alias) %in% c("", "*"))
         message("alias '", alias, "' is ignored since pop names are auto-generated from 'dims' when pop = '+/-' ")
