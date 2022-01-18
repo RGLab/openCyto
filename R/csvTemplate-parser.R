@@ -182,12 +182,12 @@ templateGen <- function(gh){
 
 #' preprocess the csv template
 #' 
-#' It parses the data table sequentially and does the valdidity checking and expansion row by row.
+#' It parses the data table sequentially and does the validity checking and expansion row by row.
 #'  
 #' It expands the definition of gates or construct reference gates when necessary
 #' @param dt \code{data.table} loaded directly from csv gating template
 #' @param strict whether validity check for pop alias. It is turned on in the normal template parsing. when used with add_pop it is turned off to bypass the check on some existing boolean gates (that has ! : symbols).  
-#' @return a preprocessed(expanded when applicable) \code{data.frame}
+#' @return a preprocessed (expanded when applicable) \code{data.frame}
 #' @import data.table
 #' @noRd 
 .preprocess_csv <- function(dt, strict = TRUE) {
