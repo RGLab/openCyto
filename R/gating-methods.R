@@ -70,7 +70,13 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
 #' @importFrom plyr ldply
 #' @keywords internal
 #' @noRd 
-.gating_gatingTemplate <- function(x, y, env_fct = NULL, start = "root", stop.at = NULL, keep.helperGates = TRUE, ...) {
+.gating_gatingTemplate <- function(x,
+                                   y, 
+                                   env_fct = NULL, 
+                                   start = "root", 
+                                   stop.at = NULL, 
+                                   keep.helperGates = TRUE,
+                                   ...) {
   gt <- x
   if (!is.null(env_fct)) {
     # use the fcTree if already exists
@@ -214,9 +220,15 @@ roxygen_parameter <- function() {
 #' @import flowWorkspace
 #' @importFrom flowCore getChannelMarker
 #' @noRd
-.gating_gtMethod <- function(x, y, gtPop, parent, pp_res 
-            , mc.cores = getOption("mc.cores", 2L), parallel_type = c("none", "multicore", "cluster"), cl = NULL
-            ,  ...) {
+.gating_gtMethod <- function(x, 
+                             y, 
+                             gtPop, 
+                             parent, 
+                             pp_res, 
+                             mc.cores = getOption("mc.cores", 2L), 
+                             parallel_type = c("none", "multicore", "cluster"), 
+                             cl = NULL,  
+                             ...) {
   
   requireNamespace("parallel")
   gFunc_args <- parameters(x)
@@ -260,16 +272,25 @@ roxygen_parameter <- function() {
     parallel_type <- match.arg(parallel_type)
     ## get the accurate channel name by matching to the fr
     frm <- parent_data[[1, use.exprs = FALSE]]
-    channels <-  unname(sapply(dims, function(channel)as.character(getChannelMarker(frm, channel)$name)))
+    channels <-  unname(
+      sapply(
+        dims, 
+        function(channel) {
+          as.character(getChannelMarker(frm, channel)$name)
+        }
+      )
+    )
+    # empty dims warning
     if(length(channels) == 0) {
-      stop(
+      warning(
         paste0(
-          "No channels have been specified in 'dims' to gate",
+          "No channels have been specified in 'dims' to gate ",
           popAlias, "!"
         )
       )
+    } else {
+      parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
     }
-    parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
     # Splits the flow set into a list.
     # By default, each element in the list is a flowSet containing one flow frame,
     # corresponding to the individual sample names.
