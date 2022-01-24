@@ -366,6 +366,15 @@ setGeneric("gatingTemplate", function(x, ...) standardGeneric("gatingTemplate"))
 #' @rdname gatingTemplate-class
 setMethod("gatingTemplate", signature(x = "character"), function(x, name = "default", strict = TRUE, strip_extra_quotes=FALSE,...) {
       dt <- fread(x, ...)
+      if(nrow(dt) == 0) {
+        stop(
+          paste0(
+            "Cannot create gatingTemplate from ",
+            x, 
+            " as it contains no gating entries."
+          )
+        )
+      }
       dt <- .preprocess_csv(dt, strict = strict)
       
       #append the isMultiPops column based on pop name
@@ -388,6 +397,15 @@ setMethod(
            strict = TRUE, 
            strip_extra_quotes = FALSE,
            ...) {
+    if(nrow(dt) == 0) {
+      stop(
+        paste0(
+          "Cannot create gatingTemplate from ",
+          x, 
+          " as it contains no gating entries."
+        )
+      )
+    }
     dt <- .preprocess_csv(x, strict = strict)
     #append the isMultiPops column based on pop name
     dt[, isMultiPops := FALSE]
