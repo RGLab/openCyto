@@ -397,12 +397,11 @@ setMethod(
            strict = TRUE, 
            strip_extra_quotes = FALSE,
            ...) {
-    if(nrow(dt) == 0) {
+    if(nrow(x) == 0) {
       stop(
         paste0(
-          "Cannot create gatingTemplate from ",
-          x, 
-          " as it contains no gating entries."
+          "Cannot create gatingTemplate from this data.table as it contains ",
+          "no gating entries."
         )
       )
     }
