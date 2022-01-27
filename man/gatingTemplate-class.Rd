@@ -5,6 +5,7 @@
 \alias{gatingTemplate-class}
 \alias{gatingTemplate}
 \alias{gatingTemplate,character-method}
+\alias{gatingTemplate,data.table-method}
 \title{a class storing the gating method and population information in a graphNEL object}
 \usage{
 gatingTemplate(x, ...)
@@ -16,9 +17,17 @@ gatingTemplate(x, ...)
   strip_extra_quotes = FALSE,
   ...
 )
+
+\S4method{gatingTemplate}{data.table}(
+  x,
+  name = "default",
+  strict = TRUE,
+  strip_extra_quotes = FALSE,
+  ...
+)
 }
 \arguments{
-\item{x}{\code{character} csv file name}
+\item{x}{\code{character} csv file name or a \code{data.table}}
 
 \item{...}{other arguments passed to \code{data.table::fread}}
 
