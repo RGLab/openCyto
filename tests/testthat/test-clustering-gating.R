@@ -2,7 +2,17 @@ context("gating method that takes no dimensions")
 
 test_that(" gating method that simply return Logical vector", {
   gs <- GatingSet(GvHD[1])
-  
+  # Add a gate
+  gs_pop_add(
+      gs,
+        parent = "root",
+        gate = rectangleGate(
+              "FSC-H"=c(225,500), 
+                  "SSC-H"=c(15, 150),
+                  filterId="test"
+        )
+  )
+        
   #create a dummy gating function that mimic sampling method
   dummy_func <- function(fr, pp_res, channels, ...)
   {
@@ -13,9 +23,9 @@ test_that(" gating method that simply return Logical vector", {
   #register it as the plugin gating method
   register_plugins(dummy_func, "sample_method")
   #apply it to the gs
-  gs_add_gating_method(gs, alias = "A", parent = "root", pop = "+", dims = "", gating_method = "sample_method")
+  gs_add_gating_method(gs, alias = "A", parent = "root", pop = "*", dims = "", gating_method = "sample_method")
   
-  expect_equal(gs_get_pop_paths(gs),c("root","/A"))
+  expect_equal(gs_get_pop_paths(gs),c("root","/test","/A"))
   expect_is(gh_pop_get_gate(gs[[1]], "A"), "booleanFilter")
 })
   
