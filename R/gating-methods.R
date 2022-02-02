@@ -235,8 +235,8 @@ roxygen_parameter <- function() {
       gFunc_args <- gFunc_args[-to_omit]
   }
   ##  
-    
-  gm <- paste0(".", names(x))
+  gating_method_name =names(x)
+  gm <- paste0(".", gating_method_name)
   
   dims <- dims(x)
   
@@ -261,15 +261,8 @@ roxygen_parameter <- function() {
     ## get the accurate channel name by matching to the fr
     frm <- parent_data[[1, use.exprs = FALSE]]
     channels <-  unname(sapply(dims, function(channel)as.character(getChannelMarker(frm, channel)$name)))
-    if(length(channels) == 0) {
-      stop(
-        paste0(
-          "No channels have been specified in 'dims' to gate",
-          popAlias, "!"
-        )
-      )
-    }
-    parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
+    if(length(channels) > 0) 
+      parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
     # Splits the flow set into a list.
     # By default, each element in the list is a flowSet containing one flow frame,
     # corresponding to the individual sample names.
@@ -371,15 +364,22 @@ roxygen_parameter <- function() {
       if(!is(fcflist, "try-error"))
         flist <- fcflist
       }
+
+    is_clustering_results = is(flist[[1]], "factor")
     
-    
-    
-    
+    if (is_clustering_results) { 
+        if(popAlias != "*")
+            warning("popAlias is set to gating method name ",gating_method_name," because gating results are factors")
+        popAlias = gating_method_name
+    }
+  
+              
     if(length(popAlias) == 1){
       #when Alias is meta character, then pass NULL
       # to add method which uses filterId slot to name the populations
-      if(popAlias == "*")
-        popAlias <- NULL  
+      if(popAlias == "*") {
+          popAlias <- NULL  
+      }
     }
 
     # For gate_quad methods, need to filter down to just the gates that were asked for
@@ -394,7 +394,7 @@ roxygen_parameter <- function() {
     }
     
     gs_node_id <- gs_pop_add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, negated = negated)
-    if(!is.null(popAlias))
+    if(!is.null(popAlias) &&!is_clustering_results)
       recompute(y, file.path(parent, popAlias))
     else
       recompute(y, parent)

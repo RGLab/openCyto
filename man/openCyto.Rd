@@ -30,10 +30,10 @@ See \code{\link[openCyto]{gt_gating}},
 for an overview of gating functions.
 }
 \author{
-Mike Jiang \email{wjiang2@fhcrc.org},
+Mike Jiang \email{mike@ozette.ai},
 John Ramey \email{jramey@fhcrc.org},
-Greg Finak \email{gfinak@fhcrc.org}
+Greg Finak \email{greg@ozette.ai}
 
-Maintainer: Mike Jiang \email{wjiang2@fhcrc.org}
+Maintainer: Mike Jiang \email{mike@ozette.ai}
 }
 \keyword{package}
