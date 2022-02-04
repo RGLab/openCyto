@@ -291,6 +291,9 @@ roxygen_parameter <- function() {
         split_by <- apply(pData(parent_data)[, split_by, drop = FALSE], 1, paste, collapse = ":")
         split_by <- as.character(split_by)
       }
+    # all samples same group - labeled "all"
+    } else if(groupBy == "" && isCollapse) {
+      split_by <- rep("all", length(parent_data))
     } else {
       split_by <- sampleNames(parent_data)
     }
