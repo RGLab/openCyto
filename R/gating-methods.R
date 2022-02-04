@@ -126,17 +126,6 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
     gt_node_pop <- gt_get_nodes(gt, node)
     parent <- gt_get_parent(gt, node)
     
-    if(!is.null(stop.at)){
-      nodeName <- alias(gt_node_pop)
-      nodePath <- file.path(parent, nodeName)
-      matchInd <- grep(stop.pat, nodePath)
-      if(length(matchInd) == 1)
-      {
-        message("stop at: ",stop.at)
-        break
-      }
-      
-    }    
     # extract gate method from one edge(since multiple edge to the same node is
     # redudant)
     this_gate <- gt_get_gate(gt, parent, node)
@@ -164,7 +153,18 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
     if (!is.null(env_fct) && !is.null(filterObj)) {
       nodeData(env_fct$fct, node, "fList")[[1]] <- filterObj
     }  
-    
+    # terminate gating after stop.at
+    if(!is.null(stop.at)){
+      nodeName <- alias(gt_node_pop)
+      nodePath <- file.path(parent, nodeName)
+      matchInd <- grep(stop.pat, nodePath)
+      if(length(matchInd) == 1)
+      {
+        message("stop at: ",stop.at)
+        break
+      }
+      
+    }  
     
   }
   message("finished.")
