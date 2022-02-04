@@ -105,8 +105,35 @@
       
     
     resType <- class(filterRes)    
-    if(extends(resType, "filter")||extends(resType, "filters")||extends(resType, "logical")||extends(resType, "factor")){
-
+    # format filterRes to ensure gates per sample
+    # list can be supplied per sample to allow sample-wise logical|factor
+    if(class(filterRes) == "list" && all(
+      sapply(
+        filterRes,
+        function(v) {
+          any(
+            sapply(
+              c("filter", "filters", "logical", "factor"),
+              function(i) {
+                extends(class(v), i)
+              }
+            )
+          )
+        }
+      )
+    ) && length(filterRes) == length(fs)) {
+      # names missing 
+      if(is.null(names(filterRes))){
+        names(filterRes) <- sampleNames(fs)
+      }
+      # names don't match 
+      if(!all(sampleNames(fs) %in% names(filterRes))) {
+        stop(
+          "Gates should be supplied per sample in a named list."
+        )
+      }
+      list(filterRes)
+    } else if(extends(resType, "filter")||extends(resType, "filters")||extends(resType, "logical")||extends(resType, "factor")){
       #replicate the filter across samples
       list(sapply(sampleNames(fs),function(i)filterRes, simplify = FALSE))      
     }else{
