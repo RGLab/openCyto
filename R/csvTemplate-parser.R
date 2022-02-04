@@ -276,7 +276,7 @@ templateGen <- function(gh){
     return(this_row)
   
   if(popName == "*" ){
-    if(alias == "*"|| dims == "")
+    if(alias == "*"|| dims %in% c("", NA))
       return(this_row)
     else
       return(.gen_dummy_ref_gate(this_row))
