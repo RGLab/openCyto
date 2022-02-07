@@ -4,11 +4,14 @@
 \alias{CytoExploreR_exports}
 \alias{CytoExploreR_.argDeparser}
 \alias{CytoExploreR_.preprocess_csv}
+\alias{CytoExploreR_.preprocess_row}
 \title{CytoExploreR exports}
 \usage{
 CytoExploreR_.argDeparser(args, split = TRUE)
 
 CytoExploreR_.preprocess_csv(dt, strict = TRUE)
+
+CytoExploreR_.preprocess_row(this_row, strict = TRUE)
 }
 \description{
 Exported wrappers of internal functions for use by CytoExploreR

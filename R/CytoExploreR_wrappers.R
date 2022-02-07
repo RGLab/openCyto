@@ -20,3 +20,11 @@ CytoExploreR_.argDeparser <- function(args, split = TRUE){
 CytoExploreR_.preprocess_csv <- function(dt, strict = TRUE){
   .preprocess_csv(dt, strict = strict)
 }
+
+#' @name CytoExploreR_.preprocess_row
+#' @keywords internal
+#' @rdname CytoExploreR_exports
+#' @export
+CytoExploreR_.preprocess_row <- function(this_row, strict = TRUE){
+  .preprocess_row(this_row, strict = strict)
+}
