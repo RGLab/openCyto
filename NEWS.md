@@ -17,7 +17,8 @@
 ## Enhancements
 + New API: add_pop function allows users to apply a single gating method to GatingSet without writing the compelete csv template
 
-# openCyto 1.23.5 (Bioconductor version 3.10)
+# openCyto 1.23.5
+(Bioconductor version 3.10)
 
 ## API Changes
 
@@ -54,7 +55,8 @@
 * Some minor fixes to `gt_toggle_helpergates`
 * Fix "positive" argument to `gate_mindensity` to match doc
 
-# openCyto 1.25.x (Bioconductor version 3.11)
+# openCyto 1.25.x
+(Bioconductor version 3.11)
 
 ## Enhancements
 
