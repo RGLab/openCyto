@@ -595,7 +595,10 @@ gt_gating.dummyMethod <- function(x, y, ...) {
         
         
         if(nDims==2){
-          negated_2d_gate <- TRUE 
+          if (popName == "-") {
+            negated_2d_gate <- TRUE                             
+            }
+          
           fres <- glist[[1]]
         }else{
           dim_params <-  getChannelMarker(fr, dims)["name"]
