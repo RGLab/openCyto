@@ -345,7 +345,7 @@ test_that(".preprocess_row", {
 test_that("gatingTemplate constructor", {
   thisPath <- system.file(package = "openCyto")
 #  thisPath <- file.path(thisPath, "inst")
-  gtfiles <- list.files(file.path(thisPath, "extdata/gating_template"), full = TRUE)
+  gtfiles <- list.files(file.path(thisPath, "extdata/gating_template"), full = TRUE)[-6]
   options(scipen=999)
   for(thisFile in gtfiles){
     
