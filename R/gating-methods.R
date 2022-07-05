@@ -93,10 +93,10 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
     if(substr(stop.at, 1,1) != "/")
       stop.pat <- paste0("/", stop.pat) #prepend path delimiter to avoid partial node name matching
     
-    matchInd <- grep(stop.pat, nodePaths)
-    if(length(matchInd) == 0)
+    idx <- grep(stop.pat, nodePaths)
+    if(length(idx) == 0)
       stop("Can't find stop point: ", stop.at)
-    else if(length(matchInd) > 1)
+    else if(length(idx) > 1)
       stop("ambiguous stop point: ", stop.at)
   }
   # gate each node 
@@ -109,7 +109,7 @@ gt_gating.gatingTemplate <- function(x, y, ...) {
     start.pat <- paste0(start.pat, "$") #treat it as terminal node
     if(substr(start, 1,1) != "/")
       start.pat <- paste0("/", start.pat) #prepend path delimiter to avoid partial node name matching
-    matchInd <- grep(start.pat, nodePaths)
+    matchInd <- grep(start.pat, gt_nodes)
     
     if(length(matchInd) == 0)
       stop("Can't find start point: ", start)

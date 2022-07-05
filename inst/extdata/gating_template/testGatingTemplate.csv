@@ -1,0 +1,11 @@
+alias,pop,parent,dims,gating_method,gating_args,collapseDataForGating,groupBy,preprocessing_method,preprocessing_args
+boundary,+,root,"FSC-A,SSC-A",boundary,"min=c(0,0),max=c(2.5e5,2.5e5)",,,,
+singlet,+,boundary,"FSC-A,FSC-H",singletGate,,,,,
+singletRefGate,+,boundary,"FSC-A,FSC-H",refGate,singlet,,,,
+Lymph,+,singlet,"FSC-A,SSC-A",flowClust,"K=3,quantile=0.9,target=c(5e4,3e4)",,,prior_flowClust,K=3
+singletRefGate_LymphRefGate,+,singletRefGate,"FSC-A,SSC-A",refGate,Lymph,,,,
+Alexa700_gate,+,singlet,Alexa 700-A,mindensity2,"gate_range=c(0,2),peaks=2",,,,
+AmCyan_gate,+,singlet,Am Cyan-A,tailgate,,,,,
+APC_gate,+,singlet,APC-A,mindensity2,"gate_range=c(0,3),peaks=2",,,,
+PerCPCY5_5_gate,+,singlet,PerCP-CY5-5-A,mindensity2,"gate_range=c(0,3),peaks=2",,,,
+Alexa700pPerCPCY5_5p,++,Lymph,"Alexa 700-A,PerCP-CY5-5-A",refGate,Alexa700_gate:PerCPCY5_5_gate,,,,
