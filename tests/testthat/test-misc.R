@@ -17,7 +17,7 @@ test_that("start/stop.at argument in gt_gating function", {
   library(openCyto)
   
   dataDir <- system.file("extdata",package="flowWorkspaceData")
-  files <- list.files(dataDir, pattern = ".fcs$",full = TRUE)
+  files <- list.files(dataDir, pattern = "a2004_O1T2pb05i_A1_A01.fcs$",full = TRUE)
   fs <- read.flowSet(files[1])
   
   compMat <- spillover(fs[[1]]) %>% compensation
