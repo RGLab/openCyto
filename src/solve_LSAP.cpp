@@ -2,7 +2,7 @@
 #include <vector>
 #include <cpp11.hpp>
 
-[[cpp11::register]] std::vector<int> solve_LSAP_cpp(cpp11::doubles_matrix mat)
+[[cpp11::register]] std::vector<int> solve_LSAP_cpp(cpp11::doubles_matrix<> mat)
 {
     int r = mat.nrow();
     int c = mat.ncol();

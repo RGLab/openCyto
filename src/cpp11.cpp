@@ -3,26 +3,27 @@
 
 
 #include "cpp11/declarations.hpp"
+#include <R_ext/Visibility.h>
 
 // misc.cpp
-cpp11::doubles_matrix collapseData(cpp11::list mat_list, cpp11::strings colnames);
+cpp11::doubles_matrix<> collapseData(cpp11::list mat_list, cpp11::strings colnames);
 extern "C" SEXP _openCyto_collapseData(SEXP mat_list, SEXP colnames) {
   BEGIN_CPP11
     return cpp11::as_sexp(collapseData(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(mat_list), cpp11::as_cpp<cpp11::decay_t<cpp11::strings>>(colnames)));
   END_CPP11
 }
 // rlm.cpp
-cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, int maxit);
+cpp11::list rlm_cpp(cpp11::doubles_matrix<> x, cpp11::doubles y, int maxit);
 extern "C" SEXP _openCyto_rlm_cpp(SEXP x, SEXP y, SEXP maxit) {
   BEGIN_CPP11
-    return cpp11::as_sexp(rlm_cpp(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix>>(x), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(y), cpp11::as_cpp<cpp11::decay_t<int>>(maxit)));
+    return cpp11::as_sexp(rlm_cpp(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(x), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(y), cpp11::as_cpp<cpp11::decay_t<int>>(maxit)));
   END_CPP11
 }
 // solve_LSAP.cpp
-std::vector<int> solve_LSAP_cpp(cpp11::doubles_matrix mat);
+std::vector<int> solve_LSAP_cpp(cpp11::doubles_matrix<> mat);
 extern "C" SEXP _openCyto_solve_LSAP_cpp(SEXP mat) {
   BEGIN_CPP11
-    return cpp11::as_sexp(solve_LSAP_cpp(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix>>(mat)));
+    return cpp11::as_sexp(solve_LSAP_cpp(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(mat)));
   END_CPP11
 }
 // unlockNamespace.cpp
@@ -34,12 +35,6 @@ extern "C" SEXP _openCyto_unlockNamespace(SEXP env) {
 }
 
 extern "C" {
-/* .Call calls */
-extern SEXP _openCyto_collapseData(SEXP, SEXP);
-extern SEXP _openCyto_rlm_cpp(SEXP, SEXP, SEXP);
-extern SEXP _openCyto_solve_LSAP_cpp(SEXP);
-extern SEXP _openCyto_unlockNamespace(SEXP);
-
 static const R_CallMethodDef CallEntries[] = {
     {"_openCyto_collapseData",    (DL_FUNC) &_openCyto_collapseData,    2},
     {"_openCyto_rlm_cpp",         (DL_FUNC) &_openCyto_rlm_cpp,         3},
@@ -49,7 +44,7 @@ static const R_CallMethodDef CallEntries[] = {
 };
 }
 
-extern "C" void R_init_openCyto(DllInfo* dll){
+extern "C" attribute_visible void R_init_openCyto(DllInfo* dll){
   R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
   R_useDynamicSymbols(dll, FALSE);
   R_forceSymbols(dll, TRUE);

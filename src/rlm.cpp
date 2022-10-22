@@ -32,7 +32,7 @@ double leastSquareDiff(cpp11::doubles residual_old, cpp11::doubles residual_new)
 }
 
 [[cpp11::register]]
-cpp11::list rlm_cpp(cpp11::doubles_matrix x, cpp11::doubles y, int maxit){
+cpp11::list rlm_cpp(cpp11::doubles_matrix<> x, cpp11::doubles y, int maxit){
   using namespace cpp11::literals; // so we can use ""_nm syntax
   auto lm_wfit = cpp11::package("stats")["lm.wfit"];
   
