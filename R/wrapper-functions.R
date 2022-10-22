@@ -115,23 +115,21 @@
 #
 
 }
-#' wrapper for \link[flowStats:singletGate]{singletGate}
+#' wrapper for \link[singletGate]{singletGate}
 #' 
 #' @param pp_res not used
 #' @param fr \code{flowFrame} object as a data input 
-#' @param ... arguments to be passed to \link[flowStats:singletGate]{singletGate}
+#' @param ... arguments to be passed to \link[singletGate]{singletGate}
 #' @inheritParams .prior_flowclust
 #' @return a \code{filter} object
-#' @importFrom flowStats singletGate
 #' @noRd 
 .singletGate <- function(fr, pp_res = NULL, channels, ...) {
   
 
   # Creates a list of polygon gates based on the prediction bands at the minimum
-  # and maximum x_channel observation using a robust linear model trained by
-  # flowStats.
+  # and maximum x_channel observation using a robust linear model trained 
 
-  singletGate(fr, area = channels[1], height = channels[2], ...)
+  gate_singlet(fr, area = channels[1], height = channels[2], ...)
 }
 
 #' boundary gating function
@@ -276,76 +274,6 @@
 
 .flowClust.1d <- .gate_flowclust_1d
 
-#' wrapper for cytokine
-#' 
-#' It does some parameter preprocessing before calling the cytokine
-#' 
- 
-#' @param ... arguments to be passed to \link{cytokine}
-#' @inheritParams .gate_flowclust_1d 
-#' 
-#' @return a \code{filter} object
-#' @noRd 
-.cytokine <- function(fr, pp_res, ...) {
-  .Defunct("tailgate")
-  #TODO:standardize data with pp_res
-  .gate_tail(fr, pp_res = pp_res, ...)
-}
-
-#' @param ... arguments to be passed to \link{tailgate}
-#' @name .tailgate
-#' @title tailgate
-#' @inheritParams .gate_flowclust_1d 
-#' 
-#' @return a \code{filter} object
-#' @noRd 
-.gate_tail <- function(fr, pp_res = NULL, channels, ...) {
-  if(length(channels) != 1)
-    stop("invalid number of channels for tailgate!")
-  #pps_res may contains the standardized and collapsed data and transformation
-  if(isTRUE(attr(pp_res, "openCyto_preprocessing") == "standardize")){
-      transformedData <- pp_res[["flow_frame"]]
-     
-      #if no flow data passed in, need to tranform original fr first
-     if(is.null(transformedData)){
-      data <- exprs(fr)[, channels]
-      exprs(fr)[, channels] <- with(pp_res, (data - center)/scale) 
-      transformedData <- fr
-     }
-     
-    g <- tailgate(transformedData, channel = channels, ...)
-    gate_coordinates <- c(g@min, g@max)
-
-    # Backtransforms the gate 
-    gate_coordinates <- with(pp_res, center + scale * gate_coordinates)
-    gate_coordinates <- list(gate_coordinates)
-    names(gate_coordinates) <- parameters(g)
-    gate <- rectangleGate(gate_coordinates, filterId = g@filterId)
-          
-  }else
-    gate <- tailgate(fr, channel = channels, ...)
-  
-  #carry ind with gate
-#  .gateToFilterResult(fr, yChannel, gate, positive)  
-  gate
-  
-  # If a sample has no more than 1 observation when the 'cytokine' gate is
-  # attempted, the 'center' and/or 'scale' will result be NA, in which case we
-  # replace the resulting NA cutpoints with the average of the remaining
-  # cutpoints. If all of the cutpoints are NA, we set the mean to 0, so that
-  # all of the cutpoints are 0.
-#  cutpoints_unlisted <- unlist(cutpoints)
-#  if (sum(!is.na(cutpoints_unlisted)) > 0) {
-#    mean_cutpoints <- mean(cutpoints_unlisted, na.rm = TRUE)
-#  } else {
-#    mean_cutpoints <- 0
-#  }
-#  cutpoints <- as.list(replace(cutpoints_unlisted, is.na(cutpoints_unlisted),
-#          mean_cutpoints))
-  
-}
-
-.tailgate <- .gate_tail
 
 #' wrapper for mindensity
 #' 
@@ -367,22 +295,6 @@
 }
 
 .mindensity <- .gate_mindensity
-
-#'@param fr a flowFrame
-#'@param pp_res preprocessing results.
-#'@param channels \code{character}
-#'@param ... arguments passed to \link{gate_tautString}
-#'@rdname tautStringGate
-#' @noRd 
-.gate_tautstring <- function(fr, pp_res = NULL, channels, ...){
-  if(length(channels) != 1){
-    stop("Invalid number of channels. The tautString takes one channel.")
-  }
-  gate <- gate_tautstring(fr, channel = channels, ...)
-  gate
-}
-
-.tautStringGate <- .gate_tautstring
 
 #' wrapper for gate_flowclust_2d
 #' 
@@ -437,15 +349,13 @@
 #' It does some parameter preprocessing before calling the rangeGate
 #' 
 #' @param pp_res not used
-#' @param ... arguments to be passed to \link[flowStats:rangeGate]{rangeGate}
 #' @inheritParams .gate_flowclust_1d 
 #' 
 #' @return a \code{filter} object
-#' @importFrom flowStats rangeGate
 #' @noRd 
 .rangeGate <- function(fr, pp_res = NULL, channels,  ...) {
   
-  rangeGate(x = fr, stain = channels,  ...)
+  .Defunct("mindensity")
 }
 #' wrapper for quantileGate
 #' 
@@ -485,17 +395,13 @@
 ############################
 # preprocessing wrappers
 #########################
-#'  wrapper for \link[flowStats:warpSet]{warpSet}
 #' 
-#' @param stains \code{character} passed to \link[flowStats:warpSet]{warpSet} 
 #' @inheritParams .prior_flowclust 
 #' 
 #' @return \code{NULL}
-#' @importFrom flowStats warpSet
 #' @noRd 
 .warpSet <- function(fs, gs, gm, channels, groupBy, isCollapse, stains, ...){
-  fs <- fs[, stains]
-  warpSet(fs, stains = stains, ...)
+  .Defunct()
   return (NULL)
  }
 #'  wrapper for prior_flowclust

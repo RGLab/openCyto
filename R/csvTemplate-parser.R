@@ -21,25 +21,26 @@ NULL
 #' @export 
 gh_generate_template <- function(gh){
   nodes <- gs_get_pop_paths(gh, order = "tsort")
-  dt = ldply(nodes[-1], function(thisNode){
+  dt = do.call(rbind, lapply(nodes[-1], function(thisNode){
         thisGate <- gh_pop_get_gate(gh, thisNode)
         dims <- paste(as.vector(parameters(thisGate)), collapse = ",")
         parent <- gs_pop_get_parent(gh, thisNode)
         alias <- basename(thisNode)
         pop <- alias
-        c(alias = alias
+        data.frame(alias = alias
             , pop = "+"
             , parent = parent
             , dims = dims
-            , gating_method = NA
-            , gating_args = NA
+            , gating_method = NA_character_
+            , gating_args = NA_character_
             , collapseDataForGating = NA
-            , groupBy = NA
-            , preprocessing_method = NA
-            , preprocessing_args = NA
+            , groupBy = NA_character_
+            , preprocessing_method = NA_character_
+            , preprocessing_args = NA_character_
         )
       })
-  if(ncol(dt)==0){
+  )
+  if(is.null(dt)||ncol(dt)==0){
     cn = c("alias","pop","parent","dims","gating_method","gating_args","collapseDataForGating","groupBy","preprocessing_method","preprocessing_args")
     dt = vector('list',10)
     names(dt) = cn
@@ -502,7 +503,7 @@ templateGen <- function(gh){
   
   dims.dims <- trimws(strsplit(split = ",", this_row[, dims])[[1]])
   
-  res <- ldply(dims.dims, function(cur_dim) {
+  res <- do.call(rbind, lapply(dims.dims, function(cur_dim) {
         new_pop_name <- paste(cur_dim, "+", sep = "")
         this_parent <- this_row[, parent]
         if(strict)
@@ -519,7 +520,7 @@ templateGen <- function(gh){
             , preprocessing_method = this_row[, preprocessing_method]
             , preprocessing_args = this_row[, preprocessing_args]
         )
-      })
+      }))
 #  rownames(res) <- NULL
   as.data.table(res)
 }

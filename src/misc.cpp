@@ -1,33 +1,35 @@
-#include <Rcpp.h>
-using namespace Rcpp ;
+#include <cpp11.hpp>
+#include <vector>
 using namespace std ;
 
-// [[Rcpp::export]]
-NumericMatrix collapseData(List mat_list, StringVector colnames){
+[[cpp11::register]]
+cpp11::doubles_matrix collapseData(cpp11::list mat_list, cpp11::strings colnames){
 	//create the mat
-	unsigned nCol = colnames.size();
-	unsigned nRow =0;
-	for(unsigned i = 0; i < mat_list.size(); i++){
+	int nCol = colnames.size();
+	int nRow =0;
+	for(int i = 0; i < mat_list.size(); i++){
 
-		NumericMatrix mat = mat_list(i);
+		cpp11::doubles_matrix mat(mat_list[i]);
 		nRow += mat.nrow();
 	}
-    NumericMatrix out(nRow, nCol);
+    cpp11::writable::doubles_matrix out(nRow, nCol);
 
-    out.attr("dimnames") = List(2);
-    SET_VECTOR_ELT(out.attr("dimnames"), 1, colnames);
+    cpp11::writable::list mydims(2);
+	mydims[1] = colnames;
+	Rf_setAttrib(cpp11::as_sexp(out), cpp11::as_sexp({"dimnames"}), cpp11::as_sexp(mydims));
+
     //concatenate the mats
     int offset = 0;
-    for(unsigned ind = 0; ind < mat_list.size(); ind++){
+    for(int ind = 0; ind < mat_list.size(); ind++){
 //    	Rcout << "mat.no:" << ind << endl;
     	//get current mat
-    	NumericMatrix mat = mat_list(ind);
-    	unsigned nrow = mat.nrow();
+    	cpp11::doubles_matrix mat(mat_list[ind]);
+    	int nrow = mat.nrow();
 //    	Rcout << "mat rows:" << nrow << endl;
     	//update the current block
-    	for(unsigned i = 0; i < nrow; i++)
-    		for(unsigned j = 0; j < nCol; j++){
-    			unsigned rowInd = offset + i;
+    	for(int i = 0; i < nrow; i++)
+    		for(int j = 0; j < nCol; j++){
+    			int rowInd = offset + i;
 //    			Rcout << "update i,j:" << rowInd << "," << j << endl;
     			out(rowInd, j) =  mat(i, j);
     		}

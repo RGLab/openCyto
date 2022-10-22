@@ -73,7 +73,7 @@ This is a gating scheme for a `T cell` panel, which tries to identify `T cell` s
 We can achieve the same results by using the automated gating pipeline provided by this package.
 
 ### 1.2. Automated Gating
-`flowCore`,`flowStats`,`flowClust` and other packages provide many different gating methods to 
+`flowCore`,`flowClust` and other packages provide many different gating methods to 
 detect cell populations and draw gates automatically. 
 
 The `flowWorkspace` package provides the `GatingSet` as an efficient data structure to store, query and visualize the hierarchical gated data.
@@ -133,7 +133,7 @@ dtTemplate[2,]
 ```
 * The population name is `"singlets"` (the `alias` field).
 * The `parent` node is `nonDebris`.
-* The `gating_method` is `singletGate` (a function from the `flowStats` package)
+* The `gating_method` is `singletGate` 
 * As a result, a `polygonGate` will be generated on `FSC-A` and `FSC-H` (specified by `dims`) for each sample.
 * Again, the `+` in the `pop` field stands for `"singlets+"`. But here it is 2-D gate, which means we want to keep the area 
 inside of the polygon. 

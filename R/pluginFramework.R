@@ -8,8 +8,8 @@ NULL
 .openCyto_plugin_method_lookup[["registered_methods"]] <- list(gating = character(0), preprocessing = character(0))
 .DEFAULT_GT <- c("quantileGate", "gate_quantile", "rangeGate","flowClust.2d", "gate_flowclust_2d", "mindensity", "gate_mindensity"
                  , "mindensity2", "gate_mindensity2", "cytokine", "flowClust.1d", "gate_flowclust_1d", "boundary","singletGate"
-                 ,"tailgate", "gate_tail", "quadGate.tmix", "gate_quad_tmix", "quadGate.seq", "gate_quad_sequential"
-                 , "tautStringGate", "gate_tautstring")
+                  , "quadGate.tmix", "gate_quad_tmix", "quadGate.seq", "gate_quad_sequential"
+                 )
 .DEFAULT_PP <- c("prior_flowClust", "prior_flowClust", "warpSet", "standardize_flowset")
 #'Print a list of the registered gating methods
 #'@name gt_list_methods
@@ -100,7 +100,7 @@ NULL
 #'         type \code{character} specifying the type of registering method. Should be either "gating" or "preprocessing".
 #' 
 #' @return \code{logical} TRUE if successful and prints a message. FALSE otherwise.
-#' @useDynLib openCyto
+#' @useDynLib openCyto,.registration = TRUE
 #' @details The \code{fun} argument should be a wrapper function definition for the gating or preprocessing method. 
 #'                          Gating method must have formal arguments:
 #' 
@@ -135,13 +135,12 @@ NULL
 #' Not all formal parameters need to be used. Additional arguments are passed via the ... and can be processed in the wrapper
 #' 
 #' @import utils
-#' @importFrom R.utils isPackageInstalled
 #' @export
 register_plugins <- function(fun = NA, methodName, dep = NA, ...){
   
   if(!is.na(dep)){
     if(is.character(dep)){
-      if(!isPackageInstalled(dep)){
+      if(system.file(package = dep) == ""){
         message(sprintf("Can't register %s with dependency on %s, because dependency is not installed.",methodName,dep))
         return(FALSE)
       }

@@ -475,26 +475,26 @@
 #' @param center logical value. Should \code{x} be centered?
 #' @param scale logical value. Should \code{x} be scaled?
 #' @return numeric vector containing the scaled data
-#' @importFrom MASS huber
 #' @noRd 
 .scale_huber <- function(x, center = TRUE, scale = TRUE) {
   
   
   x <- as.vector(x)
-  huber_x <- huber(x)
+  sd <- mad(x)
+  huber_x <- robust_m_estimator(x, sd)
   
   # If 'center' is set to TRUE, we center 'x' by the Huber robust location
   # estimator.
   center_x <- FALSE
   if (center) {
-    center_x <- huber_x$mu
+    center_x <- huber_x
   }
   
   # If 'scale' is set to TRUE, we scale 'x' by the Huber robust standard
   # deviation estimator.
   scale_x <- FALSE
   if (scale) {
-    scale_x <- huber_x$s
+    scale_x <- sd
   }
   
   x <- as.vector(base::scale(x, center = center_x, scale = scale_x))

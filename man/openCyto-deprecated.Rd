@@ -2,7 +2,7 @@
 % Please edit documentation in R/add_pop.R, R/bayes-flowClust.R,
 %   R/csvTemplate-parser.R, R/gating-functions.R, R/gating-methods.R,
 %   R/gatingTemplate-methods.R, R/pluginFramework.R, R/remove_pop.R,
-%   R/tautString.R, R/toggle.helperGates.R
+%   R/toggle.helperGates.R
 \name{openCyto-deprecated}
 \alias{openCyto-deprecated}
 \title{Deprecated functions in package \pkg{openCyto}.}
@@ -20,8 +20,6 @@
 \code{gate_flowClust_2d} --> \code{\link{gate_flowclust_2d}}
 
 \code{quantileGate} --> \code{\link{gate_quantile}}
-
-\code{cytokine} --> \code{\link{gate_tail}}
 
 \code{quadGate.seq} --> \code{\link{gate_quad_sequential}}
 
@@ -42,10 +40,6 @@
 \code{registerPlugins} --> \code{\link{register_plugins}}
 
 \code{remove_pop} --> \code{\link{gs_remove_gating_method}}
-
-\code{tautString} --> \code{\link{tautstring}}
-
-\code{tautStringGate} --> \code{\link{gate_tautstring}}
 
 \code{toggle.helperGates} --> \code{\link{gt_toggle_helpergates}}
 

@@ -7,7 +7,7 @@ localPath <- "~/rglab/workspace/openCyto"
 
 skip_if_not(dir.exists(file.path(localPath, "misc")))
 library(parallel)
-
+register_plugins(flowStats:::.tailgate, "tailgate")
 test_that("tcell", {
       
       gt_tcell <- gatingTemplate(gtFile)
@@ -170,15 +170,6 @@ test_that("ICS", {
       expect_equivalent(thisRes[,percent], expectRes[thisRes[,pop],1], tol = 0.04)
       
       #test add_pop with polyFunctions
-      nodes <- gs_pop_get_children(gs[[1]], "cd8")[-(1:4)]
-      for(node in nodes)
-        gs_pop_remove(gs, node)
-      expect_warning(
-        add_pop(gs, gating_method = "polyFunctions", parent = "cd8", gating_args = "cd8/IFNg:cd8/IL2:cd8/TNFa")
-      , regexp = "is replaced with")
-      
-      thisRes <- gs_pop_get_stats(gs[1], path = "full", type = "percent")
-      expect_equivalent(thisRes[,percent], expectRes[thisRes[,pop],1], tol = 0.04)
       
       #test add_pop with boolean method
       pop <- "IL2orIFNg"

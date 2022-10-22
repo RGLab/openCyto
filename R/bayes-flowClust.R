@@ -34,8 +34,11 @@ NULL
 #' covariance matrices are singular. See details.
 #' @param ... Additional arguments passed to the prior elicitation method selected
 #' @return list of the necessary prior parameters
-#' @importFrom plyr aaply
 #' @export 
+#' @examples 
+#' library(flowCore)
+#' data(GvHD)
+#' prior_flowclust(GvHD[1:3], c("FSC-H", "SSC-H"))
 prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...) {
   #pass only the first element of w0 since it will be replicated ..
@@ -52,7 +55,7 @@ prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
     # In the rare case a covariance matrix is singular, we shrink the eigenvalues
     # of the matrix. The amount of shrinkage is controlled in 'shrink'.
 
-    prior_list$Lambda0 <- aaply(prior_list$Lambda0, 1, function(cov_mat) {
+    prior_list$Lambda0 <- .aaply(prior_list$Lambda0, 1, function(cov_mat) {
       if (is(try(solve(cov_mat), silent = TRUE), "try-error")) {
         cov_mat <- cov_mat + shrink * diag(nrow(cov_mat))
       }
@@ -68,7 +71,7 @@ prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
       prior_list$Lambda0<-L0
     }
     
-    prior_list$Omega0 <- aaply(prior_list$Omega0, 1, function(cov_mat) {
+    prior_list$Omega0 <- .aaply(prior_list$Omega0, 1, function(cov_mat) {
       if (class(try(solve(cov_mat), silent = TRUE)) == "try-error") {
         cov_mat <- cov_mat + shrink * diag(nrow(cov_mat))
       }
@@ -351,7 +354,6 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' \code{NULL} (default), no truncation is applied.
 #' @param ... Additional arguments passed to \code{kmeans}
 #' @return list of \code{flowClust} prior parameters
-#' @importFrom clue solve_LSAP
 #' @rdname prior_kmeans
 #' @noRd 
 .prior_kmeans <- function(flow_set, channels, K, nu0 = 4, w0 = 10, nstart = 10,
@@ -541,7 +543,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' library(flowClust)
 #' set.seed(42)
 #' # 2 peaks with a minor hump
-#' y <- SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
+#' y <- flowStats::SimulateMixture(10000, c(.5, .3, .2), c(2, 5, 7), c(1, 1, 1), nu = 10)
 #' plot(density(y))
 #' peaks <- .find_peaks(y)
 #' abline(v = peaks[, "x"], col = "red")
@@ -620,7 +622,7 @@ prior_flowClust <- function(flow_set, channels, prior_method = c("kmeans"),
 #' library(flowClust)
 #' set.seed(42)
 #' # 3 peaks and 2 valleys
-#' y <- SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
+#' y <- flowStats::SimulateMixture(10000, c(.25, .5, .25), c(1, 5, 9), c(1, 1, 1), nu = 10)
 #' plot(density(y))
 #' valleys <- .find_valleys(y)
 #' abline(v = valleys, col = "red")

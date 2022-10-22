@@ -1,3 +1,4 @@
+#include <cpp11.hpp>
 #include <R.h>
 #include <Rdefines.h>
 #include <R_ext/Error.h>
@@ -10,7 +11,8 @@
 #define FRAME_IS_LOCKED(e) (ENVFLAGS(e) & FRAME_LOCK_MASK)
 #define UNLOCK_FRAME(e) SET_ENVFLAGS(e, ENVFLAGS(e) & (~ FRAME_LOCK_MASK))
 
-SEXP unlockNamespace( SEXP env ) {
+[[cpp11::register]]
+cpp11::logicals unlockNamespace(cpp11::sexp env) {
 
   if (TYPEOF(env) == NILSXP)
     Rf_error("use of NULL environment is defunct");
@@ -20,10 +22,9 @@ SEXP unlockNamespace( SEXP env ) {
   UNLOCK_FRAME(env);
  
   // Return TRUE if unlocked; FALSE otherwise
-  SEXP result = PROTECT( Rf_allocVector(LGLSXP, 1) );
-  LOGICAL(result)[0] = FRAME_IS_LOCKED(env) == 0;
-  UNPROTECT(1);
- 
-  return result;
+  cpp11::writable::logicals res(1);
+  res[0] = FRAME_IS_LOCKED(env) == 0;
+
+  return res;
   
 }
