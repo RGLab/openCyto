@@ -260,6 +260,7 @@ plot(gridExtra::arrangeGrob(p1,p2))
 
 ### 4.5. Gating
 Now we can apply the gating template to the data:
+
 ```{r gating, eval = TRUE}
 gt_gating(gt_tcell, gs)
 ```
