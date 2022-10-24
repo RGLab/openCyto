@@ -38,7 +38,7 @@ test_that("start/stop.at argument in gt_gating function", {
                                         , "/boundary/singlet/Lymph"
                                         , "/boundary/singlet/Alexa700_gate"
                                         , "/boundary/singlet/Lymph/Alexa700pPerCPCY5_5p", "/boundary/singletRefGate", "/boundary/singletRefGate/singletRefGate_LymphRefGate"))  
-}
+})
 
 test_that("robust mean", {
   data(GvHD)

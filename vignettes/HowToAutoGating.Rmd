@@ -77,18 +77,6 @@ p + geom_gate(g)
 To choose one way or the other or combining both is highly dependent on how your data. The more contrains will give you more controls on how gating proceeds yet at cost of robustness of your gating pipeline sometime.
 
 
-### `tailgate`
-This gating method is used in the senarios where there is only one major peak detected thus automatically disqualify the usage of `mindensity`. `tol` is to control how far the cut point should be placed away from the peak. 
-
-```{r}
-fr <- gh_pop_get_data(gs[[1]], "lymph", returnType = "flowFrame")
-chnl <- "Live"
-g <- openCyto:::.tailgate(fr, channels = chnl, tol = 0.05)
-p <- autoplot(fr, chnl) + mylimits
-p + geom_gate(g)
-autoplot(fr, chnl, "SSC-A") + geom_gate(g)
-```
-
 ### `quantileGate`
 This method is an alternative to `tailgate` and it determines the cutpoint by the events quantile.
 ```{r}
