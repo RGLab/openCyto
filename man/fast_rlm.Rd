@@ -18,11 +18,3 @@ rewritten in c++, till eval stats::lm.wfit r function in underlying cpp11 code
 It is internally used for singletGate, thus its output format may not be generic enough for common model fitting .
 e.g. it doesn't take formula as input
 }
-\examples{
-n <- 1e3
-x <- seq_len(n)
-y <- x * 2.5 - 1.3 + rnorm(n, sd = 30)
-names(y) <- x
-x <- cbind(1, x)
-r2 <- fast_rlm(x, y)
-}

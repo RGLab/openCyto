@@ -8,6 +8,7 @@
 #' @param y numeric vector as response 
 #' @param maxit maximum iterations
 #' @examples 
+#' @noRd
 #' n <- 1e3
 #' x <- seq_len(n)
 #' y <- x * 2.5 - 1.3 + rnorm(n, sd = 30)
