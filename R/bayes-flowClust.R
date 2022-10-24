@@ -36,9 +36,11 @@ NULL
 #' @return list of the necessary prior parameters
 #' @export 
 #' @examples 
+#' \dontrun{
 #' library(flowCore)
 #' data(GvHD)
 #' prior_flowclust(GvHD[1:3], c("FSC-H", "SSC-H"))
+#' }
 prior_flowclust <- function(flow_set, channels, prior_method = c("kmeans"),
                             K = 2, nu0 = 4, w0 = c(10,10), shrink = 1e-6, ...) {
   #pass only the first element of w0 since it will be replicated ..

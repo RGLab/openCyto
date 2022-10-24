@@ -58,7 +58,9 @@ instance, if the \code{flow_set} has two samples, this case can occur. The
 amount of shrinkage is controlled in \code{shrink}.
 }
 \examples{
+\dontrun{
 library(flowCore)
 data(GvHD)
 prior_flowclust(GvHD[1:3], c("FSC-H", "SSC-H"))
+}
 }
