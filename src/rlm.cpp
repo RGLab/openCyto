@@ -1,3 +1,6 @@
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#define BOOST_DISABLE_THREADS
+#endif
 #include <cpp11.hpp>
 #include <vector>
 using namespace std;
