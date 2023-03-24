@@ -385,14 +385,8 @@ roxygen_parameter <- function() {
     # For gate_quad methods, need to filter down to just the gates that were asked for
     if(names(x) %in% c("quadGate.seq", "gate_quad_sequential", "quadGate.tmix", "gate_quad_tmix")){
       pops <- gtPop@name
-      # keep all populations when pop = * and alias supplied
-      if(all(pops == "*")) {
-        if(length(popAlias) != 4) {
-          stop(
-            "'alias' must contain names for every quadrant when 'pop = *'!"
-          )
-        }
-      } else {
+      # keep all populations when pop = *
+      if(!all(pops == "*")) {
         pops <- gsub("([\\+-])([^/$])", "\\1&\\2", pops)
         pops <- strsplit(pops, "&")[[1]]
         pops <- strsplit(pops, "/")
