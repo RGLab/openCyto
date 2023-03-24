@@ -381,16 +381,25 @@ roxygen_parameter <- function() {
           popAlias <- NULL  
       }
     }
-
+    
     # For gate_quad methods, need to filter down to just the gates that were asked for
     if(names(x) %in% c("quadGate.seq", "gate_quad_sequential", "quadGate.tmix", "gate_quad_tmix")){
       pops <- gtPop@name
-      pops <- gsub("([\\+-])([^/$])", "\\1&\\2", pops)
-      pops <- strsplit(pops, "&")[[1]]
-      pops <- strsplit(pops, "/")
-      pops <- paste0(rep(pops[[1]], each=length(pops[[2]])), pops[[2]])
-      pops <- match(pops, c("-+", "++", "+-", "--"))
-      flist <- lapply(flist, function(sublist) filters(sublist[pops]))
+      # keep all populations when pop = * and alias supplied
+      if(all(pops == "*")) {
+        if(length(popAlias) != 4) {
+          stop(
+            "'alias' must contain names for every quadrant when 'pop = *'!"
+          )
+        }
+      } else {
+        pops <- gsub("([\\+-])([^/$])", "\\1&\\2", pops)
+        pops <- strsplit(pops, "&")[[1]]
+        pops <- strsplit(pops, "/")
+        pops <- paste0(rep(pops[[1]], each=length(pops[[2]])), pops[[2]])
+        pops <- match(pops, c("-+", "++", "+-", "--"))
+        flist <- lapply(flist, function(sublist) filters(sublist[pops]))
+      }
     }
     
     gs_node_id <- gs_pop_add(y, flist, parent = parent, name = popAlias, validityCheck = FALSE, negated = negated)
