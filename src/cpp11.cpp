@@ -3,8 +3,14 @@
 
 
 #include "cpp11/declarations.hpp"
-#include <R_ext/Visibility.h>
 
+// Cdqrls.cpp
+SEXP Cdqrls(SEXP x, SEXP y, SEXP tol);
+extern "C" SEXP _openCyto_Cdqrls(SEXP x, SEXP y, SEXP tol) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(Cdqrls(cpp11::as_cpp<cpp11::decay_t<SEXP>>(x), cpp11::as_cpp<cpp11::decay_t<SEXP>>(y), cpp11::as_cpp<cpp11::decay_t<SEXP>>(tol)));
+  END_CPP11
+}
 // misc.cpp
 cpp11::doubles_matrix<> collapseData(cpp11::list mat_list, cpp11::strings colnames);
 extern "C" SEXP _openCyto_collapseData(SEXP mat_list, SEXP colnames) {
@@ -35,7 +41,15 @@ extern "C" SEXP _openCyto_unlockNamespace(SEXP env) {
 }
 
 extern "C" {
+/* .Call calls */
+extern SEXP _openCyto_Cdqrls(SEXP, SEXP, SEXP);
+extern SEXP _openCyto_collapseData(SEXP, SEXP);
+extern SEXP _openCyto_rlm_cpp(SEXP, SEXP, SEXP);
+extern SEXP _openCyto_solve_LSAP_cpp(SEXP);
+extern SEXP _openCyto_unlockNamespace(SEXP);
+
 static const R_CallMethodDef CallEntries[] = {
+    {"_openCyto_Cdqrls",          (DL_FUNC) &_openCyto_Cdqrls,          3},
     {"_openCyto_collapseData",    (DL_FUNC) &_openCyto_collapseData,    2},
     {"_openCyto_rlm_cpp",         (DL_FUNC) &_openCyto_rlm_cpp,         3},
     {"_openCyto_solve_LSAP_cpp",  (DL_FUNC) &_openCyto_solve_LSAP_cpp,  1},
@@ -44,7 +58,7 @@ static const R_CallMethodDef CallEntries[] = {
 };
 }
 
-extern "C" attribute_visible void R_init_openCyto(DllInfo* dll){
+extern "C" void R_init_openCyto(DllInfo* dll){
   R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
   R_useDynamicSymbols(dll, FALSE);
   R_forceSymbols(dll, TRUE);

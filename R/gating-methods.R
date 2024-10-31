@@ -261,7 +261,7 @@ roxygen_parameter <- function() {
     frm <- parent_data[[1, use.exprs = FALSE]]
     channels <-  unname(sapply(dims, function(channel)as.character(getChannelMarker(frm, channel)$name)))
     if(length(channels) > 0) 
-      parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
+    parent_data <- parent_data[, channels] #it is more efficient to only pass the channels of interest
     # Splits the flow set into a list.
     # By default, each element in the list is a flowSet containing one flow frame,
     # corresponding to the individual sample names.
@@ -363,7 +363,7 @@ roxygen_parameter <- function() {
       if(!is(fcflist, "try-error"))
         flist <- fcflist
       }
-
+    
     is_clustering_results = is(flist[[1]], "factor")
     
     if (is_clustering_results) { 
@@ -371,13 +371,13 @@ roxygen_parameter <- function() {
             warning("popAlias is set to gating method name ",gating_method_name," because gating results are factors")
         popAlias = gating_method_name
     }
-  
-              
+    
+    
     if(length(popAlias) == 1){
       #when Alias is meta character, then pass NULL
       # to add method which uses filterId slot to name the populations
       if(popAlias == "*") {
-          popAlias <- NULL  
+        popAlias <- NULL  
       }
     }
 
