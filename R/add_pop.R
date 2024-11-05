@@ -77,6 +77,9 @@ gs_add_gating_method <- function(gs, alias = "*"
     preprocessing_args <- .argDeparser(preprocessing_args)      
   }
   
+  # format split dims & drop duplicated dims
+  dims <- paste(unique(dims), collapse = ",")
+  
   thisRow <- data.table(alias = alias
                         , pop = pop
                         , parent = parent
