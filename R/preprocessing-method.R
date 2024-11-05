@@ -83,10 +83,10 @@ update_list <- function (x, val)
         split_by <- as.character(split_by)
       }
       fslist <- split(parent_data, split_by)
-    }else 
-    {
-      fslist <- list(parent_data)  
-    } 
+    }else {
+      # all samples same group named "all" - matches .gating_gtMethod()
+      fslist <- list("all" = parent_data)  
+    }
     
     # construct method call
     thisCall <- substitute(f1())
