@@ -26,6 +26,7 @@ update_list <- function (x, val)
 }
 #' internal function (preprocessing)
 #' 
+#' @importFrom flowWorkspace sampleNames
 #' @inheritParams .gating_gtMethod
 #' @param gm: \code{gtMethod} object
 #' @noRd 
@@ -85,7 +86,11 @@ update_list <- function (x, val)
       fslist <- split(parent_data, split_by)
     }else 
     {
-      fslist <- list(parent_data)  
+      if(isCollapse) {
+        fslist <- list(parent_data) 
+      } else {
+        fslist <- split(parent_data, sampleNames(parent_data))
+      }
     } 
     
     # construct method call
