@@ -381,8 +381,8 @@ roxygen_parameter <- function() {
       }
     }
 
-    # For gate_quad methods, need to filter down to just the gates that were asked for
-    if(names(x) %in% c("quadGate.seq", "gate_quad_sequential", "quadGate.tmix", "gate_quad_tmix")){
+    # For gate_quad methods, need to filter down to just the gates that were asked for if pop != "*"
+    if(!all(popName %in% "*") & names(x) %in% c("quadGate.seq", "gate_quad_sequential", "quadGate.tmix", "gate_quad_tmix")){
       pops <- gtPop@name
       pops <- gsub("([\\+-])([^/$])", "\\1&\\2", pops)
       pops <- strsplit(pops, "&")[[1]]
