@@ -583,7 +583,12 @@ gt_gating.dummyMethod <- function(x, y, ...) {
       # standardize the names for the gate parameters and dims
       gate_params <- unlist(lapply(glist, function(g) {
         cur_param <- parameters(g)
-        getChannelMarker(fr, cur_param)["name"]
+        sapply(
+          cur_param,
+          function(param) {
+            getChannelMarker(fr, param)["name"]
+          }
+        )
       }))
       negated_2d_gate <- FALSE
       if(length(glist)==1){
