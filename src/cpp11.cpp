@@ -3,6 +3,7 @@
 
 
 #include "cpp11/declarations.hpp"
+#include <R_ext/Visibility.h>
 
 // Cdqrls.cpp
 SEXP Cdqrls(SEXP x, SEXP y, SEXP tol);
@@ -41,13 +42,6 @@ extern "C" SEXP _openCyto_unlockNamespace(SEXP env) {
 }
 
 extern "C" {
-/* .Call calls */
-extern SEXP _openCyto_Cdqrls(SEXP, SEXP, SEXP);
-extern SEXP _openCyto_collapseData(SEXP, SEXP);
-extern SEXP _openCyto_rlm_cpp(SEXP, SEXP, SEXP);
-extern SEXP _openCyto_solve_LSAP_cpp(SEXP);
-extern SEXP _openCyto_unlockNamespace(SEXP);
-
 static const R_CallMethodDef CallEntries[] = {
     {"_openCyto_Cdqrls",          (DL_FUNC) &_openCyto_Cdqrls,          3},
     {"_openCyto_collapseData",    (DL_FUNC) &_openCyto_collapseData,    2},
@@ -58,7 +52,7 @@ static const R_CallMethodDef CallEntries[] = {
 };
 }
 
-extern "C" void R_init_openCyto(DllInfo* dll){
+extern "C" attribute_visible void R_init_openCyto(DllInfo* dll){
   R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
   R_useDynamicSymbols(dll, FALSE);
   R_forceSymbols(dll, TRUE);
