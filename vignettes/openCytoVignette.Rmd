@@ -313,7 +313,7 @@ gs_add_gating_method(gs, alias = "non-activated cd4",
                          pop = "--",
                          parent = "cd4",
                          dims = "CD38,HLA",
-                         gating_method = "tailgate")
+                         gating_method = "mindensity")
 plot(gs[[1]])
 ```
 

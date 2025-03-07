@@ -78,9 +78,11 @@ To choose one way or the other or combining both is highly dependent on how your
 
 
 ### `tailgate`
-This gating method is used in the senarios where there is only one major peak detected thus automatically disqualify the usage of `mindensity`. `tol` is to control how far the cut point should be placed away from the peak. 
+This gating method is used in the scenarios where there is only one major peak detected thus automatically disqualify the usage of `mindensity`. `tol` is to control how far the cut point should be placed away from the peak. This function is now housed in [cytoUtils](https://github.com/RGLab/cytoUtils).
 
-```{r}
+```{r, eval = FALSE}
+library(cytoUtils)
+register_plugins(cytoUtils:::.tailgate, "gate_tail")
 fr <- gh_pop_get_data(gs[[1]], "lymph", returnType = "flowFrame")
 chnl <- "Live"
 g <- openCyto:::.tailgate(fr, channels = chnl, tol = 0.05)
