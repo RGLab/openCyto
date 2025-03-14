@@ -20,7 +20,6 @@
 #'
 #' Maintainer: Mike Jiang \email{wjiang2@@fhcrc.org}
 #' @name openCyto
-#' @docType package
 #' @title Hierarchical Gating Pipeline for flow cytometry data
 #' @keywords package
 #' @examples
@@ -28,7 +27,7 @@
 #' @seealso See \code{\link[openCyto]{gt_gating}}, 
 #' \code{\link{gate_flowclust_1d}}, 
 #' for an overview of gating functions.
-NULL
+"_PACKAGE"
 
 #' a class storing the gating method and population information in a graphNEL object
 #' 
