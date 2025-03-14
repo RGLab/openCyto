@@ -1,5 +1,6 @@
 /*
- * copy from stats package
+ * from stats package
+ * src/library/stats/src/lm.c
  */
 #include <cpp11.hpp>
 #include <R.h>
