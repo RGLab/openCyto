@@ -53,7 +53,7 @@ update_list <- function (x, val)
   popId <- gtPop@id
   
   gs_nodes <- basename(gs_pop_get_children(y[[1]], parent))
-  if (length(gs_nodes) == 0 || !popAlias %in% gs_nodes) {
+  if (length(gs_nodes) == 0 || !any(popAlias %in% gs_nodes)) {
     message("Preprocessing for '", popAlias, "'")
     
     parent_data <- gs_pop_get_data(y, parent)
@@ -79,6 +79,16 @@ update_list <- function (x, val)
         #split by study variables
         pd <- pData(parent_data)
         split_by <- strsplit(split_by, ":")[[1]]
+        # check variables exist 
+        if(!all(split_by %in% colnames(pd))) {
+          stop(
+            "gatingTemplate references variables missing in the pData of the GatingSet: \n",
+            paste0(
+              split_by[!split_by %in% colnames(pd)],
+              sep = "\n"
+            )
+          )
+        }
         split_by <- apply(pd[, split_by, drop = FALSE], 1, function(i)paste(i, collapse = ":"))
         split_by <- as.character(split_by)
       }

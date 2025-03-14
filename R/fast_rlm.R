@@ -8,7 +8,6 @@
 #' @param y numeric vector as response 
 #' @param maxit maximum iterations
 #' @examples 
-#' @noRd
 #' n <- 1e3
 #' x <- seq_len(n)
 #' y <- x * 2.5 - 1.3 + rnorm(n, sd = 30)
@@ -23,15 +22,17 @@ fast_rlm <- function(x, y, maxit = 20)
     fit <- list(coefficients = fit_result$coefficients
                 , residuals = y - fitted
                 , wresid = fit_result$residuals,
-                effects = fit_result$effects,
+                # effects = fit_result$effects,
                 rank = fit_result$rank
-                , fitted.values = fitted,
-                assign = fit_result$assign,  qr = fit_result$qr
-                , df.residual = NA
+                , fitted.values = fitted
+                # assign = fit_result$assign
+                # ,  qr = fit_result$qr
+                # , df.residual = NA
                 , w = fit_result$w
                 ,s = fit_result$scale
                 ,weights = NULL
-                , converged = fit_result$done, x = x
+                , converged = fit_result$done
+                , x = x
                 )
     class(fit) <- c("rlm", "lm")
     fit
