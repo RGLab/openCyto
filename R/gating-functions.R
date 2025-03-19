@@ -842,7 +842,7 @@ mindensity <- gate_mindensity
 #' @param gFunc the name of the 1d-gating function to be used for either dimension
 #' @param min a numeric vector that sets the lower bounds for data filtering
 #' @param max a numeric vector that sets the upper bounds for data filtering
-#' @param ... other arguments passed to \code{.find_peak} (e.g. 'num_peaks' and 'adjust'). see \link{tailgate}
+#' @param ... other arguments passed to \code{.find_peak} (e.g. 'num_peaks' and 'adjust').
 #' @return a \code{filters} that contains four rectangleGates
 #' @export 
 gate_quad_sequential <- function(fr, channels, gFunc, min = NULL, max = NULL, ...){
