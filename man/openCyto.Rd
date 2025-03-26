@@ -2,6 +2,7 @@
 % Please edit documentation in R/AllClasses.R
 \docType{package}
 \name{openCyto}
+\alias{openCyto-package}
 \alias{openCyto}
 \title{Hierarchical Gating Pipeline for flow cytometry data}
 \description{

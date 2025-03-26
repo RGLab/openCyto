@@ -18,7 +18,7 @@ gate_quad_sequential(fr, channels, gFunc, min = NULL, max = NULL, ...)
 
 \item{max}{a numeric vector that sets the upper bounds for data filtering}
 
-\item{...}{other arguments passed to \code{.find_peak} (e.g. 'num_peaks' and 'adjust'). see \link{tailgate}}
+\item{...}{other arguments passed to \code{.find_peak} (e.g. 'num_peaks' and 'adjust').}
 }
 \value{
 a \code{filters} that contains four rectangleGates

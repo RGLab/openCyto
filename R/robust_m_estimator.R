@@ -1,4 +1,4 @@
-#' rewrite huber estimator
+# rewrite huber estimator
 robust_m_estimator <- function(x, sd)
 {
   stopifnot(sd != 0) 

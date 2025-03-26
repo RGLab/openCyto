@@ -7,7 +7,8 @@
 #' @param x matrix with first column as weight (default can be 1s), the rest columns are predict variable
 #' @param y numeric vector as response 
 #' @param maxit maximum iterations
-#' @examples 
+#' @export
+#' @examples
 #' n <- 1e3
 #' x <- seq_len(n)
 #' y <- x * 2.5 - 1.3 + rnorm(n, sd = 30)

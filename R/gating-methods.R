@@ -541,6 +541,7 @@ gt_gating.refGate <- function(x, y, ...) {
   .gating_refGate(x, y, ...)
 }
 
+#' @export
 gt_gating.dummyMethod <- function(x, y, ...) {
   #do nothing
 }
