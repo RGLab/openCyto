@@ -1,7 +1,7 @@
 Package: openCyto
 Type: Package
 Title: Hierarchical Gating Pipeline for flow cytometry data
-Version: 2.19.1
+Version: 2.19.2
 Date: 2012-06-11
 Author: Mike Jiang, John Ramey, Greg Finak, Raphael Gottardo
 Maintainer: Mike Jiang <mike@ozette.com>
@@ -39,5 +39,5 @@ Suggests:
 biocViews: ImmunoOncology, FlowCytometry, DataImport, Preprocessing, DataRepresentation
 Encoding: UTF-8
 VignetteBuilder: knitr
-LinkingTo: cpp11
 RoxygenNote: 7.3.2
+LinkingTo: cpp11, BH(>= 1.62.0-1)
