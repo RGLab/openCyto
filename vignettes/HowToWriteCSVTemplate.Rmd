@@ -2,10 +2,10 @@
 title: "How to write a csv gating template"
 output: 
   html_document: 
-    number_sections: yes
-    toc: yes
-    toc_float: yes
-    collapsed: no
+    number_sections: true
+    toc: true
+    toc_float: true
+    collapsed: false
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{How to write a csv gating template}
