@@ -2,10 +2,10 @@
 title: "An Introduction to the openCyto package"
 output: 
   html_document: 
-    number_sections: no
-    toc: yes
-    toc_float: yes
-    collapsed: no
+    number_sections: false
+    toc: true
+    toc_float: true
+    collapsed: false
 vignette: >
   %\VignetteEngine{knitr}
   %\VignetteIndexEntry{An Introduction to the openCyto package}

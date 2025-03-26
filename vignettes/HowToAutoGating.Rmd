@@ -3,9 +3,9 @@ title: "OpenCyto: How to use different auto gating functions"
 author: "Mike Jiang"
 output: 
   html_document: 
-    keep_md: yes
-    toc: yes
-    toc_float: yes
+    keep_md: true
+    toc: true
+    toc_float: true
 vignette: >    
   %\VignetteIndexEntry{How to use different auto gating functions}    
   %\VignetteEngine{knitr::rmarkdown}
