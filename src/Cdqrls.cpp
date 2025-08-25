@@ -9,12 +9,7 @@
 
 
 
-#ifdef ENABLE_NLS
-#include <libintl.h>
-#define _(String) dgettext ("stats", String)
-#else
 #define _(String) (String)
-#endif
 
 [[cpp11::register]]
 SEXP Cdqrls(SEXP x, SEXP y, SEXP tol)
