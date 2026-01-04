@@ -88,21 +88,20 @@
       if(!.isRegistered(gFunc)){
         stop(sprintf("Can't gate using unregistered method %s",gFunc))
       }
-      thisCall <- substitute(f(fr = fr
-                                , pp_res = pp_res
-                                , channels = channels
-                              )
-                              ,list(f = as.symbol(gFunc))
-                            )
-      filterRes <- try(do.call(gFunc, c(list(fr = fr
-                            , pp_res = pp_res
-                            , channels = channels
-                            )
-                        , gFunc_args
-                        )
-                      )              
-          , silent = TRUE
+      filterRes <- try(
+        do.call(
+          gFunc, 
+          c(
+            list(
+              fr = fr, 
+              pp_res = pp_res, 
+              channels = channels
+            ), 
+          gFunc_args
           )
+        ), 
+        silent = TRUE
+     )
         
     }
       
