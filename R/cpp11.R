@@ -15,3 +15,7 @@ rlm_cpp <- function(x, y, maxit) {
 solve_LSAP_cpp <- function(mat) {
   .Call(`_openCyto_solve_LSAP_cpp`, mat)
 }
+
+unlockNamespace <- function(env) {
+  .Call(`_openCyto_unlockNamespace`, env)
+}
