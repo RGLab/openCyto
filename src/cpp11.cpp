@@ -33,13 +33,6 @@ extern "C" SEXP _openCyto_solve_LSAP_cpp(SEXP mat) {
     return cpp11::as_sexp(solve_LSAP_cpp(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(mat)));
   END_CPP11
 }
-// unlockNamespace.cpp
-cpp11::logicals unlockNamespace(cpp11::sexp env);
-extern "C" SEXP _openCyto_unlockNamespace(SEXP env) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(unlockNamespace(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(env)));
-  END_CPP11
-}
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
@@ -47,7 +40,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_openCyto_collapseData",    (DL_FUNC) &_openCyto_collapseData,    2},
     {"_openCyto_rlm_cpp",         (DL_FUNC) &_openCyto_rlm_cpp,         3},
     {"_openCyto_solve_LSAP_cpp",  (DL_FUNC) &_openCyto_solve_LSAP_cpp,  1},
-    {"_openCyto_unlockNamespace", (DL_FUNC) &_openCyto_unlockNamespace, 1},
     {NULL, NULL, 0}
 };
 }

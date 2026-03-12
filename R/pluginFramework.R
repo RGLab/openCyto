@@ -6,6 +6,28 @@ NULL
 #' @noRd 
 .openCyto_plugin_method_lookup <- new.env()
 .openCyto_plugin_method_lookup[["registered_methods"]] <- list(gating = character(0), preprocessing = character(0))
+
+#' Environment holding dynamically registered plugin functions
+#' @noRd
+.openCyto_plugin_functions <- new.env(parent = emptyenv())
+
+#' Resolve a plugin function by name
+#'
+#' First checks the plugin functions environment for dynamically registered
+#' functions, then falls back to the package namespace for built-in functions.
+#' @param name character function name (with leading dot)
+#' @return the function object
+#' @noRd
+.resolve_plugin_function <- function(name) {
+  if (exists(name, envir = .openCyto_plugin_functions, inherits = FALSE)) {
+    return(get(name, envir = .openCyto_plugin_functions, inherits = FALSE))
+  }
+  ns <- getNamespace("openCyto")
+  if (exists(name, envir = ns, inherits = FALSE)) {
+    return(get(name, envir = ns, inherits = FALSE))
+  }
+  stop(sprintf("Plugin function '%s' not found", name))
+}
 .DEFAULT_GT <- c("quantileGate", "gate_quantile", "rangeGate","flowClust.2d", "gate_flowclust_2d", "mindensity", "gate_mindensity"
                  , "mindensity2", "gate_mindensity2", "flowClust.1d", "gate_flowclust_1d", "boundary","singletGate"
                  , "quadGate.tmix", "gate_quad_tmix", "quadGate.seq", "gate_quad_sequential", "gate_template", "gate_custom"
@@ -184,11 +206,8 @@ registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
   
   methodName <- paste0(".",methodName)
   
-  #insert to package namespace
-  ENV <- getNamespace("openCyto")
-  openCyto:::unlockNamespace(ENV)  
-  try(unlockBinding(methodName,ENV),silent=TRUE)
-  assign(methodName,fun,ENV)
+  # Store function in the plugin functions environment
+  assign(methodName, fun, envir = .openCyto_plugin_functions)
   
   #add to the plugin method list
   
@@ -204,9 +223,6 @@ registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
   
   if(!found)
     .openCyto_plugin_method_lookup[["registered_methods"]][[type]] <- c(current, toAdd)  
-  
-  lockBinding(methodName, env = ENV)
-  lockEnvironment(ENV)
   
   return(TRUE)
 }
@@ -236,12 +252,11 @@ registerPlugins <- function(fun = NA, methodName, dep = NA, ...){
   if(found)
     .openCyto_plugin_method_lookup[["registered_methods"]][[type]] <- current[!ind]
   
-  ENV <- getNamespace("openCyto")
-  openCyto:::unlockNamespace(ENV)
-  try(unlockBinding(methodName,ENV),silent=TRUE)
-  rm(list = methodName, envir = ENV)
+  # Remove from plugin functions environment
+  if (exists(methodName, envir = .openCyto_plugin_functions, inherits = FALSE)) {
+    rm(list = methodName, envir = .openCyto_plugin_functions)
+  }
   
-  lockEnvironment(ENV)
   return(TRUE)
 }
 

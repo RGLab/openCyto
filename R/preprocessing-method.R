@@ -101,7 +101,7 @@ update_list <- function (x, val)
     # construct method call
     thisCall <- substitute(f1())
     thisCall[["X"]] <- quote(fslist)  #set data
-    thisCall[["FUN"]] <- as.symbol(ppm)  #set gating method
+    thisCall[["FUN"]] <- .resolve_plugin_function(ppm)  #set gating method
     thisCall[["channel"]] <- channels 
     thisCall[["gs"]] <- y
     thisCall[["gm"]] <- gm
