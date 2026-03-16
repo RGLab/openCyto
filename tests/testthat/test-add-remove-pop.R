@@ -28,9 +28,9 @@ test_that("gs_remove_gating_method testing", {
   gs_remove_gating_method(gs)
   gs_remove_gating_method(gs)
 
-  # Just to prevent GatingSetList constructor from protesting overlapping samples
+  # Just to prevent merge_list_to_gs constructor from protesting overlapping samples
   sampleNames(gs2) <- "CytoTrol_Cytotrol_2.fcs"
-  gslist <- GatingSetList(list(gs1, gs2))
+  gslist <- merge_list_to_gs(list(gs1, gs2))
 
   expect_equal(gs_get_pop_paths(gslist[[1]]), snapshot_pre)
   gs_add_gating_method(gslist, alias = "*", pop = "+/-", parent = "/not debris", dims = "CD4", gating_method = "mindensity")
